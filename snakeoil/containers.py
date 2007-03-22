@@ -1,4 +1,4 @@
-# Copyright: 2005-2006 Brian Harring <ferringb@gmail.com>
+# Copyright: 2005-2007 Brian Harring <ferringb@gmail.com>
 # License: GPL2
 # $Id:$
 
@@ -6,6 +6,12 @@
 """
 collection of container classes
 """
+
+from snakeoil.demandload import demandload
+demandload(globals(),
+    "snakeoil.lists:iter_stable_unique "
+    "itertools:chain "
+)
 
 class InvertedContains(set):
 
@@ -111,6 +117,9 @@ class LimitedChangeSet(object):
             return self._new == other
         return False
 
+    def __ne__(self, other):
+        return not (self == other)
+
 
 class Unchangable(Exception):
 
@@ -132,6 +141,9 @@ class ProtectedSet(object):
 
     def __contains__(self, key):
         return key in self._orig or key in self._new
+
+    def __iter__(self):
+        return iter_stable_unique(chain(self._new, self._orig))
 
     def __len__(self):
         return len(self._orig.union(self._new))

@@ -1,4 +1,4 @@
-# Copyright 2004-2006 Brian Harring <ferringb@gmail.com>
+# Copyright 2004-2007 Brian Harring <ferringb@gmail.com>
 # Copyright 2006 Marien Zwart <marienz@gentoo.org>
 # Distributed under the terms of the GNU General Public License v2
 
@@ -11,13 +11,17 @@ import os, stat
 import fcntl
 import errno
 
+__all__ = ['abspath', 'abssymlink', 'ensure_dirs', 'join', 'pjoin', 'listdir_files',
+    'listdir_dirs', 'listdir', 'readlines', 'readfile']
+
+
 # No name '_readdir' in module osutils
 # pylint: disable-msg=E0611
 
 try:
-    from pkgcore.util.osutils import _readdir as module
+    from snakeoil.osutils import _readdir as module
 except ImportError:
-    from pkgcore.util.osutils import native_readdir as module
+    from snakeoil.osutils import native_readdir as module
 
 listdir = module.listdir
 listdir_dirs = module.listdir_dirs
@@ -110,6 +114,10 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0777, minimal=True):
 def abssymlink(symlink):
     """
     Read a symlink, resolving if it is relative, returning the absolute.
+    If the path doesn't exist, OSError is thrown.
+
+    @param symlink: filepath to resolve
+    @return: resolve path.
     """
     mylink = os.readlink(symlink)
     if mylink[0] != '/':
@@ -117,7 +125,18 @@ def abssymlink(symlink):
         mylink = mydir+"/"+mylink
     return os.path.normpath(mylink)
 
+
 def abspath(path):
+    """
+    resolve a path absolutely, including symlink resolving.
+    Throws OSError if the path doesn't exist
+
+    Note that if it's a symlink and the target doesn't exist, it'll still
+    return the target.
+
+    @param path: filepath to resolve.
+    @return: resolve path
+    """
     path = os.path.abspath(path)
     try:
         return abssymlink(path)
@@ -125,6 +144,7 @@ def abspath(path):
         if e.errno == errno.EINVAL:
             return path
         raise
+
 
 def native_normpath(mypath):
     """
@@ -140,6 +160,7 @@ native_join = os.path.join
 def native_readfile(mypath, none_on_missing=False):
     """
     read a file, returning the contents
+
     @param mypath: fs path for the file to read
     @param none_on_missing: whether to return None if the file is missing,
         else through the exception
@@ -150,6 +171,17 @@ def native_readfile(mypath, none_on_missing=False):
         if none_on_missing and oe.errno == errno.ENOENT:
             return None
         raise
+
+
+class readlines_iter(object):
+    __slots__ = ("iterable", "mtime")
+    def __init__(self, iterable, mtime):
+        self.iterable = iterable
+        self.mtime = mtime
+
+    def __iter__(self):
+        return self.iterable
+
 
 def native_readlines(mypath, strip_newlines=True, swallow_missing=False,
     none_on_missing=False):
@@ -169,15 +201,16 @@ def native_readlines(mypath, strip_newlines=True, swallow_missing=False,
             raise
         if none_on_missing:
             return None
-        return iter([])
+        return readlines_iter(iter([]), None)
 
     if not strip_newlines:
-        return f
-    return (x.rstrip("\n") for x in f)
+        return readlines_iter(f, os.fstat(f.fileno()).st_mtime)
+
+    return readlines_iter((x.strip("\n") for x in f), os.fstat(f.fileno()).st_mtime)
 
 
 try:
-    from pkgcore.util.osutils._posix import normpath, join, readfile, readlines
+    from snakeoil.osutils._posix import normpath, join, readfile, readlines
 except ImportError:
     normpath = native_normpath
     join = native_join

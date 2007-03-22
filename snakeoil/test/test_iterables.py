@@ -1,6 +1,8 @@
 # Copyright: 2006 Brian Harring <ferringb@gmail.com>
 # License: GPL2
 
+import operator
+
 from snakeoil.test import TestCase
 from snakeoil.iterables import expandable_chain, caching_iter, iter_sort
 
@@ -37,7 +39,7 @@ class ExpandableChainTest(TestCase):
         e = expandable_chain(xrange(10, 20))
         e.appendleft(xrange(10))
         self.assertEquals(list(e), range(20))
-        self.assertRaises(StopIteration, e.append, [])
+        self.assertRaises(StopIteration, e.appendleft, [])
 
 
 class CachingIterTest(TestCase):
@@ -73,7 +75,10 @@ class CachingIterTest(TestCase):
                           hash(tuple(range(100))))
 
     def test_nonzero(self):
-        self.assertEquals(bool(caching_iter(xrange(100))), True)
+        c = caching_iter(xrange(100))
+        self.assertEquals(bool(c), True)
+        # repeat to check if it works when cached.
+        self.assertEquals(bool(c), True)
         self.assertEquals(bool(caching_iter(iter([]))), False)
 
     def test_cmp(self):
@@ -89,11 +94,29 @@ class CachingIterTest(TestCase):
         c = caching_iter(xrange(100, 0, -1), sorted)
         self.assertTrue(c)
         self.assertEquals(c, tuple(xrange(1, 101)))
+        c = caching_iter(xrange(50, 0, -1), sorted)
+        self.assertEqual(c[10], 11)
+        self.assertEqual(tuple(xrange(1, 51)), c)
+
+    def test_getitem(self):
+        c = caching_iter(xrange(20))
+        self.assertEqual(19, c[-1])
+        self.assertRaises(IndexError, operator.getitem, c, -21)
+        self.assertRaises(IndexError, operator.getitem, c, 21)
+
+    def test_setitem(self):
+        self.assertRaises(
+            TypeError, operator.setitem, caching_iter(xrange(10)), 3, 4)
+
+    def test_str(self):
+        # Just make sure this works at all.
+        self.assertTrue(str(caching_iter(xrange(10))))
 
 
 class iter_sortTest(TestCase):
     def test_ordering(self):
-        f = lambda l: sorted(l, key=lambda x:x[0])
+        def f(l):
+            return sorted(l, key=operator.itemgetter(0))
         self.assertEquals(
             list(iter_sort(
                     f, *[iter(xrange(x, x+10)) for x in (30, 20, 0, 10)])),

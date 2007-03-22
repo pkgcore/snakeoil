@@ -1,9 +1,9 @@
 /*
- * Copyright: 2006 Brian Harring <ferringb@gmail.com>
+ * Copyright: 2006-2007 Brian Harring <ferringb@gmail.com>
  * Copyright: 2006 Marien Zwart <marienz@gentoo.org>
  * License: GPL2
  *
- * C version of some of pkgcore (for extra speed).
+ * C version of some of snakeoil (for extra speed).
  */
 
 /* This does not really do anything since we do not use the "#"
@@ -14,9 +14,9 @@
 #define PY_SSIZE_T_CLEAN
 
 #include <Python.h>
-#include "py24-compatibility.h"
+#include "snakeoil/py24-compatibility.h"
 
-static PyObject *pkgcore_caching_disable_str = NULL;
+static PyObject *snakeoil_caching_disable_str = NULL;
 
 /*
  * WeakValFinalizer: holds a reference to a dict and key,
@@ -42,10 +42,10 @@ typedef struct {
     PyObject_HEAD
     PyObject *dict;
     PyObject *key;
-} pkgcore_WeakValFinalizer;
+} snakeoil_WeakValFinalizer;
 
 static void
-pkgcore_WeakValFinalizer_dealloc(pkgcore_WeakValFinalizer *self)
+snakeoil_WeakValFinalizer_dealloc(snakeoil_WeakValFinalizer *self)
 {
     Py_CLEAR(self->dict);
     Py_CLEAR(self->key);
@@ -53,7 +53,7 @@ pkgcore_WeakValFinalizer_dealloc(pkgcore_WeakValFinalizer *self)
 }
 
 static PyObject *
-pkgcore_WeakValFinalizer_call(pkgcore_WeakValFinalizer *self,
+snakeoil_WeakValFinalizer_call(snakeoil_WeakValFinalizer *self,
     PyObject *args, PyObject *kwargs)
 {
     /* We completely ignore whatever arguments are passed to us
@@ -64,8 +64,8 @@ pkgcore_WeakValFinalizer_call(pkgcore_WeakValFinalizer *self,
 }
 
 static int
-pkgcore_WeakValFinalizer_traverse(
-    pkgcore_WeakValFinalizer *self, visitproc visit, void *arg)
+snakeoil_WeakValFinalizer_traverse(
+    snakeoil_WeakValFinalizer *self, visitproc visit, void *arg)
 {
     Py_VISIT(self->dict);
     Py_VISIT(self->key);
@@ -73,21 +73,21 @@ pkgcore_WeakValFinalizer_traverse(
 }
 
 static int
-pkgcore_WeakValFinalizer_heapyrelate(NyHeapRelate *r)
+snakeoil_WeakValFinalizer_heapyrelate(NyHeapRelate *r)
 {
-    pkgcore_WeakValFinalizer *v = (pkgcore_WeakValFinalizer*)r->src;
+    snakeoil_WeakValFinalizer *v = (snakeoil_WeakValFinalizer*)r->src;
     INTERATTR(dict);
     INTERATTR(key);
     return 0;
 }
 
-static PyTypeObject pkgcore_WeakValFinalizerType = {
+static PyTypeObject snakeoil_WeakValFinalizerType = {
     PyObject_HEAD_INIT(NULL)
     0,                                               /* ob_size */
-    "pkgcore.util._caching.WeakValFinalizer",        /* tp_name */
-    sizeof(pkgcore_WeakValFinalizer),                /* tp_basicsize */
+    "snakeoil.util._caching.WeakValFinalizer",        /* tp_name */
+    sizeof(snakeoil_WeakValFinalizer),                /* tp_basicsize */
     0,                                               /* tp_itemsize */
-    (destructor)pkgcore_WeakValFinalizer_dealloc,    /* tp_dealloc */
+    (destructor)snakeoil_WeakValFinalizer_dealloc,    /* tp_dealloc */
     0,                                               /* tp_print */
     0,                                               /* tp_getattr */
     0,                                               /* tp_setattr */
@@ -97,23 +97,23 @@ static PyTypeObject pkgcore_WeakValFinalizerType = {
     0,                                               /* tp_as_sequence */
     0,                                               /* tp_as_mapping */
     0,                                               /* tp_hash  */
-    (ternaryfunc)pkgcore_WeakValFinalizer_call,      /* tp_call */
+    (ternaryfunc)snakeoil_WeakValFinalizer_call,      /* tp_call */
     (reprfunc)0,                                     /* tp_str */
     0,                                               /* tp_getattro */
     0,                                               /* tp_setattro */
     0,                                               /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,         /* tp_flags */
     "WeakValFinalizer objects",                      /* tp_doc */
-    (traverseproc)pkgcore_WeakValFinalizer_traverse, /* tp_traverse */
+    (traverseproc)snakeoil_WeakValFinalizer_traverse, /* tp_traverse */
 };
 
-static pkgcore_WeakValFinalizer *
-pkgcore_WeakValFinalizer_create(PyObject *dict, PyObject *key)
+static snakeoil_WeakValFinalizer *
+snakeoil_WeakValFinalizer_create(PyObject *dict, PyObject *key)
 {
-    pkgcore_WeakValFinalizer *finalizer = PyObject_GC_New(
-        pkgcore_WeakValFinalizer, &pkgcore_WeakValFinalizerType);
+    snakeoil_WeakValFinalizer *finalizer = PyObject_GC_New(
+        snakeoil_WeakValFinalizer, &snakeoil_WeakValFinalizerType);
 
-    if (NULL == finalizer)
+    if (!finalizer)
         return NULL;
 
     Py_INCREF(dict);
@@ -129,15 +129,15 @@ pkgcore_WeakValFinalizer_create(PyObject *dict, PyObject *key)
 typedef struct {
     PyObject_HEAD
     PyObject *dict;
-} pkgcore_WeakValCache;
+} snakeoil_WeakValCache;
 
 static PyObject *
-pkgcore_WeakValCache_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+snakeoil_WeakValCache_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-    pkgcore_WeakValCache *self;
-    self = (pkgcore_WeakValCache *)type->tp_alloc(type, 0);
+    snakeoil_WeakValCache *self;
+    self = (snakeoil_WeakValCache *)type->tp_alloc(type, 0);
     if(!self)
-        return (PyObject *)NULL;
+        return NULL;
     self->dict = PyDict_New();
     if(!self->dict) {
         Py_DECREF(self);
@@ -147,63 +147,53 @@ pkgcore_WeakValCache_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 }
 
 static int
-pkgcore_WeakValCache_traverse(
-    pkgcore_WeakValCache *self, visitproc visit, void *arg)
+snakeoil_WeakValCache_traverse(
+    snakeoil_WeakValCache *self, visitproc visit, void *arg)
 {
     Py_VISIT(self->dict);
     return 0;
 }
 
 static int
-pkgcore_WeakValCache_heapyrelate(NyHeapRelate *r)
+snakeoil_WeakValCache_heapyrelate(NyHeapRelate *r)
 {
-    pkgcore_WeakValCache *v = (pkgcore_WeakValCache*) r->src;
+    snakeoil_WeakValCache *v = (snakeoil_WeakValCache*) r->src;
     INTERATTR(dict);
     return 0;
 }
 
 static int
-pkgcore_WeakValCache_clear(pkgcore_WeakValCache *self)
+snakeoil_WeakValCache_clear(snakeoil_WeakValCache *self)
 {
-    /* TODO someone who understands python gc should check if the
-     * following logic makes sense. --marienz
-     *
-     * We could simply Py_CLEAR(self->dict) here but since we must be
-     * in a mostly sane state (at least not segfault) after _clear
-     * that would mean a lot of extra NULL checks in our methods.
-     * Since we only need to clear references that "may have created
-     * cycles" and we should have the only reference to self->dict
-     * ourself just clearing the dict contents should suffice.
-     */
     PyDict_Clear(self->dict);
     return 0;
 }
 
 static PyObject *
-pkgcore_WeakValCache_clear_method(pkgcore_WeakValCache *self)
+snakeoil_WeakValCache_clear_method(snakeoil_WeakValCache *self)
 {
-    pkgcore_WeakValCache_clear(self);
+    snakeoil_WeakValCache_clear(self);
     Py_RETURN_NONE;
 }
 
 static void
-pkgcore_WeakValCache_dealloc(pkgcore_WeakValCache *self)
+snakeoil_WeakValCache_dealloc(snakeoil_WeakValCache *self)
 {
     Py_CLEAR(self->dict);
     self->ob_type->tp_free((PyObject *)self);
 }
 
 static Py_ssize_t
-pkgcore_WeakValCache_len(pkgcore_WeakValCache *self)
+snakeoil_WeakValCache_len(snakeoil_WeakValCache *self)
 {
     return PyDict_Size(self->dict);
 }
 
 static int
-pkgcore_WeakValCache_setitem(pkgcore_WeakValCache *self, PyObject *key,
+snakeoil_WeakValCache_setitem(snakeoil_WeakValCache *self, PyObject *key,
     PyObject *val)
 {
-    if(NULL == val) {
+    if(!val) {
         return PyDict_SetItem(self->dict, (PyObject*)key, (PyObject*)val);
     }
     if(PyWeakref_Check(val)) {
@@ -211,30 +201,29 @@ pkgcore_WeakValCache_setitem(pkgcore_WeakValCache *self, PyObject *key,
         return -1;
     }
 
-    pkgcore_WeakValFinalizer *finalizer = pkgcore_WeakValFinalizer_create(
-        self->dict, key);
-    if (!finalizer)
-        return -1;
-
-    PyObject *weakref = PyWeakref_NewRef(val, (PyObject*)finalizer);
-    Py_DECREF(finalizer);
     int ret = -1;
-    if (weakref) {
-        ret = PyDict_SetItem(self->dict, key, (PyObject*)weakref);
-        Py_DECREF(weakref);
+    snakeoil_WeakValFinalizer *finalizer = snakeoil_WeakValFinalizer_create(
+        self->dict, key);
+    if (finalizer) {
+        PyObject *weakref = PyWeakref_NewRef(val, (PyObject*)finalizer);
+        Py_DECREF(finalizer);
+        if (weakref) {
+            ret = PyDict_SetItem(self->dict, key, (PyObject*)weakref);
+            Py_DECREF(weakref);
+        }
     }
     return ret;
 }
 
 PyObject *
-pkgcore_WeakValCache_getitem(pkgcore_WeakValCache *self, PyObject *key)
+snakeoil_WeakValCache_getitem(snakeoil_WeakValCache *self, PyObject *key)
 {
     PyObject *resobj, *actual = NULL;
     resobj = PyDict_GetItem(self->dict, key);
     if(resobj) {
         actual = PyWeakref_GetObject(resobj);
         if (actual == Py_None) {
-            // PyWeakref_GetObject returns a borrowed reference, do not 
+            // PyWeakref_GetObject returns a borrowed reference, do not
             // clear it
             actual = NULL;
             /* wipe the weakref err */
@@ -253,23 +242,23 @@ pkgcore_WeakValCache_getitem(pkgcore_WeakValCache *self, PyObject *key)
 }
 
 static PyObject *
-pkgcore_WeakValCache_get(pkgcore_WeakValCache *self, PyObject *args)
+snakeoil_WeakValCache_get(snakeoil_WeakValCache *self, PyObject *args)
 {
     Py_ssize_t size = PyTuple_Size(args);
-    if(size == -1)
+    if(-1 == size)
         return NULL;
     PyObject *key, *resobj;
     if(size < 1 || size > 2) {
         PyErr_SetString(PyExc_TypeError,
             "get requires one arg (key), with optional default to return");
-        return (PyObject *)NULL;
+        return NULL;
     }
     key = PyTuple_GET_ITEM(args, 0);
     if(!key) {
         assert(PyErr_Occurred());
-        return (PyObject *)NULL;
+        return NULL;
     }
-    
+
     PyErr_Clear();
     resobj = PyObject_GetItem((PyObject *)self, key);
     if(resobj) {
@@ -291,30 +280,30 @@ pkgcore_WeakValCache_get(pkgcore_WeakValCache *self, PyObject *args)
     return resobj;
 }
 
-static PyMappingMethods pkgcore_WeakValCache_as_mapping = {
-    (lenfunc)pkgcore_WeakValCache_len,               /* len() */
-    (binaryfunc)pkgcore_WeakValCache_getitem,        /* getitem */
-    (objobjargproc)pkgcore_WeakValCache_setitem,     /* setitem */
-};		
+static PyMappingMethods snakeoil_WeakValCache_as_mapping = {
+    (lenfunc)snakeoil_WeakValCache_len,               /* len() */
+    (binaryfunc)snakeoil_WeakValCache_getitem,        /* getitem */
+    (objobjargproc)snakeoil_WeakValCache_setitem,     /* setitem */
+};
 
 
-static PyMethodDef pkgcore_WeakValCache_methods[] = {
-    {"get", (PyCFunction)pkgcore_WeakValCache_get, METH_VARARGS,
+static PyMethodDef snakeoil_WeakValCache_methods[] = {
+    {"get", (PyCFunction)snakeoil_WeakValCache_get, METH_VARARGS,
         "get(key, default=None)"},
-    {"clear", (PyCFunction)pkgcore_WeakValCache_clear_method, METH_NOARGS,
+    {"clear", (PyCFunction)snakeoil_WeakValCache_clear_method, METH_NOARGS,
         "clear()"},
     {NULL}
 };
 
 /* WeakValCache; simplified WeakValDictionary. */
 
-static PyTypeObject pkgcore_WeakValCacheType = {
+static PyTypeObject snakeoil_WeakValCacheType = {
     PyObject_HEAD_INIT(NULL)
     0,                                               /* ob_size */
-    "pkgcore.util._caching.WeakValCache",            /* tp_name */
-    sizeof(pkgcore_WeakValCache),                    /* tp_basicsize */
+    "snakeoil.util._caching.WeakValCache",            /* tp_name */
+    sizeof(snakeoil_WeakValCache),                    /* tp_basicsize */
     0,                                               /* tp_itemsize */
-    (destructor)pkgcore_WeakValCache_dealloc,        /* tp_dealloc */
+    (destructor)snakeoil_WeakValCache_dealloc,        /* tp_dealloc */
     0,                                               /* tp_print */
     0,                                               /* tp_getattr */
     0,                                               /* tp_setattr */
@@ -322,7 +311,7 @@ static PyTypeObject pkgcore_WeakValCacheType = {
     0,                                               /* tp_repr */
     0,                                               /* tp_as_number */
     0,                                               /* tp_as_sequence */
-    &pkgcore_WeakValCache_as_mapping,                /* tp_as_mapping */
+    &snakeoil_WeakValCache_as_mapping,                /* tp_as_mapping */
     0,                                               /* tp_hash  */
     0,                                               /* tp_call */
     (reprfunc)0,                                     /* tp_str */
@@ -331,13 +320,13 @@ static PyTypeObject pkgcore_WeakValCacheType = {
     0,                                               /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,         /* tp_flags */
     0,                                               /* tp_doc */
-    (traverseproc)pkgcore_WeakValCache_traverse,     /* tp_traverse */
-    (inquiry)pkgcore_WeakValCache_clear,             /* tp_clear */
+    (traverseproc)snakeoil_WeakValCache_traverse,     /* tp_traverse */
+    (inquiry)snakeoil_WeakValCache_clear,             /* tp_clear */
     0,                                               /* tp_richcompare */
     0,                                               /* tp_weaklistoffset */
     0,                                               /* tp_iter */
     0,                                               /* tp_iternext */
-    pkgcore_WeakValCache_methods,                    /* tp_methods */
+    snakeoil_WeakValCache_methods,                    /* tp_methods */
     0,                                               /* tp_members */
     0,                                               /* tp_getset */
     0,                                               /* tp_base */
@@ -347,7 +336,7 @@ static PyTypeObject pkgcore_WeakValCacheType = {
     0,                                               /* tp_dictoffset */
     0,                                               /* tp_init */
     0,                                               /* tp_alloc */
-    pkgcore_WeakValCache_new,                        /* tp_new */
+    snakeoil_WeakValCache_new,                        /* tp_new */
 };
 
 
@@ -357,19 +346,19 @@ typedef struct {
     PyHeapTypeObject type;
     PyObject *inst_dict;
     int inst_caching;
-} pkgcore_WeakInstMeta;
+} snakeoil_WeakInstMeta;
 
 static void
-pkgcore_WeakInstMeta_dealloc(pkgcore_WeakInstMeta* self)
+snakeoil_WeakInstMeta_dealloc(snakeoil_WeakInstMeta* self)
 {
     Py_CLEAR(self->inst_dict);
     ((PyObject*)self)->ob_type->tp_free((PyObject *)self);
 }
 
-static PyTypeObject pkgcore_WeakInstMetaType;
+static PyTypeObject snakeoil_WeakInstMetaType;
 
 static PyObject *
-pkgcore_WeakInstMeta_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+snakeoil_WeakInstMeta_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 {
     const char *name;
     PyTupleObject *bases;
@@ -436,8 +425,8 @@ pkgcore_WeakInstMeta_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
         }
     }
 
-    pkgcore_WeakInstMeta *self;
-    self = (pkgcore_WeakInstMeta*)PyType_Type.tp_new(type, args, kwargs);
+    snakeoil_WeakInstMeta *self;
+    self = (snakeoil_WeakInstMeta*)PyType_Type.tp_new(type, args, kwargs);
     if (!self)
         return NULL;
 
@@ -454,7 +443,7 @@ pkgcore_WeakInstMeta_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 
 
 static PyObject *
-pkgcore_WeakInstMeta_call(pkgcore_WeakInstMeta *self,
+snakeoil_WeakInstMeta_call(snakeoil_WeakInstMeta *self,
     PyObject *args, PyObject *kwargs)
 {
     PyObject *key, *kwlist, *kwtuple, *resobj = NULL;
@@ -466,13 +455,13 @@ pkgcore_WeakInstMeta_call(pkgcore_WeakInstMeta *self,
     Py_ssize_t len = kwargs ? PyDict_Size(kwargs) : 0;
     if (len) {
         /* If disable_inst_caching=True is passed pop it and disable caching */
-        PyObject *obj = PyDict_GetItem(kwargs, pkgcore_caching_disable_str);
+        PyObject *obj = PyDict_GetItem(kwargs, snakeoil_caching_disable_str);
         if (obj) {
             result = PyObject_IsTrue(obj);
             if (result < 0)
                 return NULL;
 
-            if (PyDict_DelItem(kwargs, pkgcore_caching_disable_str))
+            if (PyDict_DelItem(kwargs, snakeoil_caching_disable_str))
                 return NULL;
 
             if (result)
@@ -529,7 +518,7 @@ pkgcore_WeakInstMeta_call(pkgcore_WeakInstMeta *self,
         return NULL;
     }
 
-    pkgcore_WeakValFinalizer *finalizer = pkgcore_WeakValFinalizer_create(
+    snakeoil_WeakValFinalizer *finalizer = snakeoil_WeakValFinalizer_create(
         self->inst_dict, key);
     if (!finalizer) {
         Py_DECREF(key);
@@ -580,7 +569,7 @@ pkgcore_WeakInstMeta_call(pkgcore_WeakInstMeta *self,
 
 
 PyDoc_STRVAR(
-    pkgcore_WeakInstMetaType__doc__,
+    snakeoil_WeakInstMetaType__doc__,
     "metaclass for instance caching, resulting in reuse of unique instances.\n"
     "few notes-\n"
     "  - instances must be immutable (or effectively so). Since creating a\n"
@@ -598,18 +587,18 @@ PyDoc_STRVAR(
     "class itself.\n"
     "\n"
     "Examples of usage are the restriction modules\n"
-    "L{packages<pkgcore.restrictions.packages>} and\n"
-    "L{values<pkgcore.restrictions.values>}\n"
+    "L{packages<snakeoil.restrictions.packages>} and\n"
+    "L{values<snakeoil.restrictions.values>}\n"
     );
 
-static PyTypeObject pkgcore_WeakInstMetaType = {
+static PyTypeObject snakeoil_WeakInstMetaType = {
     PyObject_HEAD_INIT(NULL)
     0,                                               /* ob_size */
-    "pkgcore.util._caching.WeakInstMeta",            /* tp_name */
-    sizeof(pkgcore_WeakInstMeta),                    /* tp_basicsize */
+    "snakeoil.util._caching.WeakInstMeta",            /* tp_name */
+    sizeof(snakeoil_WeakInstMeta),                    /* tp_basicsize */
     0,                                               /* tp_itemsize */
     /* methods */
-    (destructor)pkgcore_WeakInstMeta_dealloc,        /* tp_dealloc */
+    (destructor)snakeoil_WeakInstMeta_dealloc,        /* tp_dealloc */
     (printfunc)0,                                    /* tp_print */
     (getattrfunc)0,                                  /* tp_getattr */
     (setattrfunc)0,                                  /* tp_setattr */
@@ -619,13 +608,13 @@ static PyTypeObject pkgcore_WeakInstMetaType = {
     0,                                               /* tp_as_sequence */
     0,                                               /* tp_as_mapping */
     (hashfunc)0,                                     /* tp_hash */
-    (ternaryfunc)pkgcore_WeakInstMeta_call,          /* tp_call */
+    (ternaryfunc)snakeoil_WeakInstMeta_call,          /* tp_call */
     (reprfunc)0,                                     /* tp_str */
     0,                                               /* tp_getattro */
     0,                                               /* tp_setattro */
     0,                                               /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT,                              /* tp_flags */
-    pkgcore_WeakInstMetaType__doc__,                 /* tp_doc */
+    snakeoil_WeakInstMetaType__doc__,                 /* tp_doc */
     (traverseproc)0,                                 /* tp_traverse */
     (inquiry)0,                                      /* tp_clear */
     (richcmpfunc)0,                                  /* tp_richcompare */
@@ -642,24 +631,24 @@ static PyTypeObject pkgcore_WeakInstMetaType = {
     0,                                               /* tp_dictoffset */
     (initproc)0,                                     /* tp_init */
     0,                                               /* tp_alloc */
-    pkgcore_WeakInstMeta_new,                        /* tp_new */
+    snakeoil_WeakInstMeta_new,                        /* tp_new */
 };
 
 
-static NyHeapDef pkgcore_caching_heapdefs[] = {
+static NyHeapDef snakeoil_caching_heapdefs[] = {
     {
         0,                            /* flags */
-        &pkgcore_WeakValFinalizerType, /* type */
+        &snakeoil_WeakValFinalizerType, /* type */
         0,                            /* size */
         0,                            /* traverse */
-        pkgcore_WeakValFinalizer_heapyrelate /* relate */
+        snakeoil_WeakValFinalizer_heapyrelate /* relate */
     },
     {
         0,                            /* flags */
-        &pkgcore_WeakValCacheType,    /* type */
+        &snakeoil_WeakValCacheType,    /* type */
         0,                            /* size */
         0,                            /* traverse */
-        pkgcore_WeakValCache_heapyrelate /* relate */
+        snakeoil_WeakValCache_heapyrelate /* relate */
     },
     {0}
 };
@@ -667,51 +656,51 @@ static NyHeapDef pkgcore_caching_heapdefs[] = {
 /* Module initialization */
 
 PyDoc_STRVAR(
-    pkgcore_module_documentation,
-    "C reimplementation of pkgcore.util.caching.");
+    snakeoil_module_documentation,
+    "C reimplementation of snakeoil.util.caching.");
 
 PyMODINIT_FUNC
 init_caching()
 {
     /* Create the module and add the functions */
     PyObject *m = Py_InitModule3(
-        "_caching", NULL, pkgcore_module_documentation);
+        "_caching", NULL, snakeoil_module_documentation);
     if (!m)
         return;
 
-    pkgcore_WeakInstMetaType.tp_base = &PyType_Type;
+    snakeoil_WeakInstMetaType.tp_base = &PyType_Type;
 
-    if (PyType_Ready(&pkgcore_WeakInstMetaType) < 0)
+    if (PyType_Ready(&snakeoil_WeakInstMetaType) < 0)
         return;
 
-    if (PyType_Ready(&pkgcore_WeakValCacheType) < 0)
+    if (PyType_Ready(&snakeoil_WeakValCacheType) < 0)
         return;
 
-    if (PyType_Ready(&pkgcore_WeakValFinalizerType) < 0)
+    if (PyType_Ready(&snakeoil_WeakValFinalizerType) < 0)
         return;
 
-    if (!pkgcore_caching_disable_str) {
-        if (!(pkgcore_caching_disable_str =
+    if (!snakeoil_caching_disable_str) {
+        if (!(snakeoil_caching_disable_str =
             PyString_FromString("disable_inst_caching")))
             /* We can just return here, since the only way to get at
-             * this is through pkgcore_WeakInstMeta_call and that
+             * this is through snakeoil_WeakInstMeta_call and that
              * cannot be accessed yet.
              */
             return;
     }
 
-    Py_INCREF(&pkgcore_WeakInstMetaType);
+    Py_INCREF(&snakeoil_WeakInstMetaType);
     if (PyModule_AddObject(
-            m, "WeakInstMeta", (PyObject *)&pkgcore_WeakInstMetaType) == -1)
+            m, "WeakInstMeta", (PyObject *)&snakeoil_WeakInstMetaType) == -1)
         return;
 
-    Py_INCREF(&pkgcore_WeakValCacheType);
+    Py_INCREF(&snakeoil_WeakValCacheType);
     if (PyModule_AddObject(
-            m, "WeakValCache", (PyObject *)&pkgcore_WeakValCacheType) == -1)
+            m, "WeakValCache", (PyObject *)&snakeoil_WeakValCacheType) == -1)
         return;
 
     PyObject *cobject = PyCObject_FromVoidPtrAndDesc(
-        &pkgcore_caching_heapdefs, "NyHeapDef[] v1.0", 0);
+        &snakeoil_caching_heapdefs, "NyHeapDef[] v1.0", 0);
     if (!cobject)
         return;
 

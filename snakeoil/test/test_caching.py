@@ -149,6 +149,19 @@ def gen_test(WeakInstMeta):
             self.assertIdentical(o, weak_inst(argument=1))
             self.assertNotIdentical(o, weak_inst(argument=2))
 
+        def test_existing_weakref_slot(self):
+            # The actual test is that the class definition works.
+            class ExistingWeakrefSlot(object):
+                __inst_caching__ = True
+                __slots__ = ('one', '__weakref__')
+
+            class Cached(ExistingWeakrefSlot):
+                __metaclass__ = WeakInstMeta
+                __inst_caching__ = True
+                __slots__ = ()
+
+            self.assertTrue(ExistingWeakrefSlot())
+
     # Hack to make it show up with a different name in trial's output
     TestWeakInstMeta.__name__ = WeakInstMeta.__name__ + 'Test'
 

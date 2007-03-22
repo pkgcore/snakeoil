@@ -5,9 +5,6 @@ from snakeoil.test import TestCase
 from snakeoil import currying
 
 
-# Magic to make trial doctest our docstrings.
-__doctests__ = [currying]
-
 def passthrough(*args, **kwargs):
     return args, kwargs
 

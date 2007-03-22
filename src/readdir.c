@@ -1,9 +1,9 @@
 /*
  * Copyright: 2006 Brian Harring <ferringb@gmail.com>
- * Copyright: 2006 Marien Zwart <marienz@gentoo.org>
+ * Copyright: 2006-2007 Marien Zwart <marienz@gentoo.org>
  * License: GPL2
  *
- * C version of some of pkgcore (for extra speed).
+ * C version of some of snakeoil (for extra speed).
  */
 
 /* This does not really do anything since we do not use the "#"
@@ -27,19 +27,19 @@ typedef int Py_ssize_t;
 #include <sys/stat.h>
 
 
-static PyObject *pkgcore_DIRSTR,
-    *pkgcore_CHRSTR,
-    *pkgcore_BLKSTR,
-    *pkgcore_REGSTR,
-    *pkgcore_FIFOSTR,
-    *pkgcore_LNKSTR,
-    *pkgcore_SOCKSTR,
-    *pkgcore_UNKNOWNSTR;
+static PyObject *snakeoil_DIRSTR,
+    *snakeoil_CHRSTR,
+    *snakeoil_BLKSTR,
+    *snakeoil_REGSTR,
+    *snakeoil_FIFOSTR,
+    *snakeoil_LNKSTR,
+    *snakeoil_SOCKSTR,
+    *snakeoil_UNKNOWNSTR;
 
 /* This function does the actual work for listdir_files and listdir_dirs. */
 
 static PyObject*
-pkgcore_readdir_actual_listdir(const char* path, int followsyms,
+snakeoil_readdir_actual_listdir(const char* path, int followsyms,
     int dkind, int skind)
 {
     DIR *the_dir;
@@ -66,9 +66,9 @@ pkgcore_readdir_actual_listdir(const char* path, int followsyms,
         }
         if (entry->d_type == DT_UNKNOWN ||
             (followsyms && entry->d_type == DT_LNK)) {
-            
+
             /* both path components, the "/", the trailing null */
-            
+
             size_t size = pathlen + strlen(name) + 2;
             char *buffer = (char *) malloc(size);
             if (!buffer) {
@@ -123,7 +123,7 @@ pkgcore_readdir_actual_listdir(const char* path, int followsyms,
 }
 
 static PyObject*
-pkgcore_readdir_listdir_dirs(PyObject* self, PyObject* args)
+snakeoil_readdir_listdir_dirs(PyObject* self, PyObject* args)
 {
     char *path;
     PyObject *follow_symlinks_obj = Py_True;
@@ -137,12 +137,12 @@ pkgcore_readdir_listdir_dirs(PyObject* self, PyObject* args)
         return NULL;
     }
 
-    return pkgcore_readdir_actual_listdir(path, follow_symlinks,
+    return snakeoil_readdir_actual_listdir(path, follow_symlinks,
         DT_DIR, S_IFDIR);
 }
 
 static PyObject*
-pkgcore_readdir_listdir_files(PyObject* self, PyObject* args)
+snakeoil_readdir_listdir_files(PyObject* self, PyObject* args)
 {
     char *path;
     PyObject *follow_symlinks_obj = Py_True;
@@ -156,12 +156,12 @@ pkgcore_readdir_listdir_files(PyObject* self, PyObject* args)
         return NULL;
     }
 
-    return pkgcore_readdir_actual_listdir(path, follow_symlinks,
+    return snakeoil_readdir_actual_listdir(path, follow_symlinks,
         DT_REG, S_IFREG);
 }
 
 static PyObject*
-pkgcore_readdir_listdir(PyObject* self, PyObject* args)
+snakeoil_readdir_listdir(PyObject* self, PyObject* args)
 {
     char *path;
 
@@ -209,7 +209,7 @@ pkgcore_readdir_listdir(PyObject* self, PyObject* args)
 }
 
 static PyObject*
-pkgcore_readdir_read_dir(PyObject* self, PyObject* args)
+snakeoil_readdir_read_dir(PyObject* self, PyObject* args)
 {
     char *path;
 
@@ -240,25 +240,25 @@ pkgcore_readdir_read_dir(PyObject* self, PyObject* args)
         PyObject *typestr;
         switch (entry->d_type) {
             case DT_REG:
-                typestr = pkgcore_REGSTR;
+                typestr = snakeoil_REGSTR;
                 break;
             case DT_DIR:
-                typestr = pkgcore_DIRSTR;
+                typestr = snakeoil_DIRSTR;
                 break;
             case DT_FIFO:
-                typestr = pkgcore_FIFOSTR;
+                typestr = snakeoil_FIFOSTR;
                 break;
             case DT_SOCK:
-                typestr = pkgcore_SOCKSTR;
+                typestr = snakeoil_SOCKSTR;
                 break;
             case DT_CHR:
-                typestr = pkgcore_CHRSTR;
+                typestr = snakeoil_CHRSTR;
                 break;
             case DT_BLK:
-                typestr = pkgcore_BLKSTR;
+                typestr = snakeoil_BLKSTR;
                 break;
             case DT_LNK:
-                typestr = pkgcore_LNKSTR;
+                typestr = snakeoil_LNKSTR;
                 break;
             case DT_UNKNOWN:
             {
@@ -279,36 +279,36 @@ pkgcore_readdir_read_dir(PyObject* self, PyObject* args)
                 }
                 switch (st.st_mode & S_IFMT) {
                     case S_IFDIR:
-                        typestr = pkgcore_DIRSTR;
+                        typestr = snakeoil_DIRSTR;
                         break;
                     case S_IFCHR:
-                        typestr = pkgcore_CHRSTR;
+                        typestr = snakeoil_CHRSTR;
                         break;
                     case S_IFBLK:
-                        typestr = pkgcore_BLKSTR;
+                        typestr = snakeoil_BLKSTR;
                         break;
                     case S_IFREG:
-                        typestr = pkgcore_REGSTR;
+                        typestr = snakeoil_REGSTR;
                         break;
                     case S_IFLNK:
-                        typestr = pkgcore_LNKSTR;
+                        typestr = snakeoil_LNKSTR;
                         break;
                     case S_IFSOCK:
-                        typestr = pkgcore_SOCKSTR;
+                        typestr = snakeoil_SOCKSTR;
                         break;
                     case S_IFIFO:
-                        typestr = pkgcore_FIFOSTR;
+                        typestr = snakeoil_FIFOSTR;
                         break;
                     default:
                         /* XXX does this make sense? probably not. */
-                        typestr = pkgcore_UNKNOWNSTR;
+                        typestr = snakeoil_UNKNOWNSTR;
                 }
             }
             break;
 
             default:
                 /* XXX does this make sense? probably not. */
-                typestr = pkgcore_UNKNOWNSTR;
+                typestr = snakeoil_UNKNOWNSTR;
         }
 
         PyObject *namestr = PyString_FromString(name);
@@ -343,21 +343,21 @@ pkgcore_readdir_read_dir(PyObject* self, PyObject* args)
 
 /* Module initialization */
 
-static PyMethodDef pkgcore_readdir_methods[] = {
-    {"listdir", (PyCFunction)pkgcore_readdir_listdir, METH_VARARGS,
+static PyMethodDef snakeoil_readdir_methods[] = {
+    {"listdir", (PyCFunction)snakeoil_readdir_listdir, METH_VARARGS,
      "listdir(path, followSymlinks=True, kinds=everything)"},
-    {"listdir_dirs", (PyCFunction)pkgcore_readdir_listdir_dirs, METH_VARARGS,
+    {"listdir_dirs", (PyCFunction)snakeoil_readdir_listdir_dirs, METH_VARARGS,
      "listdir_dirs(path, followSymlinks=True)"},
-    {"listdir_files", (PyCFunction)pkgcore_readdir_listdir_files, METH_VARARGS,
+    {"listdir_files", (PyCFunction)snakeoil_readdir_listdir_files, METH_VARARGS,
      "listdir_files(path, followSymlinks=True)"},
-    {"readdir", (PyCFunction)pkgcore_readdir_read_dir, METH_VARARGS,
+    {"readdir", (PyCFunction)snakeoil_readdir_read_dir, METH_VARARGS,
      "read_dir(path)"},
     {NULL}
 };
 
 PyDoc_STRVAR(
-    pkgcore_module_documentation,
-    "C reimplementation of some of pkgcore.util.osutils");
+    snakeoil_module_documentation,
+    "C reimplementation of some of snakeoil.util.osutils");
 
 PyMODINIT_FUNC
 init_readdir()
@@ -365,31 +365,31 @@ init_readdir()
     PyObject *m;
 
     /* XXX we have to initialize these before we call InitModule3 because
-     * the pkgcore_readdir_methods use them, which screws up error handling.
+     * the snakeoil_readdir_methods use them, which screws up error handling.
      */
-    pkgcore_DIRSTR = PyString_FromString("directory");
-    pkgcore_CHRSTR = PyString_FromString("chardev");
-    pkgcore_BLKSTR = PyString_FromString("block");
-    pkgcore_REGSTR = PyString_FromString("file");
-    pkgcore_FIFOSTR = PyString_FromString("fifo");
-    pkgcore_LNKSTR = PyString_FromString("symlink");
-    pkgcore_SOCKSTR = PyString_FromString("socket");
-    pkgcore_UNKNOWNSTR = PyString_FromString("unknown");
+    snakeoil_DIRSTR = PyString_FromString("directory");
+    snakeoil_CHRSTR = PyString_FromString("chardev");
+    snakeoil_BLKSTR = PyString_FromString("block");
+    snakeoil_REGSTR = PyString_FromString("file");
+    snakeoil_FIFOSTR = PyString_FromString("fifo");
+    snakeoil_LNKSTR = PyString_FromString("symlink");
+    snakeoil_SOCKSTR = PyString_FromString("socket");
+    snakeoil_UNKNOWNSTR = PyString_FromString("unknown");
 
-    if (!(pkgcore_DIRSTR &&
-          pkgcore_CHRSTR &&
-          pkgcore_BLKSTR &&
-          pkgcore_REGSTR &&
-          pkgcore_FIFOSTR &&
-          pkgcore_LNKSTR &&
-          pkgcore_SOCKSTR &&
-          pkgcore_UNKNOWNSTR)) {
+    if (!(snakeoil_DIRSTR &&
+          snakeoil_CHRSTR &&
+          snakeoil_BLKSTR &&
+          snakeoil_REGSTR &&
+          snakeoil_FIFOSTR &&
+          snakeoil_LNKSTR &&
+          snakeoil_SOCKSTR &&
+          snakeoil_UNKNOWNSTR)) {
         Py_FatalError("Can't initialize module _readdir (strings)");
     }
 
     /* Create the module and add the functions */
-    m = Py_InitModule3("_readdir", pkgcore_readdir_methods,
-                       pkgcore_module_documentation);
+    m = Py_InitModule3("_readdir", snakeoil_readdir_methods,
+                       snakeoil_module_documentation);
     if (!m)
         return;
 

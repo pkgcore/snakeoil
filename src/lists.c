@@ -2,7 +2,7 @@
  * Copyright: 2006 Marien Zwart <marienz@gentoo.org>
  * License: GPL2
  *
- * C version of some of pkgcore (for extra speed).
+ * C version of some of snakeoil (for extra speed).
  */
 
 /* This does not really do anything since we do not use the "#"
@@ -13,7 +13,7 @@
 #define PY_SSIZE_T_CLEAN
 
 #include "Python.h"
-#include "py24-compatibility.h"
+#include "snakeoil/py24-compatibility.h"
 
 
 /* Helper functions */
@@ -40,10 +40,10 @@ typedef struct {
     PyObject *skip_func;
     PyObject *iterables;
     char in_iternext;
-} pkgcore_iflatten_func;
+} snakeoil_iflatten_func;
 
 static void
-pkgcore_iflatten_func_dealloc(pkgcore_iflatten_func *self)
+snakeoil_iflatten_func_dealloc(snakeoil_iflatten_func *self)
 {
     Py_CLEAR(self->skip_func);
     Py_CLEAR(self->iterables);
@@ -51,10 +51,10 @@ pkgcore_iflatten_func_dealloc(pkgcore_iflatten_func *self)
 }
 
 static PyObject *
-pkgcore_iflatten_func_new(PyTypeObject *type,
+snakeoil_iflatten_func_new(PyTypeObject *type,
                               PyObject *args, PyObject *kwargs)
 {
-    pkgcore_iflatten_func *self;
+    snakeoil_iflatten_func *self;
     PyObject *l=NULL, *skip_func=NULL, *tmp;
     int res;
 
@@ -72,11 +72,21 @@ pkgcore_iflatten_func_new(PyTypeObject *type,
     if (!tmp) {
         return NULL;
     }
-    res = PyObject_IsTrue(tmp);
+    // Py_(True|False) are singletons, thus we're trying to bypass
+    // the PyObject_IsTrue triggering __nonzero__ protocol.
+    if(tmp == Py_True) {
+        res = 1;
+    } else if (tmp == Py_False) {
+        res = 0;
+    } else {
+        res = PyObject_IsTrue(tmp);
+        if(res == -1) {
+            Py_DECREF(tmp);
+            return NULL;
+        }
+    }
     Py_DECREF(tmp);
-    if (res == -1) {
-        return NULL;
-    } else if (res) {
+    if (res) {
         PyObject *tuple = PyTuple_Pack(1, l);
         if (!tuple) {
             return NULL;
@@ -86,7 +96,7 @@ pkgcore_iflatten_func_new(PyTypeObject *type,
         return iter;
     }
 
-    self = (pkgcore_iflatten_func *)type->tp_alloc(type, 0);
+    self = (snakeoil_iflatten_func *)type->tp_alloc(type, 0);
     if (!self)
         return NULL;
 
@@ -104,7 +114,7 @@ pkgcore_iflatten_func_new(PyTypeObject *type,
 }
 
 static PyObject *
-pkgcore_iflatten_func_iternext(pkgcore_iflatten_func *self) {
+snakeoil_iflatten_func_iternext(snakeoil_iflatten_func *self) {
     PyObject *tail, *result, *tmp;
     int res;
     Py_ssize_t n;
@@ -192,20 +202,20 @@ pkgcore_iflatten_func_iternext(pkgcore_iflatten_func *self) {
 }
 
 PyDoc_STRVAR(
-    pkgcore_iflatten_func_documentation,
+    snakeoil_iflatten_func_documentation,
     "iflatten_func(iters, func): collapse [(1),2] into [1,2]\n"
     "\n"
     "func is called with one argument and should return true if this \n"
     "should not be iterated over.\n"
     );
 
-static PyTypeObject pkgcore_iflatten_func_type = {
+static PyTypeObject snakeoil_iflatten_func_type = {
     PyObject_HEAD_INIT(NULL)
     0,                                               /* ob_size*/
-    "pkgcore.util._lists.iflatten_func",             /* tp_name*/
-    sizeof(pkgcore_iflatten_func),                   /* tp_basicsize*/
+    "snakeoil.util._lists.iflatten_func",             /* tp_name*/
+    sizeof(snakeoil_iflatten_func),                   /* tp_basicsize*/
     0,                                               /* tp_itemsize*/
-    (destructor)pkgcore_iflatten_func_dealloc,       /* tp_dealloc*/
+    (destructor)snakeoil_iflatten_func_dealloc,       /* tp_dealloc*/
     0,                                               /* tp_print*/
     0,                                               /* tp_getattr*/
     0,                                               /* tp_setattr*/
@@ -221,13 +231,13 @@ static PyTypeObject pkgcore_iflatten_func_type = {
     0,                                               /* tp_setattro*/
     0,                                               /* tp_as_buffer*/
     Py_TPFLAGS_DEFAULT,                              /* tp_flags*/
-    pkgcore_iflatten_func_documentation,             /* tp_doc */
+    snakeoil_iflatten_func_documentation,             /* tp_doc */
     (traverseproc)0,                                 /* tp_traverse */
     (inquiry)0,                                      /* tp_clear */
     (richcmpfunc)0,                                  /* tp_richcompare */
     0,                                               /* tp_weaklistoffset */
     (getiterfunc)PyObject_SelfIter,                  /* tp_iter */
-    (iternextfunc)pkgcore_iflatten_func_iternext,    /* tp_iternext */
+    (iternextfunc)snakeoil_iflatten_func_iternext,    /* tp_iternext */
     0,                                               /* tp_methods */
     0,                                               /* tp_members */
     0,                                               /* tp_getset */
@@ -238,7 +248,7 @@ static PyTypeObject pkgcore_iflatten_func_type = {
     0,                                               /* tp_dictoffset */
     (initproc)0,                                     /* tp_init */
     0,                                               /* tp_alloc */
-    pkgcore_iflatten_func_new,                       /* tp_new */
+    snakeoil_iflatten_func_new,                       /* tp_new */
 };
 
 /* iflatten_instance: recursively flatten an iterable
@@ -249,10 +259,10 @@ typedef struct {
     PyObject *skip_flattening;
     PyObject *iterables;
     char in_iternext;
-} pkgcore_iflatten_instance;
+} snakeoil_iflatten_instance;
 
 static void
-pkgcore_iflatten_instance_dealloc(pkgcore_iflatten_instance *self)
+snakeoil_iflatten_instance_dealloc(snakeoil_iflatten_instance *self)
 {
     Py_CLEAR(self->skip_flattening);
     Py_CLEAR(self->iterables);
@@ -260,10 +270,10 @@ pkgcore_iflatten_instance_dealloc(pkgcore_iflatten_instance *self)
 }
 
 static PyObject *
-pkgcore_iflatten_instance_new(PyTypeObject *type,
+snakeoil_iflatten_instance_new(PyTypeObject *type,
                                   PyObject *args, PyObject *kwargs)
 {
-    pkgcore_iflatten_instance *self;
+    snakeoil_iflatten_instance *self;
     PyObject *l=NULL, *skip_flattening=(PyObject*)&PyBaseString_Type;
     int res;
 
@@ -291,7 +301,7 @@ pkgcore_iflatten_instance_new(PyTypeObject *type,
         return iter;
     }
 
-    self = (pkgcore_iflatten_instance *)type->tp_alloc(type, 0);
+    self = (snakeoil_iflatten_instance *)type->tp_alloc(type, 0);
     if (!self)
         return NULL;
 
@@ -309,7 +319,7 @@ pkgcore_iflatten_instance_new(PyTypeObject *type,
 }
 
 static PyObject *
-pkgcore_iflatten_instance_iternext(pkgcore_iflatten_instance *self) {
+snakeoil_iflatten_instance_iternext(snakeoil_iflatten_instance *self) {
     PyObject *tail, *result, *iter;
     int n, res;
 
@@ -389,20 +399,20 @@ pkgcore_iflatten_instance_iternext(pkgcore_iflatten_instance *self) {
 }
 
 PyDoc_STRVAR(
-    pkgcore_iflatten_instance_documentation,
+    snakeoil_iflatten_instance_documentation,
     "iflatten_func(iters, skip_flattening=basestring)\n"
     "\n"
     "collapse [(1),2] into [1,2]\n"
     "skip_flattening is a list of classes to not descend through\n"
     );
 
-static PyTypeObject pkgcore_iflatten_instance_type = {
+static PyTypeObject snakeoil_iflatten_instance_type = {
     PyObject_HEAD_INIT(NULL)
     0,                                               /* ob_size*/
-    "pkgcore.util._lists.iflatten_instance",         /* tp_name*/
-    sizeof(pkgcore_iflatten_instance),               /* tp_basicsize*/
+    "snakeoil.util._lists.iflatten_instance",         /* tp_name*/
+    sizeof(snakeoil_iflatten_instance),               /* tp_basicsize*/
     0,                                               /* tp_itemsize*/
-    (destructor)pkgcore_iflatten_instance_dealloc,   /* tp_dealloc*/
+    (destructor)snakeoil_iflatten_instance_dealloc,   /* tp_dealloc*/
     0,                                               /* tp_print*/
     0,                                               /* tp_getattr*/
     0,                                               /* tp_setattr*/
@@ -418,13 +428,13 @@ static PyTypeObject pkgcore_iflatten_instance_type = {
     0,                                               /* tp_setattro*/
     0,                                               /* tp_as_buffer*/
     Py_TPFLAGS_DEFAULT,                              /* tp_flags*/
-    pkgcore_iflatten_instance_documentation,         /* tp_doc */
+    snakeoil_iflatten_instance_documentation,         /* tp_doc */
     (traverseproc)0,                                 /* tp_traverse */
     (inquiry)0,                                      /* tp_clear */
     (richcmpfunc)0,                                  /* tp_richcompare */
     0,                                               /* tp_weaklistoffset */
     (getiterfunc)PyObject_SelfIter,                  /* tp_iter */
-    (iternextfunc)pkgcore_iflatten_instance_iternext, /* tp_iternext */
+    (iternextfunc)snakeoil_iflatten_instance_iternext, /* tp_iternext */
     0,                                               /* tp_methods */
     0,                                               /* tp_members */
     0,                                               /* tp_getset */
@@ -435,38 +445,38 @@ static PyTypeObject pkgcore_iflatten_instance_type = {
     0,                                               /* tp_dictoffset */
     (initproc)0,                                     /* tp_init */
     0,                                               /* tp_alloc */
-    pkgcore_iflatten_instance_new,                   /* tp_new */
+    snakeoil_iflatten_instance_new,                   /* tp_new */
 };
 
 
 /* Initialization function for the module */
 
 PyDoc_STRVAR(
-    pkgcore_lists_documentation,
-    "C reimplementation of some of pkgcore.util.lists.");
+    snakeoil_lists_documentation,
+    "C reimplementation of some of snakeoil.util.lists.");
 
 PyMODINIT_FUNC
 init_lists()
 {
     /* Create the module and add the functions */
-    PyObject *m = Py_InitModule3("_lists", NULL, pkgcore_lists_documentation);
+    PyObject *m = Py_InitModule3("_lists", NULL, snakeoil_lists_documentation);
     if (!m)
         return;
 
-    if (PyType_Ready(&pkgcore_iflatten_func_type) < 0)
+    if (PyType_Ready(&snakeoil_iflatten_func_type) < 0)
         return;
 
-    if (PyType_Ready(&pkgcore_iflatten_instance_type) < 0)
+    if (PyType_Ready(&snakeoil_iflatten_instance_type) < 0)
         return;
 
-    Py_INCREF(&pkgcore_iflatten_func_type);
+    Py_INCREF(&snakeoil_iflatten_func_type);
     if (PyModule_AddObject(
-            m, "iflatten_func", (PyObject *)&pkgcore_iflatten_func_type) == -1)
+            m, "iflatten_func", (PyObject *)&snakeoil_iflatten_func_type) == -1)
         return;
 
-    Py_INCREF(&pkgcore_iflatten_instance_type);
+    Py_INCREF(&snakeoil_iflatten_instance_type);
     if (PyModule_AddObject(
             m, "iflatten_instance",
-            (PyObject *)&pkgcore_iflatten_instance_type) == -1)
+            (PyObject *)&snakeoil_iflatten_instance_type) == -1)
         return;
 }

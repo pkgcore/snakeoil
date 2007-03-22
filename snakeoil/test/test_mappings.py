@@ -321,3 +321,53 @@ class TestOrderedDict(TestCase):
 
     def test_clear(self):
         self.gen_dict().clear()
+
+
+class FoldingDictTest(TestCase):
+
+    def testPreserve(self):
+        dct = mappings.PreservingFoldingDict(
+            str.lower, {'Foo':'bar', 'fnz':{1: 2}}.iteritems())
+        self.assertEquals(dct['fnz'], {1: 2})
+        self.assertEquals(dct['foo'], 'bar')
+        self.assertEqual(sorted(['bar', {1: 2}]), sorted(dct.values()))
+        self.assertEquals(dct.copy(), dct)
+        self.assertEquals(dct['foo'], dct.get('Foo'))
+        self.assert_('foo' in dct)
+        keys = ['Foo', 'fnz']
+        keysList = [key for key in dct]
+        for key in keys:
+            self.assert_(key in dct.keys())
+            self.assert_(key in keysList)
+            self.assert_((key, dct[key]) in dct.items())
+        self.assertEquals(len(keys), len(dct))
+        self.assert_(dct.pop('foo') == 'bar')
+        self.assert_('foo' not in dct)
+        del dct['fnz']
+        self.assert_('fnz' not in dct)
+        dct['Foo'] = 'bar'
+        dct.refold(lambda _: _)
+        self.assert_('foo' not in dct)
+        self.assert_('Foo' in dct)
+        self.assertEquals(dct.items(), [('Foo', 'bar')])
+        dct.clear()
+        self.assertEqual({}, dict(dct))
+
+    def testNoPreserve(self):
+        dct = mappings.NonPreservingFoldingDict(
+            str.lower, {'Foo':'bar', 'fnz':{1: 2}}.iteritems())
+        self.assertEqual(sorted(['bar', {1: 2}]), sorted(dct.values()))
+        self.assertEquals(dct.copy(), dct)
+        keys = ['foo', 'fnz']
+        keysList = [key for key in dct]
+        for key in keys:
+            self.assert_(key in dct.keys())
+            self.assert_(key in dct)
+            self.assert_(key in keysList)
+            self.assert_((key, dct[key]) in dct.items())
+        self.assertEquals(len(keys), len(dct))
+        self.assertEquals(dct.pop('foo'), 'bar')
+        del dct['fnz']
+        self.assertEquals(dct.keys(), [])
+        dct.clear()
+        self.assertEqual({}, dict(dct))

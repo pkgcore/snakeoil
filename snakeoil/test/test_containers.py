@@ -14,6 +14,7 @@ class InvertedContainsTest(TestCase):
     def test_basic(self):
         self.failIf(7 in self.set)
         self.failUnless(-7 in self.set)
+        self.assertRaises(TypeError, iter, self.set)
 
 
 class LimitedChangeSetTest(TestCase):
@@ -130,6 +131,31 @@ class LimitedChangeSetWithBlacklistTest(TestCase):
 
     def test_removing_blacklisted(self):
         self.assertRaises(containers.Unchangable, self.set.remove, 3)
+
+
+class ProtectedSetTest(TestCase):
+
+    def setUp(self):
+        self.set = containers.ProtectedSet(set(range(12)))
+
+    def test_contains(self):
+        self.assertTrue(0 in self.set)
+        self.assertFalse(15 in self.set)
+        self.set.add(15)
+        self.assertTrue(15 in self.set)
+
+    def test_iter(self):
+        self.assertEqual(range(12), sorted(self.set))
+        self.set.add(5)
+        self.assertEqual(range(12), sorted(self.set))
+        self.set.add(12)
+        self.assertEqual(range(13), sorted(self.set))
+
+    def test_len(self):
+        self.assertEqual(12, len(self.set))
+        self.set.add(5)
+        self.set.add(13)
+        self.assertEqual(13, len(self.set))
 
 
 class TestRefCountingSet(TestCase):

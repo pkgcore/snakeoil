@@ -5,13 +5,13 @@
  * common macros.
  */
 
-#ifndef PKGCORE_COMMON_HEADER
-#define PKGCORE_COMMON_HEADER 1
+#ifndef snakeoil_COMMON_HEADER
+#define snakeoil_COMMON_HEADER 1
 
 #include <Python.h>
-#include "py24-compatibility.h"
+#include "snakeoil/py24-compatibility.h"
 
-#define PKGCORE_IMMUTABLE_ATTR_BOOL(type, name, attr, test)             \
+#define snakeoil_IMMUTABLE_ATTR_BOOL(type, name, attr, test)             \
 static int                                                              \
 type##_set_##attr (type *self, PyObject *v, void *closure)              \
 {                                                                       \
@@ -27,14 +27,14 @@ type##_get_##attr (type *self, void *closure)                           \
     return s;                                                           \
 }
 
-#define PKGCORE_GETSET(type, doc, attr)         \
+#define snakeoil_GETSET(type, doc, attr)         \
     {doc, (getter)type##_get_##attr ,           \
         (setter)type##_set_##attr , NULL}
 
 
-#define PKGCORE_FUNC_DESC(meth_name, class_name, func, methargs)        \
-_PKGCORE_FUNC_DESC(meth_name, class_name, func, methargs, 0)
-#define _PKGCORE_FUNC_DESC(meth_name, class_name, func, methargs, desc) \
+#define snakeoil_FUNC_DESC(meth_name, class_name, func, methargs)        \
+_snakeoil_FUNC_DESC(meth_name, class_name, func, methargs, 0)
+#define _snakeoil_FUNC_DESC(meth_name, class_name, func, methargs, desc) \
                                                                         \
 static PyTypeObject func##_type = {                                     \
     PyObject_HEAD_INIT(NULL)                                            \
@@ -74,7 +74,7 @@ static PyTypeObject func##_type = {                                     \
     0,                                  /* tp_descr_set */              \
 }; 
 
-#define PKGCORE_FUNC_BINDING(meth_name, class_name, func, methargs)    \
+#define snakeoil_FUNC_BINDING(meth_name, class_name, func, methargs)    \
 static PyObject *                                                       \
 func##_get_descr(PyObject *self, PyObject *obj, PyObject *type)         \
 {                                                                       \
@@ -83,7 +83,7 @@ func##_get_descr(PyObject *self, PyObject *obj, PyObject *type)         \
     return PyCFunction_New(&mdef, obj);                                 \
 }                                                                       \
                                                                         \
-_PKGCORE_FUNC_DESC(meth_name, class_name, func, methargs,               \
+_snakeoil_FUNC_DESC(meth_name, class_name, func, methargs,               \
     func##_get_descr)
 
 #endif

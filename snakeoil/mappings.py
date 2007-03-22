@@ -1,4 +1,4 @@
-# Copyright: 2005 Brian Harring <ferringb@gmail.com>
+# Copyright: 2005-2007 Brian Harring <ferringb@gmail.com>
 # License: GPL2
 
 """
@@ -21,10 +21,6 @@ class DictMixin(object):
 
     __externally_mutable__ = True
 
-    def __init__(self, iterable=[]):
-        for k, v in iterable:
-            self[k] = v
-
     def __iter__(self):
         return self.iterkeys()
 
@@ -46,7 +42,7 @@ class DictMixin(object):
 
     # default cmp actually operates based on key len comparison, oddly enough
     def __cmp__(self, other):
-        for k1, k2 in izip(self, other):
+        for k1, k2 in izip(sorted(self), sorted(other)):
             c = cmp(k1, k2)
             if c != 0:
                 return c
@@ -470,3 +466,117 @@ class TupleBackedDict(ListBackedDict):
 
     def __init__(self, iterables=()):
         self._data = tuple((k, v) for k, v in iterables)
+
+
+class PreservingFoldingDict(DictMixin):
+
+    """dict that uses a 'folder' function when looking up keys.
+
+    The most common use for this is to implement a dict with
+    case-insensitive key values (by using C{str.lower} as folder
+    function).
+
+    This version returns the original 'unfolded' key.
+    """
+
+    def __init__(self, folder, sourcedict=None):
+        self._folder = folder
+        # dict mapping folded keys to (original key, value)
+        self._dict = {}
+        if sourcedict is not None:
+            self.update(sourcedict)
+
+    def copy(self):
+        return PreservingFoldingDict(self._folder, self.iteritems())
+
+    def refold(self, folder=None):
+        """Use the remembered original keys to update to a new folder.
+
+        If folder is C{None}, keep the current folding function (this
+        is useful if the folding function uses external data and that
+        data changed).
+        """
+        if folder is not None:
+            self._folder = folder
+        oldDict = self._dict
+        self._dict = {}
+        for key, value in oldDict.itervalues():
+            self._dict[self._folder(key)] = (key, value)
+
+    def __getitem__(self, key):
+        return self._dict[self._folder(key)][1]
+
+    def __setitem__(self, key, value):
+        self._dict[self._folder(key)] = (key, value)
+
+    def __delitem__(self, key):
+        del self._dict[self._folder(key)]
+
+    def iteritems(self):
+        return self._dict.itervalues()
+
+    def iterkeys(self):
+        for val in self._dict.itervalues():
+            yield val[0]
+
+    def itervalues(self):
+        for val in self._dict.itervalues():
+            yield val[1]
+
+    def __contains__(self, key):
+        return self._folder(key) in self._dict
+
+    def __len__(self):
+        return len(self._dict)
+
+    def clear(self):
+        self._dict = {}
+
+
+class NonPreservingFoldingDict(DictMixin):
+
+    """dict that uses a 'folder' function when looking up keys.
+
+    The most common use for this is to implement a dict with
+    case-insensitive key values (by using C{str.lower} as folder
+    function).
+
+    This version returns the 'folded' key.
+    """
+
+    def __init__(self, folder, sourcedict=None):
+        self._folder = folder
+        # dict mapping folded keys to values.
+        self._dict = {}
+        if sourcedict is not None:
+            self.update(sourcedict)
+
+    def copy(self):
+        return NonPreservingFoldingDict(self._folder, self.iteritems())
+
+    def __getitem__(self, key):
+        return self._dict[self._folder(key)]
+
+    def __setitem__(self, key, value):
+        self._dict[self._folder(key)] = value
+
+    def __delitem__(self, key):
+        del self._dict[self._folder(key)]
+
+    def iterkeys(self):
+        return iter(self._dict)
+
+    def itervalues(self):
+        return self._dict.itervalues()
+
+    def iteritems(self):
+        return self._dict.iteritems()
+
+    def __contains__(self, key):
+        return self._folder(key) in self._dict
+
+    def __len__(self):
+        return len(self._dict)
+
+    def clear(self):
+        self._dict = {}

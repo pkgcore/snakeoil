@@ -1,8 +1,8 @@
 /*
- * Copyright: 2006 Brian Harring <ferringb@gmail.com>
+ * Copyright: 2006-2007 Brian Harring <ferringb@gmail.com>
  * License: GPL2
  *
- * C version of some of pkgcore (for extra speed).
+ * C version of some of snakeoil (for extra speed).
  */
 
 /* This does not really do anything since we do not use the "#"
@@ -12,8 +12,8 @@
 
 #define PY_SSIZE_T_CLEAN
 
-#include <Python.h>
-#include "py24-compatibility.h"
+#include "snakeoil/common.h"
+#include <structmember.h>
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -24,28 +24,33 @@
 #define MAP_POPULATE 0
 #endif
 
+static PyObject *snakeoil_stat_float_times = NULL;
+static PyObject *snakeoil_empty_tuple = NULL;
+static PyObject *snakeoil_readlines_empty_iter_singleton = NULL;
+
+
 #define SKIP_SLASHES(ptr) while('/' == *(ptr)) (ptr)++;
 
 static PyObject *
-pkgcore_normpath(PyObject *self, PyObject *old_path)
+snakeoil_normpath(PyObject *self, PyObject *old_path)
 {
     if(!PyString_CheckExact(old_path)) {
         PyErr_SetString(PyExc_TypeError,
             "old_path must be a str");
-        return (PyObject *)NULL;
+        return NULL;
     }
     Py_ssize_t len = PyString_Size(old_path);
     if(!len)
         return PyString_FromString(".");
-    
+
     char *oldstart, *oldp, *newstart, *newp, *real_newstart;
     oldstart = oldp = PyString_AsString(old_path);
-    
+
     PyObject *new_path = PyString_FromStringAndSize(NULL, len);
     if(!new_path)
         return new_path;
-    real_newstart = newstart = newp = PyString_AsString(new_path);
-    
+    real_newstart = newstart = newp = PyString_AS_STRING(new_path);
+
 
     int leading_slash;
     Py_ssize_t slash_count = 0;
@@ -119,22 +124,22 @@ pkgcore_normpath(PyObject *self, PyObject *old_path)
 }
 
 static PyObject *
-pkgcore_join(PyObject *self, PyObject *args)
+snakeoil_join(PyObject *self, PyObject *args)
 {
     if(!args) {
         PyErr_SetString(PyExc_TypeError, "requires at least one path");
-        return (PyObject *)NULL;
+        return NULL;
     }
     PyObject *fast = PySequence_Fast(args, "arg must be a sequence");
     if(!fast)
-        return (PyObject *)NULL;
+        return NULL;
     Py_ssize_t end = PySequence_Fast_GET_SIZE(fast);
     if(!end) {
         PyErr_SetString(PyExc_TypeError,
             "join takes at least one arguement (0 given)");
-        return (PyObject *)NULL;
+        return NULL;
     }
-    
+
     PyObject **items = PySequence_Fast_ITEMS(fast);
     Py_ssize_t start = 0, len, i = 0;
     char *s;
@@ -144,7 +149,7 @@ pkgcore_join(PyObject *self, PyObject *args)
         if(!PyString_CheckExact(items[i])) {
             PyErr_SetString(PyExc_TypeError, "all args must be strings");
             Py_DECREF(fast);
-            return (PyObject *)NULL;
+            return NULL;
         }
         s = PyString_AsString(items[i]);
         if('/' == *s) {
@@ -181,7 +186,7 @@ pkgcore_join(PyObject *self, PyObject *args)
     // ok... we know the length.  allocate a string, and copy it.
     PyObject *ret = PyString_FromStringAndSize(NULL, len);
     if(!ret)
-        return (PyObject*)NULL;
+        return NULL;
     char *buf = PyString_AS_STRING(ret);
     if(leading_slash) {
         *buf = '/';
@@ -190,10 +195,13 @@ pkgcore_join(PyObject *self, PyObject *args)
     for(i = start; i < end; i++) {
         s_start = s = PyString_AS_STRING(items[i]);
         if(i == start && leading_slash) {
-            SKIP_SLASHES(s);
-            s_start = s;
+            // a slash is inserted anywas, thus we skip one ahead
+            // so it doesn't gain an extra.
+            s_start++;
+            s = s_start;
         }
-        if('\0' == *s)
+
+       if('\0' == *s)
             continue;
         while('\0' != *s) {
             *buf = *s;
@@ -239,15 +247,13 @@ pkgcore_join(PyObject *self, PyObject *args)
 // if failure condition, appropriate exception is set.
 
 static inline int
-pkgcore_open_and_stat(PyObject *path,
-    int *fd, Py_ssize_t *size)
+snakeoil_read_open_and_stat(PyObject *path,
+    int *fd, struct stat *st)
 {
-    struct stat st;
     errno = 0;
-    if((*fd = open(PyString_AsString(path), O_LARGEFILE)) >= 0) {
-        int ret = fstat(*fd, &st);
+    if((*fd = open(PyString_AsString(path), O_RDONLY)) >= 0) {
+        int ret = fstat(*fd, st);
         if(!ret) {
-            *size = st.st_size;
             return 0;
         }
     }
@@ -255,8 +261,7 @@ pkgcore_open_and_stat(PyObject *path,
 }
 
 static inline int
-handle_failed_open_stat(int fd, Py_ssize_t size, PyObject *path,
-PyObject *swallow_missing)
+handle_failed_open_stat(int fd, PyObject *path, PyObject *swallow_missing)
 {
     if(fd < 0) {
         if(errno == ENOENT) {
@@ -279,31 +284,32 @@ PyObject *swallow_missing)
 }
 
 static PyObject *
-pkgcore_readfile(PyObject *self, PyObject *args)
+snakeoil_readfile(PyObject *self, PyObject *args)
 {
     PyObject *path, *swallow_missing = NULL;
     if(!args || !PyArg_ParseTuple(args, "S|O:readfile", &path,
         &swallow_missing)) {
-        return (PyObject *)NULL;
+        return NULL;
     }
-    Py_ssize_t size;
+//    Py_ssize_t size;
     int fd;
+    struct stat st;
     Py_BEGIN_ALLOW_THREADS
-    if(pkgcore_open_and_stat(path, &fd, &size)) {
+    if(snakeoil_read_open_and_stat(path, &fd, &st)) {
         Py_BLOCK_THREADS
-        if(handle_failed_open_stat(fd, size, path, swallow_missing))
+        if(handle_failed_open_stat(fd, path, swallow_missing))
             return NULL;
         Py_RETURN_NONE;
     }
     Py_END_ALLOW_THREADS
 
     int ret = 0;
-    PyObject *data = PyString_FromStringAndSize(NULL, size);
+    PyObject *data = PyString_FromStringAndSize(NULL, st.st_size);
 
     Py_BEGIN_ALLOW_THREADS
     errno = 0;
     if(data) {
-        ret = size != read(fd, PyString_AS_STRING(data), size) ? 1 : 0;
+        ret = read(fd, PyString_AS_STRING(data), st.st_size) != st.st_size ? 1 : 0;
     }
     ret += close(fd);
     Py_END_ALLOW_THREADS
@@ -317,66 +323,128 @@ pkgcore_readfile(PyObject *self, PyObject *args)
 
 typedef struct {
     PyObject_HEAD
+} snakeoil_readlines_empty_iter;
+
+static PyObject *
+snakeoil_readlines_empty_iter_get_mtime(snakeoil_readlines_empty_iter *self)
+{
+    Py_RETURN_NONE;
+}
+
+static int
+snakeoil_readlines_empty_iter_set_mtime(snakeoil_readlines_empty_iter *self,
+    PyObject *v, void *closure)
+{
+    PyErr_SetString(PyExc_AttributeError, "mtime is immutable");
+    return -1;
+}
+
+static PyObject *
+snakeoil_readlines_empty_iter_next(snakeoil_readlines_empty_iter *self)
+{
+    PyErr_SetNone(PyExc_StopIteration);
+    return NULL;
+}
+
+struct PyGetSetDef snakeoil_readlines_empty_iter_getsetters[] = {
+    snakeoil_GETSET(snakeoil_readlines_empty_iter, "mtime", mtime),
+    {NULL}
+};
+
+static PyTypeObject snakeoil_readlines_empty_iter_type = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                               /* ob_size */
+    "readlines.empty_iter",                          /* tp_name */
+    sizeof(snakeoil_readlines_empty_iter),            /* tp_size */
+    0,                                               /* tp_itemsize*/
+    0,                                               /* tp_dealloc*/
+    0,                                               /* tp_print*/
+    0,                                               /* tp_getattr*/
+    0,                                               /* tp_setattr*/
+    0,                                               /* tp_compare*/
+    0,                                               /* tp_repr*/
+    0,                                               /* tp_as_number*/
+    0,                                               /* tp_as_sequence*/
+    0,                                               /* tp_as_mapping*/
+    0,                                               /* tp_hash */
+    (ternaryfunc)0,                                  /* tp_call*/
+    (reprfunc)0,                                     /* tp_str*/
+    0,                                               /* tp_getattro*/
+    0,                                               /* tp_setattro*/
+    0,                                               /* tp_as_buffer*/
+    Py_TPFLAGS_DEFAULT,                              /* tp_flags*/
+    0,                                               /* tp_doc */
+    (traverseproc)0,                                 /* tp_traverse */
+    (inquiry)0,                                      /* tp_clear */
+    (richcmpfunc)0,                                  /* tp_richcompare */
+    0,                                               /* tp_weaklistoffset */
+    (getiterfunc)PyObject_SelfIter,                  /* tp_iter */
+    (iternextfunc)snakeoil_readlines_empty_iter_next, /* tp_iternext */
+    0,                                               /* tp_methods */
+    0,                                               /* tp_members */
+    snakeoil_readlines_empty_iter_getsetters,         /* tp_getset */
+};
+
+typedef struct {
+    PyObject_HEAD
     char *start;
     char *end;
     char *map;
     int fd;
     int strip_newlines;
+    time_t mtime;
+    unsigned long mtime_nsec;
     PyObject *fallback;
-} pkgcore_readlines;
-
+} snakeoil_readlines;
 
 static PyObject *
-pkgcore_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+snakeoil_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 {
     PyObject *path, *swallow_missing = NULL, *strip_newlines = NULL;
     PyObject *none_on_missing = NULL;
-    pkgcore_readlines *self = NULL;
+    snakeoil_readlines *self = NULL;
     if(kwargs && PyDict_Size(kwargs)) {
         PyErr_SetString(PyExc_TypeError,
             "readlines.__new__ doesn't accept keywords");
-        return (PyObject *)NULL;
-    } else if (!PyArg_ParseTuple(args, "S|OOO:readlines.__new__", 
+        return NULL;
+    } else if (!PyArg_ParseTuple(args, "S|OOOO:readlines.__new__",
         &path, &strip_newlines, &swallow_missing, &none_on_missing)) {
-        return (PyObject *)NULL;
-    } 
-    
+        return NULL;
+    }
+
     int fd;
-    Py_ssize_t size;
-    void *ptr;
+    struct stat st;
+//    Py_ssize_t size;
+    void *ptr = NULL;
     PyObject *fallback = NULL;
     Py_BEGIN_ALLOW_THREADS
     errno = 0;
-    if(pkgcore_open_and_stat(path, &fd, &size)) {
+    if(snakeoil_read_open_and_stat(path, &fd, &st)) {
         Py_BLOCK_THREADS
 
-        if(handle_failed_open_stat(fd, size, path, swallow_missing))
+        if(handle_failed_open_stat(fd, path, swallow_missing))
             return NULL;
 
         // return an empty tuple, and let them iter over that.
         if(none_on_missing && PyObject_IsTrue(none_on_missing)) {
             Py_RETURN_NONE;
         }
-        
-        PyObject *data = PyTuple_New(0);
-        if(!data)
-            return (PyObject *)NULL;
-        PyObject *tmp = PySeqIter_New(data);
-        Py_DECREF(data);
-        return tmp;
+
+        Py_INCREF(snakeoil_readlines_empty_iter_singleton);
+        return snakeoil_readlines_empty_iter_singleton;
     }
-    if(size >= 0x4000) {
-        ptr = (char *)mmap(NULL, size, PROT_READ,
+    if(st.st_size >= 0x4000) {
+        ptr = (char *)mmap(NULL, st.st_size, PROT_READ,
             MAP_SHARED|MAP_NORESERVE|MAP_POPULATE, fd, 0);
         if(ptr == MAP_FAILED)
             ptr = NULL;
     } else {
         Py_BLOCK_THREADS
-        fallback = PyString_FromStringAndSize(NULL, size);
+        fallback = PyString_FromStringAndSize(NULL, st.st_size);
         Py_UNBLOCK_THREADS
         if(fallback) {
             errno = 0;
-            ptr = (size != read(fd, PyString_AS_STRING(fallback), size)) ?
+            ptr = (read(fd, PyString_AS_STRING(fallback), st.st_size) != st.st_size) ?
                 MAP_FAILED : NULL;
         }
         int ret = close(fd);
@@ -400,20 +468,29 @@ pkgcore_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
         return NULL;
     }
 
-    self = (pkgcore_readlines *)type->tp_alloc(type, 0);
+    self = (snakeoil_readlines *)type->tp_alloc(type, 0);
     if(!self) {
         // you've got to be kidding me...
         if(ptr) {
-            munmap(ptr, size);
+            munmap(ptr, st.st_size);
             close(fd);
             errno = 0;
         } else {
             Py_DECREF(fallback);
         }
+        if(self) {
+            Py_DECREF(self);
+        }
         return NULL;
     }
     self->fallback = fallback;
     self->map = ptr;
+    self->mtime = st.st_mtime;
+#ifdef HAVE_STAT_TV_NSEC
+    self->mtime_nsec = st.st_mtim.tv_nsec;
+#else
+    self->mtime_nsec = 0;
+#endif
     if (ptr) {
         self->start = ptr;
         self->fd = fd;
@@ -421,25 +498,27 @@ pkgcore_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
         self->start = PyString_AS_STRING(fallback);
         self->fd = -1;
     }
-    self->end = self->start + size;
+    self->end = self->start + st.st_size;
 
     if(strip_newlines) {
-        // die...
-        if(PyObject_IsTrue(strip_newlines)) {
+        if(strip_newlines == Py_True) {
             self->strip_newlines = 1;
-        } else if(PyErr_Occurred()) {
-            Py_DECREF(self);
-            return NULL;
-        } else {
+        } else if (strip_newlines == Py_False) {
             self->strip_newlines = 0;
+        } else {
+            self->strip_newlines = PyObject_IsTrue(strip_newlines) ? 1 : 0;
+            if(PyErr_Occurred()) {
+                Py_DECREF(self);
+                return NULL;
+            }
         }
     } else
-        self->strip_newlines = 0;
+        self->strip_newlines = 1;
     return (PyObject *)self;
 }
 
 static void
-pkgcore_readlines_dealloc(pkgcore_readlines *self)
+snakeoil_readlines_dealloc(snakeoil_readlines *self)
 {
     if(self->fallback) {
         Py_DECREF(self->fallback);
@@ -455,11 +534,11 @@ pkgcore_readlines_dealloc(pkgcore_readlines *self)
 }
 
 static PyObject *
-pkgcore_readlines_iternext(pkgcore_readlines *self)
+snakeoil_readlines_iternext(snakeoil_readlines *self)
 {
     if(self->start == self->end) {
         // at the end, thus return
-        return (PyObject *)NULL;
+        return NULL;
     }
     char *p = self->start;
     assert(self->end);
@@ -486,8 +565,50 @@ pkgcore_readlines_iternext(pkgcore_readlines *self)
     return ret;
 }
 
+static int
+snakeoil_readlines_set_mtime(snakeoil_readlines *self, PyObject *v,
+    void *closure)
+{
+    PyErr_SetString(PyExc_AttributeError, "mtime is immutable");
+    return -1;
+}
+
+static PyObject *
+snakeoil_readlines_get_mtime(snakeoil_readlines *self)
+{
+    PyObject *ret = PyObject_Call(snakeoil_stat_float_times,
+        snakeoil_empty_tuple, NULL);
+    if(!ret)
+        return NULL;
+    int is_float;
+    if(ret == Py_True) {
+        is_float = 1;
+    } else if (ret == Py_False) {
+        is_float = 0;
+    } else {
+        is_float = PyObject_IsTrue(ret);
+        if(is_float == -1) {
+            Py_DECREF(ret);
+            return NULL;
+        }
+    }
+    Py_DECREF(ret);
+    if(is_float)
+        return PyFloat_FromDouble(self->mtime + 1e-9 * self->mtime_nsec);
+#if SIZEOF_TIME_T > SIZEOF_LONG
+    return PyLong_FromLong((Py_LONG_LONG)self->mtime);
+#else
+    return PyInt_FromLong((long)self->mtime);
+#endif
+}
+
+static PyGetSetDef snakeoil_readlines_getsetters[] = {
+snakeoil_GETSET(snakeoil_readlines, "mtime", mtime),
+    {NULL}
+};
+
 PyDoc_STRVAR(
-    pkgcore_readlines_documentation,
+    snakeoil_readlines_documentation,
     "readline(path [, strip_newlines [, swallow_missing [, none_on_missing]]])"
     " -> iterable yielding"
     " each line of a file\n\n"
@@ -497,13 +618,14 @@ PyDoc_STRVAR(
     "if none_on_missing and the file is missing, return None instead"
     );
 
-static PyTypeObject pkgcore_readlines_type = {
+
+static PyTypeObject snakeoil_readlines_type = {
     PyObject_HEAD_INIT(NULL)
     0,                                               /* ob_size*/
-    "pkgcore.util.osutils._posix.readlines",         /* tp_name*/
-    sizeof(pkgcore_readlines),                       /* tp_basicsize*/
+    "snakeoil.util.osutils._posix.readlines",         /* tp_name*/
+    sizeof(snakeoil_readlines),                       /* tp_basicsize*/
     0,                                               /* tp_itemsize*/
-    (destructor)pkgcore_readlines_dealloc,           /* tp_dealloc*/
+    (destructor)snakeoil_readlines_dealloc,           /* tp_dealloc*/
     0,                                               /* tp_print*/
     0,                                               /* tp_getattr*/
     0,                                               /* tp_setattr*/
@@ -519,16 +641,16 @@ static PyTypeObject pkgcore_readlines_type = {
     0,                                               /* tp_setattro*/
     0,                                               /* tp_as_buffer*/
     Py_TPFLAGS_DEFAULT,                              /* tp_flags*/
-    pkgcore_readlines_documentation,                 /* tp_doc */
+    snakeoil_readlines_documentation,                 /* tp_doc */
     (traverseproc)0,                                 /* tp_traverse */
     (inquiry)0,                                      /* tp_clear */
     (richcmpfunc)0,                                  /* tp_richcompare */
     0,                                               /* tp_weaklistoffset */
     (getiterfunc)PyObject_SelfIter,                  /* tp_iter */
-    (iternextfunc)pkgcore_readlines_iternext,        /* tp_iternext */
+    (iternextfunc)snakeoil_readlines_iternext,        /* tp_iternext */
     0,                                               /* tp_methods */
     0,                                               /* tp_members */
-    0,                                               /* tp_getset */
+    snakeoil_readlines_getsetters,                    /* tp_getset */
     0,                                               /* tp_base */
     0,                                               /* tp_dict */
     0,                                               /* tp_descr_get */
@@ -536,38 +658,63 @@ static PyTypeObject pkgcore_readlines_type = {
     0,                                               /* tp_dictoffset */
     (initproc)0,                                     /* tp_init */
     0,                                               /* tp_alloc */
-    pkgcore_readlines_new,                           /* tp_new */
+    snakeoil_readlines_new,                           /* tp_new */
 };
 
-static PyMethodDef pkgcore_posix_methods[] = {
-    {"normpath", (PyCFunction)pkgcore_normpath, METH_O,
+static PyMethodDef snakeoil_posix_methods[] = {
+    {"normpath", (PyCFunction)snakeoil_normpath, METH_O,
         "normalize a path entry"},
-    {"join", pkgcore_join, METH_VARARGS,
+    {"join", snakeoil_join, METH_VARARGS,
         "join multiple path items"},
-    {"readfile", pkgcore_readfile, METH_VARARGS,
+    {"readfile", snakeoil_readfile, METH_VARARGS,
         "fast read of a file: requires a string path, and an optional bool "
         "indicating whether to swallow ENOENT; defaults to false"},
     {NULL}
 };
 
 PyDoc_STRVAR(
-    pkgcore_posix_documentation,
+    snakeoil_posix_documentation,
     "cpython posix path functionality");
 
 PyMODINIT_FUNC
 init_posix()
 {
-    PyObject *m = Py_InitModule3("_posix", pkgcore_posix_methods,
-                                 pkgcore_posix_documentation);
+    PyObject *s = PyString_FromString("os");
+    if(!s)
+        return;
+
+    PyObject *mos = PyImport_Import(s);
+    Py_DECREF(s);
+    if(!mos)
+        return;
+    snakeoil_stat_float_times = PyObject_GetAttrString(mos, "stat_float_times");
+    Py_DECREF(mos);
+    if(!snakeoil_stat_float_times)
+        return;
+
+    snakeoil_empty_tuple = PyTuple_New(0);
+    if(!snakeoil_empty_tuple)
+        return;
+
+    PyObject *m = Py_InitModule3("_posix", snakeoil_posix_methods,
+                                 snakeoil_posix_documentation);
     if (!m)
         return;
 
-    if (PyType_Ready(&pkgcore_readlines_type) < 0)
+    if (PyType_Ready(&snakeoil_readlines_type) < 0)
         return;
 
-    Py_INCREF(&pkgcore_readlines_type);
+    if (PyType_Ready(&snakeoil_readlines_empty_iter_type) < 0)
+        return;
+
+    Py_INCREF(&snakeoil_readlines_empty_iter_type);
+    snakeoil_readlines_empty_iter_singleton = _PyObject_New(
+        &snakeoil_readlines_empty_iter_type);
+
+
+    Py_INCREF(&snakeoil_readlines_type);
     if (PyModule_AddObject(
-            m, "readlines", (PyObject *)&pkgcore_readlines_type) == -1)
+            m, "readlines", (PyObject *)&snakeoil_readlines_type) == -1)
         return;
 
     /* Success! */

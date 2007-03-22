@@ -3,7 +3,7 @@
  * Copyright: 2006 Marien Zwart <marienz@gentoo.org>
  * License: GPL2
  *
- * C version of some of pkgcore (for extra speed).
+ * C version of some of snakeoil (for extra speed).
  */
 
 /* This does not really do anything since we do not use the "#"
@@ -11,8 +11,8 @@
  * means we are Py_ssize_t-clean too!
  */
 
-#ifndef PKGCORE_COMMON_INCLUDE
-#define PKGCORE_COMMON_INCLUDE 1
+#ifndef snakeoil_COMMON_INCLUDE
+#define snakeoil_COMMON_INCLUDE 1
 
 /* Compatibility with python < 2.5 */
 
@@ -24,12 +24,12 @@ typedef Py_ssize_t (*lenfunc)(PyObject *);
 #endif
 
 /* From heapy */
-#include "heapdef.h"
+#include "snakeoil/heapdef.h"
 
 /* Copied from stdtypes.c in guppy */
 #define INTERATTR(name) \
     if ((PyObject *)v->name == r->tgt &&                                \
         (r->visit(NYHR_INTERATTR, PyString_FromString(#name), r)))      \
-		return 1;
+        return 1;
 
 #endif

@@ -119,12 +119,12 @@ class Test_native_generic_equality(TestCase):
         self.assertNotEqual(c(1, 2), c1)
         del c1
 
+    @protect_eq_ops
     def test_call(self):
         def mk_class(meta):
             class c(object):
                 __metaclass__ = meta
-            return c
-        self.assertRaises(TypeError, mk_class)
+        self.assertRaises(TypeError, mk_class, klass.generic_equality)
 
 class Test_cpy_generic_equality(Test_native_generic_equality):
     op_prefix = ''

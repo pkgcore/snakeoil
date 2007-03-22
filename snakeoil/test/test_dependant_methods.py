@@ -70,3 +70,21 @@ class TestDependantMethods(TestCase):
         self.assertEqual(results, [0, "a", 1])
         getattr(o, "2")()
         self.assertEqual(results, [0, "a", 1, 2])
+
+    def test_ignore_deps(self):
+        results = []
+        o = self.generate_instance(
+            dict((str(x), currying.post_curry(func, results, x))
+                 for x in range(10)),
+            dict((str(x), str(x - 1)) for x in xrange(1, 10)))
+        getattr(o, '2')(ignore_deps=True)
+        self.assertEqual([2], results)
+
+    def test_no_deps(self):
+        results = []
+        o = self.generate_instance(
+            dict((str(x), currying.post_curry(func, results, x))
+                 for x in range(10)),
+            {})
+        getattr(o, '2')()
+        self.assertEqual([2], results)

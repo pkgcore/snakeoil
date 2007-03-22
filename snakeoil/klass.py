@@ -23,33 +23,29 @@ def native_get(self, key, default=None):
     except KeyError:
         return default
 
-attrlist_getter = attrgetter("__attr_comparison__")
-def native_generic_eq(inst1, inst2):
-    if inst1 is inst2:
-        return True
-    try:
-        for attr in attrlist_getter(inst1):
-            if getattr(inst1, attr) != getattr(inst2, attr):
-                return False
-        return True
-    except AttributeError:
-        return False
 
-def native_generic_ne(inst1, inst2):
+attrlist_getter = attrgetter("__attr_comparison__")
+def native_generic_eq(inst1, inst2, sentinel=object()):
+    if inst1 is inst2:
+        return True
+    for attr in attrlist_getter(inst1):
+        if getattr(inst1, attr, sentinel) != \
+            getattr(inst2, attr, sentinel):
+            return False
+    return True
+
+def native_generic_ne(inst1, inst2, sentinel=object()):
     if inst1 is inst2:
         return False
-    try:
-        for attr in attrlist_getter(inst1):
-            if getattr(inst1, attr) == getattr(inst2, attr):
-                return False
-        return False
-    except AttributeError:
-        return True
+    for attr in attrlist_getter(inst1):
+        if getattr(inst1, attr, sentinel) != \
+            getattr(inst2, attr, sentinel):
+            return True
+    return False
 
 try:
     from snakeoil._klass import (GetAttrProxy, contains, get,
         generic_eq, generic_ne)
-
 except ImportError:
     GetAttrProxy = native_GetAttrProxy
     contains = native_contains
@@ -58,7 +54,8 @@ except ImportError:
     generic_ne = native_generic_ne
 
 
-def generic_equality(name, bases, scope, real_type=type):
+def generic_equality(name, bases, scope, real_type=type,
+    eq=generic_eq, ne=generic_ne):
     attrlist = scope.pop("__attr_comparison__", None)
     if attrlist is None:
         raise TypeError("__attr_comparison__ must be in the classes scope")
@@ -68,16 +65,14 @@ def generic_equality(name, bases, scope, real_type=type):
                 " got %r %s" % (type(x), repr(x)))
 
     scope["__attr_comparison__"] = tuple(attrlist)
-    scope.setdefault("__eq__", generic_eq)
-    scope.setdefault("__ne__", generic_ne)
+    scope.setdefault("__eq__", eq)
+    scope.setdefault("__ne__", ne)
     return real_type(name, bases, scope)
 
 
 class chained_getter(object):
-
     def __metaclass__(name, bases, scope):
         return generic_equality(name, bases, scope, real_type=WeakInstMeta)
-
     __slots__ = ('namespace', 'chain')
     __fifo_cache__ = deque()
     __inst_caching__ = True
