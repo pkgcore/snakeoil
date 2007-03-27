@@ -337,5 +337,3 @@ class FsLock(object):
         finally:
             if self.fd is not None:
                 os.close(self.fd)
-
-# vim: set expandtab sw=4 softtabstop=4:

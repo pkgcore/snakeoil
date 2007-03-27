@@ -254,6 +254,3 @@ class FsLockTest(TempDirMixin, TestCase):
         lock.release_write_lock()
         fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
         fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
-
-
-# vim: set expandtab sw=4 softtabstop=4:

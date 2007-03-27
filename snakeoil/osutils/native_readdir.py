@@ -11,7 +11,6 @@ from stat import S_IFDIR, S_IFREG, S_IFCHR, S_IFBLK, S_IFIFO, S_IFLNK, S_IFSOCK,
 
 listdir = os.listdir
 pjoin = os.path.join
-lstat = os.lstat
 
 def stat_swallow_enoent(path, check, default=False, stat=os.stat):
     try:
@@ -23,21 +22,27 @@ def stat_swallow_enoent(path, check, default=False, stat=os.stat):
 
 def listdir_dirs(path, followSymlinks=True):
     scheck = S_ISDIR
+    pjf = pjoin
+    lstat = os.lstat
     if followSymlinks:
         return [x for x in os.listdir(path) if
-            stat_swallow_enoent(pjoin(path, x), scheck)]
+            stat_swallow_enoent(pjf(path, x), scheck)]
+    lstat = os.lstat
     return [x for x in os.listdir(path) if
-        scheck(lstat(pjoin(path, x)).st_mode)]
+        scheck(lstat(pjf(path, x)).st_mode)]
 
 def listdir_files(path, followSymlinks=True):
     scheck = S_ISREG
+    pjf = pjoin
     if followSymlinks:
         return [x for x in os.listdir(path) if
-            stat_swallow_enoent(pjoin(path, x), scheck)]
+            stat_swallow_enoent(pjf(path, x), scheck)]
+    lstat = os.lstat
     return [x for x in os.listdir(path) if
-        scheck(lstat(pjoin(path, x)).st_mode)]
+        scheck(lstat(pjf(path, x)).st_mode)]
 
 def readdir(path):
+    pjf = pjoin
     assocs = {
         S_IFREG: "file",
         S_IFDIR: "directory",
@@ -48,6 +53,5 @@ def readdir(path):
         S_IFIFO: "fifo",
     }
     things = listdir(path)
-    return [(name, assocs[S_IFMT(lstat(pjoin(path, name)).st_mode)]) for name in things]
-
-# vim: set sw=4 softtabstop=4 expandtab:
+    lstat = os.lstat
+    return [(name, assocs[S_IFMT(lstat(pjf(path, name)).st_mode)]) for name in things]
