@@ -11,8 +11,9 @@ import os, stat
 import fcntl
 import errno
 
-__all__ = ['abspath', 'abssymlink', 'ensure_dirs', 'join', 'pjoin', 'listdir_files',
-    'listdir_dirs', 'listdir', 'readlines', 'readfile', 'readdir']
+__all__ = ['abspath', 'abssymlink', 'ensure_dirs', 'join', 'pjoin',
+    'listdir_files', 'listdir_dirs', 'listdir', 'readlines', 'readfile',
+    'readdir']
 
 
 # No name '_readdir' in module osutils

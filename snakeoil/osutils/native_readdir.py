@@ -6,10 +6,13 @@
 
 
 import os, errno
-from stat import S_ISDIR, S_ISREG
-from stat import S_IFDIR, S_IFREG, S_IFCHR, S_IFBLK, S_IFIFO, S_IFLNK, S_IFSOCK, S_IFMT
+from stat import (S_IFDIR, S_IFREG, S_IFCHR, S_IFBLK, S_IFIFO, S_IFLNK, S_IFSOCK,
+    S_IFMT)
 
 listdir = os.listdir
+
+# we can still use the cpy pjoin here, just need to do something about the
+# import cycle.
 pjoin = os.path.join
 
 def stat_swallow_enoent(path, check, default=False, stat=os.stat):
