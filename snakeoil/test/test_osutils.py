@@ -12,8 +12,7 @@ from snakeoil import osutils
 from snakeoil.osutils import native_readdir
 from snakeoil.test.mixins import TempDirMixin
 
-
-class NativeListDirTest(TempDirMixin):
+class ReaddirCommon(TempDirMixin):
 
     module = native_readdir
 
@@ -24,6 +23,12 @@ class NativeListDirTest(TempDirMixin):
         f = open(os.path.join(self.dir, 'file'), 'w')
         f.close()
         os.mkfifo(os.path.join(self.dir, 'fifo'))
+
+    def _test_missing(self, funcs):
+        for func in funcs:
+            self.assertRaises(OSError, func, os.path.join(self.dir, 'spork'))
+
+class NativeListDirTest(ReaddirCommon):
 
     def test_listdir(self):
         self.assertEquals(['dir', 'fifo', 'file'],
@@ -39,16 +44,33 @@ class NativeListDirTest(TempDirMixin):
         self.assertEquals([], self.module.listdir_dirs(self.subdir))
 
     def test_missing(self):
-        for func in (
+        return self._test_missing((
             self.module.listdir,
             self.module.listdir_dirs,
             self.module.listdir_files,
-            ):
-            self.assertRaises(OSError, func, os.path.join(self.dir, 'spork'))
+        ))
 
     def test_dangling_sym(self):
         os.symlink("foon", os.path.join(self.dir, "monkeys"))
         self.assertEqual(["file"], self.module.listdir_files(self.dir))
+
+class NativeReaddirTest(ReaddirCommon):
+    # TODO: test char/block devices and sockets, devices might be a bit hard
+    # because it seems like you need to be root to create them in linux
+    def test_readdir(self):
+        os.symlink("foon", os.path.join(self.dir, "monkeys"))
+        os.symlink(os.path.join(self.dir, "file"), os.path.join(self.dir, "sym"))
+        self.assertEquals(set([
+            ("dir", "directory"),
+            ("file", "file"),
+            ("fifo", "fifo"),
+            ("monkeys", "symlink"),
+            ("sym", "symlink"),
+        ]), set(self.module.readdir(self.dir)))
+        self.assertEquals([], self.module.readdir(self.subdir))
+
+    def test_missing(self):
+        return self._test_missing((self.module.readdir,))
 
 try:
     # No name "readdir" in module osutils
@@ -58,6 +80,11 @@ except ImportError:
     _readdir = None
 
 class CPyListDirTest(NativeListDirTest):
+    module = _readdir
+    if _readdir is None:
+        skip = "cpython extension isn't available"
+
+class CPyReaddirTest(NativeReaddirTest):
     module = _readdir
     if _readdir is None:
         skip = "cpython extension isn't available"
@@ -227,3 +254,6 @@ class FsLockTest(TempDirMixin, TestCase):
         lock.release_write_lock()
         fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
         fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
+
+
+# vim: set expandtab sw=4 softtabstop=4:

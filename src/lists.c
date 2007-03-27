@@ -212,7 +212,7 @@ PyDoc_STRVAR(
 static PyTypeObject snakeoil_iflatten_func_type = {
     PyObject_HEAD_INIT(NULL)
     0,                                               /* ob_size*/
-    "snakeoil.util._lists.iflatten_func",             /* tp_name*/
+    "snakeoil._lists.iflatten_func",                 /* tp_name*/
     sizeof(snakeoil_iflatten_func),                   /* tp_basicsize*/
     0,                                               /* tp_itemsize*/
     (destructor)snakeoil_iflatten_func_dealloc,       /* tp_dealloc*/
@@ -409,7 +409,7 @@ PyDoc_STRVAR(
 static PyTypeObject snakeoil_iflatten_instance_type = {
     PyObject_HEAD_INIT(NULL)
     0,                                               /* ob_size*/
-    "snakeoil.util._lists.iflatten_instance",         /* tp_name*/
+    "snakeoil._lists.iflatten_instance",             /* tp_name*/
     sizeof(snakeoil_iflatten_instance),               /* tp_basicsize*/
     0,                                               /* tp_itemsize*/
     (destructor)snakeoil_iflatten_instance_dealloc,   /* tp_dealloc*/
@@ -453,7 +453,7 @@ static PyTypeObject snakeoil_iflatten_instance_type = {
 
 PyDoc_STRVAR(
     snakeoil_lists_documentation,
-    "C reimplementation of some of snakeoil.util.lists.");
+    "C reimplementation of some of snakeoil.lists.");
 
 PyMODINIT_FUNC
 init_lists()

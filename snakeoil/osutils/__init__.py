@@ -12,7 +12,7 @@ import fcntl
 import errno
 
 __all__ = ['abspath', 'abssymlink', 'ensure_dirs', 'join', 'pjoin', 'listdir_files',
-    'listdir_dirs', 'listdir', 'readlines', 'readfile']
+    'listdir_dirs', 'listdir', 'readlines', 'readfile', 'readdir']
 
 
 # No name '_readdir' in module osutils
@@ -26,6 +26,7 @@ except ImportError:
 listdir = module.listdir
 listdir_dirs = module.listdir_dirs
 listdir_files = module.listdir_files
+readdir = module.readdir
 
 del module
 
@@ -53,10 +54,7 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0777, minimal=True):
             for directory in apath.split(os.path.sep):
                 base = join(base, directory)
                 try:
-                    try:
-                        st = os.stat(base)
-                    except TypeError:
-                        raise
+                    st = os.stat(base)
                     if not stat.S_ISDIR(st.st_mode):
                         return False
 
@@ -339,3 +337,5 @@ class FsLock(object):
         finally:
             if self.fd is not None:
                 os.close(self.fd)
+
+# vim: set expandtab sw=4 softtabstop=4:

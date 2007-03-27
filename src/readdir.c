@@ -357,7 +357,7 @@ static PyMethodDef snakeoil_readdir_methods[] = {
 
 PyDoc_STRVAR(
     snakeoil_module_documentation,
-    "C reimplementation of some of snakeoil.util.osutils");
+    "C reimplementation of some of snakeoil.osutils");
 
 PyMODINIT_FUNC
 init_readdir()

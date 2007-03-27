@@ -84,7 +84,7 @@ snakeoil_WeakValFinalizer_heapyrelate(NyHeapRelate *r)
 static PyTypeObject snakeoil_WeakValFinalizerType = {
     PyObject_HEAD_INIT(NULL)
     0,                                               /* ob_size */
-    "snakeoil.util._caching.WeakValFinalizer",        /* tp_name */
+    "snakeoil._caching.WeakValFinalizer",            /* tp_name */
     sizeof(snakeoil_WeakValFinalizer),                /* tp_basicsize */
     0,                                               /* tp_itemsize */
     (destructor)snakeoil_WeakValFinalizer_dealloc,    /* tp_dealloc */
@@ -300,7 +300,7 @@ static PyMethodDef snakeoil_WeakValCache_methods[] = {
 static PyTypeObject snakeoil_WeakValCacheType = {
     PyObject_HEAD_INIT(NULL)
     0,                                               /* ob_size */
-    "snakeoil.util._caching.WeakValCache",            /* tp_name */
+    "snakeoil._caching.WeakValCache",                /* tp_name */
     sizeof(snakeoil_WeakValCache),                    /* tp_basicsize */
     0,                                               /* tp_itemsize */
     (destructor)snakeoil_WeakValCache_dealloc,        /* tp_dealloc */
@@ -594,7 +594,7 @@ PyDoc_STRVAR(
 static PyTypeObject snakeoil_WeakInstMetaType = {
     PyObject_HEAD_INIT(NULL)
     0,                                               /* ob_size */
-    "snakeoil.util._caching.WeakInstMeta",            /* tp_name */
+    "snakeoil._caching.WeakInstMeta",            /* tp_name */
     sizeof(snakeoil_WeakInstMeta),                    /* tp_basicsize */
     0,                                               /* tp_itemsize */
     /* methods */
@@ -657,7 +657,7 @@ static NyHeapDef snakeoil_caching_heapdefs[] = {
 
 PyDoc_STRVAR(
     snakeoil_module_documentation,
-    "C reimplementation of snakeoil.util.caching.");
+    "C reimplementation of snakeoil.caching.");
 
 PyMODINIT_FUNC
 init_caching()

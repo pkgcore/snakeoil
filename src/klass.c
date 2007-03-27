@@ -68,7 +68,7 @@ snakeoil_GetAttrProxy_call(snakeoil_GetAttrProxy *self, PyObject *args,
 static PyTypeObject snakeoil_GetAttrProxyType = {
     PyObject_HEAD_INIT(NULL)
     0,                                               /* ob_size */
-    "snakeoil.util._klass.GetAttrProxy",              /* tp_name */
+    "snakeoil._klass.GetAttrProxy",                  /* tp_name */
     sizeof(snakeoil_GetAttrProxy),                    /* tp_basicsize */
     0,                                               /* tp_itemsize */
     (destructor)snakeoil_GetAttrProxy_dealloc,        /* tp_dealloc */
@@ -225,10 +225,10 @@ snakeoil_generic_equality_ne(PyObject *self, PyObject *other)
     return internal_generic_equality(self, other, Py_NE);
 }
 
-snakeoil_FUNC_BINDING("generic_eq", "snakeoil.util._klass.generic_eq",
+snakeoil_FUNC_BINDING("generic_eq", "snakeoil._klass.generic_eq",
     snakeoil_generic_equality_eq, METH_O|METH_COEXIST)
 
-snakeoil_FUNC_BINDING("generic_ne", "snakeoil.util._klass.generic_ne",
+snakeoil_FUNC_BINDING("generic_ne", "snakeoil._klass.generic_ne",
     snakeoil_generic_equality_ne, METH_O)
 
 
