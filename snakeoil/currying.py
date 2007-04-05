@@ -33,8 +33,8 @@ while L{pre_curry} is python you should use L{partial} if possible.
 
 from operator import attrgetter
 
-__all__ = [
-    "pre_curry", "partial", "post_curry", "pretty_docs", "alias_class_method"]
+__all__ = ("pre_curry", "partial", "post_curry", "pretty_docs",
+    "alias_class_method")
 
 def pre_curry(func, *args, **kwargs):
     """passed in args are prefixed, with further args appended"""

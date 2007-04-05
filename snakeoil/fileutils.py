@@ -133,7 +133,7 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
     s = bash_parser(f, sourcing_command=sourcing_command, env=d)
     orig_whitespace = s.whitespace
     assign_whitespace = ''.join(c for c in orig_whitespace if c != '\n')
- 
+
     try:
         tok = ""
         try:

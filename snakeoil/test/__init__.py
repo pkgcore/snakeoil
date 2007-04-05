@@ -1,3 +1,4 @@
+# Copyright: 2006-2007 Brian Harring <ferringb@gmail.com>
 # Copyright: 2006 Marien Zwart <marienz@gentoo.org>
 # License: GPL2
 
@@ -81,6 +82,26 @@ class TestCase(unittest.TestCase, object):
         self._testMethodName = methodName
         unittest.TestCase.__init__(self, methodName)
 
+    def assertLen(self, obj, length, msg=None):
+        self.failUnless(len(obj) == length,
+            msg or '%r needs to be len %i, is %i' % (obj, length, len(obj)))
+
+    def assertInstance(self, obj, kls, msg=None):
+        """
+        assert that obj is an instance of kls
+        """
+        self.failUnless(isinstance(obj, kls),
+            msg or '%r needs to be an instance of %r, is %r' % (obj, kls,
+                getattr(obj, '__class__', "__class__ wasn't pullable")))
+
+    def assertNotInstance(self, obj, kls, msg=None):
+        """
+        assert that obj is not an instance of kls
+        """
+        self.failIf(isinstance(obj, kls),
+            msg or '%r must not be an instance of %r, is %r' % (obj, kls,
+                getattr(obj, '__class__', "__class__ wasn't pullable")))
+
     def assertIdentical(self, this, other, reason=None):
         self.failUnless(
             this is other, reason or '%r is not %r' % (this, other))
@@ -96,6 +117,20 @@ class TestCase(unittest.TestCase, object):
     def assertNotIn(self, needle, haystack, reason=None):
         self.failUnless(
             needle not in haystack, reason or '%r in %r' % (needle, haystack))
+
+    def assertEqual(self, obj1, obj2, msg=None, reflective=True):
+        self.failUnless(obj1 == obj2,
+            msg or '%r != %r' % (obj1, obj2))
+        if reflective:
+            self.failUnless(not (obj1 != obj2),
+                msg or 'not (%r != %r)' % (obj1, obj2))
+
+    def assertNotEqual(self, obj1, obj2, msg=None, reflective=True):
+        self.failUnless(obj1 != obj2,
+            msg or '%r == %r' % (obj1, obj2))
+        if reflective:
+            self.failUnless(not (obj1 == obj2),
+                msg or 'not (%r == %r)' % (obj1, obj2))
 
     # unittest and twisted each have a differing count of how many frames
     # to pop off when displaying an exception; thus we force an extra

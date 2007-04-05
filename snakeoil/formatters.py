@@ -429,6 +429,7 @@ else:
             if curses.tigetstr('tsl') and curses.tigetstr('fsl'):
                 self.stream.write(
                     curses.tigetstr('tsl') + string + curses.tigetstr('fsl'))
+                self.stream.flush()
 
 
 class ObserverFormatter(object):

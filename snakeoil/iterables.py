@@ -6,7 +6,7 @@ from collections import deque
 class expandable_chain(object):
     """
     chained iterables, with the ability to add new iterables to the chain
-    as long as the instance hasn't raise StopIteration already
+    as long as the instance hasn't raised StopIteration already.
     """
 
     __slot__ = ("iterables", "__weakref__")
@@ -38,13 +38,13 @@ class expandable_chain(object):
         self.iterables.append(iter(iterable))
 
     def appendleft(self, iterable):
-        """prepend an iterable to in the chain"""
+        """prepend an iterable to the chain to be consumed"""
         if self.iterables is None:
             raise StopIteration()
         self.iterables.appendleft(iter(iterable))
 
     def extend(self, iterables):
-        """extend multiple iterable to the chain to be consumed"""
+        """extend multiple iterables to the chain to be consumed"""
         if self.iterables is None:
             raise StopIteration()
         self.iterables.extend(iter(x) for x in iterables)

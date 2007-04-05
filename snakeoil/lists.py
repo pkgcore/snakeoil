@@ -36,7 +36,7 @@ def unstable_unique(sequence):
             i += 1
         return t[:lasti]
 
-    # blah.	 back to original portage.unique_array
+    # blah.  back to original portage.unique_array
     u = []
     for x in sequence:
         if x not in u:
@@ -61,7 +61,7 @@ def iter_stable_unique(iterable):
 
 def native_iflatten_instance(l, skip_flattening=(basestring,)):
     """
-    collapse [(1),2] into [1,2]
+    collapse [[1],2] into [1,2]
 
     @param skip_flattening: list of classes to not descend through
     """
@@ -81,7 +81,7 @@ def native_iflatten_instance(l, skip_flattening=(basestring,)):
 
 def native_iflatten_func(l, skip_func):
     """
-    collapse [(1),2] into [1,2]
+    collapse [[1],2] into [1,2]
 
     @param skip_func: a callable that returns True when iflatten_func should
         descend no further

@@ -1,7 +1,5 @@
 # Copyright: 2005-2007 Brian Harring <ferringb@gmail.com>
 # License: GPL2
-# $Id:$
-
 
 """
 collection of container classes
@@ -31,7 +29,38 @@ class InvertedContains(set):
         raise TypeError
 
 
-class LimitedChangeSet(object):
+class SetMixin(object):
+    """
+    A mixin providing set methods
+
+    Subclasses should provide __init__, __iter__ and __contains__
+    """
+
+    def __and__(self, other):
+        # Note: for these methods we don't bother to filter dupes from this
+        # list -  since the subclasses __init__ should already handle this,
+        # there's no point doing it twice.
+        return self.__class__([x for x in self if x in other])
+
+    def __or__(self, other):
+        return self.__class__(tuple(self)+tuple(other))
+
+    def __xor__(self, other):
+        return self.__class__([x for x in self if x not in other]+
+                              [x for x in other if x not in self])
+
+    def __rand__(self, other):
+        # These methods are the same either way
+        return self & other
+
+    def __ror__(self, other):
+        return self | other
+
+    def __rxor__(self, other):
+        return self ^ other
+
+
+class LimitedChangeSet(SetMixin):
 
     """Set used to limit the number of times a key can be removed/added
 
@@ -39,8 +68,8 @@ class LimitedChangeSet(object):
     optionally blocking changes to certain keys.
     """
 
-    _removed	= 0
-    _added		= 1
+    _removed    = 0
+    _added      = 1
 
     def __init__(self, initial_keys, unchangable_keys=None):
         self._new = set(initial_keys)
@@ -113,7 +142,7 @@ class LimitedChangeSet(object):
     def __eq__(self, other):
         if isinstance(other, LimitedChangeSet):
             return self._new == other._new
-        elif isinstance(other, set):
+        elif isinstance(other, (frozenset, set)):
             return self._new == other
         return False
 
@@ -128,12 +157,13 @@ class Unchangable(Exception):
         self.key = key
 
 
-class ProtectedSet(object):
+class ProtectedSet(SetMixin):
 
     """
     Wraps a set pushing all changes into a secondary set.
 
-    Be aware that it lacks the majority of set methods.
+    These classes subclass set in order to inherit most set methods.
+    This is Just Works(tm), because it provides __contains__ and __iter__.
     """
     def __init__(self, orig_set):
         self._orig = orig_set

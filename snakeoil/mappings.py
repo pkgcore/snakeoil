@@ -21,6 +21,10 @@ class DictMixin(object):
 
     __externally_mutable__ = True
 
+    def __init__(self, iterable=()):
+        for k, v in iterable:
+            self[k] = v
+
     def __iter__(self):
         return self.iterkeys()
 
@@ -135,7 +139,7 @@ class LazyValDict(DictMixin):
     Mapping that loads values via a callable
 
     given a function to get keys, and to look up the val for those keys, it'll
-    lazy load key definitions, and values as requested
+    lazily load key definitions and values as requested
     """
     __slots__ = ("_keys", "_keys_func", "_vals", "_val_func")
     __externally_mutable__ = False
@@ -154,7 +158,7 @@ class LazyValDict(DictMixin):
         else:
             if not callable(get_keys_func):
                 raise TypeError(
-                    "get_keys_func isn't iterable nor is it callable")
+                    "get_keys_func isn't iterable or callable")
             self._keys_func = get_keys_func
         self._val_func = get_val_func
         self._vals = {}
@@ -204,7 +208,7 @@ class LazyValDict(DictMixin):
 class LazyFullValLoadDict(LazyValDict):
 
     __slots__ = ()
-    
+
     def __getitem__(self, key):
         if self._keys_func is not None:
             self._keys = set(self._keys_func())
@@ -393,7 +397,7 @@ class OrderedDict(DictMixin):
                 del self._order[idx]
                 break
         else:
-            raise AssertionError("orderdict lost it's internal ordering")
+            raise AssertionError("orderdict lost its internal ordering")
 
     def __getitem__(self, key):
         return self._data[key]

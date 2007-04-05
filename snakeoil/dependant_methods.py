@@ -3,7 +3,7 @@
 
 """Metaclass to inject dependencies into method calls.
 
-Essentially, method a must be ran prior to method b, invoking method a
+Essentially, method a must be run prior to method b, invoking method a
 if b is called first.
 """
 
