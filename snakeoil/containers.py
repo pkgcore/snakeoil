@@ -5,6 +5,7 @@
 collection of container classes
 """
 
+import operator
 from snakeoil.demandload import demandload
 demandload(globals(),
     "snakeoil.lists:iter_stable_unique "
@@ -49,15 +50,9 @@ class SetMixin(object):
         return self.__class__([x for x in self if x not in other]+
                               [x for x in other if x not in self])
 
-    def __rand__(self, other):
-        # These methods are the same either way
-        return self & other
-
-    def __ror__(self, other):
-        return self | other
-
-    def __rxor__(self, other):
-        return self ^ other
+    __rand__ = operator.__and__
+    __ror__ = operator.__or__
+    __rxor__ = operator.__xor__
 
 
 class LimitedChangeSet(SetMixin):
