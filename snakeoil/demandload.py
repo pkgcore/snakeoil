@@ -164,13 +164,11 @@ def demandload(scope, *imports):
       foo.bar:quux   from foo.bar import quux
       foo:baz@quux   from foo import baz as quux
     """
-    # TODO: remove backwards compatibility code.
-    if len(imports) == 1:
-        imports = imports[0].split()
-        if len(imports) > 1:
-            warnings.warn(
-                'Calling demandload with a single whitespace-separated '
-                'string is deprecated.')
+    # remove prior to 0.1
+    for x in imports:
+        # looks funky, but it'll catch extra whitespace slipped in.
+        if ''.join(x.split()) != x:
+            raise TypeError("demandload called with whitespace: %s" % imports)
     for source, target in parse_imports(imports):
         scope[target] = Placeholder(scope, target, partial(load_any, source))
 
@@ -184,13 +182,11 @@ enabled_demandload = demandload
 
 def disabled_demandload(scope, *imports):
     """Exactly like L{demandload} but does all imports immediately."""
-    # TODO: remove backwards compatibility code.
-    if len(imports) == 1:
-        imports = imports[0].split()
-        if len(imports) > 1:
-            warnings.warn(
-                'Calling demandload with a single whitespace-separated '
-                'string is deprecated.')
+    # remove prior to 0.1
+    for x in imports:
+        # looks funky, but it'll catch extra whitespace slipped in.
+        if ''.join(x.split()) != x:
+            raise TypeError("demandload called with whitespace: %s" % imports)
     for source, target in parse_imports(imports):
         scope[target] = load_any(source)
 

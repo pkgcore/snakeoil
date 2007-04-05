@@ -3,4 +3,7 @@ Snakeoil Release Notes
 
 snakeoil 0.1:
 
+TODO: remove demandload whitespace checks prior to 0.1; literally right before.
+meanwhile, it's being used to explode any of the old callers
+
 Initial release, split out from pkgcore.
