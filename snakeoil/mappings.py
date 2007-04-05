@@ -21,9 +21,9 @@ class DictMixin(object):
 
     __externally_mutable__ = True
 
-    def __init__(self, iterable=()):
-        for k, v in iterable:
-            self[k] = v
+    def __init__(self, iterable=None):
+        if iterable is not None:
+            self.update(iterable)
 
     def __iter__(self):
         return self.iterkeys()
