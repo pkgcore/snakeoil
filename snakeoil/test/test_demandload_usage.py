@@ -1,16 +1,11 @@
 # Copyright: 2005 Brian Harring <ferringb@gmail.com>
 # License: GPL2
 
-from snakeoil import demandload
 import sys
 
 from snakeoil.test import TestCase
 
 class TestDemandLoadTargets(TestCase):
-
-    matching_types = [
-        type(getattr(demandload, x)) for x in (
-            "_replacer_from", "_replacer", "_importer", "_delayed_compiler")]
 
     def test_demandload_targets(self):
         # picks up only the namespace loaded for searching

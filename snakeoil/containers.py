@@ -7,9 +7,10 @@ collection of container classes
 
 import operator
 from snakeoil.demandload import demandload
-demandload(globals(),
-    "snakeoil.lists:iter_stable_unique "
-    "itertools:chain "
+demandload(
+    globals(),
+    'snakeoil.lists:iter_stable_unique',
+    'itertools:chain',
 )
 
 class InvertedContains(set):

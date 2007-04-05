@@ -1,202 +1,211 @@
-'''Demand load modules when used, not when imported.'''
+# Copyright: 2006 Vadim Gelfer <vadim.gelfer@gmail.com>
+# Copyright: 2007 Marien Zwart <marienz@gentoo.org>
+# License: GPL2
 
-import sys
-import re
+"""Demand load things when used.
 
-__author__ = '''Copyright 2006 Vadim Gelfer <vadim.gelfer@gmail.com>.
-This software may be used and distributed according to the terms
-of the GNU General Public License, incorporated herein by reference.'''
+This uses L{Placeholder} objects which create an actual object on
+first use and know how to replace themselves with that object, so
+there is no performance penalty after first use.
 
-# this is based on matt's original demandload module.  it is a
-# complete rewrite.  some time, we may need to support syntax of
-# "import foo as bar".
+This trick is *mostly* transparent, but there are a few things you
+have to be careful with:
 
+ - You may not bind a second name to a placeholder object. Specifically,
+   if you demandload C{bar} in module C{foo}, you may not
+   C{from foo import bar} in a third module. The placeholder object
+   does not "know" it gets imported, so this does not trigger the
+   demandload: C{bar} in the third module is the placeholder object.
+   When that placeholder gets used it replaces itself with the actual
+   module in C{foo} but not in the third module.
+   Because this is normally unwanted (it introduces a small
+   performance hit) the placeholder object will raise an exception if
+   it detects this. But if the demandload gets triggered before the
+   third module is imported you do not get that exception, so you
+   have to be careful not to import or otherwise pass around the
+   placeholder object without triggering it.
+ - Not all operations on the placeholder object trigger demandload.
+   The most common problem is that C{except ExceptionClass} does not
+   work if C{ExceptionClass} is a placeholder.
+   C{except module.ExceptionClass} with C{module} a placeholder does
+   work. You can normally avoid this by always demandloading the
+   module, not something in it.
+"""
 
-class _importer(object):
-    '''import a module.  it is not imported until needed, and is
-    imported at most once per scope.'''
+# TODO: the use of a curried func instead of subclassing needs more thought.
 
-    def __init__(self, scope, modname, fromlist):
-        '''scope is context (globals() or locals()) in which import
-        should be made.  modname is name of module to import.
-        fromlist is list of modules for "from foo import ..."
-        emulation.'''
-
-        self.scope = scope
-        self.modname = modname
-        self.fromlist = fromlist
-        self.mod = None
-
-    def module(self):
-        '''import the module if needed, and return.'''
-        if self.mod is None:
-            self.mod = __import__(self.modname, self.scope, self.scope,
-                                  self.fromlist)
-            if isinstance(self.mod, _replacer):
-                del sys.modules[self.modname]
-                self.mod = __import__(self.modname, self.scope, self.scope,
-                                      self.fromlist)
-            del self.modname, self.fromlist
-        return self.mod
-
-
-class _replacer(object):
-    '''placeholder for a demand loaded module. demandload puts this in
-    a target scope.  when an attribute of this object is looked up,
-    this object is replaced in the target scope with the actual
-    module.
-
-    we use __getattribute__ to avoid namespace clashes between
-    placeholder object and real module.'''
-
-    def __init__(self, importer, target):
-        self.importer = importer
-        self.target = target
-        # consider case where we do this:
-        #   demandload(globals(), 'foo.bar foo.quux')
-        # foo will already exist in target scope when we get to
-        # foo.quux.  so we remember that we will need to demandload
-        # quux into foo's scope when we really load it.
-        self.later = []
-
-    def module(self):
-        return object.__getattribute__(self, 'importer').module()
-
-    def __getattribute__(self, key):
-        '''look up an attribute in a module and return it. replace the
-        name of the module in the caller\'s dict with the actual
-        module.'''
-
-        module = object.__getattribute__(self, 'module')()
-        target = object.__getattribute__(self, 'target')
-        importer = object.__getattribute__(self, 'importer')
-        later = object.__getattribute__(self, 'later')
-
-        if later:
-            demandload(module.__dict__, ' '.join(later))
-
-        importer.scope[target] = module
-
-        return getattr(module, key)
+# the replace_func used by Placeholder is currently passed in as an
+# external callable, with "partial" used to provide arguments to it.
+# This works, but has the disadvantage that calling
+# demand_compile_regexp needs to import re (to hand re.compile to
+# partial). One way to avoid that would be to add a wrapper function
+# that delays the import (well, triggers the demandload) at the time
+# the regexp is used, but that's a bit convoluted. A different way is
+# to make replace_func a method of Placeholder implemented through
+# subclassing instead of a callable passed to its __init__. The
+# current version does not do this because getting/setting attributes
+# of Placeholder is annoying because of the
+# __getattribute__/__setattr__ override.
 
 
-class _replacer_from(_replacer):
-    '''placeholder for a demand loaded module.  used for "from foo
-    import ..." emulation. semantics of this are different than
-    regular import, so different implementation needed.'''
+from snakeoil.modules import load_any
+from snakeoil.currying import partial
 
-    def module(self):
-        importer = object.__getattribute__(self, 'importer')
-        target = object.__getattribute__(self, 'target')
-
-        return getattr(importer.module(), target)
-
-    def __call__(self, *args, **kwargs):
-        target = object.__getattribute__(self, 'module')()
-        return target(*args, **kwargs)
+# There are some demandloaded imports below the definition of demandload.
 
 
-def _demandload(scope, modules):
-    '''import modules into scope when each is first used.
+def parse_imports(imports):
+    """Parse a sequence of strings describing imports.
 
-    scope should be the value of globals() in the module calling this
-    function, or locals() in the calling function.
+    For every input string it returns a tuple of (import, targetname).
+    Examples::
 
-    modules is a string listing module names, separated by white
-    space.  names are handled like this:
+      'foo' -> ('foo', 'foo')
+      'foo:bar' -> ('foo.bar', 'bar')
+      'foo:bar,baz@spork' -> ('foo.bar', 'bar'), ('foo.baz', 'spork')
+      'foo@bar' -> ('foo', 'bar')
 
-    foo            import foo
-    foo bar        import foo, bar
-    foo.bar        import foo.bar
-    foo:bar        from foo import bar
-    foo:bar,quux   from foo import bar, quux
-    foo.bar:quux   from foo.bar import quux'''
+    Notice 'foo.bar' is not a valid input. This simplifies the code,
+    but if it is desired it can be added back.
 
-    for mod in modules.split():
-        if not mod: #Ignore empty entries
-            continue
-        col = mod.find(':')
-        if col >= 0:
-            fromlist = mod[col+1:].split(',')
-            mod = mod[:col]
-        else:
-            fromlist = []
-        importer = _importer(scope, mod, fromlist)
-        if fromlist:
-            for name in fromlist:
-                scope[name] = _replacer_from(importer, name)
-        else:
-            dot = mod.find('.')
-            if dot >= 0:
-                basemod = mod[:dot]
-                val = scope.get(basemod)
-                # if base module has already been demandload()ed,
-                # remember to load this submodule into its namespace
-                # when needed.
-                if isinstance(val, _replacer):
-                    later = object.__getattribute__(val, 'later')
-                    later.append(mod[dot+1:])
-                    continue
+    @type  imports: sequence of C{str} objects.
+    @rtype: iterable of tuples of two C{str} objects.
+    """
+    for s in imports:
+        fromlist = s.split(':', 1)
+        if len(fromlist) == 1:
+            # Not a "from" import.
+            if '.' in s:
+                raise ValueError('dotted imports unsupported.')
+            split = s.split('@', 1)
+            if len(split) == 2:
+                yield tuple(split)
             else:
-                basemod = mod
-            scope[basemod] = _replacer(importer, basemod)
-
-
-def disabled_demandload(scope, modules):
-    for mod in modules.split():
-        if not mod: #Ignore empty entries
-            continue
-        col = mod.find(':')
-        if col >= 0:
-            fromlist = mod[col+1:].split(',')
-            mod = mod[:col]
+                yield split[0], split[0]
         else:
-            fromlist = []
-        mod_obj = __import__(mod, scope, {}, [])
-        if not fromlist:
-            scope[mod.split(".", 1)[0]] = mod_obj
-        else:
-            for sub in mod.split(".")[1:]:
-                mod_obj = getattr(mod_obj, sub)
-            for name in fromlist:
-                if name in dir(mod_obj):
-                    scope[name] = getattr(mod_obj, name)
-                else:
-                    loc = mod + "." + name
-                    m = __import__(loc, scope, {}, [])
-                    for sub in loc.split(".")[1:]:
-                        m = getattr(m, sub)
-                    scope[name] = m
+            # "from" import.
+            base, targets = fromlist
+            for target in targets.split(','):
+                split = target.split('@', 1)
+                yield base + '.' + split[0], split[-1]
 
 
-demandload = _demandload
+class Placeholder(object):
 
-_real_compile = re.compile
-class _delayed_compiler(object):
-    """A class which just waits to compile a regex until it is actually requested.
+    """Object that knows how to replace itself when first accessed.
 
-    It might be possible to use the scope swapping to prevent any overhead after
-    the first request.
+    See the module docstring for common problems with its use.
     """
 
-    __slots__ = ['_args', '_kwargs', '_regex']
+    def __init__(self, scope, name, replace_func):
+        """Initialize.
 
-    def __init__(self, args, kwargs):
-        self._args = args
-        self._kwargs = kwargs
-        self._regex = None
+        @param scope: the scope we live in, normally the result of
+          C{globals()}.
+        @param name: the name we have in C{scope}.
+        @param replace_func: callable returning the object to replace us with.
+        """
+        object.__setattr__(self, '_scope', scope)
+        object.__setattr__(self, '_name', name)
+        object.__setattr__(self, '_replace_func', replace_func)
+
+    def _already_replaced(self):
+        name = object.__getattribute__(self, '_name')
+        raise ValueError('Placeholder for %r was triggered twice' % (name,))
+
+    def _replace(self):
+        """Replace ourself in C{scope} with the result of our C{replace_func}.
+
+        @returns: the result of calling C{replace_func}.
+        """
+        replace_func = object.__getattribute__(self, '_replace_func')
+        scope = object.__getattribute__(self, '_scope')
+        name = object.__getattribute__(self, '_name')
+        # Paranoia, explained in the module docstring.
+        already_replaced = object.__getattribute__(self, '_already_replaced')
+        object.__setattr__(self, '_replace_func', already_replaced)
+
+        # Cleanup, possibly unnecessary.
+        object.__setattr__(self, '_scope', None)
+
+        result = replace_func()
+        scope[name] = result
+        return result
+
+    # Various methods proxied to our replacement.
 
     def __getattribute__(self, attr):
-        regex = object.__getattribute__(self, '_regex')
-        if regex is None:
-            args = object.__getattribute__(self, '_args')
-            kwargs = object.__getattribute__(self, '_kwargs')
-            regex = _real_compile(*args, **kwargs)
-            self._regex = regex
-        return getattr(regex, attr)
+        result = object.__getattribute__(self, '_replace')()
+        return getattr(result, attr)
 
-def demand_compile(*args, **kwargs):
-    return _delayed_compiler(args, kwargs)
+    def __setattr__(self, attr, value):
+        result = object.__getattribute__(self, '_replace')()
+        setattr(result, attr, value)
 
-#re.compile = demand_compile
+    def __call__(self, *args, **kwargs):
+        result = object.__getattribute__(self, '_replace')()
+        return result(*args, **kwargs)
 
+
+def demandload(scope, *imports):
+    """Import modules into scope when each is first used.
+
+    scope should be the value of C{globals()} in the module calling
+    this function. (using C{locals()} may work but is not recommended
+    since mutating that is not safe).
+
+    Other args are strings listing module names.
+    names are handled like this::
+
+      foo            import foo
+      foo@bar        import foo as bar
+      foo:bar        from foo import bar
+      foo:bar,quux   from foo import bar, quux
+      foo.bar:quux   from foo.bar import quux
+      foo:baz@quux   from foo import baz as quux
+    """
+    # TODO: remove backwards compatibility code.
+    if len(imports) == 1:
+        imports = imports[0].split()
+        if len(imports) > 1:
+            warnings.warn(
+                'Calling demandload with a single whitespace-separated '
+                'string is deprecated.')
+    for source, target in parse_imports(imports):
+        scope[target] = Placeholder(scope, target, partial(load_any, source))
+
+
+demandload(globals(), 'warnings', 're')
+
+# Extra name to make undoing monkeypatching demandload with
+# disabled_demandload easier.
+enabled_demandload = demandload
+
+
+def disabled_demandload(scope, *imports):
+    """Exactly like L{demandload} but does all imports immediately."""
+    # TODO: remove backwards compatibility code.
+    if len(imports) == 1:
+        imports = imports[0].split()
+        if len(imports) > 1:
+            warnings.warn(
+                'Calling demandload with a single whitespace-separated '
+                'string is deprecated.')
+    for source, target in parse_imports(imports):
+        scope[target] = load_any(source)
+
+
+def demand_compile_regexp(scope, name, *args, **kwargs):
+    """Demandloaded version of L{re.compile}.
+
+    Extra arguments are passed unchanged to L{re.compile}.
+
+    This returns the placeholder, which you *must* bind to C{name} in
+    the scope you pass as C{scope}. It is done this way to prevent
+    confusing code analysis tools like pylint.
+
+    @param scope: the scope, just like for L{demandload}.
+    @param name: the name of the compiled re object in that scope.
+    @returns: the placeholder object.
+    """
+    return Placeholder(scope, name, partial(re.compile, *args, **kwargs))

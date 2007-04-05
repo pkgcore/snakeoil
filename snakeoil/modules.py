@@ -20,12 +20,9 @@ def load_module(name):
         return sys.modules[name]
     try:
         m = __import__(name)
-        nl = name.split('.')
-        # __import__ returns nl[0]... so.
-        nl.pop(0)
-        while nl:
-            m = getattr(m, nl[0])
-            nl.pop(0)
+        # __import__('foo.bar') returns foo, so...
+        for bit in name.split('.')[1:]:
+            m = getattr(m, bit)
         return m
     except (KeyboardInterrupt, SystemExit):
         raise
@@ -43,3 +40,27 @@ def load_attribute(name):
         return m
     except (AttributeError, ImportError), e:
         raise FailedImport(name, e)
+
+def load_any(name):
+    """Load a module or attribute."""
+    orig_name = name
+    while True:
+        try:
+            result = __import__(name)
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except ImportError, e:
+            try:
+                name, discarded = name.rsplit('.', 1)
+            except ValueError:
+                raise FailedImport(orig_name, e)
+        except Exception, e:
+            raise FailedImport(orig_name, e)
+        else:
+            break
+    try:
+        for attr in orig_name.split('.')[1:]:
+            result = getattr(result, attr)
+    except AttributeError, e:
+        raise FailedImport(orig_name, e)
+    return result

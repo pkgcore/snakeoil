@@ -99,8 +99,38 @@ class ModulesTest(TestCase):
             modules.FailedImport,
             modules.load_attribute, 'mod_testpack.mod_test3')
 
-    def test_broken_module(self):
+    def test_load_any(self):
+        # import an already-imported module
+        self.assertIdentical(modules.load_any('snakeoil.modules'), modules)
+        # attribute of an already imported module
+        self.assertIdentical(modules.load_any('sys.path'), sys.path)
+        # already imported toplevel.
+        self.assertIdentical(sys, modules.load_any('sys'))
+        # unimported
+        myfoo = modules.load_any('mod_testpack.mod_test2.foo')
+
+        # "Unable to import"
+        # pylint: disable-msg=F0401
+
+        from mod_testpack.mod_test2 import foo
+        self.assertIdentical(foo, myfoo)
+        # nonexisting attribute
+        self.assertRaises(
+            modules.FailedImport, modules.load_any, 'snakeoil.froznicator')
+        # nonexisting top-level
+        self.assertRaises(
+            modules.FailedImport, modules.load_any,
+            'spork_does_not_exist.foo')
+        self.assertRaises(
+            modules.FailedImport, modules.load_any,
+            'spork_does_not_exist')
+        # not imported yet
         self.assertRaises(
             modules.FailedImport,
-            modules.load_module, 'mod_testpack.mod_horked')
-        self.failIf('mod_testpack.mod_horked' in sys.modules)
+            modules.load_any, 'mod_testpack.mod_test3')
+
+    def test_broken_module(self):
+        for func in [modules.load_module, modules.load_any]:
+            self.assertRaises(
+                modules.FailedImport, func, 'mod_testpack.mod_horked')
+            self.failIf('mod_testpack.mod_horked' in sys.modules, func)

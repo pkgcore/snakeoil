@@ -6,7 +6,11 @@ instance caching metaclass
 """
 
 from snakeoil.demandload import demandload
-demandload(globals(), "warnings weakref:WeakValueDictionary")
+demandload(
+    globals(),
+    'warnings',
+    'weakref:WeakValueDictionary',
+    )
 
 class native_WeakInstMeta(type):
     """metaclass for instance caching, resulting in reuse of unique instances
