@@ -46,23 +46,9 @@ def load_attribute(name):
 def load_any(name):
     """Load a module or attribute."""
     orig_name = name
-    while True:
-        try:
-            result = __import__(name)
-        except (KeyboardInterrupt, SystemExit):
-            raise
-        except ImportError, e:
-            try:
-                name, discarded = name.rsplit('.', 1)
-            except ValueError:
-                raise FailedImport(orig_name, e)
-        except Exception, e:
-            raise FailedImport(orig_name, e)
-        else:
-            break
     try:
-        for attr in orig_name.split('.')[1:]:
-            result = getattr(result, attr)
-    except AttributeError, e:
-        raise FailedImport(orig_name, e)
-    return result
+        return load_module(name)
+    except FailedImport, fi:
+        if not isinstance(fi.e, ImportError):
+            raise
+    return load_attribute(name)
