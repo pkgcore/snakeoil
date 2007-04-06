@@ -191,6 +191,22 @@ def disabled_demandload(scope, *imports):
         scope[target] = load_any(source)
 
 
+class RegexPlaceholder(Placeholder):
+    """
+    Compiled Regex object that knows how to replace itself when first accessed.
+
+    See the module docstring for common problems with its use; used by
+    L{demand_compile_regexp}.
+    """
+
+    def _replace(self):
+        args, kwargs = object.__getattribute__(self, '_replace_func')
+        object.__setattr__(self, '_replace_func',
+            partial(re.compile, *args, **kwargs))
+        return Placeholder._replace(self)
+
+
+
 def demand_compile_regexp(scope, name, *args, **kwargs):
     """Demandloaded version of L{re.compile}.
 
@@ -204,4 +220,4 @@ def demand_compile_regexp(scope, name, *args, **kwargs):
     @param name: the name of the compiled re object in that scope.
     @returns: the placeholder object.
     """
-    return Placeholder(scope, name, partial(re.compile, *args, **kwargs))
+    return RegexPlaceholder(scope, name, (args, kwargs))
