@@ -168,7 +168,7 @@ def demandload(scope, *imports):
     for x in imports:
         # looks funky, but it'll catch extra whitespace slipped in.
         if ''.join(x.split()) != x:
-            raise TypeError("demandload called with whitespace: %s" % imports)
+            raise TypeError("demandload called with whitespace: %s" % (imports,))
     for source, target in parse_imports(imports):
         scope[target] = Placeholder(scope, target, partial(load_any, source))
 
@@ -186,7 +186,7 @@ def disabled_demandload(scope, *imports):
     for x in imports:
         # looks funky, but it'll catch extra whitespace slipped in.
         if ''.join(x.split()) != x:
-            raise TypeError("demandload called with whitespace: %s" % imports)
+            raise TypeError("demandload called with whitespace: %s" % (imports,))
     for source, target in parse_imports(imports):
         scope[target] = load_any(source)
 
