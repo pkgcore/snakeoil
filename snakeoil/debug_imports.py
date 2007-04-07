@@ -12,8 +12,6 @@ class intercept_import(object):
         self.seen = set()
     
     def __call__(self, *args):
-        if len(args) == 4:
-            
         if args[0] not in self.seen:
             self.disable()
             self.callback(self.stack, args)
