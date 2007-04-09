@@ -53,6 +53,8 @@ from snakeoil.currying import partial
 
 # There are some demandloaded imports below the definition of demandload.
 
+_allowed_chars = "".join((x.isalnum() or x in "_.") and " " or "a" 
+    for x in map(chr, xrange(256)))
 
 def parse_imports(imports):
     """Parse a sequence of strings describing imports.
@@ -78,6 +80,9 @@ def parse_imports(imports):
             if '.' in s:
                 raise ValueError('dotted imports unsupported.')
             split = s.split('@', 1)
+            for s in split:
+                if not s.translate(_allowed_chars).isspace():
+                    raise ValueError("bad target: %s" % s)
             if len(split) == 2:
                 yield tuple(split)
             else:
@@ -85,8 +90,13 @@ def parse_imports(imports):
         else:
             # "from" import.
             base, targets = fromlist
+            if not base.translate(_allowed_chars).isspace():
+                raise ValueError("bad target: %s" % base)
             for target in targets.split(','):
                 split = target.split('@', 1)
+                for s in split:
+                    if not s.translate(_allowed_chars).isspace():
+                        raise ValueError("bad target: %s" % s)
                 yield base + '.' + split[0], split[-1]
 
 
@@ -164,11 +174,6 @@ def demandload(scope, *imports):
       foo.bar:quux   from foo.bar import quux
       foo:baz@quux   from foo import baz as quux
     """
-    # remove prior to 0.1
-    for x in imports:
-        # looks funky, but it'll catch extra whitespace slipped in.
-        if ''.join(x.split()) != x:
-            raise TypeError("demandload called with whitespace: %s" % (imports,))
     for source, target in parse_imports(imports):
         scope[target] = Placeholder(scope, target, partial(load_any, source))
 
@@ -182,11 +187,6 @@ enabled_demandload = demandload
 
 def disabled_demandload(scope, *imports):
     """Exactly like L{demandload} but does all imports immediately."""
-    # remove prior to 0.1
-    for x in imports:
-        # looks funky, but it'll catch extra whitespace slipped in.
-        if ''.join(x.split()) != x:
-            raise TypeError("demandload called with whitespace: %s" % (imports,))
     for source, target in parse_imports(imports):
         scope[target] = load_any(source)
 

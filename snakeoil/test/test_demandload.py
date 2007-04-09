@@ -14,9 +14,14 @@ class ParserTest(TestCase):
             ('foo:bar', [('foo.bar', 'bar')]),
             ('foo:bar,baz@spork', [('foo.bar', 'bar'), ('foo.baz', 'spork')]),
             ('foo@bar', [('foo', 'bar')]),
+            ('foo_bar', [('foo_bar', 'foo_bar')]),
             ]:
             self.assertEqual(output, list(demandload.parse_imports([input])))
         self.assertRaises(ValueError, list, demandload.parse_imports(['a.b']))
+        self.assertRaises(ValueError, list, demandload.parse_imports(['a:,']))
+        self.assertRaises(ValueError, list, demandload.parse_imports(['a:b,x@']))
+        self.assertRaises(ValueError, list, demandload.parse_imports(['b-x']))
+        self.assertRaises(ValueError, list, demandload.parse_imports([' b_x']))
 
 
 class PlaceholderTest(TestCase):
