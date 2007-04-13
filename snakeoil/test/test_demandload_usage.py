@@ -10,9 +10,11 @@ class TestDemandLoadTargets(TestCase):
     valid_inits = frozenset("__init__.%s" % x for x in ("py", "pyc", "pyo", "so"))
 
     target_namespace = 'snakeoil'
+    ignore_all_import_failures = False
 
     def test_demandload_targets(self):
-        for x in self.get_modules(self.target_namespace):
+        for x in self.get_modules(self.target_namespace,
+            self.ignore_all_import_failures):
             self.check_space(x)
 
     def check_space(self, mod):
@@ -23,7 +25,8 @@ class TestDemandLoadTargets(TestCase):
                 getattr(obj, "__class__", None)
             except ImportError:
                 # hit one.
-                self.fail("failed 'touching' demandloaded %s.%s" % (mod.__name__, attr))
+                self.fail("failed 'touching' demandloaded %s.%s" %
+                    (mod.__name__, attr))
 
     def recurse(self, location, require_init=True):
         l = os.listdir(location)
@@ -45,6 +48,7 @@ class TestDemandLoadTargets(TestCase):
             if stat.S_ISDIR(st):
                 for y in self.recurse(os.path.join(location, x)):
                     yield "%s.%s" % (x, y)
+                yield x
 
     @staticmethod
     def poor_mans_load(namespace):
@@ -66,6 +70,5 @@ class TestDemandLoadTargets(TestCase):
             try:
                 yield self.poor_mans_load("%s.%s" % (i.__name__, x))
             except ImportError:
-                if ignore_failed_imports:
-                    return
-                raise
+                if not ignore_failed_imports:
+                    raise
