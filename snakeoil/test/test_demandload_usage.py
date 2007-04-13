@@ -13,8 +13,8 @@ class TestDemandLoadTargets(TestCase):
     ignore_all_import_failures = False
 
     def test_demandload_targets(self):
-        for x in self.get_modules(self.target_namespace,
-            self.ignore_all_import_failures):
+        for x in self.check_namespace(self.target_namespace,
+            ignore_failed_imports=self.ignore_all_import_failures):
             self.check_space(x)
 
     def check_space(self, mod):
@@ -28,10 +28,13 @@ class TestDemandLoadTargets(TestCase):
                 self.fail("failed 'touching' demandloaded %s.%s" %
                     (mod.__name__, attr))
 
-    def recurse(self, location, require_init=True):
+    def recurse(self, location, valid_namespace=True):
         l = os.listdir(location)
-        if require_init and not self.valid_inits.intersection(l):
-            return
+        if not self.valid_inits.intersection(l):
+            if valid_namespace:
+                return
+        else:
+            yield None
 
         stats = [(x, os.stat(os.path.join(location, x)).st_mode) for x in l]
         seen = set(['__init__'])
@@ -47,28 +50,36 @@ class TestDemandLoadTargets(TestCase):
         for (x, st) in stats:
             if stat.S_ISDIR(st):
                 for y in self.recurse(os.path.join(location, x)):
-                    yield "%s.%s" % (x, y)
-                yield x
+                    if y is None:
+                        yield x
+                    else:
+                        yield "%s.%s" % (x, y)
 
     @staticmethod
     def poor_mans_load(namespace):
         return reduce(getattr, namespace.split(".")[1:], __import__(namespace))
 
-    def get_modules(self, namespace, ignore_failed_imports=False):
-        try:
-            i = self.poor_mans_load(namespace)
-            yield i
-        except ImportError:
-            if ignore_failed_imports:
-                return
-            raise
-        fn = i.__file__
-        if not fn.rsplit(".", 1)[0].endswith("__init__"):
-            yield namespace
-            return
-        for x in self.recurse(os.path.abspath(os.path.dirname(i.__file__))):
+    def check_namespace(self, namespace, **kwds):
+        location = os.path.abspath(os.path.dirname(
+            self.poor_mans_load(namespace).__file__))
+        return self.get_modules(self.recurse(location), namespace, **kwds)
+
+    def check_toplevel(self, location, **kwds):
+        return self.get_modules(self.recurse(location, False), **kwds)
+
+    def get_modules(self, feed, namespace=None, ignore_failed_imports=False):
+        if namespace is None:
+            mangle = lambda x:x
+        else:
+            mangle = lambda x: "%s.%s" % (namespace, x)
+        for x in feed:
             try:
-                yield self.poor_mans_load("%s.%s" % (i.__name__, x))
+                if x is None:
+                    if namespace is None:
+                        continue
+                    yield self.poor_mans_load(namespace)
+                else:
+                    yield self.poor_mans_load(mangle(x))
             except ImportError:
                 if not ignore_failed_imports:
                     raise
