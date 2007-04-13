@@ -51,6 +51,11 @@ class TestReadBashConfig(TestCase):
             read_dict(['foo=bar'], source_isiter=True), {'foo': 'bar'})
         self.assertRaises(
             ParseError, read_dict, ['invalid'], source_isiter=True)
+        self.assertEqual(
+            read_dict(StringIO("foo bar\nfoo2  bar\nfoo3\tbar\n"),
+                splitter=None),
+            {}.fromkeys(('foo', 'foo2', 'foo3'), 'bar'))
+
 
 
 class ReadBashDictTest(TestCase):
