@@ -75,7 +75,8 @@ def read_dict(bash_source, splitter="=", source_isiter=False):
     """
     read key value pairs, ignoring bash-style comments.
 
-    @param splitter: the string to split on.
+    @param splitter: the string to split on.  Can be None to 
+        default to str.split's default
     @param bash_source: either a file to read from,
         or a string holding the filename to open.
     """
