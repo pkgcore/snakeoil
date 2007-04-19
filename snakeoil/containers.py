@@ -5,7 +5,6 @@
 collection of container classes
 """
 
-import operator
 from snakeoil.demandload import demandload
 demandload(
     globals(),
@@ -38,22 +37,40 @@ class SetMixin(object):
     Subclasses should provide __init__, __iter__ and __contains__
     """
 
-    def __and__(self, other):
+    def __and__(self, other, kls=None):
         # Note: for these methods we don't bother to filter dupes from this
         # list -  since the subclasses __init__ should already handle this,
         # there's no point doing it twice.
-        return self.__class__([x for x in self if x in other])
+        kls = kls or self.__class__
+        return kls(x for x in self if x in other)
 
-    def __or__(self, other):
-        return self.__class__(tuple(self)+tuple(other))
+    def __rand__(self, other):
+        # These methods are the same either way
+        return self.__and__(other, kls=other.__class__)
 
-    def __xor__(self, other):
-        return self.__class__([x for x in self if x not in other]+
-                              [x for x in other if x not in self])
+    def __or__(self, other, kls=None):
+        kls = kls or self.__class__
+        return kls(chain(self, other))
 
-    __rand__ = operator.__and__
-    __ror__ = operator.__or__
-    __rxor__ = operator.__xor__
+    def __ror__(self, other):
+        return self.__or__(other, kls=other.__class__)
+
+    def __xor__(self, other, kls=None):
+        kls = kls or self.__class__
+        return kls(chain((x for x in self if x not in other),
+                         (x for x in other if x not in self)))
+
+    def __rxor__(self, other):
+        return self.__xor__(other, kls=other.__class__)
+
+    def __sub__(self, other):
+        return self.__class__(x for x in self if x not in other)
+
+    def __rsub__(self, other):
+        return other.__class__(x for x in other if x not in self)
+
+    __add__ = __or__
+    __radd__ = __ror__
 
 
 class LimitedChangeSet(SetMixin):

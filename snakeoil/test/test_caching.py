@@ -177,5 +177,5 @@ if caching.cpy_WeakInstMeta is not None:
 else:
     # generate fake test and mark it as skip
     CPY_TestWeakInstMeta = gen_test(type)
-    CPY_TestWeakInstMeta.skip = "cpython cpv extension isn't available"
+    CPY_TestWeakInstMeta.skip = "cpython extension isn't available"
 

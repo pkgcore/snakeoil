@@ -66,7 +66,7 @@ class DictMixin(object):
         if not self.__externally_mutable__:
             raise AttributeError(self, "pop")
         if len(args) > 1:
-            raise TypeError("pop expects at most 2 arguements, got %i" %
+            raise TypeError("pop expects at most 2 arguments, got %i" %
                 len(args) + 1)
         try:
             val = self[key]

@@ -2,6 +2,7 @@
 # License: GPL2
 
 
+from itertools import chain
 from snakeoil.test import TestCase
 from snakeoil import containers
 
@@ -16,6 +17,69 @@ class InvertedContainsTest(TestCase):
         self.failUnless(-7 in self.set)
         self.assertRaises(TypeError, iter, self.set)
 
+
+class BasicSet(containers.SetMixin):
+    __slots__ = ('_data',)
+
+    def __init__(self, data):
+        self._data = set(data)
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def __contains__(self, other):
+        return other in self._data
+
+    #def __str__(self):
+    #    return 'BasicSet([%s])' % ', '.join((str(x) for x in self._data))
+
+    def __eq__(self, other):
+        if isinstance(other, BasicSet):
+            return self._data == other._data
+        elif isinstance(other, (set, frozenset)):
+            return self._data == other
+        return False
+
+    def __ne__(self, other):
+        return not self == other
+
+
+class TestSetMethods(TestCase):
+    def test_and(self):
+        c = BasicSet(xrange(100))
+        s = set(xrange(25, 75))
+        r = BasicSet(xrange(25, 75))
+        self.assertEqual(c & s, r)
+        self.assertEqual(s & c, r._data)
+
+    def test_xor(self):
+        c = BasicSet(xrange(100))
+        s = set(xrange(25, 75))
+        r = BasicSet(chain(xrange(25), xrange(75, 100)))
+        self.assertEqual(c ^ s, r)
+        self.assertEqual(s ^ c, r._data)
+
+    def test_or(self):
+        c = BasicSet(xrange(50))
+        s = set(xrange(50, 100))
+        r = BasicSet(xrange(100))
+        self.assertEqual(c | s, r)
+        self.assertEqual(s | c, r._data)
+
+    def test_add(self):
+        c = BasicSet(xrange(50))
+        s = set(xrange(50, 100))
+        r = BasicSet(xrange(100))
+        self.assertEqual(c + s, r)
+        self.assertEqual(s + c, r._data)
+
+    def test_sub(self):
+        c = BasicSet(xrange(100))
+        s = set(xrange(50, 150))
+        r1 = BasicSet(xrange(50))
+        r2 = set(xrange(100, 150))
+        self.assertEqual(c - s, r1)
+        self.assertEqual(s - c, r2)
 
 class LimitedChangeSetTest(TestCase):
 
@@ -88,7 +152,7 @@ class LimitedChangeSetTest(TestCase):
         self.set.commit()
         self.failIf(0 in self.set)
         self.assertEqual(11, len(self.set))
-        self.assertEqual(sorted(list(self.set)), list(range(1, 12)))
+        self.assertEqual(sorted(list(self.set)), range(1, 12))
         self.assertEqual(0, self.set.changes_count())
         self.set.add(0)
         self.test_basic(1)
@@ -107,11 +171,13 @@ class LimitedChangeSetTest(TestCase):
         self.assertEqual(
             str(containers.LimitedChangeSet([7])), 'LimitedChangeSet([7])')
 
-
     def test__eq__(self):
-        c = containers.LimitedChangeSet(range(99))
+        c = containers.LimitedChangeSet(xrange(99))
         c.add(99)
-        self.assertEqual(c, containers.LimitedChangeSet(range(100)))
+        self.assertEqual(c, containers.LimitedChangeSet(xrange(100)))
+        self.assertEqual(containers.LimitedChangeSet(xrange(100)),
+            set(xrange(100)))
+
 
 class LimitedChangeSetWithBlacklistTest(TestCase):
 
