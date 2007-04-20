@@ -13,6 +13,64 @@ def a_dozen():
     return range(12)
 
 
+class BasicDict(mappings.DictMixin):
+
+    def __init__(self, i=None, **kwargs):
+        self._d = {}
+        mappings.DictMixin.__init__(self, i, **kwargs)
+
+    def iterkeys(self):
+        return iter(self._d)
+
+class MutableDict(BasicDict):
+
+    def __setitem__(self, key, val):
+        self._d[key] = val
+
+    def __getitem__(self, key):
+        return self._d[key]
+
+    def __delitem__(self, key):
+        del self._d[key]
+
+
+class ImmutableDict(BasicDict):
+    __externally_mutable__ = False
+
+class TestDictMixin(TestCase):
+    def test_immutability(self):
+        d = ImmutableDict()
+        self.assertRaises(AttributeError, d.__setitem__, "spork", "foon")
+        for x in ("pop", "setdefault", "__delitem__"):
+            self.assertRaises(AttributeError, getattr(d, x), "spork")
+        for x in ("clear", "popitem"):
+            self.assertRaises(AttributeError, getattr(d, x))
+
+    def test_setdefault(self):
+        d = MutableDict(baz="cat")
+        self.assertEqual(d.setdefault("baz"), "cat")
+        self.assertEqual(d.setdefault("baz", "foon"), "cat")
+        self.assertEqual(d.setdefault("foo"), None)
+        self.assertEqual(d["foo"], None)
+        self.assertEqual(d.setdefault("spork", "cat"), "cat")
+        self.assertEqual(d["spork"], "cat")
+
+    def test_pop(self):
+        d = MutableDict(baz="cat", foo="bar")
+        self.assertRaises(KeyError, d.pop, "spork")
+        self.assertEqual(d.pop("spork", "bat"), "bat")
+        self.assertEqual(d.pop("foo"), "bar")
+        self.assertEqual(d.popitem(), ("baz", "cat"))
+        self.assertRaises(KeyError, d.popitem)
+
+
+    def test_init(self):
+        d = MutableDict((('foo', 'bar'), ('spork', 'foon')), baz="cat")
+        self.assertEqual(d["foo"], "bar")
+        self.assertEqual(d["baz"], "cat")
+        d.clear()
+        self.assertEqual(d, {})
+
 class RememberingNegateMixin(object):
 
     def setUp(self):
@@ -182,7 +240,7 @@ class StackedDictTest(TestCase):
     new_dict = dict.fromkeys(xrange(100, 200))
 
     def test_contains(self):
-        std	= mappings.StackedDict(self.orig_dict, self.new_dict)
+        std = mappings.StackedDict(self.orig_dict, self.new_dict)
         self.failUnless(1 in std)
         self.failUnless(std.has_key(1))
 
@@ -335,7 +393,7 @@ class FoldingDictTest(TestCase):
         self.assertEqual(dct['foo'], dct.get('Foo'))
         self.assert_('foo' in dct)
         keys = ['Foo', 'fnz']
-        keysList = [key for key in dct]
+        keysList = list(dct)
         for key in keys:
             self.assert_(key in dct.keys())
             self.assert_(key in keysList)

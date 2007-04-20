@@ -21,9 +21,12 @@ class DictMixin(object):
 
     __externally_mutable__ = True
 
-    def __init__(self, iterable=None):
+    def __init__(self, iterable=None, **kwargs):
         if iterable is not None:
             self.update(iterable)
+
+        if kwargs:
+            self.update(kwargs.iteritems())
 
     def __iter__(self):
         return self.iterkeys()
@@ -62,18 +65,15 @@ class DictMixin(object):
     def __ne__(self, other):
         return self.__cmp__(other) != 0
 
-    def pop(self, key, *args):
+    def pop(self, key, default=None):
         if not self.__externally_mutable__:
             raise AttributeError(self, "pop")
-        if len(args) > 1:
-            raise TypeError("pop expects at most 2 arguments, got %i" %
-                len(args) + 1)
         try:
             val = self[key]
             del self[key]
         except KeyError:
-            if args:
-                return args[0]
+            if default is not None:
+                return default
             raise
         return val
 
