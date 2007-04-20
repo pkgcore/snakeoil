@@ -144,6 +144,9 @@ class Placeholder(object):
 
     # Various methods proxied to our replacement.
 
+    def __str__(self):
+        return self.__getattribute__('__str__')()
+
     def __getattribute__(self, attr):
         result = object.__getattribute__(self, '_replace')()
         return getattr(result, attr)

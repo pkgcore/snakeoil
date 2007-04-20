@@ -34,6 +34,13 @@ class PlaceholderTest(TestCase):
         self.assertEqual(scope['foo'], [])
         self.assertRaises(ValueError, getattr, placeholder, '__doc__')
 
+    def test__str__(self):
+        scope = {}
+        placehold = demandload.Placeholder(scope, 'foo', list)
+        self.assertEqual({}, scope)
+        self.assertEqual(str(placehold), str([]))
+        self.assertEqual(scope['foo'], [])
+
     def test_call(self):
         def passthrough(*args, **kwargs):
             return args, kwargs
