@@ -39,7 +39,7 @@ class TestDemandLoadTargets(TestCase):
         stats = [(x, os.stat(os.path.join(location, x)).st_mode) for x in l]
         seen = set(['__init__'])
         for (x, st) in stats:
-            if stat.S_ISREG(st):
+            if not (x.startswith(".") or x.endswith("~")) and stat.S_ISREG(st):
                 if (x.endswith(".py") or x.endswith(".pyc")
                     or x.endswith(".pyo") or x.endswith(".so")):
                     y = x.rsplit(".", 1)[0]
