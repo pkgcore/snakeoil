@@ -21,8 +21,14 @@ class UniqueTest(TestCase):
         self.assertEqual(sorted(func([1, 1, 2, 3, 2])), [1, 2, 3])
         # neither
 
-    def test_stable_unique(self):
-        self.common_check(lists.stable_unique)
+    def test_stable_unique(self, func=lists.stable_unique):
+        self.assertEqual(list(set([1,2,3])), [1,2,3],
+            "this test is reliant on the interpretter hasing 1,2,3 into a specific ordering- "
+            "for whatever reason, ordering differs, thus this test can't verify it")
+        self.assertEqual(func([3,2,1]), [3,2,1])
+
+    def test_iter_stable_unique(self):
+        self.test_stable_unique(lambda x:list(lists.iter_stable_unique(x)))
 
     def test_unstable_unique(self):
         self.common_check(lists.unstable_unique)
