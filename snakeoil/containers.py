@@ -8,8 +8,7 @@ collection of container classes
 from snakeoil.demandload import demandload
 demandload(
     globals(),
-    'snakeoil.lists:iter_stable_unique',
-    'itertools:chain',
+    'itertools:chain,ifilterfalse',
 )
 
 class InvertedContains(set):
@@ -186,7 +185,8 @@ class ProtectedSet(SetMixin):
         return key in self._orig or key in self._new
 
     def __iter__(self):
-        return iter_stable_unique(chain(self._new, self._orig))
+        return chain(iter(self._new),
+            ifilterfalse(self._new.__contains__, self._orig))
 
     def __len__(self):
         return len(self._orig.union(self._new))
