@@ -1,15 +1,22 @@
+/* 
+  Misc backported cpy functions from python 2.5; code here is available under PSF-2.2, and GPL2
+  Copyright (c) 2006 Python Software Foundation
+*/
 
 #include "Python.h"
 #include "structmember.h"
 
 #include "snakeoil/py24-compatibility.h"
 
-/* _functools module written and maintained
+/*
+   _functools module written and maintained
    by Hye-Shik Chang <perky@FreeBSD.org>
    with adaptations by Raymond Hettinger <python@rcn.com>
    Copyright (c) 2004, 2005, 2006 Python Software Foundation.
    All rights reserved.
 */
+
+/* functool bits */
 
 /* partial object **********************************************************/
 
@@ -243,18 +250,88 @@ static PyTypeObject partial_type = {
 	PyObject_GC_Del,		/* tp_free */
 };
 
+/* any/all (from bltinmodules) bits */
+
+static PyObject *
+builtin_all(PyObject *self, PyObject *v)
+{
+    PyObject *it, *item;
+
+    it = PyObject_GetIter(v);
+    if (it == NULL)
+        return NULL;
+
+    while ((item = PyIter_Next(it)) != NULL) {
+        int cmp = PyObject_IsTrue(item);
+        Py_DECREF(item);
+        if (cmp < 0) {
+            Py_DECREF(it);
+            return NULL;
+        }
+        if (cmp == 0) {
+            Py_DECREF(it);
+            Py_RETURN_FALSE;
+        }
+    }
+    Py_DECREF(it);
+    if (PyErr_Occurred())
+        return NULL;
+    Py_RETURN_TRUE;
+}
+
+PyDoc_STRVAR(all_doc,
+"all(iterable) -> bool\n\
+\n\
+Return True if bool(x) is True for all values x in the iterable.");
+
+static PyObject *
+builtin_any(PyObject *self, PyObject *v)
+{
+    PyObject *it, *item;
+
+    it = PyObject_GetIter(v);
+    if (it == NULL)
+        return NULL;
+
+    while ((item = PyIter_Next(it)) != NULL) {
+        int cmp = PyObject_IsTrue(item);
+        Py_DECREF(item);
+        if (cmp < 0) {
+            Py_DECREF(it);
+            return NULL;
+        }
+        if (cmp == 1) {
+            Py_DECREF(it);
+            Py_RETURN_TRUE;
+        }
+    }
+    Py_DECREF(it);
+    if (PyErr_Occurred())
+        return NULL;
+    Py_RETURN_FALSE;
+}
+
+PyDoc_STRVAR(any_doc,
+"any(iterable) -> bool\n\
+\n\
+Return True if bool(x) is True for any x in the iterable.");
+
 
 /* module level code ********************************************************/
 
 PyDoc_STRVAR(module_doc,
-"Tools that operate on functions.");
+"extracted cpy bits from python2.5s functools and builtins; any/all, "
+"and partial.\nCopyright PSF 2006");
 
 static PyMethodDef module_methods[] = {
+    {"all",         builtin_all,        METH_O, all_doc},
+    {"any",         builtin_any,        METH_O, any_doc},
  	{NULL,		NULL}		/* sentinel */
 };
 
+
 PyMODINIT_FUNC
-init_functools(void)
+init_compatibility(void)
 {
 	int i;
 	PyObject *m;
@@ -264,7 +341,7 @@ init_functools(void)
 		NULL
 	};
 
-	m = Py_InitModule3("_functools", module_methods, module_doc);
+	m = Py_InitModule3("_compatibility", module_methods, module_doc);
 	if (m == NULL)
 		return;
 

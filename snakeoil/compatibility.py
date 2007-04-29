@@ -24,10 +24,9 @@ def native_all(iterable):
 
 if "any" in __builtins__:
     any = any
-else:
-    any = native_any
-
-if "all" in __builtins__:
     all = all
 else:
-    all = native_all
+    try:
+        from snakeoil._compatibility import any, all
+    except ImportError:
+        any, all = native_any, native_all

@@ -209,7 +209,7 @@ extensions = []
 if sys.version_info < (2, 5):
     # Almost unmodified copy from the python 2.5 source.
     extensions.append(OptionalExtension(
-            'snakeoil._functools', ['src/functoolsmodule.c'], **extra_kwargs))
+            'snakeoil._compatibility', ['src/compatibility.c'], **extra_kwargs))
 
 from snakeoil.version import get_version
 VERSION = get_version()

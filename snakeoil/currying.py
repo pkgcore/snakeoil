@@ -77,7 +77,7 @@ try:
     from functools import partial
 except ImportError:
     try:
-        from snakeoil._functools import partial
+        from snakeoil._compatibility import partial
     except ImportError:
         partial = native_partial
 
