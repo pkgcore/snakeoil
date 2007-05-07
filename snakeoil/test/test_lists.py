@@ -69,7 +69,7 @@ class ChainedListsTest(TestCase):
 
     def test_mutable(self):
         self.assertRaises(TypeError, self.gen_cl().__delitem__, 1)
-        self.assertRaises(TypeError, self.gen_cl().__setitem__, (1, 2))
+        self.assertRaises(TypeError, self.gen_cl().__setitem__, 1, 2)
 
     def test_append(self):
         cl = self.gen_cl()

@@ -330,11 +330,7 @@ class IndeterminantDict(object):
     def __delitem__(self, *args):
         raise TypeError("non modifiable")
 
-    def pop(self, key, default=None):
-        try:
-            return self[key]
-        except KeyError:
-            return default
+    pop = get
 
     clear = update = popitem = setdefault = __setitem__ = __delitem__
     __iter__ = keys = values = items = __len__ = __delitem__
@@ -419,16 +415,17 @@ class OrderedDict(DictMixin):
 class ListBackedDict(DictMixin):
 
     __slots__ = ("_data")
+    _kls = list
     _key_grabber = operator.itemgetter(0)
     _value_grabber = operator.itemgetter(1)
 
     def __init__(self, iterables=()):
-        self._data = [(k, v) for k, v in iterables]
+        self._data = self._kls((k, v) for k, v in iterables)
 
     def __setitem__(self, key, val):
         for idx, vals in enumerate(self._data):
             if vals[0] == key:
-                self._data = (key, val)
+                self._data[idx] = (key, val)
                 break
         else:
             self._data.append((key, val))
@@ -440,7 +437,7 @@ class ListBackedDict(DictMixin):
         raise KeyError(key)
 
     def __delitem__(self, key):
-        l = [(k, v) for k, v in self._data if k != key]
+        l = self._kls((k, v) for k, v in self._data if k != key)
         if len(l) == len(self._data):
             # no match.
             raise KeyError(key)
@@ -466,10 +463,11 @@ class ListBackedDict(DictMixin):
 
 class TupleBackedDict(ListBackedDict):
     __slots__ = ()
-    __externally_mutable__ = False
+    _kls = tuple
 
-    def __init__(self, iterables=()):
-        self._data = tuple((k, v) for k, v in iterables)
+    def __setitem__(self, key, val):
+        self._data = self._kls(
+            chain((x for x in self.iteritems() if x[0] != key), ((key, val),)))
 
 
 class PreservingFoldingDict(DictMixin):

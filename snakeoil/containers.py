@@ -13,12 +13,12 @@ demandload(
 
 class InvertedContains(set):
 
-    """Set that inverts all contains lookups results
+    """Set that inverts all contains lookup results.
 
     Mainly useful in conjuection with LimitedChangeSet for converting
     from blacklist to whitelist.
 
-    Not able to be iterated over also
+    Cannot be iterated over.
     """
 
     def __contains__(self, key):
@@ -31,9 +31,9 @@ class InvertedContains(set):
 
 class SetMixin(object):
     """
-    A mixin providing set methods
+    A mixin providing set methods.
 
-    Subclasses should provide __init__, __iter__ and __contains__
+    Subclasses should provide __init__, __iter__ and __contains__.
     """
 
     def __and__(self, other, kls=None):
@@ -44,7 +44,6 @@ class SetMixin(object):
         return kls(x for x in self if x in other)
 
     def __rand__(self, other):
-        # These methods are the same either way
         return self.__and__(other, kls=other.__class__)
 
     def __or__(self, other, kls=None):
@@ -74,7 +73,7 @@ class SetMixin(object):
 
 class LimitedChangeSet(SetMixin):
 
-    """Set used to limit the number of times a key can be removed/added
+    """Set used to limit the number of times a key can be removed/added.
 
     specifically deleting/adding a key only once per commit,
     optionally blocking changes to certain keys.
@@ -173,9 +172,6 @@ class ProtectedSet(SetMixin):
 
     """
     Wraps a set pushing all changes into a secondary set.
-
-    These classes subclass set in order to inherit most set methods.
-    This is Just Works(tm), because it provides __contains__ and __iter__.
     """
     def __init__(self, orig_set):
         self._orig = orig_set

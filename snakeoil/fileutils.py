@@ -75,7 +75,7 @@ def read_dict(bash_source, splitter="=", source_isiter=False):
     """
     read key value pairs, ignoring bash-style comments.
 
-    @param splitter: the string to split on.  Can be None to 
+    @param splitter: the string to split on.  Can be None to
         default to str.split's default
     @param bash_source: either a file to read from,
         or a string holding the filename to open.
@@ -132,8 +132,6 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
     else:
         f = bash_source
     s = bash_parser(f, sourcing_command=sourcing_command, env=d)
-    orig_whitespace = s.whitespace
-    assign_whitespace = ''.join(c for c in orig_whitespace if c != '\n')
 
     try:
         tok = ""
@@ -144,7 +142,7 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
                     break
                 elif key.isspace():
                     # we specifically have to check this, since we're
-                    # screwing with the whitespace filters below to 
+                    # screwing with the whitespace filters below to
                     # detect empty assigns
                     continue
                 eq = s.get_token()

@@ -381,6 +381,55 @@ class TestOrderedDict(TestCase):
         self.gen_dict().clear()
 
 
+class TestListBackedDict(TestCase):
+
+    kls = mappings.ListBackedDict
+
+    def test_setitem(self):
+        d = self.kls({'foo': 'bar', 'baz': 'bat'}.iteritems())
+        d["foo"] = "spork"
+        self.assertEqual(d["foo"], "spork")
+        self.assertEqual(d["baz"], "bat")
+        d["spork"] = "knife"
+        self.assertEqual(d["spork"], "knife")
+
+    def test_getitem(self):
+        d = self.kls({'foo': 'bar', 'baz': 'bat'}.iteritems())
+        self.assertEqual(d["baz"], "bat")
+        self.assertRaises(KeyError, d.__getitem__, "spork")
+
+    def test_delitem(self):
+        d = self.kls({'foo': 'bar', 'baz': 'bat'}.iteritems())
+        self.assertEqual(len(d), 2)
+        self.assertTrue("foo" in d)
+        del d["foo"]
+        self.assertEqual(len(d), 1)
+        self.assertRaises(KeyError, d.__getitem__, "foo")
+        self.assertRaises(KeyError, d.__delitem__, "foo")
+        self.assertFalse("foo" in d)
+
+    def test_kls(self):
+        d = self.kls()
+        self.assertInstance(d._data, list)
+
+    def test_iter(self):
+        keys = ['foo', 'bar']
+        vals = ['baz', 'bat']
+        d = self.kls(zip(keys, vals))
+        self.assertEqual(d.keys(), keys)
+        self.assertEqual(d.values(), vals)
+        self.assertEqual(zip(keys, vals), list(d.iteritems()))
+
+
+class TestTupleBackedDict(TestListBackedDict):
+
+    kls = mappings.TupleBackedDict
+
+    def test_kls(self):
+        d = self.kls()
+        self.assertInstance(d._data, tuple)
+
+
 class FoldingDictTest(TestCase):
 
     def testPreserve(self):

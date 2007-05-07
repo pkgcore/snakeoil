@@ -45,7 +45,6 @@ def load_attribute(name):
 
 def load_any(name):
     """Load a module or attribute."""
-    orig_name = name
     try:
         return load_module(name)
     except FailedImport, fi:

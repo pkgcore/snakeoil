@@ -10,7 +10,7 @@ class intercept_import(object):
         self.callback = callback
         self.stack = []
         self.seen = set()
-    
+
     def __call__(self, *args):
         if args[0] not in self.seen:
             self.disable()
@@ -54,8 +54,8 @@ if __name__ == "__main__":
 
     # yes, at first thought, this should use getopt or optparse.
     # problem is, folks may want to spot that import, thus we can't.
-    
-    
+
+
     args = sys.argv[1:]
     if args[0] == '-o':
         if not len(args) > 2:
@@ -83,7 +83,7 @@ if __name__ == "__main__":
             print time.time()
 #            traceback.print_stack(file=sys.stdout)
             print
-            
+
     import traceback,pdb
 
     path = args[0]

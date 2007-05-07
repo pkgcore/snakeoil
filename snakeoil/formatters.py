@@ -126,7 +126,7 @@ class PlainTextFormatter(Formatter):
         if encoding is None:
             try:
                 encoding = locale.getpreferredencoding()
-            except locale.Error, e:
+            except locale.Error:
                 encoding = 'ascii'
         self.encoding = encoding
         self.width = width

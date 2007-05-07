@@ -53,7 +53,7 @@ from snakeoil.currying import partial
 
 # There are some demandloaded imports below the definition of demandload.
 
-_allowed_chars = "".join((x.isalnum() or x in "_.") and " " or "a" 
+_allowed_chars = "".join((x.isalnum() or x in "_.") and " " or "a"
     for x in map(chr, xrange(256)))
 
 def parse_imports(imports):
@@ -181,7 +181,7 @@ def demandload(scope, *imports):
         scope[target] = Placeholder(scope, target, partial(load_any, source))
 
 
-demandload(globals(), 'warnings', 're')
+demandload(globals(), 're')
 
 # Extra name to make undoing monkeypatching demandload with
 # disabled_demandload easier.

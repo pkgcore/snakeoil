@@ -31,7 +31,8 @@ def ensure_deps(self, name, *a, **kw):
     return r
 
 def yield_deps(inst, d, k):
-    # XXX: this sucks.  rewrite it to use expandable_chain...
+    # While at first glance this looks like should use expandable_chain,
+    # it shouldn't. --charlie
     if k not in d:
         yield k
         return

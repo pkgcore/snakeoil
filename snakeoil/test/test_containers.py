@@ -177,6 +177,7 @@ class LimitedChangeSetTest(TestCase):
         self.assertEqual(c, containers.LimitedChangeSet(xrange(100)))
         self.assertEqual(containers.LimitedChangeSet(xrange(100)),
             set(xrange(100)))
+        self.assertNotEqual(containers.LimitedChangeSet([]), object())
 
 
 class LimitedChangeSetWithBlacklistTest(TestCase):
