@@ -184,8 +184,10 @@ def nuke_backslash(s):
 
 class bash_parser(shlex):
     def __init__(self, source, sourcing_command=None, env=None):
+        self.__dict__['state'] = ' '
         shlex.__init__(self, source, posix=True)
         self.wordchars += "@${}/.-+/:~^"
+        self.wordchars = frozenset(self.wordchars)
         if sourcing_command is not None:
             self.source = sourcing_command
         if env is None:
@@ -194,7 +196,7 @@ class bash_parser(shlex):
         self.__pos = 0
 
     def __setattr__(self, attr, val):
-        if attr == "state" and "state" in self.__dict__:
+        if attr == "state":
             if (self.state, val) in (
                 ('"', 'a'), ('a', '"'), ('a', ' '), ("'", 'a')):
                 strl = len(self.token)
