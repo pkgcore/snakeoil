@@ -1,5 +1,7 @@
-Author(s)
+Primary Author(s)
 Brian Harring <ferringb@gmail.com>
 Marien Zwart <marienz@gentoo.org>
 
 bzr annotate/log if you're curious about the gory details of who did what
+
+In addition, snakeoil.fix_copy was written by the bzrlib folks, (C) Canonical 2005,2006
