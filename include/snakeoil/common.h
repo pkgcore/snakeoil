@@ -30,12 +30,12 @@ static int                                                              \
 type##_set_##attr (type *self, PyObject *v, void *closure)              \
 {                                                                       \
     int tmp;                                                            \
-    if(!value)                                                          \
+    if(!v) {                                                            \
         PyErr_SetString(PyExc_TypeError,                                \
-            "Cannot delete the "name" attribute")                       \
+            "Cannot delete the "name" attribute");                      \
         return -1;                                                      \
     }                                                                   \
-     = PyObject_IsTrue(value);                                          \
+    tmp = PyObject_IsTrue(v);                                           \
     if (tmp == -1)                                                      \
         return -1;                                                      \
     if(tmp) {                                                           \
