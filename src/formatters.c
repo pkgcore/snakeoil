@@ -209,30 +209,6 @@ PTF_dealloc(PTF_object *self) {
     self->ob_type->tp_free((PyObject*)self);
 }
 
-#if 0
-    /* Public attrs */
-    PyObject *stream; /* This is actually the write method of stream if it's not a file */
-    PyObject *first_prefix;
-    PyObject *later_prefix;
-
-    /* need these for TermInfoFormatter */
-    PyObject *reset;
-    PyObject *bold;
-    PyObject *underline;
-    char *encoding;
-    int autoline;
-    int wrap;
-    int width;
-
-    /* Private */
-    PyObject *stored_stream;
-    int pos;
-    int in_first_line;
-    int wrote_something;
-
-    int stream_is_file;
-#endif
-
 #define blank_string(what) self->what = PyString_FromString(""); \
         if (!self->what)                                         \
             goto error
