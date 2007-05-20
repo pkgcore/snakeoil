@@ -29,7 +29,13 @@ snakeoil_ATTR_GET_BOOL(type, name, attr, get_test)
 static int                                                              \
 type##_set_##attr (type *self, PyObject *v, void *closure)              \
 {                                                                       \
-    int tmp = PyObject_IsTrue(value);                                   \
+    int tmp;                                                            \
+    if(!value)                                                          \
+        PyErr_SetString(PyExc_TypeError,                                \
+            "Cannot delete the "name" attribute")                       \
+        return -1;                                                      \
+    }                                                                   \
+     = PyObject_IsTrue(value);                                          \
     if (tmp == -1)                                                      \
         return -1;                                                      \
     if(tmp) {                                                           \
