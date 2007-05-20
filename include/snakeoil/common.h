@@ -11,14 +11,37 @@
 #include <Python.h>
 #include "snakeoil/py24-compatibility.h"
 
-#define snakeoil_IMMUTABLE_ATTR_BOOL(type, name, attr, test)             \
+#define snakeoil_IMMUTABLE_ATTR_BOOL(type, name, attr, test)            \
 static int                                                              \
 type##_set_##attr (type *self, PyObject *v, void *closure)              \
 {                                                                       \
     PyErr_SetString(PyExc_AttributeError, name" is immutable");         \
     return -1;                                                          \
 }                                                                       \
-                                                                        \
+snakeoil_ATTR_GET_BOOL(type, name, attr, test)
+
+#define snakeoil_MUTABLE_ATTR_BOOL(type, name, attr, get_test,          \
+    set_true, set_false)                                                \
+snakeoil_ATTR_SET_BOOL(type, name, attr, set_true, set_false)           \
+snakeoil_ATTR_GET_BOOL(type, name, attr, get_test)
+
+#define snakeoil_ATTR_SET_BOOL(type, name, attr, set_true, set_false)   \
+static int                                                              \
+type##_set_##attr (type *self, PyObject *v, void *closure)              \
+{                                                                       \
+    int tmp = PyObject_IsTrue(value);                                   \
+    if (tmp == -1)                                                      \
+        return -1;                                                      \
+    if(tmp) {                                                           \
+        set_true;                                                       \
+    } else {                                                            \
+        set_false;                                                      \
+    }                                                                   \
+    return 0;                                                           \
+}
+    
+
+#define snakeoil_ATTR_GET_BOOL(type, name, attr, test)                  \
 static PyObject *                                                       \
 type##_get_##attr (type *self, void *closure)                           \
 {                                                                       \
