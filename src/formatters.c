@@ -55,27 +55,6 @@ static PyObject *convert_list(PyObject *s) {
     return PySequence_List(s);
 }
 
-/*
-#define IMMUTABLE_ATTR(name)                                            \
-static int                                                              \
-PTF_set_##name (PTF_object *self, PyObject *v, void *closure)           \
-{                                                                       \
-    PyErr_SetString(PyExc_AttributeError, #name" is immutable");        \
-    return -1;                                                          \
-}
-
-#define EMPTY_IMMUTABLE_CONST(name)                                     \
-    {#name,                                                             \
-     (getter)PTF_getemptystring,                                        \
-     (setter)PTF_set_##name,                                            \
-     #name,                                                             \
-     NULL}
-
-IMMUTABLE_ATTR(bold)
-IMMUTABLE_ATTR(reset)
-IMMUTABLE_ATTR(underline)
-*/
-
 #define annoying_pyobj_func(name, attr) pyobj_get_func(name, attr) \
     pyobj_set_func(name, attr)
 
