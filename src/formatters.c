@@ -39,7 +39,6 @@ typedef struct {
 
     /* Private */
     PyObject *stored_stream;
-    PyObject *stored_autoline;
     int pos;
     int in_first_line;
     int wrote_something;
@@ -87,8 +86,6 @@ pyobj_func(later_prefix)
 pyobj_func(bold)
 pyobj_func(underline)
 pyobj_func(reset)
-
-pyobj_get_func(autoline, stored_autoline)
 
 static PyObject *
 PTF_getwidth(PTF_object *self, void *closure)
@@ -232,9 +229,6 @@ PTF_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
                                * So sue me. */
     self->first_prefix = PyList_New(0);
     self->later_prefix = PyList_New(0);
-
-    Py_INCREF(Py_True);
-    self->stored_autoline = Py_True;
 
     blank_string(bold);
     blank_string(reset);
