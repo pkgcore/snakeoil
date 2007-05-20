@@ -32,7 +32,7 @@ typedef struct {
     PyObject *reset;
     PyObject *bold;
     PyObject *underline;
-    char *encoding;
+    PyObject *encoding;
     int autoline;
     int wrap;
     long width;
@@ -197,6 +197,7 @@ PTF_clear(PTF_object *self)
     Py_CLEAR(self->reset);
     Py_CLEAR(self->bold);
     Py_CLEAR(self->underline);
+    Py_CLEAR(self->encoding);
     return 0;
 }
 
@@ -206,55 +207,61 @@ PTF_dealloc(PTF_object *self) {
     self->ob_type->tp_free((PyObject*)self);
 }
 
-#define blank_string(what) self->what = PyString_FromString(""); \
-        if (!self->what)                                         \
-            goto error
-
 static PyObject *
 PTF_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
     PTF_object *self;
+    PyObject *encoding;
+    if(!(encoding = PyString_FromString("ascii")))
+        return NULL;
     self = (PTF_object *)type->tp_alloc(type, 0);
+    if(!self) {
+        Py_DECREF(encoding);
+        return NULL;
+    }
 
-    /* Private */
-    self->autoline = 1;
-    self->wrap = 0;
-    self->pos = 0;
-    self->in_first_line = 1;
-    self->wrote_something = 0;
+    self->autoline = self->in_first_line = 1;
+    self->pos = self->wrap = self->wrote_something = 0;
+    self->encoding = encoding;
+    self->first_prefix = self->later_prefix = self->bold = self->reset = self->underline = NULL;
 
-    /* Defaults */
     self->width = 79;
-    self->encoding = "ascii"; /* this should pick up on the system default but i'm lazy.
-                               * So sue me. */
-    self->first_prefix = PyList_New(0);
-    self->later_prefix = PyList_New(0);
-
-    blank_string(bold);
-    blank_string(reset);
-    blank_string(underline);
+     /* this should pick up on the system default but i'm lazy. */
+    if(!(self->first_prefix = PyList_New(0))) {
+        Py_DECREF(self);
+        return NULL;
+    }
+    if(!(self->later_prefix = PyList_New(0))) {
+        Py_DECREF(self);
+        return NULL;
+    }
+    if(!(self->bold = PyString_FromString(""))) {
+        Py_DECREF(self);
+        return NULL;
+    }
+    Py_INCREF(self->bold);
+    self->reset = self->bold;
+    Py_INCREF(self->bold);
+    self->underline = self->bold;
     return (PyObject *)self;
-error:
-    return NULL;
 }
 
 static int
 PTF_init(PTF_object *self, PyObject *args, PyObject *kwds)
 {
-    PyObject *encoding=NULL;
-    char *s;
+    PyObject *encoding = NULL, *tmp;
     static char *kwlist[] = {"stream", "width", "encoding", NULL};
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|iz", kwlist,
         &self->stream, &self->width, &encoding))
         return -1;
 
-    if (encoding != NULL && encoding != Py_None) {
-        s = PyString_AsString(encoding);
-        if (!s)
-             return -1;
-        printf("setting encoding to %s\n", s);
-        self->encoding = s;
+    if (encoding) {
+        tmp = self->encoding;
+        self->encoding = encoding;
+        Py_INCREF(encoding);
+        Py_DECREF(tmp);
+//        printf("setting encoding to %s\n", PyString_AsString(encoding));
     }
 
     /* Seems kinda stupid to do this, but it needs to be done. */
@@ -289,7 +296,7 @@ _write_prefix(PTF_object *self, int wrap) {
             continue;
 
         if (PyUnicode_Check(arg)) {
-            tmp = PyUnicode_AsEncodedString(arg, self->encoding, "replace");
+            tmp = PyUnicode_AsEncodedString(arg, PyString_AS_STRING(self->encoding), "replace");
             if (!tmp)
                 goto error;
             Py_DECREF(arg);
