@@ -5,16 +5,12 @@
 # This version was written by marienz, which means it is probably not
 # accurate.
 
-# Yes, section names are case-sensitive.
+
 [master]
-
-load-plugins=snakeoil_lint
-
-
-[MASTER]
 
 # Ignore external modules.
 ignore=demandload.py,bundled_elementtree.py,native_readdir.py
+load-plugins=snakeoil_lint
 
 
 [REPORTS]

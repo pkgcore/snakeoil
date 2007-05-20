@@ -211,8 +211,7 @@ if sys.version_info < (2, 5):
     extensions.append(OptionalExtension(
             'snakeoil._compatibility', ['src/compatibility.c'], **extra_kwargs))
 
-from snakeoil.version import get_version
-VERSION = get_version()
+from snakeoil.version import __version__ as VERSION
 
 core.setup(
     name='snakeoil',
@@ -231,6 +230,8 @@ core.setup(
             'snakeoil._lists', ['src/lists.c'], **extra_kwargs),
         OptionalExtension(
             'snakeoil.osutils._readdir', ['src/readdir.c'], **extra_kwargs),
+        OptionalExtension(
+            'snakeoil._formatters', ['src/formatters.c'], **extra_kwargs),
         ] + extensions,
     headers=common_includes,
     cmdclass={

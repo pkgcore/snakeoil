@@ -282,12 +282,7 @@ class ImmutableDict(dict):
     def __delitem__(self, *args):
         raise TypeError("non modifiable")
 
-    __setitem__ = __delitem__
-    clear = __delitem__
-    update = __delitem__
-    pop = __delitem__
-    popitem = __delitem__
-    setdefault = __delitem__
+    __setitem__ = clear = update = pop = popitem = setdefault = __delitem__
 
     def __hash__(self):
         k = self.items()

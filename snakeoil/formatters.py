@@ -11,7 +11,7 @@ from snakeoil.demandload import demandload
 demandload(globals(), 'locale')
 
 
-class StreamClosed(KeyboardInterrupt):
+class native_StreamClosed(KeyboardInterrupt):
     """Raised by L{Formatter.write} if the stream it prints to was closed.
 
     This inherits from C{KeyboardInterrupt} because it should usually
@@ -103,7 +103,7 @@ class Formatter(object):
     def title(self, string):
         pass
 
-class PlainTextFormatter(Formatter):
+class native_PlainTextFormatter(Formatter):
 
     """Formatter writing plain text to a file-like object.
 
@@ -133,8 +133,8 @@ class PlainTextFormatter(Formatter):
         self._pos = 0
         self._in_first_line = True
         self._wrote_something = False
-        self.first_prefix = ['']
-        self.later_prefix = ['']
+        self.first_prefix = []
+        self.later_prefix = []
 
 
     def _write_prefix(self, wrap):
@@ -276,6 +276,11 @@ class PlainTextFormatter(Formatter):
     def bg(self, color=None):
         return ''
 
+try:
+    from snakeoil._formatters import PlainTextFormatter, StreamClosed
+except ImportError:
+    PlainTextFormatter = native_PlainTextFormatter
+    StreamClosed = native_StreamClosed
 
 # This is necessary because the curses module is optional (and we
 # should run on a very minimal python for bootstrapping).
@@ -408,8 +413,8 @@ else:
             return TerminfoColor(1, color)
 
         def write(self, *args, **kwargs):
+            PlainTextFormatter.write(self, *args, **kwargs)
             try:
-                PlainTextFormatter.write(self, *args, **kwargs)
                 if self._modes:
                     self.reset(self)
                 if self._current_colors != [None, None]:

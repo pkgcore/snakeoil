@@ -30,14 +30,14 @@ class Test_native_GetAttrProxy(TestCase):
         def make_class(attr_list=None):
             class foo(object):
                 __metaclass__ = self.kls
-            
+
                 if attr_list is not None:
                     locals()['__attr_comparison__'] = attr_list
-        
+
         self.assertRaises(TypeError, make_class)
         self.assertRaises(TypeError, make_class, [u'foon'])
         self.assertRaises(TypeError, make_class, [None])
-            
+
 
 class Test_CPY_GetAttrProxy(Test_native_GetAttrProxy):
 
@@ -109,7 +109,7 @@ class Test_native_generic_equality(TestCase):
             __metaclass__ = self.kls
             def __init__(self, foo, bar):
                 self.foo, self.bar = foo, bar
-            
+
             def __repr__(self):
                 return "<c: foo=%r, bar=%r, %i>" % (
                     getattr(self, 'foo', 'unset'),
@@ -147,15 +147,13 @@ class Test_cpy_generic_equality(Test_native_generic_equality):
 class Test_chained_getter(TestCase):
 
     kls = klass.chained_getter
-    
+
     def test_hash(self):
         self.assertEqual(hash(self.kls("foon")), hash("foon"))
         self.assertEqual(hash(self.kls("foon.dar")), hash("foon.dar"))
 
     def test_caching(self):
-        l = []
-        for x in "abcdefghij":
-            l.append(id(self.kls("fa2341f%s" % x)))
+        l = [id(self.kls("fa2341f%s" % x)) for x in "abcdefghij"]
         self.assertEqual(id(self.kls("fa2341fa")), l[0])
 
     def test_eq(self):
@@ -164,12 +162,12 @@ class Test_chained_getter(TestCase):
 
         self.assertNotEqual(self.kls("asdf2", disable_inst_caching=True),
             self.kls("asdf", disable_inst_caching=True))
-            
+
     def test_it(self):
         class maze(object):
             def __init__(self, kwargs):
                 self.__data__ = kwargs
-                
+
             def __getattr__(self, attr):
                 return self.__data__.get(attr, self)
 

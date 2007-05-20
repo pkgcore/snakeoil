@@ -26,7 +26,7 @@ class InvertedContains(set):
 
     def __iter__(self):
         # infinite set, non iterable.
-        raise TypeError
+        raise TypeError("InvertedContains cannot be iterated over")
 
 
 class SetMixin(object):

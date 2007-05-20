@@ -1,9 +1,27 @@
 Snakeoil Release Notes
-=====================
+======================
 
 snakeoil 0.1:
 
-TODO: remove demandload whitespace checks prior to 0.1; literally right before.
-meanwhile, it's being used to explode any of the old callers
+* Added several pylint checks for naughty things like bool(len(seq)), itering
+  over dict.keys() and shadowing builtins.
 
-Initial release, split out from pkgcore.
+* Misc doc improvements.
+
+* Rewrite demandload with a new multiple arg style, and update the appropriate
+  pylint checker.
+
+* Fix title updating by flushing the formatter's stream.
+
+* Add snakeoil.containers.SetMixin to provide set methods for various
+  objects.
+
+* Remove snakeoil.const - unused.
+
+* Improve test coverage in general.
+
+* Add folding dicts.
+
+* Move snakeoil.file to snakeoil.fileutils.
+
+* Initial release, split out from pkgcore.util.*.

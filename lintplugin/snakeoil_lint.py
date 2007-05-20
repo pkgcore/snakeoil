@@ -3,10 +3,16 @@
 
 
 import sys
+import __builtin__
 
 from pylint import interfaces, checkers
-from logilab.astng import nodes, raw_building, utils, Name
+from logilab.astng import (nodes, raw_building, utils,
+    Name, Getattr, CallFunc, And, Or, Node)
 
+from snakeoil.lists import iflatten_func
+
+builtins = tuple(x for x in dir(__builtin__) if x[0].islower())
+ignore_shadowing = ('all', 'any')
 
 class SnakeoilChecker(checkers.BaseChecker):
 
@@ -40,6 +46,13 @@ class SnakeoilChecker(checkers.BaseChecker):
         'WPC06': ('raise of Exception base class',
                   'A raise statement in which Exception is raised- make a '
                   'subclass of it and raise that instead.'),
+        'WPC07': ('Shadowing builtin %s',
+                  'Assignment to a builtin name'),
+        'WPC08': ('Iterating over dict.keys()',
+                  'Iterating over dict.keys()- use `for x in dict` or '
+                  '`for x in d.iteritems()` if you need the vals too'),
+        'WPC09': ('Usage of bool(len(seq))',
+                  'Testing for emptiness with len(seq) instead of bool(seq)'),
         }
 
     def process_module(self, stream):
@@ -61,6 +74,31 @@ class SnakeoilChecker(checkers.BaseChecker):
         if expr is not None and isinstance(expr, Name) and \
             expr.name == "Exception":
             self.add_message('WPC06', node=node)
+
+    def visit_assname(self, node):
+        if node.name in builtins and node.name not in ignore_shadowing:
+            self.add_message('WPC07', args=node.name, node=node)
+
+    def visit_for(self, node):
+        expr = node.getChildNodes()[1]
+        if isinstance(expr, CallFunc):
+            expr = expr.getChildNodes()[0]
+            if isinstance(expr, Getattr) and expr.attrname == 'keys':
+                self.add_message('WPC08', node=node)
+
+    def visit_if(self, node):
+        f = lambda node: \
+                isinstance(node, basestring) or \
+                node is None or \
+                (isinstance(node, Node) and isinstance(node.parent, (Or,
+                                                                     And)))
+
+        for expr in iflatten_func(node.getChildNodes()[0], f):
+            if isinstance(expr, CallFunc):
+                expr = expr.getChildNodes()[0]
+                if isinstance(expr, Name) and expr.name == 'len':
+                    self.add_message('WPC09', node=node)
+
 
 class RewriteDemandload(utils.ASTWalker):
 
@@ -134,7 +172,8 @@ def register(linter):
     original_check_astng_module = linter.check_astng_module
     def snakeoil_check_astng_module(astng, checkers):
         rewriter.walk(astng)
-        original_check_astng_module(astng, checkers)
+        return original_check_astng_module(astng, checkers)
     linter.check_astng_module = snakeoil_check_astng_module
 
     linter.register_checker(SnakeoilChecker(linter))
+    

@@ -55,6 +55,7 @@ if __name__ == "__main__":
     # yes, at first thought, this should use getopt or optparse.
     # problem is, folks may want to spot that import, thus we can't.
 
+    import traceback, pdb
 
     args = sys.argv[1:]
     if args[0] == '-o':
@@ -67,7 +68,6 @@ if __name__ == "__main__":
             traceback.print_stack(file=f)
         args = args[2:]
     elif args[0] == '-i':
-        import pdb
         def callback(args):
             pdb.set_trace()
         args = args[1:]
@@ -84,7 +84,6 @@ if __name__ == "__main__":
 #            traceback.print_stack(file=sys.stdout)
             print
 
-    import traceback,pdb
 
     path = args[0]
 
