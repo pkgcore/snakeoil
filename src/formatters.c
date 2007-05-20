@@ -1,5 +1,6 @@
 #include <errno.h>
 #include "Python.h"
+#include <snakeoil/common.h>
 
 /*
  * Known bugs:
@@ -105,24 +106,9 @@ PTF_setwidth(PTF_object *self, PyObject *value, void *closure)
     return 0;
 }
 
-static int
-PTF_setautoline(PTF_object *self, PyObject *value, void *closure)
-{
-    int tmp;
+snakeoil_MUTABLE_ATTR_BOOL(PTF_object, "autoline", autoline, self->autoline,
+    self->autoline = 1, self->autoline = 0)
 
-    if (!value) {
-        PyErr_SetString(PyExc_TypeError, "Cannot delete the autoline attribute");
-        return -1;
-    }
-
-     tmp = PyObject_IsTrue(value);
-     if (tmp == -1)
-         return -1;
-
-     self->autoline = tmp;
-     self->stored_autoline = value;
-     return 0;
-}
 
 static int
 PTF_setprefix(PTF_object *self, PyObject *value, char closure)
@@ -639,6 +625,8 @@ static PyMethodDef PTF_methods[] = {
 
 
 static PyGetSetDef PTF_getseters[] = {
+    snakeoil_GETSET(PTF_object, "autoline", autoline),
+
     {"stream",
      (getter)PTF_getstream, (setter)PTF_setstream,
      "stream to write to",
@@ -653,11 +641,6 @@ static PyGetSetDef PTF_getseters[] = {
      (getter)PTF_getobj_later_prefix, (setter)PTF_setprefix,
      "later prefixes",
      'l'},
-
-    {"autoline",
-     (getter)PTF_getobj_autoline, (setter)PTF_setautoline,
-     "autoline",
-     NULL},
 
     {"width",
      (getter)PTF_getwidth, (setter)PTF_setwidth,
