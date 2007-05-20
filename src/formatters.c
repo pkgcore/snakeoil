@@ -353,16 +353,6 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
         getitem(autoline);
     }
 
-
-
-   /* "args", "prefixes", "prefix", "first_prefixes", "first_prefix", "later_prefixes", "later_prefix", "wrap", "autoline", NULL};
-
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|OOOOOOOO", kwlist,
-        &args_t, &prefixes, &prefix, &first_prefixes, &first_prefix, &later_prefixes, &later_prefix, &wrap, &autoline)) {
-        return NULL;
-    }*/
-
-
     if (autoline) {
         i_autoline = PyObject_IsTrue(autoline);
         if (i_autoline == -1)
