@@ -361,8 +361,8 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
         i_autoline = self->autoline;
     }
 
-    if ((prefixes)) {
-        if ((first_prefixes) || (later_prefixes)) {
+    if (prefixes) {
+        if (first_prefixes || later_prefixes) {
             PyErr_SetString(PyExc_TypeError,
                 "do not pass first_prefixes or later_prefixes "
                 "if prefixes is passed");
@@ -371,9 +371,8 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
         first_prefixes = later_prefixes = prefixes;
     }
 
-
-    if ((prefix)) {
-        if ((first_prefix) || (later_prefix)) {
+    if (prefix) {
+        if (first_prefix || later_prefix) {
             PyErr_SetString(PyExc_TypeError,
                 "do not pass first_prefix or later_prefix with prefix");
             goto error;
@@ -381,8 +380,8 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
         first_prefix = later_prefix = prefix;
     }
 
-    if ((first_prefix)) {
-        if ((first_prefixes)) {
+    if (first_prefix) {
+        if (first_prefixes) {
             PyErr_SetString(PyExc_TypeError,
                 "do not pass both first_prefix and first_prefixes");
             goto error;
@@ -390,7 +389,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
         first_prefixes = PyTuple_Pack(1, first_prefix);
     }
 
-    if ((later_prefix)) {
+    if (later_prefix) {
         if (later_prefixes) {
             PyErr_SetString(PyExc_TypeError,
                 "do not pass both later_prefix and later_prefixes");
@@ -399,13 +398,15 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
         later_prefixes = PyTuple_Pack(1, later_prefix);
     }
 
-    if ((first_prefixes))
+    if (first_prefixes) {
         if (!_PyList_Extend(self->first_prefix, first_prefixes))
             goto error;
+    }
 
-    if ((later_prefixes))
+    if (later_prefixes) {
         if (!_PyList_Extend(self->later_prefix, later_prefixes))
             goto error;
+    }
 
     iterator = PyObject_GetIter(args);
     while (arg = PyIter_Next(iterator)) {
