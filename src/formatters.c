@@ -152,10 +152,7 @@ PTF_returnemptystring(PTF_object *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "|s", s))
         return NULL;
 
-    PyObject *ret = PyString_FromString("");
-    if (!ret)
-        return NULL;
-    return ret;
+    return PyString_FromString("");
 }
 
 
