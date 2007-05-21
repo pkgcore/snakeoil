@@ -14,7 +14,8 @@
 
 /* Duplicating this is annoying, but we need to
    access it from the C level, so we do. */
-static PyObject *StreamClosed;
+static PyObject *StreamClosed = NULL;
+static PyObject *PTF_space = NULL;
 
 /* PlainTextFormatter is abbreviated to PTF */
 
@@ -269,6 +270,18 @@ _flush_newline(PTF_object *self)
     return 0;
 }
 
+/* convert passed in object, stealing the reference, returning a new reference
+for the encoded version, else NULL with exception set */
+static inline PyObject *
+PTF_convert_encoding(PTF_object *self, PyObject *data)
+{
+    PyObject *tmp;
+    tmp = PyUnicode_AsEncodedString(data, PyString_AS_STRING(self->encoding),
+        "replace");
+    Py_DECREF(data);
+    return tmp;
+}
+
 static int
 _write_prefix(PTF_object *self, int wrap) {
     PyObject *iter, *arg, *tmp;
@@ -290,24 +303,28 @@ _write_prefix(PTF_object *self, int wrap) {
             continue;
         }
 
-        if (PyUnicode_Check(arg)) {
-            tmp = PyUnicode_AsEncodedString(arg, PyString_AS_STRING(self->encoding), "replace");
-            Py_DECREF(arg);
-            if (!tmp) {
-                Py_DECREF(iter);
-                return -1;
+        if (!PyString_Check(arg)) {
+            int is_unicode = PyUnicode_Check(arg);
+            if(!is_unicode) {
+                tmp = PyObject_Str(arg);
+                Py_DECREF(arg);
+                if(!tmp) {
+                    Py_DECREF(iter);
+                    return -1;
+                }
+                is_unicode = PyUnicode_Check(arg);
             }
-            arg = tmp;
-        }
-
-        if (!(PyString_Check(arg))) {
-            tmp = PyObject_Str(arg);
-            Py_DECREF(arg);
-            if (!tmp) {
-                Py_DECREF(iter);
-                return -1;
+            if(is_unicode) {
+                len = PyUnicode_GET_SIZE(arg);
+                if(!(arg = PTF_convert_encoding(self, arg))) {
+                    Py_DECREF(iter);
+                    return -1;
+                }
+            } else {
+                len = PyObject_Length(arg);
             }
-            arg = tmp;
+        } else {
+            len = PyString_GET_SIZE(arg);
         }
 
         if (self->stream_callable) {
@@ -317,7 +334,6 @@ _write_prefix(PTF_object *self, int wrap) {
         } else {
             ret = PyFile_WriteObject(arg, self->raw_stream, Py_PRINT_RAW);
         }
-        len = PyObject_Length(arg);
         Py_DECREF(arg);
         if(ret || len == -1) {
             Py_DECREF(iter);
@@ -342,7 +358,6 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
     PyObject *iterator=NULL, *e=NULL;
 
     int maxlen, space;
-    char *p;
     int i_wrap = self->wrap;
     int i_autoline = self->autoline;
     Py_ssize_t first_prune = 0, later_prune = 0;
@@ -442,6 +457,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
          * matter.
          */
 
+        int is_unicode;
         if (self->pos == 0) {
             if (_write_prefix(self, i_wrap)) {
                 goto finally;
@@ -458,23 +474,25 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
         }
 
         if (!PyString_Check(arg)) {
-            tmp = PyObject_Str(arg);
-            Py_CLEAR(arg);
-            if(!tmp)
-                goto finally;
-            arg = tmp;
+            is_unicode = PyUnicode_Check(arg);
+            if(!is_unicode) {
+                tmp = PyObject_Str(arg);
+                Py_CLEAR(arg);
+                if(!tmp)
+                    goto finally;
+                arg = tmp;
+                is_unicode = PyUnicode_Check(arg);
+            }
+            if(is_unicode) {
+                arg_len = PyUnicode_GET_SIZE(arg);
+            } else {
+                arg_len = PyObject_Length(arg);
+            }
+        } else {
+            arg_len = PyString_GET_SIZE(arg);
+            is_unicode = 0;
         }
 
-        if (PyUnicode_Check(arg)) {
-            tmp = PyUnicode_AsEncodedString(arg, PyString_AS_STRING(self->encoding), "replace");
-            Py_CLEAR(arg);
-            if (!tmp)
-                goto finally;
-            arg = tmp;
-        }
-        
-        /* unicode? */
-        arg_len = PyString_GET_SIZE(arg);
         if(!arg_len) {
             /* There's nothing to write, so skip this bit... */
             Py_CLEAR(arg);
@@ -485,18 +503,22 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
             PyObject *bit = NULL;
             /* We have to split. */
             maxlen = self->width - self->pos;
-            char *start;
             // this should be wiped; it's added for the moment since I'm
             // not so sure about the code flow following for when
             // arg_len == max_len
             int tmp_max = arg_len > maxlen ? maxlen : arg_len;
-            start = p = PyString_AS_STRING(arg);
-            for (space = -1; p - start < tmp_max; p++) {
-                if (*p == ' ') {
-                    space = p - start;
-                }
+            if(is_unicode) {
+                if(-2 == (space = PyUnicode_Find(arg, PTF_space, 0, tmp_max, 1)))
+                    goto finally;
+            } else {
+                char *start, *p;
+                start = PyString_AS_STRING(arg);
+                p = start + tmp_max - 1;
+                while(p >= start && ' ' != *p)
+                    p--;
+                space = start > p ? -1 : p - start;
             }
-
+            
             if (space == -1) {
                 /* No space to split on.
 
@@ -542,6 +564,9 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
                 arg = tmp;
             }
 
+            if(is_unicode && !(bit = PTF_convert_encoding(self, bit)))
+                goto finally;
+
             int ret = 0;
             if (self->stream_callable) {
                 tmp = PyObject_CallFunctionObjArgs(self->stream_callable, bit, NULL);
@@ -565,6 +590,8 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 
         }
 
+        if(is_unicode && !(arg = PTF_convert_encoding(self, arg)))
+            goto finally;
         if(self->stream_callable) {
             tmp = PyObject_CallFunctionObjArgs(self->stream_callable, arg, NULL);
             Py_XDECREF(tmp);
@@ -721,11 +748,19 @@ init_formatters()
     if (!m)
         return;
 
-    PyObject *stream_closed = PyErr_NewException("snakeoil._formatters.StreamClosed", PyExc_KeyboardInterrupt, NULL);
-    Py_INCREF(stream_closed);
-    if (PyModule_AddObject(m, "StreamClosed", stream_closed))
+    if(!StreamClosed) {
+        if(!(StreamClosed = PyErr_NewException("snakeoil._formatters.StreamClosed",
+            PyExc_KeyboardInterrupt, NULL)))
+            return;
+    }
+    Py_INCREF(StreamClosed);
+    if (PyModule_AddObject(m, "StreamClosed", StreamClosed))
         return;
 
+    if(!PTF_space) {
+        if(!(PTF_space = PyString_FromString(" ")))
+            return;
+    }
     if (PyType_Ready(&PTF_type) < 0)
         return;
     Py_INCREF(&PTF_type);
