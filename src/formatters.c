@@ -273,6 +273,8 @@ _flush_newline(PTF_object *self)
         if(PyFile_WriteString("\n", self->raw_stream))
             return -1;
     }
+    self->wrote_something = 0;
+    self->pos = 0;
     return 0;
 }
 
@@ -592,9 +594,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
             if(_flush_newline(self))
                 goto finally;
 
-            self->pos = 0;
             self->in_first_line = 0;
-            self->wrote_something = 0;
             if(_write_prefix(self, i_wrap)) {
                 goto finally;
             }
@@ -625,8 +625,6 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
         if(_flush_newline(self))
             goto finally;
         self->in_first_line = 1;
-        self->wrote_something = 0;
-        self->pos = 0;
     }
 
     failed = 0;
