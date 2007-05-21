@@ -341,10 +341,11 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
     int i_wrap = self->wrap;
     int i_autoline = self->autoline;
     Py_ssize_t first_prune = 0, later_prune = 0;
+    Py_ssize_t arg_len = 0;
 
 #define getitem(ptr) ptr = PyDict_GetItemString(kwargs, #ptr);     \
         if (!ptr && PyErr_Occurred())                              \
-            goto error
+            goto error;
 
     if(kwargs) {
         getitem(prefixes);
@@ -399,12 +400,11 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
         first_prune = 1;
     } else if (first_prefixes) {
         first_prune = PyList_GET_SIZE(self->first_prefix);
-        if(!(tmp = _PyList_Extend((PyListObject *)self->first_prefix, first_prefixes))) {
+        if(!(tmp = _PyList_Extend((PyListObject *)self->first_prefix, first_prefixes)))
             return NULL;
-        }
         Py_DECREF(tmp);
         first_prune -= PyList_GET_SIZE(self->first_prefix);
-    }        
+    }
 
     if (later_prefix) {
         if (later_prefixes) {
@@ -423,7 +423,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
         }
         Py_DECREF(tmp);
         later_prune -= PyList_GET_SIZE(self->later_prefix);
-    }        
+    }
 
     iterator = PyObject_GetIter(args);
     while ((arg = PyIter_Next(iterator))) {
@@ -433,9 +433,9 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
          * we will write prefix more than once. This should not
          * matter.
          */
+
         if (self->pos == 0) {
             if (_write_prefix(self, i_wrap)) {
-                Py_CLEAR(arg);
                 goto finally;
             }
         }
@@ -468,8 +468,10 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
                 goto finally;
             arg = tmp;
         }
-
-        if (!PyString_GET_SIZE(arg)) {
+        
+        /* unicode? */
+        arg_len = PyString_GET_SIZE(arg);
+        if(!arg_len) {
             /* There's nothing to write, so skip this bit... */
             Py_CLEAR(arg);
             continue;
@@ -477,6 +479,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 
         while (i_wrap && ((self->pos + PyString_GET_SIZE(arg)) > self->width)) {
             PyObject *bit = NULL;
+            arg_len = PyObject_Length(arg);
             /* We have to split. */
             maxlen = self->width - self->pos;
             p = PyString_AS_STRING(arg);
@@ -511,24 +514,26 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
                      */
                     if(!(bit = PySequence_GetSlice(arg, 0, maxlen)))
                         goto finally;
-                    tmp = PySequence_GetSlice(arg, maxlen, 0);
+                    tmp = PySequence_GetSlice(arg, maxlen, arg_len);
                     Py_CLEAR(arg);
                     if (!tmp) {
                         Py_DECREF(bit);
                         goto finally;
                     }
+                    arg_len -= maxlen;
                     arg = tmp;
                 }
             } else {
                 /* Omit the space we split on.*/
-                if(!(bit = PySequence_GetSlice(arg, NULL, space)))
+                if(!(bit = PySequence_GetSlice(arg, 0, space)))
                     goto finally;
-                tmp = PySequence_GetSlice(arg, space+1, NULL);
+                tmp = PySequence_GetSlice(arg, space+1, arg_len);
                 Py_CLEAR(arg);
                 if (!tmp) {
                     Py_DECREF(bit);
                     goto finally;
                 }
+                arg_len -= space;
                 arg = tmp;
             }
 
@@ -550,8 +555,9 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
             self->pos = 0;
             self->in_first_line = 0;
             self->wrote_something = 0;
-            if (_write_prefix(self, i_wrap))
+            if (_write_prefix(self, i_wrap)) {
                 goto finally;
+            }
 
         }
 
@@ -587,11 +593,11 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 
 finally:
 
-    if (first_prefixes) {
-        PyList_SetSlice(self->first_prefix, -first_prune, NULL, NULL);
+    if(first_prune) {
+        PyList_SetSlice(self->first_prefix, -first_prune, PyList_GET_SIZE(self->first_prefix), NULL);
     }
-    if (later_prefixes) {
-        PyList_SetSlice(self->later_prefix, -later_prune, NULL, NULL);
+    if (later_prune) {
+        PyList_SetSlice(self->later_prefix, -later_prune, PyList_GET_SIZE(self->later_prefix), NULL);
     }
 
     e = PyErr_Occurred();
@@ -645,17 +651,17 @@ static PyGetSetDef PTF_getseters[] = {
     {"stream",
      (getter)PTF_getstream, (setter)PTF_setstream,
      "stream to write to",
-     's'},
+     NULL},
 
     {"first_prefix",
      (getter)PTF_getobj_first_prefix, (setter)PTF_setprefix,
      "the first prefix",
-     'f'},
+     NULL},
 
     {"later_prefix",
      (getter)PTF_getobj_later_prefix, (setter)PTF_setprefix,
      "later prefixes",
-     'l'},
+     NULL},
 
     {"width",
      (getter)PTF_getwidth, (setter)PTF_setwidth,
