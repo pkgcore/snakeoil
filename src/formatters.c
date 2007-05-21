@@ -328,7 +328,11 @@ _write_prefix(PTF_object *self, int wrap) {
                     return -1;
                 }
             } else {
-                len = PyObject_Length(arg);
+                if(!(len = PyObject_Length(arg))) {
+                    Py_DECREF(iter);
+                    Py_DECREF(arg);
+                    return -1;
+                }
             }
         } else {
             len = PyString_GET_SIZE(arg);
@@ -342,7 +346,7 @@ _write_prefix(PTF_object *self, int wrap) {
             ret = PyFile_WriteObject(arg, self->raw_stream, Py_PRINT_RAW);
         }
         Py_DECREF(arg);
-        if(ret || len == -1) {
+        if(ret) {
             Py_DECREF(iter);
             return -1;
         }
