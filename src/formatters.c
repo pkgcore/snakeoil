@@ -34,7 +34,7 @@ typedef struct {
     PyObject *encoding;
     int autoline;
     int wrap;
-    long width;
+    Py_ssize_t width;
 
     PyObject *raw_stream;
     int pos;
