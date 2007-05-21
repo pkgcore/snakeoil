@@ -93,10 +93,13 @@ PTF_set_later_prefix(PTF_object *self, PyObject *value, void *closure)
 static PyObject *
 PTF_returnemptystring(PTF_object *self, PyObject *args)
 {
-    char *s;
-    if (!PyArg_ParseTuple(args, "|s", s))
+    if(1 != PyTuple_GET_SIZE(args) ||
+        (PyTuple_GET_ITEM(args, 0) != Py_None && 
+        !PyString_Check(PyTuple_GET_ITEM(args, 0)))) {
+        PyErr_SetString(PyExc_TypeError,
+            "only one arg is allowed; string or None");
         return NULL;
-
+    }
     return PyString_FromString("");
 }
 
