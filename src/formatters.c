@@ -21,12 +21,13 @@ static PyObject *StreamClosed;
 typedef struct {
     PyObject_HEAD
 
-    /* Public attrs */
-    PyObject *stream; /* This is actually the write method of stream if it's not a file */
+    /* This is actually the write method of stream if it's not a file */
+    PyObject *stream_callable;
     PyObject *first_prefix;
     PyObject *later_prefix;
 
     /* need these for TermInfoFormatter */
+
     PyObject *reset;
     PyObject *bold;
     PyObject *underline;
@@ -35,13 +36,11 @@ typedef struct {
     int wrap;
     long width;
 
-    /* Private */
-    PyObject *stored_stream;
+    PyObject *raw_stream;
     int pos;
     int in_first_line;
     int wrote_something;
 
-    int stream_is_file;
 } PTF_object;
 
 static PyObject *convert_list(PyObject *s) {
@@ -138,8 +137,8 @@ PTF_returnemptystring(PTF_object *self, PyObject *args)
 static PyObject *
 PTF_getstream(PTF_object *self, void *closure)
 {
-    Py_INCREF(self->stored_stream);
-    return self->stored_stream;
+    Py_INCREF(self->raw_stream);
+    return self->raw_stream;
 }
 
 
@@ -153,8 +152,7 @@ PTF_setstream(PTF_object *self, PyObject *value, void *closure)
     }
 
     if (PyFile_Check(value)) {
-        self->stream_is_file = 1;
-        self->stream = value;
+        Py_CLEAR(self->stream_callable);
     } else {
         tmp = PyObject_GetAttrString(value, "write");
         if (!tmp) {
@@ -162,13 +160,15 @@ PTF_setstream(PTF_object *self, PyObject *value, void *closure)
                 PyErr_SetString(PyExc_TypeError, "stream has no write method");
             return -1;
         }
-        self->stream_is_file = 0;
-        self->stream = tmp;
+        PyObject *tmp2 = self->stream_callable;
+        self->stream_callable = tmp;
+        Py_XDECREF(tmp2);
     }
 
-    Py_XDECREF(self->stored_stream);
+    tmp = self->raw_stream;
     Py_INCREF(value);
-    self->stored_stream = value;
+    self->raw_stream = value;
+    Py_XDECREF(tmp);
 
     return 0;
 }
@@ -177,7 +177,7 @@ PTF_setstream(PTF_object *self, PyObject *value, void *closure)
 static int
 PTF_traverse(PTF_object *self, visitproc visit, void *arg)
 {
-    Py_VISIT(self->stored_stream);
+    Py_VISIT(self->raw_stream);
     Py_VISIT(self->first_prefix);
     Py_VISIT(self->later_prefix);
     Py_VISIT(self->reset);
@@ -189,7 +189,7 @@ PTF_traverse(PTF_object *self, visitproc visit, void *arg)
 static int
 PTF_clear(PTF_object *self)
 {
-    Py_CLEAR(self->stored_stream);
+    Py_CLEAR(self->raw_stream);
     Py_CLEAR(self->first_prefix);
     Py_CLEAR(self->later_prefix);
     Py_CLEAR(self->reset);
@@ -222,6 +222,7 @@ PTF_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     self->pos = self->wrap = self->wrote_something = 0;
     self->encoding = encoding;
     self->first_prefix = self->later_prefix = self->bold = self->reset = self->underline = NULL;
+    self->raw_stream = self->stream_callable = NULL;
 
     self->width = 79;
      /* this should pick up on the system default but i'm lazy. */
@@ -247,25 +248,21 @@ PTF_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static int
 PTF_init(PTF_object *self, PyObject *args, PyObject *kwds)
 {
-    PyObject *encoding = NULL, *tmp;
+    PyObject *encoding = NULL, *tmp, *stream = NULL;
     static char *kwlist[] = {"stream", "width", "encoding", NULL};
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|iz", kwlist,
-        &self->stream, &self->width, &encoding))
+        &stream, &self->width, &encoding))
         return -1;
 
     if (encoding) {
         tmp = self->encoding;
         self->encoding = encoding;
         Py_INCREF(encoding);
-        Py_DECREF(tmp);
-//        printf("setting encoding to %s\n", PyString_AsString(encoding));
+        Py_XDECREF(tmp);
     }
 
-    /* Seems kinda stupid to do this, but it needs to be done. */
-    PTF_setstream(self, self->stream, NULL);
-
-    return 0;
+    return PTF_setstream(self, stream, NULL);
 }
 
 
@@ -318,12 +315,12 @@ _write_prefix(PTF_object *self, int wrap) {
             arg = tmp;
         }
 
-        if (self->stream_is_file) {
-            ret = PyFile_WriteObject(arg, self->stream, Py_PRINT_RAW);
-        } else {
-            tmp = PyObject_CallFunctionObjArgs(self->stream, arg, NULL);
+        if (self->stream_callable) {
+            tmp = PyObject_CallFunctionObjArgs(self->stream_callable, arg, NULL);
             Py_XDECREF(tmp);
             ret = tmp != NULL;
+        } else {
+            ret = PyFile_WriteObject(arg, self->raw_stream, Py_PRINT_RAW);
         }
         Py_DECREF(arg);
         if(ret) {
@@ -549,15 +546,12 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
             }
 
             int ret = 0;
-            if (self->stream_is_file) {
-                ret = PyFile_WriteObject(bit, self->stream, Py_PRINT_RAW);
+            if (self->stream_callable) {
+                tmp = PyObject_CallFunctionObjArgs(self->stream_callable, bit, NULL);
+                Py_XDECREF(tmp);
+                ret = tmp != NULL;
             } else {
-                if((tmp = PyObject_CallFunctionObjArgs(self->stream, bit, NULL))) {
-                    Py_DECREF(tmp);
-                    ret = 0;
-                } else {
-                    ret = 1;
-                }
+                ret = PyFile_WriteObject(bit, self->raw_stream, Py_PRINT_RAW);
             }
             Py_DECREF(bit);
             if(ret)
@@ -572,14 +566,14 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 
         }
 
-        if (self->stream_is_file) {
-            if (PyFile_WriteObject(arg, self->stream, Py_PRINT_RAW))
-                goto finally;
-        } else {
-            tmp = PyObject_CallFunctionObjArgs(self->stream, arg, NULL);
+        if (self->stream_callable) {
+            tmp = PyObject_CallFunctionObjArgs(self->stream_callable, arg, NULL);
+            Py_XDECREF(tmp);
             if(!tmp)
                 goto finally;
-            Py_DECREF(tmp);
+        } else {
+            if (PyFile_WriteObject(arg, self->raw_stream, Py_PRINT_RAW))
+                goto finally;
         }
         if (!i_autoline) {
             self->wrote_something = 1;
@@ -588,14 +582,14 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
     }
 
     if (i_autoline) {
-        if (self->stream_is_file) {
-            if (PyFile_WriteString("\n", self->stream))
-                goto finally;
-        } else {
-            tmp = PyObject_CallFunction(self->stream, "(s)", "\n");
+        if (self->stream_callable) {
+            tmp = PyObject_CallFunction(self->stream_callable, "(s)", "\n");
             if(!tmp)
                 goto finally;
             Py_DECREF(tmp);
+        } else {
+            if (PyFile_WriteString("\n", self->raw_stream))
+                goto finally;
         }
         self->in_first_line = 1;
         self->wrote_something = 0;
