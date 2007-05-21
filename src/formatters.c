@@ -46,6 +46,8 @@ typedef struct {
 
 snakeoil_MUTABLE_ATTR_BOOL(PTF_object, "autoline", autoline, self->autoline,
     self->autoline = 1, self->autoline = 0)
+snakeoil_MUTABLE_ATTR_BOOL(PTF_object, "wrap", wrap, self->wrap,
+    self->wrap = 1, self->wrap = 0)
 snakeoil_GET_ATTR(PTF_object, "first_prefix", first_prefix, self->first_prefix)
 snakeoil_GET_ATTR(PTF_object, "later_prefix", later_prefix, self->later_prefix)
 
@@ -675,8 +677,12 @@ static PyMethodDef PTF_methods[] = {
 };
 
 static PyGetSetDef PTF_getseters[] = {
-    snakeoil_GETSET(PTF_object, "autoline", autoline),
-
+    {"autoline", (getter)PTF_object_get_autoline,
+        (setter)PTF_object_set_autoline,
+        "boolean indicating we are in auto-newline mode"
+        "(defaults to on).", NULL},
+    {"wrap", (getter)PTF_object_get_wrap, (setter)PTF_object_set_wrap,
+        "boolean indicating we auto-linewrap (defaults to off).", NULL},
     {"stream", (getter)PTF_getstream, (setter)PTF_setstream,
         "stream to write to",NULL},
     {"first_prefix", (getter)PTF_object_get_first_prefix,
