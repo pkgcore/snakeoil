@@ -309,12 +309,8 @@ _write_prefix(PTF_object *self, int wrap) {
     PyObject *iter, *arg, *tmp;
     int ret;
 
-    if (self->in_first_line)
-        iter = PyObject_GetIter(self->first_prefix);
-    else
-        iter = PyObject_GetIter(self->later_prefix);
-
-    if(!iter)
+    iter = self->in_first_line ? self->first_prefix : self->later_prefix;
+    if(!(iter = PyObject_GetIter(iter)))
         return -1;
 
     while ((arg = PyIter_Next(iter))) {
