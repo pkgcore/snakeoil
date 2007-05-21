@@ -562,25 +562,26 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
             self->pos = 0;
             self->in_first_line = 0;
             self->wrote_something = 0;
-            if (_write_prefix(self, i_wrap)) {
+            if(_write_prefix(self, i_wrap)) {
                 goto finally;
             }
 
         }
 
-        if (self->stream_callable) {
+        if(self->stream_callable) {
             tmp = PyObject_CallFunctionObjArgs(self->stream_callable, arg, NULL);
             Py_XDECREF(tmp);
             if(!tmp)
                 goto finally;
         } else {
-            if (PyFile_WriteObject(arg, self->raw_stream, Py_PRINT_RAW))
+            if(PyFile_WriteObject(arg, self->raw_stream, Py_PRINT_RAW))
                 goto finally;
         }
-        if (!i_autoline) {
+        if(!i_autoline) {
             self->wrote_something = 1;
             self->pos += PyString_GET_SIZE(arg);
         }
+        Py_CLEAR(arg);
     }
 
     if (i_autoline) {
