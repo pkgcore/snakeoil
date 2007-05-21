@@ -619,13 +619,6 @@ finally:
    Py_RETURN_NONE;
 
 error:
-/*
-    Py_XDECREF(wrap);
-    Py_XDECREF(autoline);
-    Py_XDECREF(prefixes);
-    Py_XDECREF(first_prefixes);
-    Py_XDECREF(later_prefixes);
-*/
     Py_XDECREF(iterator);
     Py_XDECREF(arg);
     return NULL;
