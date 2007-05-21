@@ -1,6 +1,6 @@
-#include <errno.h>
 #include "Python.h"
 #include <snakeoil/common.h>
+#include "structmember.h"
 
 /*
  * Known bugs:
@@ -34,7 +34,7 @@ typedef struct {
     PyObject *encoding;
     int autoline;
     int wrap;
-    Py_ssize_t width;
+    int width;
 
     PyObject *raw_stream;
     int pos;
@@ -42,15 +42,6 @@ typedef struct {
     int wrote_something;
 
 } PTF_object;
-
-static PyObject *convert_list(PyObject *s) {
-    /* Convenience function, returns *s as list if it isn't one already */
-    if (PyList_Check(s))
-        return s;
-
-    /* If it's NULL we return it as we would return NULL anyway... */
-    return PySequence_List(s);
-}
 
 #define annoying_pyobj_func(name, attr) pyobj_get_func(name, attr) \
     pyobj_set_func(name, attr)
@@ -83,24 +74,6 @@ pyobj_func(later_prefix)
 pyobj_func(bold)
 pyobj_func(underline)
 pyobj_func(reset)
-
-static PyObject *
-PTF_getwidth(PTF_object *self, void *closure)
-{
-    return PyInt_FromLong(self->width);
-}
-
-static int
-PTF_setwidth(PTF_object *self, PyObject *value, void *closure)
-{
-    long tmp;
-    PyErr_Clear();
-    tmp = PyInt_AsLong(value);
-    if (tmp == -1 && PyErr_Occurred())
-        return -1;
-    self->width = tmp;
-    return 0;
-}
 
 snakeoil_MUTABLE_ATTR_BOOL(PTF_object, "autoline", autoline, self->autoline,
     self->autoline = 1, self->autoline = 0)
@@ -665,6 +638,7 @@ static PyMethodDef PTF_methods[] = {
     {NULL}  /* Sentinel */
 };
 
+
 #define pyobj_struct(name) {#name,                         \
      (getter)PTF_getobj_##name, (setter)PTF_setobj_##name, \
      #name,                                                \
@@ -689,17 +663,22 @@ static PyGetSetDef PTF_getseters[] = {
      "later prefixes",
      NULL},
 
-    {"width",
-     (getter)PTF_getwidth, (setter)PTF_setwidth,
-     "width",
-     NULL},
-
     pyobj_struct(bold),
     pyobj_struct(underline),
     pyobj_struct(reset),
 
     {NULL} /* Sentinel */
 };
+
+#undef pyobj_struct
+
+static PyMemberDef PTF_members[] = {
+    {"width", T_INT, offsetof(PTF_object, width), 0,
+         "width to split at"},
+    {NULL}  /* Sentinel */
+};
+
+
 
 PyDoc_STRVAR(PTF_doc,
 "PTF(iter1 [,iter2 [...]]) --> izip object\n\
@@ -742,7 +721,7 @@ static PyTypeObject PTF_type = {
         0,                              /* tp_iter */
         0,                              /* tp_iternext */
         PTF_methods,                    /* tp_methods */
-        0,                              /* tp_members */
+        PTF_members,                    /* tp_members */
         PTF_getseters,                  /* tp_getset */
         0,                              /* tp_base */
         0,                              /* tp_dict */

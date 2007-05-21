@@ -11,6 +11,18 @@
 #include <Python.h>
 #include "snakeoil/py24-compatibility.h"
 
+#define snakeoil_GET_ATTR(type, name, attr)                             \
+static PyObject *                                                       \
+type##_get_##name (type *self, PyObject *val)                           \
+{                                                                       \
+    if(attr) {                                                          \
+        Py_INCREF(attr);                                                \
+        return attr;                                                    \
+    }                                                                   \
+    PyErr_SetString(PyExc_AttributeError, name" isn't set");            \
+    return NULL;                                                        \
+}
+
 #define snakeoil_IMMUTABLE_ATTR_BOOL(type, name, attr, test)            \
 static int                                                              \
 type##_set_##attr (type *self, PyObject *v, void *closure)              \
