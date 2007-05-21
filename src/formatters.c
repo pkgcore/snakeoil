@@ -217,7 +217,7 @@ static int
 PTF_init(PTF_object *self, PyObject *args, PyObject *kwds)
 {
     PyObject *encoding = NULL, *tmp, *stream = NULL;
-    int width;
+    int width = 0;
     static char *kwlist[] = {"stream", "width", "encoding", NULL};
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|iO", kwlist,
@@ -237,7 +237,7 @@ PTF_init(PTF_object *self, PyObject *args, PyObject *kwds)
             Py_XDECREF(tmp);
         }
     }
-    if(width)
+    if(width > 0)
         self->width = width;
 
     return PTF_setstream(self, stream, NULL);
