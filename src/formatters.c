@@ -4,8 +4,6 @@
 
 /*
  * Known bugs:
- *      - Setting first_prefix to [None] causes a segfault.
- *      - Passing encoding to __init__ causes a segfault.
  *      - Passing Unicode objects that cannot be
  *        decoded by the encoding to write causes an
  *        EncodingError to be raised, even though we
