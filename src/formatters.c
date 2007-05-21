@@ -497,7 +497,8 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
             if(is_unicode) {
                 arg_len = PyUnicode_GET_SIZE(arg);
             } else {
-                arg_len = PyObject_Length(arg);
+                if(!(arg_len = PyObject_Length(arg)))
+                    goto finally;
             }
         } else {
             arg_len = PyString_GET_SIZE(arg);
