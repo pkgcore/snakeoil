@@ -614,10 +614,8 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
                 goto finally;
             }
         }
-        if(!i_autoline) {
-            self->wrote_something = 1;
-            self->pos += PyString_GET_SIZE(arg);
-        }
+        self->pos += arg_len;
+        self->wrote_something = 1;
         Py_CLEAR(arg);
     }
 
