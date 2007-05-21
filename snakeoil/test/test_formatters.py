@@ -93,9 +93,6 @@ class PlainTextFormatterTest(TestCase):
             formatter.width = 10
             for input in inputs:
                 formatter.write(wrap=True, later_prefix='foon', *input)
-            print "for %s " % repr(inputs)
-            print "expect %r" % output
-            print "got %r" % stream.getvalue()
             self.assertEqual(output, stream.getvalue())
 
 

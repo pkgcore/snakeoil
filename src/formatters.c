@@ -249,6 +249,22 @@ reduce_callable(PTF_object *self, PyObject *arg)
 }
 
 static int
+_flush_newline(PTF_object *self)
+{
+    PyObject *tmp;
+    if (self->stream_callable) {
+        tmp = PyObject_CallFunction(self->stream_callable, "(s)", "\n");
+        if(!tmp)
+            return -1;
+        Py_DECREF(tmp);
+    } else {
+        if(PyFile_WriteString("\n", self->raw_stream))
+            return -1;
+    }
+    return 0;
+}
+
+static int
 _write_prefix(PTF_object *self, int wrap) {
     PyObject *iter, *arg, *tmp;
     Py_ssize_t len;
@@ -532,6 +548,8 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
             Py_DECREF(bit);
             if(ret)
                 goto finally;
+            if(_flush_newline(self))
+                goto finally;
 
             self->pos = 0;
             self->in_first_line = 0;
@@ -561,15 +579,8 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
     }
 
     if (i_autoline) {
-        if (self->stream_callable) {
-            tmp = PyObject_CallFunction(self->stream_callable, "(s)", "\n");
-            if(!tmp)
-                goto finally;
-            Py_DECREF(tmp);
-        } else {
-            if (PyFile_WriteString("\n", self->raw_stream))
-                goto finally;
-        }
+        if(_flush_newline(self))
+            goto finally;
         self->in_first_line = 1;
         self->wrote_something = 0;
         self->pos = 0;
