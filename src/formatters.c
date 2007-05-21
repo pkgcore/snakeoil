@@ -348,11 +348,12 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
             goto error;
 
     if(kwargs) {
-        getitem(prefixes);
         getitem(prefix);
+        getitem(first_prefix);
+        getitem(later_prefix);
+        getitem(prefixes);
         getitem(first_prefixes);
         getitem(later_prefixes);
-        getitem(later_prefix);
         getitem(wrap);
         getitem(autoline);
     }
