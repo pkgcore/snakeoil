@@ -32,9 +32,9 @@ typedef struct {
     PyObject *bold;
     PyObject *underline;
     PyObject *encoding;
+    int width;
     int autoline;
     int wrap;
-    int width;
 
     PyObject *raw_stream;
     int pos;
