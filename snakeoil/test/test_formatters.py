@@ -81,9 +81,27 @@ class PlainTextFormatterTest(TestCase):
         self.assertEqual("foo ddar\ndorkeybl", stream.getvalue())
         formatter.write(" "*formatter.width, wrap=True, autoline=True)
         formatter.stream = stream = StringIO.StringIO()
-        formatter.write("dar", "bl", wrap=True, autoline=False)
-        self.assertEqual("foo ddar\ndorkeybl", stream.getvalue())
-
+        formatter.write("dar", " b", wrap=True, autoline=False)
+        self.assertEqual("foo ddar\ndorkeyb", stream.getvalue())
+        output = \
+"""     rdepends: >=dev-lang/python-2.3 >=sys-apps/sed-4.0.5
+                       dev-python/python-fchksum
+"""
+        stream = StringIO.StringIO()
+        formatter = formatters.PlainTextFormatter(stream, encoding='ascii',
+            width=80)
+        formatter.wrap = True
+        self.assertEqual(formatter.autoline, True)
+        self.assertEqual(formatter.width, 80)
+        formatter.later_prefix = ['                       ']
+        formatter.write("     rdepends: >=dev-lang/python-2.3 "
+            ">=sys-apps/sed-4.0.5 dev-python/python-fchksum")
+        formatter.later_prefix.pop()
+        self.assertLen(formatter.first_prefix, 0)
+        self.assertLen(formatter.later_prefix, 0)
+        self.assertEqual(output, stream.getvalue())
+        
+        
     def test_wrap_autoline(self):
         for inputs, output in [
             ((3 * ('spork',)), 'spork\nspork\nspork\n'),
