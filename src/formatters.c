@@ -291,7 +291,7 @@ _write_prefix(PTF_object *self, int wrap) {
         if (self->stream_callable) {
             tmp = PyObject_CallFunctionObjArgs(self->stream_callable, arg, NULL);
             Py_XDECREF(tmp);
-            ret = tmp != NULL;
+            ret = tmp == NULL;
         } else {
             ret = PyFile_WriteObject(arg, self->raw_stream, Py_PRINT_RAW);
         }
@@ -456,9 +456,8 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
             continue;
         }
 
-        while (i_wrap && ((self->pos + PyString_GET_SIZE(arg)) > self->width)) {
+        while (i_wrap && (arg_len > self->width - self->pos)) {
             PyObject *bit = NULL;
-            arg_len = PyObject_Length(arg);
             /* We have to split. */
             maxlen = self->width - self->pos;
             char *start;
@@ -494,15 +493,15 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
                     /* Forcibly split this as far to the right as
                      * possible.
                      */
-                    if(!(bit = PySequence_GetSlice(arg, 0, space)))
+                    if(!(bit = PySequence_GetSlice(arg, 0, tmp_max)))
                         goto finally;
-                    tmp = PySequence_GetSlice(arg, space, arg_len);
+                    tmp = PySequence_GetSlice(arg, tmp_max, arg_len);
                     Py_CLEAR(arg);
                     if (!tmp) {
                         Py_DECREF(bit);
                         goto finally;
                     }
-                    arg_len -= space;
+                    arg_len -= tmp_max;
                     arg = tmp;
                 }
             } else {
@@ -515,7 +514,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
                     Py_DECREF(bit);
                     goto finally;
                 }
-                arg_len -= space;
+                arg_len -= space + 1;
                 arg = tmp;
             }
 
@@ -523,7 +522,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
             if (self->stream_callable) {
                 tmp = PyObject_CallFunctionObjArgs(self->stream_callable, bit, NULL);
                 Py_XDECREF(tmp);
-                ret = tmp != NULL;
+                ret = tmp == NULL;
             } else {
                 ret = PyFile_WriteObject(bit, self->raw_stream, Py_PRINT_RAW);
             }
@@ -543,11 +542,13 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
         if(self->stream_callable) {
             tmp = PyObject_CallFunctionObjArgs(self->stream_callable, arg, NULL);
             Py_XDECREF(tmp);
-            if(!tmp)
+            if(!tmp) {
                 goto finally;
+            }
         } else {
-            if(PyFile_WriteObject(arg, self->raw_stream, Py_PRINT_RAW))
+            if(PyFile_WriteObject(arg, self->raw_stream, Py_PRINT_RAW)) {
                 goto finally;
+            }
         }
         if(!i_autoline) {
             self->wrote_something = 1;
