@@ -251,6 +251,7 @@ reduce_callable(PTF_object *self, PyObject *arg)
 static int
 _write_prefix(PTF_object *self, int wrap) {
     PyObject *iter, *arg, *tmp;
+    Py_ssize_t len;
     int ret;
 
     iter = self->in_first_line ? self->first_prefix : self->later_prefix;
@@ -295,15 +296,17 @@ _write_prefix(PTF_object *self, int wrap) {
         } else {
             ret = PyFile_WriteObject(arg, self->raw_stream, Py_PRINT_RAW);
         }
+        len = PyObject_Length(arg);
         Py_DECREF(arg);
-        if(ret) {
+        if(ret || len == -1) {
             Py_DECREF(iter);
             return -1;
         }
-
-        if (wrap && (self->pos >= self->width))
-            self->pos = self->width-10;
+        // overflow potential.
+        self->pos += len;
     }
+    if (wrap && (self->pos >= self->width))
+        self->pos = self->width-10;
     Py_DECREF(iter);
     return 0;
 }
