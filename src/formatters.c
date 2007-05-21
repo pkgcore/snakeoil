@@ -222,15 +222,22 @@ PTF_init(PTF_object *self, PyObject *args, PyObject *kwds)
     int width;
     static char *kwlist[] = {"stream", "width", "encoding", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|iS", kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|iO", kwlist,
         &stream, &width, &encoding))
         return -1;
 
-    if (encoding) {
-        tmp = self->encoding;
-        Py_INCREF(encoding);
-        self->encoding = encoding;
-        Py_XDECREF(tmp);
+    if(encoding) {
+        if(encoding != Py_None) {
+            if(!PyString_Check(encoding)) {
+                PyErr_SetString(PyExc_TypeError,
+                    "encoding must be None, or a str object");
+                return -1;
+            }
+            tmp = self->encoding;
+            Py_INCREF(encoding);
+            self->encoding = encoding;
+            Py_XDECREF(tmp);
+        }
     }
     self->width = width;
 
