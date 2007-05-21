@@ -368,7 +368,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
     PyObject *tmp=NULL, *arg=NULL;
     PyObject *iterator=NULL, *e=NULL;
 
-    int maxlen, space;
+    int maxlen, space, failed = 1;
     int i_wrap = self->wrap;
     int i_autoline = self->autoline;
     Py_ssize_t first_prune = 0, later_prune = 0;
@@ -376,7 +376,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 
 #define getitem(ptr) ptr = PyDict_GetItemString(kwargs, #ptr);     \
         if (!ptr && PyErr_Occurred())                              \
-            goto error;
+            return NULL;
 
     if(kwargs) {
         getitem(prefix);
@@ -630,7 +630,11 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
         self->pos = 0;
     }
 
+    failed = 0;
+
 finally:
+    Py_XDECREF(iterator);
+    Py_XDECREF(arg);
 
     if(first_prune) {
         PyList_SetSlice(self->first_prefix, -first_prune, PyList_GET_SIZE(self->first_prefix), NULL);
@@ -644,15 +648,12 @@ finally:
         if (PyErr_ExceptionMatches(PyExc_IOError) &&
             PyInt_AS_LONG(PyObject_GetAttrString(e, "errno")) == EPIPE)
                 PyErr_SetObject(e, StreamClosed);
-        goto error;
+        return NULL;
     }
 
-   Py_RETURN_NONE;
-
-error:
-    Py_XDECREF(iterator);
-    Py_XDECREF(arg);
-    return NULL;
+    if(failed)
+        return NULL;
+    Py_RETURN_NONE;
 }
 
 static PyMethodDef PTF_methods[] = {
