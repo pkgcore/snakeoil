@@ -461,10 +461,13 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
             arg_len = PyObject_Length(arg);
             /* We have to split. */
             maxlen = self->width - self->pos;
-            p = PyString_AS_STRING(arg);
-            for (space = -1, i = 0; *p++, i++;) {
-                if (i == maxlen)
-                    break;
+            char *start;
+            // this should be wiped; it's added for the moment since I'm
+            // not so sure about the code flow following for when
+            // arg_len == max_len
+            int tmp_max = arg_len > maxlen ? maxlen : arg_len;
+            start = p = PyString_AS_STRING(arg);
+            for (space = -1;p - start < tmp_max; p++) {
                 if (*p == ' ') {
                     space = i;
                     break;
@@ -491,15 +494,15 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
                     /* Forcibly split this as far to the right as
                      * possible.
                      */
-                    if(!(bit = PySequence_GetSlice(arg, 0, maxlen)))
+                    if(!(bit = PySequence_GetSlice(arg, 0, space)))
                         goto finally;
-                    tmp = PySequence_GetSlice(arg, maxlen, arg_len);
+                    tmp = PySequence_GetSlice(arg, space, arg_len);
                     Py_CLEAR(arg);
                     if (!tmp) {
                         Py_DECREF(bit);
                         goto finally;
                     }
-                    arg_len -= maxlen;
+                    arg_len -= space;
                     arg = tmp;
                 }
             } else {
