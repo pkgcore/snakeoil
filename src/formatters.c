@@ -69,14 +69,15 @@ PTF_setobj_##name(PTF_object *self, PyObject *value, void *closure)\
 
 #define pyobj_func(name) annoying_pyobj_func(name, name)
 
-pyobj_func(first_prefix)
-pyobj_func(later_prefix)
 pyobj_func(bold)
 pyobj_func(underline)
 pyobj_func(reset)
 
 snakeoil_MUTABLE_ATTR_BOOL(PTF_object, "autoline", autoline, self->autoline,
     self->autoline = 1, self->autoline = 0)
+snakeoil_GET_ATTR(PTF_object, "first_prefix", first_prefix, self->first_prefix)
+snakeoil_GET_ATTR(PTF_object, "later_prefix", later_prefix, self->later_prefix)
+
 
 static int
 PTF_set_first_prefix(PTF_object *self, PyObject *value, void *closure)
@@ -654,12 +655,12 @@ static PyGetSetDef PTF_getseters[] = {
      NULL},
 
     {"first_prefix",
-     (getter)PTF_getobj_first_prefix, (setter)PTF_set_first_prefix,
+     (getter)PTF_object_get_first_prefix, (setter)PTF_set_first_prefix,
      "the first prefix",
      NULL},
 
     {"later_prefix",
-     (getter)PTF_getobj_later_prefix, (setter)PTF_set_later_prefix,
+     (getter)PTF_object_get_later_prefix, (setter)PTF_set_later_prefix,
      "later prefixes",
      NULL},
 
