@@ -105,20 +105,43 @@ PTF_setwidth(PTF_object *self, PyObject *value, void *closure)
 snakeoil_MUTABLE_ATTR_BOOL(PTF_object, "autoline", autoline, self->autoline,
     self->autoline = 1, self->autoline = 0)
 
+static int
+PTF_set_first_prefix(PTF_object *self, PyObject *value, void *closure)
+{
+    PyObject *tmp;
+    if(!value) {
+        PyErr_SetString(PyExc_TypeError, "first_prefix is not deletable");
+        return -1;
+    }
+        
+    if(!PyList_CheckExact(self->first_prefix))
+        return PyList_SetSlice(self->first_prefix,
+            0, PyList_GET_SIZE(self->first_prefix),
+            value);
+    tmp = self->first_prefix;
+    Py_INCREF(value);
+    self->first_prefix = value;
+    Py_DECREF(tmp);
+    return 0;
+}
 
 static int
-PTF_setprefix(PTF_object *self, PyObject *value, char closure)
+PTF_set_later_prefix(PTF_object *self, PyObject *value, void *closure)
 {
-    PyObject *tmp = convert_list(value);
-
-    if (!tmp)
+    PyObject *tmp;
+    if(!value) {
+        PyErr_SetString(PyExc_TypeError, "later_prefix is not deletable");
         return -1;
-
-    if (closure == 'f')
-        self->first_prefix = tmp;
-    else if (closure == 'l')
-        self->later_prefix = tmp;
-
+    }
+        
+    if(!PyList_CheckExact(self->later_prefix))
+        return PyList_SetSlice(self->later_prefix,
+            0, PyList_GET_SIZE(self->later_prefix),
+            value);
+    tmp = self->later_prefix;
+    Py_INCREF(value);
+    self->later_prefix = value;
+    Py_DECREF(tmp);
     return 0;
 }
 
@@ -657,12 +680,12 @@ static PyGetSetDef PTF_getseters[] = {
      NULL},
 
     {"first_prefix",
-     (getter)PTF_getobj_first_prefix, (setter)PTF_setprefix,
+     (getter)PTF_getobj_first_prefix, (setter)PTF_set_first_prefix,
      "the first prefix",
      NULL},
 
     {"later_prefix",
-     (getter)PTF_getobj_later_prefix, (setter)PTF_setprefix,
+     (getter)PTF_getobj_later_prefix, (setter)PTF_set_later_prefix,
      "later prefixes",
      NULL},
 
