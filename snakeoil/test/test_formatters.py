@@ -106,7 +106,19 @@ class PlainTextFormatterTest(TestCase):
         formatter.write("     rdepends: >=dev-lang/python-2.3 "
             ">=sys-apps/sed-4.0.5 dev-python/python-fchksum")
         self.assertEqual(output, stream.getvalue())
-        
+
+        formatter.first_prefix = []
+        formatter.later_prefix = ['                  ']
+        formatter.width = 28
+        formatter.autoline = False
+        formatter.wrap = True
+        formatter.stream = stream = StringIO.StringIO()
+        input = ("     description: ","The Portage")
+        formatter.write(*input)
+        output = ''.join(input).rsplit(" ", 1)
+        output[1] = '                  %s' % output[1]
+        self.assertEqual(output, stream.getvalue().split("\n"))
+
         
     def test_wrap_autoline(self):
         for inputs, output in [
