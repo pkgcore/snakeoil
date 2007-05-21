@@ -327,9 +327,6 @@ error:
     return -1;
 }
 
-#define getitem(arg) arg = PyDict_GetItemString(kwargs, #arg);     \
-        if (!arg && PyErr_Occurred())                              \
-            goto error
 
 static PyObject *
 PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
@@ -337,13 +334,19 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
     PyObject *first_prefixes=NULL, *later_prefixes=NULL;
     PyObject *first_prefix=NULL, *later_prefix=NULL;
     PyObject *tmp=NULL, *arg=NULL;
-    PyObject *iterator=NULL, *bit=NULL, *e=NULL;
+    PyObject *iterator=NULL, *e=NULL;
 
-    int i, maxlen, space, i_autoline;
+    int i, maxlen, space;
     char *p;
+    int i_wrap = self->wrap;
+    int i_autoline = self->autoline;
+    Py_ssize_t first_prune = 0, later_prune = 0;
 
-    wrap = self->wrap;
-    if ((kwargs)) {
+#define getitem(ptr) ptr = PyDict_GetItemString(kwargs, #ptr);     \
+        if (!ptr && PyErr_Occurred())                              \
+            goto error
+
+    if(kwargs) {
         getitem(prefixes);
         getitem(prefix);
         getitem(first_prefixes);
@@ -352,30 +355,35 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
         getitem(wrap);
         getitem(autoline);
     }
+#undef getitem
 
-    if (autoline) {
-        i_autoline = PyObject_IsTrue(autoline);
-        if (i_autoline == -1)
-            goto error;
-    } else {
-        i_autoline = self->autoline;
+    if(autoline) {
+        if(-1 == (i_autoline = PyObject_IsTrue(autoline))) {
+            return NULL;
+        }
     }
 
-    if (prefixes) {
+    if(wrap) {
+        if(-1 == (i_wrap = PyObject_IsTrue(wrap))) {
+            return NULL;
+        }
+    }
+
+    if(prefixes) {
         if (first_prefixes || later_prefixes) {
             PyErr_SetString(PyExc_TypeError,
                 "do not pass first_prefixes or later_prefixes "
                 "if prefixes is passed");
-            goto error;
+            return NULL;
         }
         first_prefixes = later_prefixes = prefixes;
     }
 
-    if (prefix) {
+    if(prefix) {
         if (first_prefix || later_prefix) {
             PyErr_SetString(PyExc_TypeError,
                 "do not pass first_prefix or later_prefix with prefix");
-            goto error;
+            return NULL;
         }
         first_prefix = later_prefix = prefix;
     }
@@ -384,73 +392,91 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
         if (first_prefixes) {
             PyErr_SetString(PyExc_TypeError,
                 "do not pass both first_prefix and first_prefixes");
-            goto error;
+            return NULL;
         }
-        first_prefixes = PyTuple_Pack(1, first_prefix);
-    }
+        if(PyList_Append(self->first_prefix, first_prefix))
+            return NULL;
+        first_prune = 1;
+    } else if (first_prefixes) {
+        first_prune = PyList_GET_SIZE(self->first_prefix);
+        if(!(tmp = _PyList_Extend((PyListObject *)self->first_prefix, first_prefixes))) {
+            return NULL;
+        }
+        Py_DECREF(tmp);
+        first_prune -= PyList_GET_SIZE(self->first_prefix);
+    }        
 
     if (later_prefix) {
         if (later_prefixes) {
             PyErr_SetString(PyExc_TypeError,
                 "do not pass both later_prefix and later_prefixes");
-            goto error;
+            goto finally;
         }
-        later_prefixes = PyTuple_Pack(1, later_prefix);
-    }
-
-    if (first_prefixes) {
-        if (!_PyList_Extend(self->first_prefix, first_prefixes))
-            goto error;
-    }
-
-    if (later_prefixes) {
-        if (!_PyList_Extend(self->later_prefix, later_prefixes))
-            goto error;
-    }
+        if(PyList_Append(self->later_prefix, later_prefix))
+            goto finally;
+        later_prune = 1;
+    } else if (later_prefixes) {
+        later_prune = PyList_GET_SIZE(self->later_prefix);
+        if(!(tmp = _PyList_Extend((PyListObject *)self->later_prefix, later_prefixes))) {
+            later_prune = 0;
+            goto finally;
+        }
+        Py_DECREF(tmp);
+        later_prune -= PyList_GET_SIZE(self->later_prefix);
+    }        
 
     iterator = PyObject_GetIter(args);
-    while (arg = PyIter_Next(iterator)) {
+    while ((arg = PyIter_Next(iterator))) {
         /* If we're at the start of the line, write our prefix.
          * There is a deficiency here: if neither our arg nor our
          * prefix affect _pos (both are escape sequences or empty)
          * we will write prefix more than once. This should not
          * matter.
          */
-        if (self->pos == 0)
-            if (_write_prefix(self, wrap))
+        if (self->pos == 0) {
+            if (_write_prefix(self, i_wrap)) {
+                Py_CLEAR(arg);
                 goto finally;
-
-
-        while (PyCallable_Check(arg)) {
-            arg = PyObject_CallFunctionObjArgs(arg, (PyObject*)self, NULL);
-            if (!arg)
-                goto finally;
+            }
         }
 
-        if (arg == Py_None)
+        while (PyCallable_Check(arg)) {
+            tmp = PyObject_CallFunctionObjArgs(arg, (PyObject*)self, NULL);
+            Py_CLEAR(arg);
+            if (!tmp)
+                goto finally;
+            arg = tmp;
+        }
+
+        if (arg == Py_None) {
+            Py_CLEAR(arg);
             continue;
+        }
 
         if (!PyString_Check(arg)) {
             tmp = PyObject_Str(arg);
-            if (!tmp)
+            Py_CLEAR(arg);
+            if(!tmp)
                 goto finally;
-            Py_DECREF(arg);
             arg = tmp;
         }
 
         if (PyUnicode_Check(arg)) {
             tmp = PyUnicode_AsEncodedString(arg, self->encoding, "replace");
+            Py_CLEAR(arg);
             if (!tmp)
                 goto finally;
-            Py_DECREF(arg);
             arg = tmp;
         }
 
-        if (!PyString_GET_SIZE(arg))
+        if (!PyString_GET_SIZE(arg)) {
             /* There's nothing to write, so skip this bit... */
+            Py_CLEAR(arg);
             continue;
+        }
 
-        while (wrap && ((self->pos + PyString_GET_SIZE(arg)) > self->width)) {
+        while (i_wrap && ((self->pos + PyString_GET_SIZE(arg)) > self->width)) {
+            PyObject *bit = NULL;
             /* We have to split. */
             maxlen = self->width - self->pos;
             p = PyString_AS_STRING(arg);
@@ -476,43 +502,55 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
                 */
 
                 if (self->in_first_line || self->wrote_something) {
-                    bit = PyString_FromString("");
-                    if (!bit)
+                    if(!(bit = PyString_FromString(""))) {
                         goto finally;
-                }
-                else {
+                    }
+                } else {
                     /* Forcibly split this as far to the right as
                      * possible.
                      */
-                    bit = PySequence_GetSlice(arg, 0, maxlen);
-                    tmp = PySequence_GetSlice(arg, maxlen, 0);
-                    if (!bit || !tmp)
+                    if(!(bit = PySequence_GetSlice(arg, 0, maxlen)))
                         goto finally;
-                    Py_DECREF(arg);
+                    tmp = PySequence_GetSlice(arg, maxlen, 0);
+                    Py_CLEAR(arg);
+                    if (!tmp) {
+                        Py_DECREF(bit);
+                        goto finally;
+                    }
                     arg = tmp;
                 }
             } else {
                 /* Omit the space we split on.*/
-                bit = PySequence_GetSlice(arg, NULL, space);
-                tmp = PySequence_GetSlice(arg, space+1, NULL);
-                if (!bit || !tmp)
+                if(!(bit = PySequence_GetSlice(arg, NULL, space)))
                     goto finally;
-                Py_DECREF(arg);
+                tmp = PySequence_GetSlice(arg, space+1, NULL);
+                Py_CLEAR(arg);
+                if (!tmp) {
+                    Py_DECREF(bit);
+                    goto finally;
+                }
                 arg = tmp;
             }
 
+            int ret = 0;
             if (self->stream_is_file) {
-                if (PyFile_WriteObject(bit, self->stream, Py_PRINT_RAW))
-                    goto finally;
+                ret = PyFile_WriteObject(bit, self->stream, Py_PRINT_RAW);
             } else {
-                if (!PyObject_CallFunctionObjArgs(self->stream, bit))
-                    goto finally;
+                if((tmp = PyObject_CallFunctionObjArgs(self->stream, bit))) {
+                    Py_DECREF(tmp);
+                    ret = 0;
+                } else {
+                    ret = 1;
+                }
             }
+            Py_DECREF(bit);
+            if(ret)
+                goto finally;
 
             self->pos = 0;
             self->in_first_line = 0;
             self->wrote_something = 0;
-            if (_write_prefix(self, wrap))
+            if (_write_prefix(self, i_wrap))
                 goto finally;
 
         }
@@ -521,8 +559,10 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
             if (PyFile_WriteObject(arg, self->stream, Py_PRINT_RAW))
                 goto finally;
         } else {
-            if (!PyObject_CallFunctionObjArgs(self->stream, arg, NULL))
+            tmp = PyObject_CallFunctionObjArgs(self->stream, arg, NULL);
+            if(!tmp)
                 goto finally;
+            Py_DECREF(tmp);
         }
         if (!i_autoline) {
             self->wrote_something = 1;
@@ -535,8 +575,10 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
             if (PyFile_WriteString("\n", self->stream))
                 goto finally;
         } else {
-            if (!PyObject_CallFunction(self->stream, "(s)", "\n"))
+            tmp = PyObject_CallFunction(self->stream, "(s)", "\n");
+            if(!tmp)
                 goto finally;
+            Py_DECREF(tmp);
         }
         self->in_first_line = 1;
         self->wrote_something = 0;
@@ -545,10 +587,12 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 
 finally:
 
-    if (first_prefixes)
-        PyList_SetSlice(self->first_prefix, -PyList_GET_SIZE(first_prefixes), NULL, NULL);
-    if (later_prefixes)
-        PyList_SetSlice(self->later_prefix, -PyList_GET_SIZE(later_prefixes), NULL, NULL);
+    if (first_prefixes) {
+        PyList_SetSlice(self->first_prefix, -first_prune, NULL, NULL);
+    }
+    if (later_prefixes) {
+        PyList_SetSlice(self->later_prefix, -later_prune, NULL, NULL);
+    }
 
     e = PyErr_Occurred();
     if (e) {
@@ -561,12 +605,15 @@ finally:
    Py_RETURN_NONE;
 
 error:
+/*
     Py_XDECREF(wrap);
     Py_XDECREF(autoline);
     Py_XDECREF(prefixes);
     Py_XDECREF(first_prefixes);
     Py_XDECREF(later_prefixes);
-    Py_XDECREF(tmp);
+*/
+    Py_XDECREF(iterator);
+    Py_XDECREF(arg);
     return NULL;
 }
 
