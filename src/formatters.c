@@ -268,16 +268,16 @@ PTF_init(PTF_object *self, PyObject *args, PyObject *kwds)
 
 static int
 _write_prefix(PTF_object *self, int wrap) {
-    PyObject *prefix, *iter, *arg, *tmp;
+    PyObject *iter, *arg, *tmp;
     int ret;
 
-    if(!(iter = PyObject_GetIter(prefix)))
-        return -1;
-
     if (self->in_first_line)
-        prefix = self->first_prefix;
+        iter = PyObject_GetIter(self->first_prefix);
     else
-        prefix = self->later_prefix;
+        iter = PyObject_GetIter(self->later_prefix);
+
+    if(!iter)
+        return -1;
 
     while ((arg = PyIter_Next(iter))) {
         while ((PyCallable_Check(arg))) {
