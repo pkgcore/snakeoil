@@ -71,6 +71,19 @@ class PlainTextFormatterTest(TestCase):
             formatter.write(wrap=True, autoline=False, *inputs)
             self.assertEqual(output, stream.getvalue())
 
+    def test_complex(self):
+        stream = StringIO.StringIO()
+        formatter = formatters.PlainTextFormatter(stream, encoding='ascii')
+        formatter.width = 9
+        formatter.first_prefix = ['foo', None, ' d']
+        formatter.later_prefix = ['dorkey']
+        formatter.write("dar bl", wrap=True, autoline=False)
+        self.assertEqual("foo ddar\ndorkeybl", stream.getvalue())
+        formatter.write(" "*formatter.width, wrap=True, autoline=True)
+        formatter.stream = stream = StringIO.StringIO()
+        formatter.write("dar", "bl", wrap=True, autoline=False)
+        self.assertEqual("foo ddar\ndorkeybl", stream.getvalue())
+
     def test_wrap_autoline(self):
         for inputs, output in [
             ((3 * ('spork',)), 'spork\nspork\nspork\n'),
