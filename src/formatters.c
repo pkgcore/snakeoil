@@ -488,7 +488,6 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
             for (space = -1; p - start < tmp_max; p++) {
                 if (*p == ' ') {
                     space = p - start;
-                    break;
                 }
             }
 
