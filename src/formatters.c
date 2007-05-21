@@ -541,7 +541,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
             if (self->stream_is_file) {
                 ret = PyFile_WriteObject(bit, self->stream, Py_PRINT_RAW);
             } else {
-                if((tmp = PyObject_CallFunctionObjArgs(self->stream, bit))) {
+                if((tmp = PyObject_CallFunctionObjArgs(self->stream, bit, NULL))) {
                     Py_DECREF(tmp);
                     ret = 0;
                 } else {
