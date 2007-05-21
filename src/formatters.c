@@ -287,6 +287,22 @@ PTF_init(PTF_object *self, PyObject *args, PyObject *kwds)
     return PTF_setstream(self, stream, NULL);
 }
 
+/* repeatedly reduce a callable invoking func(self), till it's no longer callable
+  steals the passed in ref, and returns a new reference.
+*/
+static PyObject *
+reduce_callable(PTF_object *self, PyObject *arg)
+{
+    PyObject *tmp;
+    while(PyCallable_Check(arg)) {
+        tmp = PyObject_CallFunctionObjArgs(arg, (PyObject *)self, NULL);
+        if(!tmp)
+            return tmp;
+        Py_DECREF(arg);
+        arg = tmp;
+    }
+    return arg;
+}
 
 static int
 _write_prefix(PTF_object *self, int wrap) {
@@ -302,14 +318,9 @@ _write_prefix(PTF_object *self, int wrap) {
         return -1;
 
     while ((arg = PyIter_Next(iter))) {
-        while ((PyCallable_Check(arg))) {
-            tmp = PyObject_CallFunctionObjArgs(arg, (PyObject*)self, NULL);
-            Py_DECREF(arg);
-            if (!tmp) {
-                Py_DECREF(iter);
-                return -1;
-            }
-            arg = tmp;
+        if(!(arg = reduce_callable(self, arg))) {
+            Py_DECREF(iter);
+            return -1;
         }
 
         if (arg == Py_None) {
@@ -472,12 +483,8 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
             }
         }
 
-        while (PyCallable_Check(arg)) {
-            tmp = PyObject_CallFunctionObjArgs(arg, (PyObject*)self, NULL);
-            Py_CLEAR(arg);
-            if (!tmp)
-                goto finally;
-            arg = tmp;
+        if(!(arg = reduce_callable(self, arg))) {
+            goto finally;
         }
 
         if (arg == Py_None) {

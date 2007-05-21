@@ -88,6 +88,8 @@ class PlainTextFormatterTest(TestCase):
              'foonporksp\n'
              'foonork\n'),
             ]:
+            print inputs
+            print output
             stream = StringIO.StringIO()
             formatter = formatters.PlainTextFormatter(stream, encoding='ascii')
             formatter.width = 10
