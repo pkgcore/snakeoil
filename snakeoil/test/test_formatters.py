@@ -96,9 +96,15 @@ class PlainTextFormatterTest(TestCase):
         formatter.later_prefix = ['                       ']
         formatter.write("     rdepends: >=dev-lang/python-2.3 "
             ">=sys-apps/sed-4.0.5 dev-python/python-fchksum")
-        formatter.later_prefix.pop()
         self.assertLen(formatter.first_prefix, 0)
-        self.assertLen(formatter.later_prefix, 0)
+        self.assertLen(formatter.later_prefix, 1)
+        self.assertEqual(output, stream.getvalue())
+        formatter.write()
+        formatter.stream = stream = StringIO.StringIO()
+        # push it right up to the limit.
+        formatter.width = 82
+        formatter.write("     rdepends: >=dev-lang/python-2.3 "
+            ">=sys-apps/sed-4.0.5 dev-python/python-fchksum")
         self.assertEqual(output, stream.getvalue())
         
         
