@@ -433,7 +433,9 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
         later_prune -= PyList_GET_SIZE(self->later_prefix);
     }
 
-    iterator = PyObject_GetIter(args);
+    if(!(iterator = PyObject_GetIter(args)))
+        goto finally;
+
     while ((arg = PyIter_Next(iterator))) {
         /* If we're at the start of the line, write our prefix.
          * There is a deficiency here: if neither our arg nor our
