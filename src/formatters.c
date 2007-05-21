@@ -43,36 +43,6 @@ typedef struct {
 
 } PTF_object;
 
-#define annoying_pyobj_func(name, attr) pyobj_get_func(name, attr) \
-    pyobj_set_func(name, attr)
-
-#define pyobj_get_func(name, attr) static PyObject *               \
-PTF_getobj_##name(PTF_object *self, void *closure)                 \
-{                                                                  \
-    Py_INCREF(self->attr);                                         \
-    return self->attr;                                             \
-}                                                                  \
-
-#define pyobj_set_func(name, attr) static int                      \
-PTF_setobj_##name(PTF_object *self, PyObject *value, void *closure)\
-{                                                                  \
-    if (value == NULL) {                                           \
-        PyErr_SetString(PyExc_TypeError,                           \
-                "Cannot delete the "#name" attribute");            \
-        return -1;                                                 \
-    }                                                              \
-    Py_DECREF(self->attr);                                         \
-    Py_INCREF(value);                                              \
-    self->attr = value;                                            \
-    return 0;                                                      \
-}
-
-#define pyobj_func(name) annoying_pyobj_func(name, name)
-
-pyobj_func(bold)
-pyobj_func(underline)
-pyobj_func(reset)
-
 snakeoil_MUTABLE_ATTR_BOOL(PTF_object, "autoline", autoline, self->autoline,
     self->autoline = 1, self->autoline = 0)
 snakeoil_GET_ATTR(PTF_object, "first_prefix", first_prefix, self->first_prefix)
@@ -639,13 +609,6 @@ static PyMethodDef PTF_methods[] = {
     {NULL}  /* Sentinel */
 };
 
-
-#define pyobj_struct(name) {#name,                         \
-     (getter)PTF_getobj_##name, (setter)PTF_setobj_##name, \
-     #name,                                                \
-     NULL}
-
-
 static PyGetSetDef PTF_getseters[] = {
     snakeoil_GETSET(PTF_object, "autoline", autoline),
 
@@ -663,11 +626,6 @@ static PyGetSetDef PTF_getseters[] = {
      (getter)PTF_object_get_later_prefix, (setter)PTF_set_later_prefix,
      "later prefixes",
      NULL},
-
-    pyobj_struct(bold),
-    pyobj_struct(underline),
-    pyobj_struct(reset),
-
     {NULL} /* Sentinel */
 };
 
@@ -676,6 +634,13 @@ static PyGetSetDef PTF_getseters[] = {
 static PyMemberDef PTF_members[] = {
     {"width", T_INT, offsetof(PTF_object, width), 0,
          "width to split at"},
+    {"bold", T_OBJECT_EX, offsetof(PTF_object, bold), 0,
+        "object to invoke to get 'bold' semantics"},
+    {"reset", T_OBJECT_EX, offsetof(PTF_object, reset), 0,
+        "object to use to get 'reset' semantics"},
+    {"underline", T_OBJECT_EX, offsetof(PTF_object, underline), 0,
+        "object to use to get 'underline' semantics"},
+    
     {NULL}  /* Sentinel */
 };
 
