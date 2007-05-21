@@ -93,7 +93,9 @@ PTF_getwidth(PTF_object *self, void *closure)
 static int
 PTF_setwidth(PTF_object *self, PyObject *value, void *closure)
 {
-    long tmp = PyInt_AsLong(value);
+    long tmp;
+    PyErr_Clear();
+    tmp = PyInt_AsLong(value);
     if (tmp == -1 && PyErr_Occurred())
         return -1;
     self->width = tmp;
