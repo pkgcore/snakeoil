@@ -143,18 +143,21 @@ PTF_setstream(PTF_object *self, PyObject *value, void *closure)
 static int
 PTF_traverse(PTF_object *self, visitproc visit, void *arg)
 {
+    Py_VISIT(self->stream_callable);
     Py_VISIT(self->raw_stream);
     Py_VISIT(self->first_prefix);
     Py_VISIT(self->later_prefix);
     Py_VISIT(self->reset);
     Py_VISIT(self->bold);
     Py_VISIT(self->underline);
+    Py_VISIT(self->encoding);
     return 0;
 }
 
 static int
 PTF_clear(PTF_object *self)
 {
+    Py_CLEAR(self->stream_callable);
     Py_CLEAR(self->raw_stream);
     Py_CLEAR(self->first_prefix);
     Py_CLEAR(self->later_prefix);
