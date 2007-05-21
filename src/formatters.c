@@ -595,16 +595,15 @@ error:
 
 static PyMethodDef PTF_methods[] = {
     {"write", (PyCFunction)PTF_write, METH_VARARGS | METH_KEYWORDS,
-     "Return the name, combining the first and last name"
+        "Return the name, combining the first and last name"
     },
     {"fg", (PyCFunction)PTF_returnemptystring, METH_VARARGS,
-     ""
+        "foreground formatter"
     },
     {"bg", (PyCFunction)PTF_returnemptystring, METH_VARARGS,
-     ""
-    },
+        "background formatter"},
     {"title", (PyCFunction)PTF_returnemptystring, METH_VARARGS,
-     ""
+        "term title formatter"
     },
     {NULL}  /* Sentinel */
 };
@@ -643,7 +642,6 @@ static PyMemberDef PTF_members[] = {
     
     {NULL}  /* Sentinel */
 };
-
 
 
 PyDoc_STRVAR(PTF_doc,
