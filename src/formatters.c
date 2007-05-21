@@ -271,58 +271,71 @@ PTF_init(PTF_object *self, PyObject *args, PyObject *kwds)
 
 static int
 _write_prefix(PTF_object *self, int wrap) {
-    PyObject *prefix, *iter, *arg=NULL, *tmp, *stream;
+    PyObject *prefix, *iter, *arg, *tmp;
+    int ret;
+
+    if(!(iter = PyObject_GetIter(prefix)))
+        return -1;
 
     if (self->in_first_line)
         prefix = self->first_prefix;
     else
         prefix = self->later_prefix;
 
-    iter = PyObject_GetIter(prefix);
-    if (!iter)
-        return -1;
     while ((arg = PyIter_Next(iter))) {
         while ((PyCallable_Check(arg))) {
             tmp = PyObject_CallFunctionObjArgs(arg, (PyObject*)self, NULL);
-            if (!tmp)
-                goto error;
             Py_DECREF(arg);
+            if (!tmp) {
+                Py_DECREF(iter);
+                return -1;
+            }
             arg = tmp;
         }
 
-        if (arg == Py_None)
+        if (arg == Py_None) {
+            Py_DECREF(arg);
             continue;
+        }
 
         if (PyUnicode_Check(arg)) {
             tmp = PyUnicode_AsEncodedString(arg, PyString_AS_STRING(self->encoding), "replace");
-            if (!tmp)
-                goto error;
             Py_DECREF(arg);
+            if (!tmp) {
+                Py_DECREF(iter);
+                return -1;
+            }
             arg = tmp;
         }
 
         if (!(PyString_Check(arg))) {
             tmp = PyObject_Str(arg);
-            if (!tmp)
-                goto error;
             Py_DECREF(arg);
+            if (!tmp) {
+                Py_DECREF(iter);
+                return -1;
+            }
             arg = tmp;
         }
 
         if (self->stream_is_file) {
-            if (PyFile_WriteObject(arg, stream, Py_PRINT_RAW))
-                goto error;
+            ret = PyFile_WriteObject(arg, self->stream, Py_PRINT_RAW);
         } else {
-            if (!PyObject_CallFunctionObjArgs(self->stream, arg, NULL))
-                goto error;
+            tmp = PyObject_CallFunctionObjArgs(self->stream, arg, NULL);
+            Py_XDECREF(tmp);
+            ret = tmp != NULL;
+        }
+        Py_DECREF(arg);
+        if(ret) {
+            Py_DECREF(iter);
+            return -1;
         }
 
         if (wrap && (self->pos >= self->width))
             self->pos = self->width-10;
     }
+    Py_DECREF(iter);
     return 0;
-error:
-    return -1;
 }
 
 
