@@ -611,20 +611,12 @@ static PyMethodDef PTF_methods[] = {
 static PyGetSetDef PTF_getseters[] = {
     snakeoil_GETSET(PTF_object, "autoline", autoline),
 
-    {"stream",
-     (getter)PTF_getstream, (setter)PTF_setstream,
-     "stream to write to",
-     NULL},
-
-    {"first_prefix",
-     (getter)PTF_object_get_first_prefix, (setter)PTF_set_first_prefix,
-     "the first prefix",
-     NULL},
-
-    {"later_prefix",
-     (getter)PTF_object_get_later_prefix, (setter)PTF_set_later_prefix,
-     "later prefixes",
-     NULL},
+    {"stream", (getter)PTF_getstream, (setter)PTF_setstream,
+        "stream to write to",NULL},
+    {"first_prefix", (getter)PTF_object_get_first_prefix,
+        (setter)PTF_set_first_prefix, "the first prefix", NULL},
+    {"later_prefix", (getter)PTF_object_get_later_prefix,
+        (setter)PTF_set_later_prefix, "later prefixes", NULL},
     {NULL} /* Sentinel */
 };
 
