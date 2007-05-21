@@ -218,18 +218,20 @@ static int
 PTF_init(PTF_object *self, PyObject *args, PyObject *kwds)
 {
     PyObject *encoding = NULL, *tmp, *stream = NULL;
+    int width;
     static char *kwlist[] = {"stream", "width", "encoding", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|iz", kwlist,
-        &stream, &self->width, &encoding))
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|iS", kwlist,
+        &stream, &width, &encoding))
         return -1;
 
     if (encoding) {
         tmp = self->encoding;
-        self->encoding = encoding;
         Py_INCREF(encoding);
+        self->encoding = encoding;
         Py_XDECREF(tmp);
     }
+    self->width = width;
 
     return PTF_setstream(self, stream, NULL);
 }
@@ -464,7 +466,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
         }
 
         if (PyUnicode_Check(arg)) {
-            tmp = PyUnicode_AsEncodedString(arg, self->encoding, "replace");
+            tmp = PyUnicode_AsEncodedString(arg, PyString_AS_STRING(self->encoding), "replace");
             Py_CLEAR(arg);
             if (!tmp)
                 goto finally;
