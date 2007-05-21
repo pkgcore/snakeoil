@@ -336,7 +336,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
     PyObject *tmp=NULL, *arg=NULL;
     PyObject *iterator=NULL, *e=NULL;
 
-    int i, maxlen, space;
+    int maxlen, space;
     char *p;
     int i_wrap = self->wrap;
     int i_autoline = self->autoline;
@@ -485,9 +485,9 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
             // arg_len == max_len
             int tmp_max = arg_len > maxlen ? maxlen : arg_len;
             start = p = PyString_AS_STRING(arg);
-            for (space = -1;p - start < tmp_max; p++) {
+            for (space = -1; p - start < tmp_max; p++) {
                 if (*p == ' ') {
-                    space = i;
+                    space = p - start;
                     break;
                 }
             }
