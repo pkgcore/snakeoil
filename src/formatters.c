@@ -7,7 +7,8 @@
  *   encoding isn't modifiable after the fact.  should be.
  * optimizations:
  *   PyUnicode_Find internally makes it's own objs when doing subranges- inline the lookup.
- * 
+ *   currently creates 2n strings on slicing; leftbit, remaining- use windowing instead, just
+ *   pullng the window as needed.
  */
 
 
@@ -98,7 +99,6 @@ PTF_returnemptystring(PTF_object *self, PyObject *args)
     return PyString_FromString("");
 }
 
-
 static PyObject *
 PTF_getstream(PTF_object *self, void *closure)
 {
@@ -106,6 +106,34 @@ PTF_getstream(PTF_object *self, void *closure)
     return self->raw_stream;
 }
 
+static int
+PTF_set_encoding(PTF_object *self, PyObject *value, void *closure)
+{
+    PyObject *tmp;
+    if(!value) {
+        PyErr_SetString(PyExc_TypeError, "encoding prefix is not deletable");
+        return -1;
+    } else if(!PyString_CheckExact(value)) {
+        PyErr_SetString(PyExc_TypeError, "encoding must be a string");
+        return -1;
+    }
+    tmp = self->encoding;
+    Py_INCREF(value);
+    self->encoding = value;
+    Py_DECREF(tmp);
+    return 0;
+}
+
+static PyObject *
+PTF_get_encoding(PTF_object *self, void *closure)
+{
+    PyObject *tmp = self->encoding;
+    if(!tmp) {
+        PyErr_SetString(PyExc_RuntimeError, "PTF instance has null encoding; this shouldn't be possible");
+    }
+    Py_XDECREF(tmp);
+    return tmp;
+}
 
 static int
 PTF_setstream(PTF_object *self, PyObject *value, void *closure)
@@ -702,6 +730,8 @@ static PyGetSetDef PTF_getseters[] = {
         (setter)PTF_set_first_prefix, "the first prefix", NULL},
     {"later_prefix", (getter)PTF_object_get_later_prefix,
         (setter)PTF_set_later_prefix, "later prefixes", NULL},
+    {"encoding", (getter)PTF_get_encoding, (setter)PTF_set_encoding,
+        "encoding", NULL},
     {NULL} /* Sentinel */
 };
 
