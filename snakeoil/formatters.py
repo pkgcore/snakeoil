@@ -400,7 +400,6 @@ else:
             self._color_reset = curses.tigetstr('op')
             self._set_color = (
                 curses.tigetstr('setaf'), curses.tigetstr('setab'))
-            self._width = curses.tigetstr('cols')
             # [fg, bg]
             self._current_colors = [None, None]
             self._modes = set()
