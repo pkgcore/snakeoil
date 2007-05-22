@@ -740,6 +740,8 @@ static PyGetSetDef PTF_getseters[] = {
 static PyMemberDef PTF_members[] = {
     {"width", T_INT, offsetof(PTF_object, width), 0,
          "width to split at"},
+    {"_pos", T_INT, offsetof(PTF_object, pos), 0,
+         "current position"},
     {"bold", T_OBJECT_EX, offsetof(PTF_object, bold), 0,
         "object to invoke to get 'bold' semantics"},
     {"reset", T_OBJECT_EX, offsetof(PTF_object, reset), 0,
