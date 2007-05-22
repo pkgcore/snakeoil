@@ -4,12 +4,10 @@
 
 /*
  * Known bugs:
- *   doesn't match native semantics for determining default encoding
  *   encoding isn't modifiable after the fact.  should be.
  * optimizations:
  *   PyUnicode_Find internally makes it's own objs when doing subranges- inline the lookup.
- *   windowing: basically, we're generating N extra strings for splits, bit, arg; just pull
- *   the slice instead, that way it's N pulls intead of 2N
+ * 
  */
 
 
@@ -226,17 +224,41 @@ PTF_init(PTF_object *self, PyObject *args, PyObject *kwds)
         &stream, &width, &encoding))
         return -1;
 
+    if(encoding == Py_None)
+        encoding = NULL;
+
     if(encoding) {
-        if(encoding != Py_None) {
-            if(!PyString_Check(encoding)) {
-                PyErr_SetString(PyExc_TypeError,
-                    "encoding must be None, or a str object");
+        if(!PyString_Check(encoding)) {
+            PyErr_SetString(PyExc_TypeError,
+                "encoding must be None, or a str object");
+            return -1;
+        }
+        tmp = self->encoding;
+        Py_INCREF(encoding);
+        self->encoding = encoding;
+        Py_XDECREF(tmp);
+    } else {
+        /* try to pull it from the stream, else from the current settings */
+        if(!(encoding = PyObject_GetAttrString(stream, "encoding"))) {
+            PyErr_Clear();
+        } else if (!PyString_Check(encoding)) {
+            Py_CLEAR(encoding);
+        }
+        if(!encoding) {
+            /* try system setting */
+            const char *p = PyUnicode_GetDefaultEncoding();
+            if(!p) {
+                /* should check for locale error here instead of just wiping... */
+                PyErr_Clear();
+            } else if(!(encoding = PyString_FromString(p))) {
+                /* can't do dick here. */
                 return -1;
             }
+        }
+        if(encoding) {
             tmp = self->encoding;
-            Py_INCREF(encoding);
             self->encoding = encoding;
-            Py_XDECREF(tmp);
+            Py_DECREF(tmp);
         }
     }
     if(width > 0)
@@ -361,7 +383,6 @@ _write_prefix(PTF_object *self, int wrap) {
     Py_DECREF(iter);
     return 0;
 }
-
 
 static PyObject *
 PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
