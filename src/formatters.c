@@ -4,10 +4,8 @@
 
 /*
  * Known bugs:
- *      - Passing Unicode objects that cannot be
- *        decoded by the encoding to write causes an
- *        EncodingError to be raised, even though we
- *        use "replace". :-\
+ *   doesn't match native semantics for determining default encoding
+ *   encoding isn't modifiable after the fact.  should be.
  */
 
 
@@ -15,7 +13,7 @@
 /* Duplicating this is annoying, but we need to
    access it from the C level, so we do. */
 static PyObject *StreamClosed = NULL;
-static PyObject *PTF_space = NULL;
+static PyObject *PTF_unic_space = NULL;
 
 /* PlainTextFormatter is abbreviated to PTF */
 
@@ -521,7 +519,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
             // arg_len == max_len
             int tmp_max = arg_len > maxlen ? maxlen : arg_len;
             if(is_unicode) {
-                if(-2 == (space = PyUnicode_Find(arg, PTF_space, 0, tmp_max, 1)))
+                if(-2 == (space = PyUnicode_Find(arg, PTF_unic_space, 0, tmp_max, 1)))
                     goto finally;
             } else {
                 char *start, *p;
@@ -756,6 +754,7 @@ PyDoc_STRVAR(formatters_module_doc, "my funky module\n");
 PyMODINIT_FUNC
 init_formatters()
 {
+    PyObject *tmp;
     PyObject *m = Py_InitModule3("_formatters", NULL, formatters_module_doc);
     if (!m)
         return;
@@ -769,8 +768,12 @@ init_formatters()
     if (PyModule_AddObject(m, "StreamClosed", StreamClosed))
         return;
 
-    if(!PTF_space) {
-        if(!(PTF_space = PyString_FromString(" ")))
+    if(!PTF_unic_space) {
+        if(!(tmp = PyString_FromString(" ")))
+            return;
+        PTF_unic_space = PyUnicode_FromObject(tmp);
+        Py_DECREF(tmp);
+        if(!PTF_unic_space)
             return;
     }
     if (PyType_Ready(&PTF_type) < 0)
