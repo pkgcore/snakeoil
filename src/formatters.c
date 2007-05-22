@@ -481,7 +481,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
         if(!(tmp = _PyList_Extend((PyListObject *)self->first_prefix, first_prefixes)))
             return NULL;
         Py_DECREF(tmp);
-        first_prune -= PyList_GET_SIZE(self->first_prefix);
+        first_prune = PyList_GET_SIZE(self->first_prefix) - first_prune;
     }
 
     if (later_prefix) {
@@ -500,7 +500,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
             goto finally;
         }
         Py_DECREF(tmp);
-        later_prune -= PyList_GET_SIZE(self->later_prefix);
+        later_prune = PyList_GET_SIZE(self->later_prefix) - later_prune;
     }
 
     if(!(iterator = PyObject_GetIter(args)))
