@@ -6,6 +6,10 @@
  * Known bugs:
  *   doesn't match native semantics for determining default encoding
  *   encoding isn't modifiable after the fact.  should be.
+ * optimizations:
+ *   PyUnicode_Find internally makes it's own objs when doing subranges- inline the lookup.
+ *   windowing: basically, we're generating N extra strings for splits, bit, arg; just pull
+ *   the slice instead, that way it's N pulls intead of 2N
  */
 
 
@@ -519,7 +523,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
             // arg_len == max_len
             int tmp_max = arg_len > maxlen ? maxlen : arg_len;
             if(is_unicode) {
-                if(-2 == (space = PyUnicode_Find(arg, PTF_unic_space, 0, tmp_max, 1)))
+                if(-2 == (space = PyUnicode_Find(arg, PTF_unic_space, 0, tmp_max, -1)))
                     goto finally;
             } else {
                 char *start, *p;
