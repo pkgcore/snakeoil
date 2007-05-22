@@ -10,7 +10,9 @@ from snakeoil.test import TestCase
 from snakeoil import formatters
 
 
-class PlainTextFormatterTest(TestCase):
+class native_PlainTextFormatterTest(TestCase):
+
+    kls = staticmethod(formatters.native_PlainTextFormatter)
 
     def test_basics(self):
         # As many sporks as fit in 20 chars.
@@ -23,7 +25,7 @@ class PlainTextFormatterTest(TestCase):
             (30 * ('a',), 20 * 'a' + '\n' + 10 * 'a'),
             ]:
             stream = StringIO.StringIO()
-            formatter = formatters.PlainTextFormatter(stream, encoding='ascii')
+            formatter = self.kls(stream, encoding='ascii')
             formatter.width = 20
             formatter.write(autoline=False, wrap=True, *inputs)
             self.assertEqual(output, stream.getvalue())
@@ -44,7 +46,7 @@ class PlainTextFormatterTest(TestCase):
             (30 * ('a',), 'foon:' + 15 * 'a' + '\n' + 15 * 'a'),
             ]:
             stream = StringIO.StringIO()
-            formatter = formatters.PlainTextFormatter(stream, encoding='ascii')
+            formatter = self.kls(stream, encoding='ascii')
             formatter.width = 20
             formatter.write(autoline=False, wrap=True, first_prefix='foon:',
                             *inputs)
@@ -65,7 +67,7 @@ class PlainTextFormatterTest(TestCase):
             (30 * ('a',), 20 * 'a' + '\n' + 'foon:' + 10 * 'a'),
             ]:
             stream = StringIO.StringIO()
-            formatter = formatters.PlainTextFormatter(stream, encoding='ascii')
+            formatter = self.kls(stream, encoding='ascii')
             formatter.width = 20
             formatter.later_prefix = ['foon:']
             formatter.write(wrap=True, autoline=False, *inputs)
@@ -73,7 +75,7 @@ class PlainTextFormatterTest(TestCase):
 
     def test_complex(self):
         stream = StringIO.StringIO()
-        formatter = formatters.PlainTextFormatter(stream, encoding='ascii')
+        formatter = self.kls(stream, encoding='ascii')
         formatter.width = 9
         formatter.first_prefix = ['foo', None, ' d']
         formatter.later_prefix = ['dorkey']
@@ -88,7 +90,7 @@ class PlainTextFormatterTest(TestCase):
                        dev-python/python-fchksum
 """
         stream = StringIO.StringIO()
-        formatter = formatters.PlainTextFormatter(stream, encoding='ascii',
+        formatter = self.kls(stream, encoding='ascii',
             width=80)
         formatter.wrap = True
         self.assertEqual(formatter.autoline, True)
@@ -138,11 +140,17 @@ class PlainTextFormatterTest(TestCase):
              'foonork\n'),
             ]:
             stream = StringIO.StringIO()
-            formatter = formatters.PlainTextFormatter(stream, encoding='ascii')
+            formatter = self.kls(stream, encoding='ascii')
             formatter.width = 10
             for input in inputs:
                 formatter.write(wrap=True, later_prefix='foon', *input)
             self.assertEqual(output, stream.getvalue())
+
+
+class cpy_PlainTextFormatterTest(native_PlainTextFormatterTest):
+    kls = staticmethod(formatters.PlainTextFormatter)
+    if formatters.native_PlainTextFormatter is formatters.PlainTextFormatter:
+        skip = "cpy extension isn't available"
 
 
 class TerminfoFormatterTest(TestCase):
@@ -176,3 +184,5 @@ class TerminfoFormatterTest(TestCase):
         f.autoline = True
         self._test_stream(
             stream, f, (('lala',), ('lala', '\n')))
+
+
