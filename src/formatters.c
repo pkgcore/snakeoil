@@ -94,12 +94,6 @@ PTF_set_later_prefix(PTF_object *self, PyObject *value, void *closure)
 }
 
 static PyObject *
-PTF_returnemptystring(PTF_object *self, PyObject *args)
-{
-    return PyString_FromString("");
-}
-
-static PyObject *
 PTF_getstream(PTF_object *self, void *closure)
 {
     Py_INCREF(self->raw_stream);
@@ -705,14 +699,6 @@ finally:
 static PyMethodDef PTF_methods[] = {
     {"write", (PyCFunction)PTF_write, METH_VARARGS | METH_KEYWORDS,
         "Return the name, combining the first and last name"
-    },
-    {"fg", (PyCFunction)PTF_returnemptystring, METH_VARARGS,
-        "foreground formatter"
-    },
-    {"bg", (PyCFunction)PTF_returnemptystring, METH_VARARGS,
-        "background formatter"},
-    {"title", (PyCFunction)PTF_returnemptystring, METH_VARARGS,
-        "term title formatter"
     },
     {NULL}  /* Sentinel */
 };

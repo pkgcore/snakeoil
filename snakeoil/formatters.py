@@ -103,6 +103,7 @@ class Formatter(object):
     def title(self, string):
         pass
 
+
 class native_PlainTextFormatter(Formatter):
 
     """Formatter writing plain text to a file-like object.
@@ -278,6 +279,9 @@ class native_PlainTextFormatter(Formatter):
 
 try:
     from snakeoil._formatters import PlainTextFormatter, StreamClosed
+    class PlainTextFormatter(PlainTextFormatter, Formatter):
+        pass
+
 except ImportError:
     PlainTextFormatter = native_PlainTextFormatter
     StreamClosed = native_StreamClosed
