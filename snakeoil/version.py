@@ -4,7 +4,7 @@
 
 """Version information (tied to bzr)."""
 
-__version__ = '0.1'
+__version__ = '0.1_rc2'
 
 _ver = None
 

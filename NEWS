@@ -1,7 +1,9 @@
 Snakeoil Release Notes
 ======================
 
-snakeoil 0.1:
+snakeoil 0.1 rc2:
+
+* Pulled in any/all cpy extensions if not available in current python version.
 
 * Added several pylint checks for naughty things like bool(len(seq)), itering
   over dict.keys() and shadowing builtins.
@@ -12,6 +14,8 @@ snakeoil 0.1:
   pylint checker.
 
 * Fix title updating by flushing the formatter's stream.
+
+* overhaul demandload test case for consuming code.
 
 * Add snakeoil.containers.SetMixin to provide set methods for various
   objects.

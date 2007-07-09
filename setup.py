@@ -53,6 +53,7 @@ class mysdist(sdist.sdist):
 
         self.filelist.append("AUTHORS")
         self.filelist.append("NOTES")
+        self.filelist.append("NEWS")
         self.filelist.append("COPYING")
 
         self.filelist.include_pattern('.c', prefix='src')
