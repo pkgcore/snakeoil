@@ -38,6 +38,17 @@ class Test_native_GetAttrProxy(TestCase):
         self.assertRaises(TypeError, make_class, [u'foon'])
         self.assertRaises(TypeError, make_class, [None])
 
+    def test_instancemethod(self):
+        class foo(object):
+            bar = "baz"
+
+        class Test(object):
+            method = self.kls('test')
+            test = foo()
+
+        test = Test()
+        self.assertEqual(test.method('bar'), foo.bar)
+
 
 class Test_CPY_GetAttrProxy(Test_native_GetAttrProxy):
 

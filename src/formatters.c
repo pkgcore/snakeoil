@@ -61,8 +61,8 @@ PTF_set_first_prefix(PTF_object *self, PyObject *value, void *closure)
         PyErr_SetString(PyExc_TypeError, "first_prefix is not deletable");
         return -1;
     }
-        
-    if(!PyList_CheckExact(self->first_prefix))
+
+    if(!PyList_CheckExact(value))
         return PyList_SetSlice(self->first_prefix,
             0, PyList_GET_SIZE(self->first_prefix),
             value);
@@ -81,8 +81,8 @@ PTF_set_later_prefix(PTF_object *self, PyObject *value, void *closure)
         PyErr_SetString(PyExc_TypeError, "later_prefix is not deletable");
         return -1;
     }
-        
-    if(!PyList_CheckExact(self->later_prefix))
+
+    if(!PyList_CheckExact(value))
         return PyList_SetSlice(self->later_prefix,
             0, PyList_GET_SIZE(self->later_prefix),
             value);
@@ -515,15 +515,12 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
          */
 
         int is_unicode;
-        if (self->pos == 0) {
-            if (_write_prefix(self, i_wrap)) {
+        if (self->pos == 0)
+            if (_write_prefix(self, i_wrap))
                 goto finally;
-            }
-        }
 
-        if(!(arg = reduce_callable(self, arg))) {
+        if(!(arg = reduce_callable(self, arg)))
             goto finally;
-        }
 
         if (arg == Py_None) {
             Py_CLEAR(arg);
@@ -576,7 +573,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
                     p--;
                 space = start > p ? -1 : p - start;
             }
-            
+
             if (space == -1) {
                 /* No space to split on.
 
@@ -640,9 +637,8 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
                 goto finally;
 
             self->in_first_line = 0;
-            if(_write_prefix(self, i_wrap)) {
+            if(_write_prefix(self, i_wrap))
                 goto finally;
-            }
 
         }
 
@@ -696,9 +692,39 @@ finally:
     Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(
+    PTF_write_doc,
+"Write something to the stream.\n\
+\n\
+Acceptable arguments are:\n\
+  - Strings are simply written to the stream.\n\
+  - C{None} is ignored.\n\
+  - Functions are called with the formatter as argument.\n\
+    Their return value is then used the same way as the other\n\
+    arguments.\n\
+  - Formatter subclasses might special-case certain objects.\n\
+\n\
+Accepts wrap and autoline as keyword arguments. Effect is\n\
+the same as setting them before the write call and resetting\n\
+them afterwards.\n\
+\n\
+Accepts first_prefixes and later_prefixes as keyword\n\
+arguments. They should be sequences that are temporarily\n\
+appended to the first_prefix and later_prefix attributes.\n\
+\n\
+Accepts prefixes as a keyword argument. Effect is the same as\n\
+setting first_prefixes and later_prefixes to the same value.\n\
+\n\
+Accepts first_prefix, later_prefix and prefix as keyword\n\
+argument. Effect is the same as setting first_prefixes,\n\
+later_prefixes or prefixes to a one-element tuple.\n\
+\n\
+The formatter has a couple of attributes that are useful as argument\n\
+to write.\n");
+
 static PyMethodDef PTF_methods[] = {
     {"write", (PyCFunction)PTF_write, METH_VARARGS | METH_KEYWORDS,
-        "Return the name, combining the first and last name"
+        PTF_write_doc
     },
     {NULL}  /* Sentinel */
 };
@@ -706,16 +732,18 @@ static PyMethodDef PTF_methods[] = {
 static PyGetSetDef PTF_getseters[] = {
     {"autoline", (getter)PTF_object_get_autoline,
         (setter)PTF_object_set_autoline,
-        "boolean indicating we are in auto-newline mode"
+        "boolean indicating we are in auto-newline mode "
         "(defaults to on).", NULL},
     {"wrap", (getter)PTF_object_get_wrap, (setter)PTF_object_set_wrap,
         "boolean indicating we auto-linewrap (defaults to off).", NULL},
     {"stream", (getter)PTF_getstream, (setter)PTF_setstream,
         "stream to write to",NULL},
     {"first_prefix", (getter)PTF_object_get_first_prefix,
-        (setter)PTF_set_first_prefix, "the first prefix", NULL},
+        (setter)PTF_set_first_prefix,
+        "a list of items to write on the first line.", NULL},
     {"later_prefix", (getter)PTF_object_get_later_prefix,
-        (setter)PTF_set_later_prefix, "later prefixes", NULL},
+        (setter)PTF_set_later_prefix,
+        "a list of items to write on every line but the first.", NULL},
     {"encoding", (getter)PTF_get_encoding, (setter)PTF_set_encoding,
         "encoding", NULL},
     {NULL} /* Sentinel */
@@ -729,25 +757,13 @@ static PyMemberDef PTF_members[] = {
     {"_pos", T_INT, offsetof(PTF_object, pos), 0,
          "current position"},
     {"bold", T_OBJECT_EX, offsetof(PTF_object, bold), 0,
-        "object to invoke to get 'bold' semantics"},
+        "object to use to get 'bold' semantics"},
     {"reset", T_OBJECT_EX, offsetof(PTF_object, reset), 0,
         "object to use to get 'reset' semantics"},
     {"underline", T_OBJECT_EX, offsetof(PTF_object, underline), 0,
         "object to use to get 'underline' semantics"},
-    
     {NULL}  /* Sentinel */
 };
-
-
-PyDoc_STRVAR(PTF_doc,
-"PTF(iter1 [,iter2 [...]]) --> izip object\n\
-\n\
-Return a PTF object whose .next() method returns a tuple where\n\
-the i-th element comes from the i-th iterable argument.  The .next()\n\
-method continues until the shortest iterable in the argument sequence\n\
-is exhausted and then it raises StopIteration.  Works like the zip()\n\
-function but consumes less memory by returning an iterator instead of\n\
-a list.");
 
 
 static PyTypeObject PTF_type = {
@@ -772,9 +788,9 @@ static PyTypeObject PTF_type = {
         0,                              /* tp_setattro */
         0,                              /* tp_as_buffer */
         Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_CLASS | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,    /* tp_flags */
-        PTF_doc,                        /* tp_doc */
-        (traverseproc)PTF_traverse,                              /* tp_traverse */
-        (inquiry)PTF_clear,                              /* tp_clear */
+        0,                              /* tp_doc */
+        (traverseproc)PTF_traverse,     /* tp_traverse */
+        (inquiry)PTF_clear,             /* tp_clear */
         0,                              /* tp_richcompare */
         0,                              /* tp_weaklistoffset */
         0,                              /* tp_iter */
@@ -792,7 +808,9 @@ static PyTypeObject PTF_type = {
         PTF_new,                        /* tp_new */
 };
 
-PyDoc_STRVAR(formatters_module_doc, "my funky module\n");
+PyDoc_STRVAR(
+    formatters_module_doc,
+    "C implementation of snakeoil.formatters.PlainTextFormatter.\n");
 
 PyMODINIT_FUNC
 init_formatters()
@@ -819,6 +837,7 @@ init_formatters()
         if(!PTF_unic_space)
             return;
     }
+
     if (PyType_Ready(&PTF_type) < 0)
         return;
     Py_INCREF(&PTF_type);

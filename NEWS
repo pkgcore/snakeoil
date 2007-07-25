@@ -1,6 +1,10 @@
 Snakeoil Release Notes
 ======================
 
+snakeoil 0.1:
+
+* Add a cpython version of snakeoil.formatters.
+
 snakeoil 0.1 rc2:
 
 * Pulled in any/all cpy extensions if not available in current python version.

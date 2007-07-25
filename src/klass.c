@@ -64,6 +64,13 @@ snakeoil_GetAttrProxy_call(snakeoil_GetAttrProxy *self, PyObject *args,
     return (PyObject *)tmp;
 }
 
+static PyObject *
+snakeoil_GetAttrProxy_get(PyObject *func, PyObject *obj, PyObject *type)
+{
+    if (obj == Py_None)
+        obj = NULL;
+    return PyMethod_New(func, obj, type);
+}
 
 static PyTypeObject snakeoil_GetAttrProxyType = {
     PyObject_HEAD_INIT(NULL)
@@ -100,7 +107,7 @@ static PyTypeObject snakeoil_GetAttrProxyType = {
     0,                                               /* tp_getset */
     0,                                               /* tp_base */
     0,                                               /* tp_dict */
-    0,                                               /* tp_descr_get */
+    snakeoil_GetAttrProxy_get,                       /* tp_descr_get */
     0,                                               /* tp_descr_set */
     0,                                               /* tp_dictoffset */
     0,                                               /* tp_init */

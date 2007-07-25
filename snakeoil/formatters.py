@@ -101,6 +101,7 @@ class Formatter(object):
                 self.fg('yellow'), self.bold, '*** ', self.reset))
 
     def title(self, string):
+        """Set the title to string"""
         pass
 
 
@@ -109,6 +110,10 @@ class native_PlainTextFormatter(Formatter):
     """Formatter writing plain text to a file-like object.
 
     @ivar width: contains the current maximum line length.
+    @ivar encoding: the encoding unicode strings should be converted to.
+    @ivar first_prefix: prefixes to output at the beginning of every write.
+    @ivar later_prefix: prefixes to output on each line after the first of
+                        every write.
     """
 
     bold = underline = reset = ''
@@ -118,7 +123,8 @@ class native_PlainTextFormatter(Formatter):
 
         @type  stream: file-like object.
         @param stream: stream to output to.
-        @param width: maximum line width.
+        @param width: maximum line width (defaults to 79).
+        @param encoding: encoding unicode strings are converted to.
         """
         Formatter.__init__(self)
         self.stream = stream
@@ -280,7 +286,11 @@ class native_PlainTextFormatter(Formatter):
 try:
     from snakeoil._formatters import PlainTextFormatter, StreamClosed
     class PlainTextFormatter(PlainTextFormatter, Formatter):
-        pass
+        __doc__ = native_PlainTextFormatter.__doc__
+        __slots__ = ()
+        def fg(self, color=None):
+            return ''
+        bg = fg
 
 except ImportError:
     PlainTextFormatter = native_PlainTextFormatter

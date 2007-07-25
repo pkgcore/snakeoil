@@ -147,7 +147,8 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
                     continue
                 eq = s.get_token()
                 if eq != '=':
-                    raise ParseError(bash_source, s.lineno)
+                    raise ParseError(bash_source, s.lineno,
+                        "got token %r, was expecting '='" % eq)
                 val = s.get_token()
                 if val is None:
                     val = ''
@@ -162,8 +163,8 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
                 else:
                     s.push_token(next_tok)
                 d[key] = val
-        except ValueError:
-            raise ParseError(bash_source, s.lineno)
+        except ValueError, e:
+            raise ParseError(bash_source, s.lineno, str(e))
     finally:
         del f
     if protected:

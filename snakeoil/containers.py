@@ -40,22 +40,19 @@ class SetMixin(object):
         # Note: for these methods we don't bother to filter dupes from this
         # list -  since the subclasses __init__ should already handle this,
         # there's no point doing it twice.
-        kls = kls or self.__class__
-        return kls(x for x in self if x in other)
+        return (kls or self.__class__)(x for x in self if x in other)
 
     def __rand__(self, other):
         return self.__and__(other, kls=other.__class__)
 
     def __or__(self, other, kls=None):
-        kls = kls or self.__class__
-        return kls(chain(self, other))
+        return (kls or self.__class__)(chain(self, other))
 
     def __ror__(self, other):
         return self.__or__(other, kls=other.__class__)
 
     def __xor__(self, other, kls=None):
-        kls = kls or self.__class__
-        return kls(chain((x for x in self if x not in other),
+        return (kls or self.__class__)(chain((x for x in self if x not in other),
                          (x for x in other if x not in self)))
 
     def __rxor__(self, other):
