@@ -189,6 +189,18 @@ class TestAtomicWriteFile(TempDirMixin, TestCase):
         af.close()
         self.assertEqual(open(fp, "r").read(), "dar")
 
+    def test_perms(self):
+        fp = os.path.join(self.dir, 'target')
+        orig_um = os.umask(0777)
+        try:
+            af = AtomicWriteFile(fp, perms=0644)
+            af.write("dar")
+            af.close()
+        finally:
+            exiting_umask = os.umask(orig_um)
+        self.assertEqual(exiting_umask, 0777)
+        self.assertEqual(os.stat(fp).st_mode & 04777, 0644)
+
     def test_del(self):
         fp = os.path.join(self.dir, "target")
         open(fp, "w").write("me")
