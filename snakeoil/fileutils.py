@@ -44,7 +44,7 @@ class AtomicWriteFile(file):
         if perms:
             os.chmod(self.temp_fp, perms)
         if (gid, uid) != (-1, -1):
-            os.chown(self.temp_fd, uid, gid)
+            os.chown(self.temp_fp, uid, gid)
 
     def close(self):
         file.close(self)
