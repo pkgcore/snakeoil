@@ -13,7 +13,8 @@ import errno
 
 __all__ = ['abspath', 'abssymlink', 'ensure_dirs', 'join', 'pjoin',
     'listdir_files', 'listdir_dirs', 'listdir', 'readlines', 'readfile',
-    'readdir']
+    'readdir', 'normpath', 'FsLock', 'GenericFailed', 'LockException',
+    'NonExistant']
 
 
 # No name '_readdir' in module osutils
