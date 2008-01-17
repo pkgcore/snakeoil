@@ -4,6 +4,8 @@
 
 """Version information (tied to bzr)."""
 
+import os
+
 __version__ = '0.1_rc2'
 
 _ver = None
@@ -24,7 +26,7 @@ def get_version():
         else:
             try:
                 # Returns a (branch, relpath) tuple, ignore relpath.
-                b = branch.Branch.open_containing(__file__)[0]
+                b = branch.Branch.open_containing(os.path.realpath(__file__))[0]
             except errors.NotBranchError:
                 ver = 'unknown (not from an sdist tarball, not a bzr branch)'
             else:
