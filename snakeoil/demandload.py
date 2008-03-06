@@ -100,6 +100,12 @@ def parse_imports(imports):
                 yield base + '.' + split[0], split[-1]
 
 
+def protection_enabled():
+    import os
+    val = os.environ.get("SNAKEOIL_DEMANDLOAD_PROTECTION", "y").lower()
+    return val in ("yes", "true", "1", "y")
+
+
 class Placeholder(object):
 
     """Object that knows how to replace itself when first accessed.
@@ -121,7 +127,10 @@ class Placeholder(object):
 
     def _already_replaced(self):
         name = object.__getattribute__(self, '_name')
-        raise ValueError('Placeholder for %r was triggered twice' % (name,))
+        if protection_enabled():
+            raise ValueError('Placeholder for %r was triggered twice' % (name,))
+        scope = object.__getattribute__(self, '_scope')
+        return scope[name]
 
     def _replace(self):
         """Replace ourself in C{scope} with the result of our C{replace_func}.
@@ -136,7 +145,8 @@ class Placeholder(object):
         object.__setattr__(self, '_replace_func', already_replaced)
 
         # Cleanup, possibly unnecessary.
-        object.__setattr__(self, '_scope', None)
+        if protection_enabled():
+            object.__setattr__(self, '_scope', None)
 
         result = replace_func()
         scope[name] = result

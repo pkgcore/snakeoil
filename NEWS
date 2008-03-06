@@ -1,9 +1,17 @@
 Snakeoil Release Notes
 ======================
 
+* added SNAKEOIL_DEMANDLOAD_PROTECTION environment variable- if set to
+  something other then 'yes', disables the placeholder checks.
+  Main intention for this functionality is for when code is introspecting
+  demandload consuming code (epydoc for example), and inadvertantly triggers
+  the access multiple times.
+
+
 snakeoil 0.1:
 
 * Add a cpython version of snakeoil.formatters.
+
 
 snakeoil 0.1 rc2:
 
