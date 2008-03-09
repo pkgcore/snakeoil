@@ -1,6 +1,12 @@
 Snakeoil Release Notes
 ======================
 
+
+* bash parsing bug where "x=y" w/out a trailing newline wasn't returning the
+  'y' value.
+
+* x=-* (specifically unquoted) is a valid assignment, fixed.
+
 * added SNAKEOIL_DEMANDLOAD_PROTECTION environment variable- if set to
   something other then 'yes', disables the placeholder checks.
   Main intention for this functionality is for when code is introspecting

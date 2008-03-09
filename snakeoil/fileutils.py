@@ -199,7 +199,7 @@ class bash_parser(shlex):
     def __init__(self, source, sourcing_command=None, env=None):
         self.__dict__['state'] = ' '
         shlex.__init__(self, source, posix=True)
-        self.wordchars += "@${}/.-+/:~^"
+        self.wordchars += "@${}/.-+/:~^*"
         self.wordchars = frozenset(self.wordchars)
         if sourcing_command is not None:
             self.source = sourcing_command

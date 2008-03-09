@@ -183,6 +183,9 @@ class ReadBashDictTest(TestCase):
     def test_unclosed(self):
         self.assertRaises(ParseError, read_bash_dict, self.unclosed_file.name)
 
+    def test_wordchards(self):
+        self.assertEqual(read_bash_dict(StringIO("x=-*")), {"x":"-*"})
+
 
 class TestAtomicWriteFile(TempDirMixin, TestCase):
 
