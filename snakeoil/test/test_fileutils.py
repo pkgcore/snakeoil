@@ -136,8 +136,14 @@ class ReadBashDictTest(TestCase):
     def test_quoting(self):
         self.assertEqual(read_bash_dict(StringIO("x='y \\\na'")),
             {'x':'y \\\na'})
+        self.assertEqual(read_bash_dict(StringIO("x='y'a\n")),
+            {'x':"ya"})
         self.assertEqual(read_bash_dict(StringIO('x="y \\\nasdf"')),
             {'x':'y asdf'})
+
+    def test_eof_without_newline(self):
+        self.assertEqual(read_bash_dict(StringIO("x=y")), {'x':'y'})
+        self.assertEqual(read_bash_dict(StringIO("x='y'a")), {'x':'ya'})
 
     def test_sourcing(self):
         # TODO this is not even close to complete

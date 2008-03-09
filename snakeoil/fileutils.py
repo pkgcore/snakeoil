@@ -228,10 +228,14 @@ class bash_parser(shlex):
     def read_token(self):
         self.changed_state = []
         self.__pos = 0
-        tok = shlex.read_token(self)
-        if tok is None:
-            return tok
-        self.changed_state.append((self.state, self.token[self.__pos:]))
+        token = shlex.read_token(self)
+        if token is None:
+            return token
+        if self.state is None:
+            # eof reached.
+            self.changed_state.append((self.state, token[self.__pos:]))
+        else:
+            self.changed_state.append((self.state, self.token[self.__pos:]))
         tok = ''
         for s, t in self.changed_state:
             if s in ('"', "a"):
