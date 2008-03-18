@@ -20,8 +20,13 @@ class TestBashCommentStripping(TestCase):
             list(iter_read_bash(StringIO(
                         '\n'
                         '# hi I am a comment\n'
-                        'I am not\n'))),
-            ['I am not'])
+                        'I am not \n'
+                        ' asdf # inline comment\n'))),
+            ['I am not', 'asdf'])
+        self.assertEqual(
+            list(iter_read_bash(StringIO(
+                'inline # comment '), allow_inline_comments=False)),
+            ['inline # comment'])
 
     def test_read_bash(self):
         self.assertEqual(

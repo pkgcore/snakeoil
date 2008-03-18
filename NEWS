@@ -1,6 +1,8 @@
 Snakeoil Release Notes
 ======================
 
+* snakeoil.fileutils.iter_read_bash and friends grew an allow_inline_comment
+  param to control stripping of inlined comments; defaults to True.
 
 * bash parsing bug where "x=y" w/out a trailing newline wasn't returning the
   'y' value.

@@ -57,7 +57,7 @@ class AtomicWriteFile(file):
             os.unlink(self.temp_fp)
 
 
-def iter_read_bash(bash_source):
+def iter_read_bash(bash_source, allow_inline_comments=True):
     """
     Read file honoring bash commenting rules.
 
@@ -69,21 +69,27 @@ def iter_read_bash(bash_source):
 
     @param bash_source: either a file to read from
         or a string holding the filename to open.
+    @param allow_inline_comments: whether or not to prune characters
+        after a # that isn't at the start of a line.
     """
     if isinstance(bash_source, basestring):
         bash_source = readlines(bash_source, True)
     for s in bash_source:
         s = s.strip()
         if s and s[0] != "#":
+            if allow_inline_comments:
+                s = s.split("#", 1)[0].rstrip()
             yield s
 
 
-def read_bash(bash_source):
-    return list(iter_read_bash(bash_source))
+def read_bash(bash_source, allow_inline_comments=True):
+    return list(iter_read_bash(bash_source,
+        allow_inline_comments=allow_inline_comments))
 read_bash.__doc__ = iter_read_bash.__doc__
 
 
-def read_dict(bash_source, splitter="=", source_isiter=False):
+def read_dict(bash_source, splitter="=", source_isiter=False,
+    allow_inline_comments=True):
     """
     read key value pairs, ignoring bash-style comments.
 
@@ -91,11 +97,14 @@ def read_dict(bash_source, splitter="=", source_isiter=False):
         default to str.split's default
     @param bash_source: either a file to read from,
         or a string holding the filename to open.
+    @param allow_inline_comments: whether or not to prune characters
+        after a # that isn't at the start of a line.
     """
     d = {}
     if not source_isiter:
         filename = bash_source
-        i = iter_read_bash(bash_source)
+        i = iter_read_bash(bash_source,
+            allow_inline_comments=allow_inline_comments)
     else:
         # XXX what to do?
         filename = '<unknown>'
