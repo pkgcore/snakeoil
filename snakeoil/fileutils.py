@@ -116,7 +116,13 @@ def read_dict(bash_source, splitter="=", source_isiter=False,
             try:
                 k, v = k.split(splitter, 1)
             except ValueError:
-                raise ParseError(filename, line_count)
+                if filename == "<unknown>":
+                    if isinstance(bash_source, file):
+                        raise ParseError(bash_source.name, line_count)
+                    else:
+                        raise ParseError(bash_source, line_count)
+                else:
+                    raise ParseError(filename, line_count)
             if len(v) > 2 and v[0] == v[-1] and v[0] in ("'", '"'):
                 v = v[1:-1]
             d[k] = v
@@ -288,10 +294,10 @@ class ParseError(Exception):
     def __init__(self, filename, line, errmsg=None):
         if errmsg is not None:
             Exception.__init__(self,
-                               "error parsing '%s' on or before %i: err %s" %
+                               "error parsing '%s' on or before line %i: err %s" %
                                (filename, line, errmsg))
         else:
             Exception.__init__(self,
-                               "error parsing '%s' on or before %i" %
+                               "error parsing '%s' on or before line %i" %
                                (filename, line))
         self.file, self.line, self.errmsg = filename, line, errmsg

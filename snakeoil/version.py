@@ -6,7 +6,7 @@
 
 import os
 
-__version__ = '0.1_rc2'
+__version__ = '0.1'
 
 _ver = None
 

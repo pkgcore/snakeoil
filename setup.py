@@ -64,6 +64,7 @@ class mysdist(sdist.sdist):
             self.filelist.exclude_pattern(os.path.sep + 'index.rst',
                                           prefix=prefix)
         self.filelist.append('build_docs.py')
+        self.filelist.append('build_api_docs.sh')
         self.filelist.include_pattern('*', prefix='examples')
         self.filelist.include_pattern('*', prefix='bin')
 
