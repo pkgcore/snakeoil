@@ -79,8 +79,10 @@ class LimitedChangeSet(SetMixin):
     _removed    = 0
     _added      = 1
 
-    def __init__(self, initial_keys, unchangable_keys=None):
+    def __init__(self, initial_keys, unchangable_keys=None,
+        key_validator=lambda x:x):
         self._new = set(initial_keys)
+        self._validater = key_validator
         if unchangable_keys is None:
             self._blacklist = []
         else:
@@ -92,6 +94,7 @@ class LimitedChangeSet(SetMixin):
         self._orig = frozenset(self._new)
 
     def add(self, key):
+        key = self._validater(key)
         if key in self._changed or key in self._blacklist:
             # it's been del'd already once upon a time.
             if key in self._new:
@@ -103,6 +106,7 @@ class LimitedChangeSet(SetMixin):
         self._change_order.append((self._added, key))
 
     def remove(self, key):
+        key = self._validater(key)
         if key in self._changed or key in self._blacklist:
             if key not in self._new:
                 raise KeyError(key)
@@ -114,7 +118,7 @@ class LimitedChangeSet(SetMixin):
         self._change_order.append((self._removed, key))
 
     def __contains__(self, key):
-        return key in self._new
+        return self._validater(key) in self._new
 
     def changes_count(self):
         return len(self._change_order)

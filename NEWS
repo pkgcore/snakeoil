@@ -1,6 +1,10 @@
 Snakeoil Release Notes
 ======================
 
+* LimitedChangeSet got an additional kwarg; key_validator.  A function can
+  be passed in via this to do validation of the desired key- either it throws
+  an exception, or returns the key to use.
+
 snakeoil 0.2:
 
 * snakeoil.fileutils.iter_read_bash and friends grew an allow_inline_comment

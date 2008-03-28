@@ -86,6 +86,20 @@ class LimitedChangeSetTest(TestCase):
     def setUp(self):
         self.set = containers.LimitedChangeSet(range(12))
 
+    def test_validator(self):
+        def f(val):
+            self.assertTrue(isinstance(val, int))
+            return val
+        self.set = containers.LimitedChangeSet(range(12),
+            key_validator=f)
+        self.set.add(13)
+        self.set.add(14)
+        self.set.remove(11)
+        self.assertIn(5, self.set)
+        self.assertRaises(AssertionError, self.set.add, '2')
+        self.assertRaises(AssertionError, self.set.remove, '2')
+        self.assertRaises(AssertionError, self.set.__contains__, '2')
+
     def test_basic(self, changes=0):
         # this should be a no-op
         self.set.rollback(changes)
