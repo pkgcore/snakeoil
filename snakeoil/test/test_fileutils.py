@@ -126,6 +126,8 @@ class ReadBashDictTest(TestCase):
             {'x':'y~a'})
         self.assertEqual(read_bash_dict(StringIO("x=y^a\n")),
             {'x':'y^a'})
+        self.assertEqual(read_bash_dict(StringIO('x="\nasdf\nfdsa"')),
+            {'x':'\nasdf\nfdsa'})
 
     def test_empty_assign(self):
         open(self.valid_file.name, 'w').write("foo=\ndar=blah\n")
