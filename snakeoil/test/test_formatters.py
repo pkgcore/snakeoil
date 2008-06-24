@@ -126,7 +126,7 @@ class native_PlainTextFormatterTest(TestCase):
         output[1] = '                  %s' % output[1]
         self.assertEqual(output, stream.getvalue().split("\n"))
 
-        
+
     def test_wrap_autoline(self):
         for inputs, output in [
             ((3 * ('spork',)), 'spork\nspork\nspork\n'),

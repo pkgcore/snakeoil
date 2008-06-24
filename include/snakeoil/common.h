@@ -58,7 +58,7 @@ type##_set_##attr (type *self, PyObject *v, void *closure)              \
     }                                                                   \
     return 0;                                                           \
 }
-    
+
 
 #define snakeoil_ATTR_GET_BOOL(type, name, attr, test)                  \
 static PyObject *                                                       \
@@ -114,7 +114,7 @@ static PyTypeObject func##_type = {                                     \
     0,                                  /* tp_dict      */              \
     desc,                               /* tp_descr_get */              \
     0,                                  /* tp_descr_set */              \
-}; 
+};
 
 #define snakeoil_FUNC_BINDING(meth_name, class_name, func, methargs)    \
 static PyObject *                                                       \

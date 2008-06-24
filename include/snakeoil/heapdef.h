@@ -26,7 +26,7 @@ typedef struct NyHeapRelate {
     int flags;		/* As yet unused */
     PyObject *hv;	/* Heap view object */
     PyObject *src;	/* Source of relation, and which is dispatched on */
-    PyObject *tgt;	/* Target of relation */		
+    PyObject *tgt;	/* Target of relation */
 
     	/* visit() should be called once for each unique pointer
 	   from src to tgt.
@@ -55,7 +55,7 @@ typedef struct NyHeapRelate {
 #define NYHR_HASATTR	5	/* src has attribute tgt (stored as string) */
 #define NYHR_LOCAL_VAR	6	/* src (a frame) has local variable named <relator> with value tgt */
 #define NYHR_CELL	7	/* src has cell variable named <relator> containing value tgt */
-#define NYHR_STACK	8	/* src has a stack entry numbered <relator> with value tgt */ 
+#define NYHR_STACK	8	/* src has a stack entry numbered <relator> with value tgt */
 #define NYHR_RELSRC	9	/* relator % src is tgt ; tgt is relator % src*/
 #define NYHR_LIMIT	10	/* All others are < NYHR_LIMIT */
 

@@ -176,4 +176,4 @@ def register(linter):
     linter.check_astng_module = snakeoil_check_astng_module
 
     linter.register_checker(SnakeoilChecker(linter))
-    
+

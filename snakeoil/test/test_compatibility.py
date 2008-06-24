@@ -7,12 +7,12 @@ from snakeoil.currying import post_curry
 
 class mixin(object):
     overrode = 'any' in __builtins__
-    
+
     def test_builtin_override(self):
         if self.overrode:
             self.assertIdentical(__builtins__[self.func_name],
                                  getattr(compatibility, self.func_name))
-            
+
     def check_func(self, name, result1, result2, test3, result3):
         i = iter(xrange(100))
         f = getattr(compatibility, name)
@@ -23,7 +23,7 @@ class mixin(object):
 
 class AnyTest(TestCase, mixin):
     func_name = "any"
-    
+
     if not mixin.overrode:
         test_native_any = post_curry(mixin.check_func,
             "native_any", True, 4, (x==3 for x in xrange(2)), False)
@@ -32,7 +32,7 @@ class AnyTest(TestCase, mixin):
 
         if compatibility.native_any is compatibility.any:
             test_cpy_any.skip = "cpy extension not available"
-           
+
 
 
 class AllTest(TestCase, mixin):

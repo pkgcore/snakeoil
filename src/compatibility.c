@@ -1,4 +1,4 @@
-/* 
+/*
   Misc backported cpy functions from python 2.5; code here is available under PSF-2.2, and GPL2
   Copyright (c) 2006 Python Software Foundation
 */
