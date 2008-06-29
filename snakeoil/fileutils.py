@@ -23,7 +23,7 @@ class AtomicWriteFile(file):
     thus the changes shouldn't be made live.
     """
     def __init__(self, fp, binary=False, perms=None, uid=-1, gid=-1, **kwds):
-        self.is_finalized = False
+        self.is_finalized = True
         if binary:
             file_mode = "wb"
         else:
@@ -41,6 +41,7 @@ class AtomicWriteFile(file):
         finally:
             if old_umask is not None:
                 os.umask(old_umask)
+        self.is_finalized = False
         if perms:
             os.chmod(self.temp_fp, perms)
         if (gid, uid) != (-1, -1):
