@@ -2,12 +2,16 @@ Snakeoil Release Notes
 ======================
 
 
+* intern gname and uname for TarInfo objects via property trickery- again,
+  purpose being less memory usage.
+
 * AtomicFile now marks itself as initially finalized until it has a fd; this
   removes spurios complaints from __del__
 
 * LimitedChangeSet got an additional kwarg; key_validator.  A function can
   be passed in via this to do validation of the desired key- either it throws
   an exception, or returns the key to use.
+
 
 snakeoil 0.2:
 

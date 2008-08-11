@@ -23,8 +23,31 @@ del t
 class TarInfo(tarfile.TarInfo):
     __slots__ = (
         "name", "mode", "uid", "gid", "size", "mtime", "chksum", "type",
-        "linkname", "uname", "gname", "devmajor", "devminor", "prefix",
+        "linkname", "_uname", "_gname", "devmajor", "devminor", "prefix",
         "offset", "offset_data", "buf", "sparse", "_link_target")
+
+    def get_gname(self):
+        return self._gname
+
+    def set_gname(self, val):
+        self._gname = intern(val)
+
+    def del_gname(self):
+        del self._gname
+
+    gname = property(get_gname, set_gname)
+
+    def get_uname(self):
+        return self._uname
+
+    def set_uname(self, val):
+        self._uname = intern(val)
+
+    def del_uname(self):
+        del self._uname
+
+    uname = property(get_uname, set_uname)
+
 
 tarfile.TarInfo = TarInfo
 # finished monkey patching. now to lift things out of our tarfile
