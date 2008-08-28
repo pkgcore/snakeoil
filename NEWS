@@ -2,6 +2,12 @@ Snakeoil Release Notes
 ======================
 
 
+* refactor dependant_methods to stop creating strong cycles that the python
+  vm seems unable to break.  Shift the func storage away from .raw_func to
+  .sd_raw_func in addition.  Add in __(un|)wrap_stage_dependencies__ so that
+  invocation of unwrap then wrap will make changes to stage_depends take
+  affect.
+
 * intern gname and uname for TarInfo objects via property trickery- again,
   purpose being less memory usage.
 
