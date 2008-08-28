@@ -2,6 +2,8 @@ Snakeoil Release Notes
 ======================
 
 
+snakeoil 0.3: August 28, 2008
+
 * refactor dependant_methods to stop creating strong cycles that the python
   vm seems unable to break.  Shift the func storage away from .raw_func to
   .sd_raw_func in addition.  Add in __(un|)wrap_stage_dependencies__ so that
@@ -19,7 +21,7 @@ Snakeoil Release Notes
   an exception, or returns the key to use.
 
 
-snakeoil 0.2:
+snakeoil 0.2: March 18, 2008
 
 * snakeoil.fileutils.iter_read_bash and friends grew an allow_inline_comment
   param to control stripping of inlined comments; defaults to True.
@@ -36,12 +38,12 @@ snakeoil 0.2:
   the access multiple times.
 
 
-snakeoil 0.1:
+snakeoil 0.1: November 11, 2007
 
 * Add a cpython version of snakeoil.formatters.
 
 
-snakeoil 0.1 rc2:
+snakeoil 0.1 rc2: July 06, 2007
 
 * Pulled in any/all cpy extensions if not available in current python version.
 
