@@ -82,6 +82,7 @@ snakeoil_normpath(PyObject *self, PyObject *py_old_path)
                         write-=2;
                         while('/' != *write)
                             write--;
+                        write++;
                         depth--;
                     } else {
                         if(is_absolute) {

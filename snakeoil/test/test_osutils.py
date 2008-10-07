@@ -190,8 +190,10 @@ class Native_NormPathTest(TestCase):
         check('../foo/..', '..')
         check('../foo/../dar', '../dar')
         check('.//foo', 'foo')
-        check(f('/foo/../../'), '/')
-        check(f('/foo/../../..'), '/')
+        check('/foo/../../', '/')
+        check('/foo/../../..', '/')
+        check('/tmp/foo/../dar/', '/tmp/dar')
+        check('/tmp/foo/../dar', '/tmp/dar')
 
 
 class Cpy_NormPathTest(Native_NormPathTest):
