@@ -31,96 +31,94 @@ static PyObject *snakeoil_readlines_empty_iter_singleton = NULL;
 
 #define SKIP_SLASHES(ptr) while('/' == *(ptr)) (ptr)++;
 
+
 static PyObject *
-snakeoil_normpath(PyObject *self, PyObject *old_path)
+snakeoil_normpath(PyObject *self, PyObject *py_old_path)
 {
-    if(!PyString_CheckExact(old_path)) {
+    if(!PyString_CheckExact(py_old_path)) {
         PyErr_SetString(PyExc_TypeError,
             "old_path must be a str");
         return NULL;
     }
-    Py_ssize_t len = PyString_Size(old_path);
-    if(!len)
+    Py_ssize_t path_len = PyString_GET_SIZE(py_old_path);
+    if(!path_len)
         return PyString_FromString(".");
 
-    char *oldstart, *oldp, *newstart, *newp, *real_newstart;
-    oldstart = oldp = PyString_AsString(old_path);
+    char *path = PyString_AS_STRING(py_old_path);
 
-    PyObject *new_path = PyString_FromStringAndSize(NULL, len);
-    if(!new_path)
-        return new_path;
-    real_newstart = newstart = newp = PyString_AS_STRING(new_path);
+    PyObject *new_obj = PyString_FromStringAndSize(NULL, path_len);
+    if(!new_obj)
+        return new_obj;
+    char *new_path = PyString_AS_STRING(new_obj);
+    char *write = new_path;
+    int depth=0;
+    int is_absolute = '/' == *path;
 
-
-    int leading_slash;
-    Py_ssize_t slash_count = 0;
-    // /../ == / , ../foo == ../foo , ../foo/../../ == ../../../
-    if('/' == *oldp) {
-        *newp = '/';
-        newp++;
-        leading_slash = 1;
-        slash_count++;
-        SKIP_SLASHES(oldp);
-        newstart = newp;
-    } else {
-        leading_slash = 0;
+    if(is_absolute) {
+        depth--;
     }
 
-    while('\0' != *oldp) {
-        if('/' == *oldp) {
-            *newp = '/';
-            newp++;
-            slash_count++;
-            SKIP_SLASHES(oldp);
-        }
-        if('.' == *oldp) {
-            oldp++;
-            if('\0' == *oldp)
-                break;
-            if('/' == *oldp) {
-                oldp++;
-                SKIP_SLASHES(oldp);
-                continue;
-            }
-            if(*oldp == '.' && ('/' == oldp[1] || '\0' ==  oldp[1])) {
-                // for newp, ../ == ../ , /../ == /
-                if(leading_slash == slash_count) {
-                    if(!leading_slash) {
-                        // ../ case.
-                        newp[0] = '.';
-                        newp[1] = '.';
-                        newp[2] = '/';
-                        newp += 3;
+    while('\0' != *path) {
+            if ('/' == *path) {
+                *write = '/';
+                write++;
+                SKIP_SLASHES(path);
+                depth++;
+            } else if('.' == *path) {
+                if('.' == path[1] && ('/' == path[2] || '\0' == path[2])) {
+                    if(1 == depth) {
+                        if(is_absolute) {
+                            write = new_path;
+                        } else {
+                            // why -2?  because write is at an empty char.
+                            // we need to jump back past it and /
+                            write-=2;
+                            while('/' != *write)
+                                write--;
+                        }
+                        write++;
+                        depth = 0;
+                    } else if(depth) {
+                        write-=2;
+                        while('/' != *write)
+                            write--;
+                        depth--;
+                    } else {
+                        if(is_absolute) {
+                            write = new_path + 1;
+                        } else {
+                            write[0] = '.';
+                            write[1] = '.';
+                            write[2] = '/';
+                            write += 3;
+                        }
                     }
-                } else if (slash_count != 1 || '/' != *newstart) {
-                    // if its /, then the stripping would be ignored.
-                    newp--;
-                    while(newp > newstart && '/' != newp[-1])
-                        newp--;
+                    path+= 2;
+                    SKIP_SLASHES(path);
+                } else if('/' == path[1]) {
+                    path += 2;
+                    SKIP_SLASHES(path);
+                } else if('\0' == path[1]) {
+                    path++;
+                } else {
+                    *write = '.';
+                    path++;
+                    write++;
                 }
-                oldp++;
-                SKIP_SLASHES(oldp);
-                continue;
+            } else {
+                while('/' != *path && '\0' != *path) {
+                    *write = *path;
+                    write++;
+                    path++;
+                }
             }
-            // funky file name.
-            oldp--;
-        }
-        while('/' != *oldp && '\0' != *oldp) {
-            *newp = *oldp;
-            ++newp;
-            ++oldp;
-        }
     }
+    if(write -1 > new_path && '/' == write[-1])
+        write--;
 
-    *newp = '\0';
-    // protect leading slash, but strip trailing.
-    --newp;
-    while(newp > real_newstart && '/' == *newp)
-        newp--;
+    _PyString_Resize(&new_obj, write - new_path);
+    return new_obj;
 
-    // resize it now.
-    _PyString_Resize(&new_path, newp - real_newstart + 1);
-    return new_path;
 }
 
 static PyObject *

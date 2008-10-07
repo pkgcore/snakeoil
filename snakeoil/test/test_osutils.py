@@ -12,6 +12,7 @@ from snakeoil import osutils
 from snakeoil.osutils import native_readdir
 from snakeoil.test.mixins import TempDirMixin
 
+
 class ReaddirCommon(TempDirMixin):
 
     module = native_readdir
@@ -27,6 +28,7 @@ class ReaddirCommon(TempDirMixin):
     def _test_missing(self, funcs):
         for func in funcs:
             self.assertRaises(OSError, func, os.path.join(self.dir, 'spork'))
+
 
 class NativeListDirTest(ReaddirCommon):
 
@@ -54,6 +56,7 @@ class NativeListDirTest(ReaddirCommon):
         os.symlink("foon", os.path.join(self.dir, "monkeys"))
         self.assertEqual(["file"], self.module.listdir_files(self.dir))
 
+
 class NativeReaddirTest(ReaddirCommon):
     # TODO: test char/block devices and sockets, devices might be a bit hard
     # because it seems like you need to be root to create them in linux
@@ -79,15 +82,18 @@ try:
 except ImportError:
     _readdir = None
 
+
 class CPyListDirTest(NativeListDirTest):
     module = _readdir
     if _readdir is None:
         skip = "cpython extension isn't available"
 
+
 class CPyReaddirTest(NativeReaddirTest):
     module = _readdir
     if _readdir is None:
         skip = "cpython extension isn't available"
+
 
 class EnsureDirsTest(TempDirMixin, TestCase):
 
@@ -167,15 +173,25 @@ class Native_NormPathTest(TestCase):
 
     def test_normpath(self):
         f = self.func
-        self.assertEqual(f('/foo/'), '/foo')
-        self.assertEqual(f('//foo/'), '/foo')
-        self.assertEqual(f('//foo/.'), '/foo')
-        self.assertEqual(f('//..'), '/')
-        self.assertEqual(f('//..//foo'), '/foo')
-        self.assertEqual(f('/foo/..'), '/')
-        self.assertEqual(f('..//foo'), '../foo')
-        self.assertEqual(f('.//foo'), 'foo')
-        self.assertEqual(f('//foo/.///somewhere//..///bar//'), '/foo/bar')
+        def check(src, val):
+            got = f(src)
+            self.assertEqual(got, val, msg="%r: expected %r, got %r" %
+                (src, val, got))
+
+        check('/foo/', '/foo')
+        check('//foo/', '/foo')
+        check('//foo/.', '/foo')
+        check('//..', '/')
+        check('//..//foo', '/foo')
+        check('/foo/..', '/')
+        check('..//foo', '../foo')
+        check('../foo/../', '..')
+        check('../', '..')
+        check('../foo/..', '..')
+        check('../foo/../dar', '../dar')
+        check('.//foo', 'foo')
+        check(f('/foo/../../'), '/')
+        check(f('/foo/../../..'), '/')
 
 
 class Cpy_NormPathTest(Native_NormPathTest):
