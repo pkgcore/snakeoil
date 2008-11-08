@@ -15,7 +15,6 @@ __all__ = ["ForcedDepends"]
 def ensure_deps(cls_id, name, func, self, *a, **kw):
     ignore_deps = kw.pop("ignore_deps", False)
     if id(self.__class__) != cls_id:
-#        import pdb;pdb.set_trace()
         # child class calling parent, or something similar. for cls_id
         # don't fire the dependants, nor update state
         return func(self, *a, **kw)
@@ -29,8 +28,6 @@ def ensure_deps(cls_id, name, func, self, *a, **kw):
     if not hasattr(self, '_stage_state'):
         self._stage_state = set()
     for dep in s:
-#        if dep == 'merge_metadata':
-#            import pdb;pdb.set_trace()
         if dep not in self._stage_state:
             r = getattr(self, dep).sd_raw_func(self, *a, **kw)
             if not r:
