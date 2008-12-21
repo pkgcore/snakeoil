@@ -23,10 +23,10 @@ class TestDemandLoadTargets(TestCase):
                 obj = getattr(mod, attr)
                 # force __getattribute__ to fire
                 getattr(obj, "__class__", None)
-            except ImportError:
+            except ImportError, ie:
                 # hit one.
-                self.fail("failed 'touching' demandloaded %s.%s" %
-                    (mod.__name__, attr))
+                self.fail("failed 'touching' demandloaded %s.%s: error %s" %
+                    (mod.__name__, attr, ie))
 
     def recurse(self, location, valid_namespace=True):
         l = os.listdir(location)
