@@ -1,6 +1,21 @@
 Snakeoil Release Notes
 ======================
 
+snakeoil 0.3.2: TBD
+
+* handle a race condition in ensure_dirs where the directory is created
+  underfoot (thus a non issue).
+
+* massive memory reduction for snakeoil.tar monkey patching;
+  via punting the unused .buf storage (512 byes per TarInfo).  Grand total,
+  this is a 70% reduction of the memory used compared to vanilla TarInfo
+  (50% less then snakeoil 0.3).
+
+* tweak snakeoil.tar monkey patching to re-enable memory savings on python2.6
+
+* correct python2.6 compatibility issues; __(sizeof|format|subclasshook)__
+  awareness, and handle getattr throwing AttributeError in the infinite
+  recursion getattr tests.
 
 * for test_demandload_usage, output the exception that caused the demandload
   'touch' to fail.

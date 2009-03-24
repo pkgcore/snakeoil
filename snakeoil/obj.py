@@ -22,6 +22,11 @@ base_kls_descriptors = frozenset(
     ('__delattr__', '__doc__', '__hash__', '__reduce__',
         '__reduce_ex__', '__repr__', '__setattr__', '__str__'))
 
+if hasattr(object, '__sizeof__'):
+    # python 2.6/3.0
+    base_kls_descriptors = base_kls_descriptors.union(['__sizeof__',
+        '__format__', '__subclasshook__'])
+
 class BaseDelayedObject(object):
     """
     delay actual instantiation

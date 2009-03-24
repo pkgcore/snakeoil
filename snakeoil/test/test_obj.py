@@ -42,7 +42,8 @@ class TestDelayedInstantiation(TestCase):
         # are covered via the base.
         o = set(dir(object)).difference("__%s__" % x for x in
             ["class", "getattribute", "new", "init"])
-        self.assertFalse(o.difference(obj.base_kls_descriptors))
+        diff = o.difference(obj.base_kls_descriptors)
+        self.assertEqual(set(), diff)
 
     def test__class__(self):
         l = []

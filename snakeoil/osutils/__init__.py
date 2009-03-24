@@ -32,6 +32,14 @@ readdir = module.readdir
 
 del module
 
+def _safe_mkdir(path, mode):
+    try:
+        os.mkdir(path, mode)
+    except OSError, e:
+        # if it exists already and is a dir, non issue.
+        return e.errno == errno.EEXIST and stat.S_ISDIR(os.stat(path).st_mode)
+        os.chmod(path, mode)
+    return True
 
 def ensure_dirs(path, gid=-1, uid=-1, mode=0777, minimal=True):
     """
@@ -74,10 +82,12 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0777, minimal=True):
                     # nothing exists.
                     try:
                         if force_temp_perms:
-                            os.mkdir(base, 0700)
+                            if not _safe_mkdir(base, 0700):
+                                return False
                             resets.append((base, mode))
                         else:
-                            os.mkdir(base, mode)
+                            if not _safe_mkdir(base, mode):
+                                return False
                             if base == apath and sticky_parent:
                                 resets.append((base, mode))
                             if gid != -1 or uid != -1:

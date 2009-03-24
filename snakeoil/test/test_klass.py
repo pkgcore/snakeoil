@@ -69,7 +69,7 @@ class Test_CPY_GetAttrProxy(Test_native_GetAttrProxy):
         o = c()
         o.obj = o
         # now it's cyclical.
-        self.assertRaises(RuntimeError, getattr, o, "hooey")
+        self.assertRaises((AttributeError, RuntimeError), getattr, o, "hooey")
 
 
 class Test_native_contains(TestCase):

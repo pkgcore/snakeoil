@@ -24,7 +24,19 @@ class TarInfo(tarfile.TarInfo):
     __slots__ = (
         "name", "mode", "uid", "gid", "size", "mtime", "chksum", "type",
         "linkname", "_uname", "_gname", "devmajor", "devminor", "prefix",
-        "offset", "offset_data", "buf", "sparse", "_link_target")
+        "offset", "offset_data", "_buf", "sparse", "_link_target")
+
+    def get_buf(self):
+        return self.tobuf()
+
+    def set_buf(self, val):
+        pass
+
+    def del_buf(self):
+        pass
+
+    buf = property(get_buf, set_buf, del_buf)
+
 
     def get_gname(self):
         return self._gname
@@ -50,6 +62,8 @@ class TarInfo(tarfile.TarInfo):
 
 
 tarfile.TarInfo = TarInfo
+# python 2.6
+tarfile.TarFile.tarinfo = TarInfo
 # finished monkey patching. now to lift things out of our tarfile
 # module into this scope so from/import behaves properly.
 
