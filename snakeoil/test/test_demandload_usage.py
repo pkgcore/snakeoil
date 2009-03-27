@@ -48,7 +48,7 @@ class TestDemandLoadTargets(TestCase):
                 import logging
                 logging.warn("file %r disappeared under our feet, ignoring" %
                     (os.path.join(location, x)))
-                    
+
         seen = set(['__init__'])
         for (x, st) in stats:
             if not (x.startswith(".") or x.endswith("~")) and stat.S_ISREG(st):
