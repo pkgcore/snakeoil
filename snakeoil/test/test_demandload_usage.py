@@ -1,7 +1,7 @@
 # Copyright: 2005 Brian Harring <ferringb@gmail.com>
 # License: GPL2
 
-import os, stat
+import os, stat, errno
 
 from snakeoil.test import TestCase
 
@@ -36,7 +36,19 @@ class TestDemandLoadTargets(TestCase):
         else:
             yield None
 
-        stats = [(x, os.stat(os.path.join(location, x)).st_mode) for x in l]
+        stats = []
+        for x in l:
+            try:
+                stats.append((x, os.stat(os.path.join(location, x)).st_mode))
+            except OSError, oe:
+                if oe.errno != errno.ENOENT:
+                    raise
+                # file disappeared under our feet... lock file from
+                # trial can cause this.  ignore.
+                import logging
+                logging.warn("file %r disappeared under our feet, ignoring" %
+                    (os.path.join(location, x)))
+                    
         seen = set(['__init__'])
         for (x, st) in stats:
             if not (x.startswith(".") or x.endswith("~")) and stat.S_ISREG(st):

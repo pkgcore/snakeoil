@@ -1,6 +1,12 @@
 Snakeoil Release Notes
 ======================
 
+
+* in test_demandload_usage helper functionality it's possible for
+  a file to disappear under it's feet- ignore it, lock files from
+  trial can trigger this.  Note it via logging.warn, and continue.
+
+
 snakeoil 0.3.2: March 24, 2009
 
 * handle a race condition in ensure_dirs where the directory is created
