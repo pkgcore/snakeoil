@@ -2,6 +2,11 @@ Snakeoil Release Notes
 ======================
 
 
+* optimization in snakeoil.osutils.readlines; for small files, it's
+  roughly a 4-8% speedup, for larger files (over half a meg) growing
+  past 25%.  This puts it's performance at roughly 2x over the open
+  equivalent for small files, and near 10-15% faster for larger files.
+
 * in test_demandload_usage helper functionality it's possible for
   a file to disappear under it's feet- ignore it, lock files from
   trial can trigger this.  Note it via logging.warn, and continue.

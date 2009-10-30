@@ -545,8 +545,9 @@ snakeoil_readlines_iternext(snakeoil_readlines *self)
     assert(self->map || self->fallback);
     assert(self->end > self->start);
 
-    while(p != self->end && '\n' != *p)
-        p++;
+    p = memchr(p, '\n', self->end - p);
+    if(!p)
+        p = self->end;
 
     PyObject *ret;
     if(self->strip_newlines) {
