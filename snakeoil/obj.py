@@ -4,6 +4,7 @@
 from operator import attrgetter
 from snakeoil.currying import pre_curry
 from snakeoil.mappings import DictMixin
+from snakeoil import compatibility
 
 def alias_method(getter, self, *a, **kwd):
     return getter(self.__obj__)(*a, **kwd)
@@ -18,9 +19,18 @@ def instantiate(inst):
 
 # we exempt __getattribute__ since we cover it already, same
 # for __new__ and __init__
+
+base_kls_descriptors_compat = []
+if compatibility.is_py3k:
+    base_kls_descriptors_compat.extend(["__%s__" % x for x in
+        ("le", "lt", "ge", "gt", "eq", "ne")])
+
 base_kls_descriptors = frozenset(
     ('__delattr__', '__doc__', '__hash__', '__reduce__',
         '__reduce_ex__', '__repr__', '__setattr__', '__str__'))
+if base_kls_descriptors_compat:
+    base_kls_descriptors = base_kls_descriptors.union(
+        base_kls_descriptors_compat)
 
 if hasattr(object, '__sizeof__'):
     # python 2.6/3.0
@@ -88,6 +98,9 @@ kls_descriptors = frozenset([
         '__coerce__',
         # remaining...
         '__call__'])
+
+if base_kls_descriptors_compat:
+    kls_descriptors = kls_descriptors.difference(base_kls_descriptors_compat)
 
 descriptor_overrides = dict((k, pre_curry(alias_method, attrgetter(k)))
     for k in kls_descriptors)

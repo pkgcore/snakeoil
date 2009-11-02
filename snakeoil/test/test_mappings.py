@@ -436,10 +436,10 @@ class FoldingDictTest(TestCase):
 
     def testPreserve(self):
         dct = mappings.PreservingFoldingDict(
-            str.lower, {'Foo':'bar', 'fnz':{1: 2}}.iteritems())
-        self.assertEqual(dct['fnz'], {1: 2})
+            str.lower, {'Foo':'bar', 'fnz':'donkey'}.iteritems())
+        self.assertEqual(dct['fnz'], 'donkey')
         self.assertEqual(dct['foo'], 'bar')
-        self.assertEqual(sorted(['bar', {1: 2}]), sorted(dct.values()))
+        self.assertEqual(sorted(['bar', 'donkey']), sorted(dct.values()))
         self.assertEqual(dct.copy(), dct)
         self.assertEqual(dct['foo'], dct.get('Foo'))
         self.assert_('foo' in dct)
@@ -464,8 +464,8 @@ class FoldingDictTest(TestCase):
 
     def testNoPreserve(self):
         dct = mappings.NonPreservingFoldingDict(
-            str.lower, {'Foo':'bar', 'fnz':{1: 2}}.iteritems())
-        self.assertEqual(sorted(['bar', {1: 2}]), sorted(dct.values()))
+            str.lower, {'Foo':'bar', 'fnz':'monkey'}.iteritems())
+        self.assertEqual(sorted(['bar', 'monkey']), sorted(dct.values()))
         self.assertEqual(dct.copy(), dct)
         keys = ['foo', 'fnz']
         keysList = [key for key in dct]

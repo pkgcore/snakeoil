@@ -10,7 +10,7 @@ from itertools import imap, chain, ifilterfalse, izip
 from snakeoil.klass import get, contains
 from collections import deque
 from snakeoil import compatibility
-
+cmp = compatibility.cmp
 
 if not compatibility.is_py3k:
     DictMixin_metaclass = type
@@ -46,12 +46,8 @@ class DictMixin(object):
         if kwargs:
             self.update(kwargs.iteritems())
 
-    if compatibility.is_py3k:
-        def __iter__(self):
-            return self.keys()
-    else:
-        def __iter__(self):
-            return self.iterkeys()
+    def __iter__(self):
+        return self.iterkeys()
 
     def keys(self):
         return list(self.iterkeys())

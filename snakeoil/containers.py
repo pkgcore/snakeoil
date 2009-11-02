@@ -5,6 +5,7 @@
 collection of container classes
 """
 
+from snakeoil import compatibility
 from snakeoil.demandload import demandload
 demandload(
     globals(),
@@ -142,8 +143,12 @@ class LimitedChangeSet(SetMixin):
                 self._new.remove(key)
             l -= 1
 
-    def __str__(self):
-        return str(self._new).replace("set(", "LimitedChangeSet(", 1)
+    if compatibility.is_py3k:
+        def __str__(self):
+            return "LimitedChangeSet([%s])" % (str(self._new)[1:-1],)
+    else:
+        def __str__(self):
+            return str(self._new).replace("set(", "LimitedChangeSet(", 1)
 
     def __iter__(self):
         return iter(self._new)

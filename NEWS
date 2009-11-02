@@ -1,6 +1,8 @@
 Snakeoil Release Notes
 ======================
 
+* initial py3k conversion work; should automatically invoke during
+  setup.py invocations, although it requires 2to3 conversion tool.
 
 * optimization in snakeoil.osutils.readlines; for small files, it's
   roughly a 4-8% speedup, for larger files (over half a meg) growing

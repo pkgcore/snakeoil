@@ -70,13 +70,15 @@ def generic_equality(name, bases, scope, real_type=type,
     return real_type(name, bases, scope)
 
 
+def _chained_getter_metaclass(name, bases, scope):
+    return generic_equality(name, bases, scope, real_type=WeakInstMeta)
+
 class chained_getter(object):
-    def __metaclass__(name, bases, scope):
-        return generic_equality(name, bases, scope, real_type=WeakInstMeta)
     __slots__ = ('namespace', 'chain')
     __fifo_cache__ = deque()
     __inst_caching__ = True
     __attr_comparison__ = ("namespace",)
+    __metaclass__ = _chained_getter_metaclass
 
     def __init__(self, namespace):
         self.namespace = namespace

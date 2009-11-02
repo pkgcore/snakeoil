@@ -5,7 +5,7 @@ import operator
 
 from snakeoil.test import TestCase
 from snakeoil.iterables import expandable_chain, caching_iter, iter_sort
-
+from snakeoil import compatibility
 
 class ExpandableChainTest(TestCase):
 
@@ -81,21 +81,34 @@ class CachingIterTest(TestCase):
         self.assertEqual(bool(c), True)
         self.assertEqual(bool(caching_iter(iter([]))), False)
 
+    @staticmethod
+    def _py3k_protection(*args, **kwds):
+        ci = caching_iter(*args, **kwds)
+        if compatibility.is_py3k:
+            ci = tuple(ci)
+        return ci
+
     def test_cmp(self):
-        self.assertEqual(caching_iter(xrange(100)), tuple(xrange(100)))
-        self.assertNotEqual(caching_iter(xrange(90)), tuple(xrange(100)))
-        self.assertTrue(caching_iter(xrange(100)) > tuple(xrange(90)))
-        self.assertFalse(caching_iter(xrange(90)) > tuple(xrange(100)))
-        self.assertTrue(caching_iter(xrange(100)) >= tuple(xrange(100)))
+        get_inst = self._py3k_protection
+        self.assertEqual(get_inst(xrange(100)), tuple(xrange(100)))
+        self.assertNotEqual(get_inst(xrange(90)), tuple(xrange(100)))
+        self.assertTrue(get_inst(xrange(100)) > tuple(xrange(90)))
+        self.assertFalse(get_inst(xrange(90)) > tuple(xrange(100)))
+        self.assertTrue(get_inst(xrange(100)) >= tuple(xrange(100)))
 
     def test_sorter(self):
+        get_inst = self._py3k_protection
         self.assertEqual(
-            caching_iter(xrange(100, 0, -1), sorted), tuple(xrange(1, 101)))
+            get_inst(xrange(100, 0, -1), sorted), tuple(xrange(1, 101)))
         c = caching_iter(xrange(100, 0, -1), sorted)
         self.assertTrue(c)
+        if compatibility.is_py3k:
+            c = tuple(c)
         self.assertEqual(c, tuple(xrange(1, 101)))
         c = caching_iter(xrange(50, 0, -1), sorted)
         self.assertEqual(c[10], 11)
+        if compatibility.is_py3k:
+            c = tuple(c)
         self.assertEqual(tuple(xrange(1, 51)), c)
 
     def test_getitem(self):

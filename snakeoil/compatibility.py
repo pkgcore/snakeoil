@@ -37,5 +37,13 @@ except ImportError:
 if int(sys.version[0]) >= 3:
     import io
     file_cls = io.TextIOWrapper
+
+    # yes this is heinous.  this is whay they recommended in the python
+    # docs for porting however...
+    def cmp(a, b):
+        return (a < b) - (a > b)
 else:
     file_cls = file
+    # note that 2to3 screws this up... non issue however, since
+    # this codepath won't be executed.
+    from __builtin__ import cmp

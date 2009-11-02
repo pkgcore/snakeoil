@@ -10,6 +10,7 @@ from snakeoil import obj
 # sorry, but the name is good, just too long for these tests
 make_DI = obj.DelayedInstantiation
 make_DIkls = obj.DelayedInstantiation_kls
+from snakeoil.compatibility import cmp
 
 class TestDelayedInstantiation(TestCase):
 

@@ -99,8 +99,21 @@ class mysdist(sdist.sdist):
 
 class snakeoil_build_py(build_py.build_py):
 
+    user_options = build_py.build_py.user_options + [("inplace", "i", "do any source conversions in place")]
+
+    def initialize_options(self):
+        build_py.build_py.initialize_options(self)
+        self.inplace = False
+
+    def finalize_options(self):
+        self.inplace = bool(self.inplace)
+        if self.inplace:
+            self.build_lib = '.'
+        build_py.build_py.finalize_options(self)
+
     def run(self):
-        build_py.build_py.run(self)
+        if not self.inplace:
+            build_py.build_py.run(self)
         bzr_ver = self.get_module_outfile(
             self.build_lib, ('snakeoil',), 'bzr_verinfo')
         if not os.path.exists(bzr_ver):
@@ -188,9 +201,6 @@ class TestLoader(unittest.TestLoader):
         return self.suiteClass(tests)
 
 
-testLoader = TestLoader()
-
-
 class test(core.Command):
 
     """Run our unit tests in a built copy.
@@ -198,43 +208,70 @@ class test(core.Command):
     Based on code from setuptools.
     """
 
-    user_options = []
+    user_options = [("inplace", "i", "do building/testing in place"),
+        ("skip-rebuilding", "s", "skip rebuilds. primarily for development"),
+        ("disable-fork", None, "disable forking of the testloader; primarily for debugging"),
+        ("namespaces=", "t", "run only tests matching these namespaces.  "
+            "comma delimited"),
+        ]
 
     def initialize_options(self):
-        # Options? What options?
-        pass
+        self.inplace = False
+        self.disable_fork = False
+        self.namespaces = ''
 
     def finalize_options(self):
-        # Options? What options?
-        pass
+        self.inplace = bool(self.inplace)
+        self.disable_fork = bool(self.disable_fork)
+        if self.namespaces:
+            self.namespaces = tuple(set(self.namespaces.split(',')))
+        else:
+            self.namespaces = ()
 
     def run(self):
         build_ext = self.reinitialize_command('build_ext')
         build_py = self.reinitialize_command('build_py')
-        build_ext.inplace = build_py.inplace = False
+        build_ext.inplace = build_py.inplace = self.inplace
         self.run_command('build_ext')
-        self.run_command('build_py')
+        if not self.inplace:
+            self.run_command('build_py')
 
-        # Somewhat hackish: this calls sys.exit.
-        raw_syspath = sys.path[:]
-        cwd = os.getcwd()
-        my_syspath = [x for x in sys.path if x != cwd]
-        test_path = os.path.abspath(build_py.build_lib)
-        my_syspath.insert(0, test_path)
-        environ = dict(os.environ)
-        mods = build_py.find_all_modules()
-        mods_to_wipe = set(x[0] for x in mods)
-        mods_to_wipe.update('.'.join(x[:2]) for x in mods)
+        if not self.inplace:
+            raw_syspath = sys.path[:]
+            cwd = os.getcwd()
+            my_syspath = [x for x in sys.path if x != cwd]
+            test_path = os.path.abspath(build_py.build_lib)
+            my_syspath.insert(0, test_path)
+            mods = build_py.find_all_modules()
+            mods_to_wipe = set(x[0] for x in mods)
+            mods_to_wipe.update('.'.join(x[:2]) for x in mods)
 
-        pid = 0
-        pid = os.fork()
+        if self.disable_fork:
+            pid = 0
+        else:
+            sys.stderr.flush()
+            sys.stdout.flush()
+            pid = os.fork()
         if not pid:
-            os.environ["PYTHONPATH"] = ':'.join(my_syspath)
-            sys.path = my_syspath
-            for mod in mods_to_wipe:
-                sys.modules.pop(mod, None)
-            unittest.main('snakeoil.test', argv=['setup.py', '-v'], testLoader=testLoader)
-            os._exit(1)
+            if not self.inplace:
+                os.environ["PYTHONPATH"] = ':'.join(my_syspath)
+                sys.path = my_syspath
+                for mod in mods_to_wipe:
+                    sys.modules.pop(mod, None)
+
+            # thank you for binding freaking sys.stderr into your prototype
+            # unittest...
+            sys.stderr.flush()
+            os.dup2(sys.stdout.fileno(), sys.stderr.fileno())
+            args = ['setup.py', '-v']
+            if self.namespaces:
+                args.extend(self.namespaces)
+                default_mod = None
+            else:
+                default_mod = 'snakeoil.test'
+            unittest.main(default_mod, argv=args, testLoader=TestLoader())
+            if not self.disable_fork:
+                os._exit(1)
         retval = os.waitpid(pid, 0)[1]
         if retval:
             raise errors.DistutilsExecError("tests failed")
