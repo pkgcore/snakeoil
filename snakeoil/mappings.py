@@ -13,7 +13,7 @@ from snakeoil import compatibility
 
 
 if not compatibility.is_py3k:
-    DictMixin_metclass = raw_DictMixin
+    DictMixin_metaclass = type
 else:
 
     class DictMixin_metaclass(type):
@@ -136,7 +136,7 @@ class DictMixin(object):
         # yes, a bit ugly, but this works and is py3k compatible
         # post conversion
         df = self.__delitem__
-        for key in self.iterkeys():
+        for key in self.keys():
             df(key)
 
     def __len__(self):
