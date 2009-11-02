@@ -46,8 +46,12 @@ class DictMixin(object):
         if kwargs:
             self.update(kwargs.iteritems())
 
-    def __iter__(self):
-        return self.iterkeys()
+    if compatibility.is_py3k:
+        def __iter__(self):
+            return self.keys()
+    else:
+        def __iter__(self):
+            return self.iterkeys()
 
     def keys(self):
         return list(self.iterkeys())

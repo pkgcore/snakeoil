@@ -71,7 +71,15 @@ class TestDemandLoadTargets(TestCase):
     def poor_mans_load(namespace):
         obj = __import__(namespace)
         for chunk in namespace.split(".")[1:]:
-            obj = getattr(obj, chunk)
+            try:
+                obj = getattr(obj, chunk)
+            except (RuntimeError, SystemExit, KeyboardInterrupt):
+                raise
+            except AttributeError:
+                raise AssertionError("failed importing target %s" % namespace)
+            except Exception, e:
+                raise AssertionError("failed importing target %s; error %s"
+                    % (namespace, e))
         return obj
 
     def check_namespace(self, namespace, **kwds):

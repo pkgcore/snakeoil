@@ -47,7 +47,7 @@ class mysdist(sdist.sdist):
             self.add_defaults()
 
         # This bit is roughly equivalent to a MANIFEST.in template file.
-        for key, globs in self.distribution.package_data.iteritems():
+        for key, globs in self.distribution.package_data.items():
             for pattern in globs:
                 self.filelist.include_pattern(os.path.join(key, pattern))
 
@@ -113,6 +113,31 @@ class snakeoil_build_py(build_py.build_py):
             else:
                 self.byte_compile([bzr_ver])
 
+        if sys.version_info[0] < 3:
+            return
+
+        log.info("stating py3k conversions")
+
+        null_f = open("/dev/null", "w")
+
+        def rewrite(path):
+            mod_path = os.path.join(self.build_lib, path)
+            log.info("doing py3k conversion of %s..." % path)
+            ret = subprocess.call(["2to3", "-wn", mod_path],
+                stderr=null_f, stdout=null_f, shell=False)
+            if ret != 0:
+                # rerun to get the output for users.
+                subprocess.call(["2to3", "-wn", mod_path], shell=False)
+                raise errors.DistutilsExecError(
+                    "py3k conversion of %s failed w/ exit code %i"
+                    % (path, ret))
+
+        for base, mod_name, path in self.find_all_modules():
+            rewrite(path)
+
+        log.info("completed py3k conversions")
+
+
 class snakeoil_build_ext(build_ext.build_ext):
 
     user_options = build_ext.build_ext.user_options + [
@@ -131,6 +156,7 @@ class snakeoil_build_ext(build_ext.build_ext):
             self.build_optional = True
         if not self.build_optional:
             self.extensions = [ext for ext in self.extensions if not isinstance(ext, OptionalExtension)] or None
+
 
 class TestLoader(unittest.TestLoader):
 
@@ -184,10 +210,34 @@ class test(core.Command):
 
     def run(self):
         build_ext = self.reinitialize_command('build_ext')
-        build_ext.inplace = True
+        build_py = self.reinitialize_command('build_py')
+        build_ext.inplace = build_py.inplace = False
         self.run_command('build_ext')
+        self.run_command('build_py')
+
         # Somewhat hackish: this calls sys.exit.
-        unittest.main('snakeoil.test', argv=['setup.py', '-v'], testLoader=testLoader)
+        raw_syspath = sys.path[:]
+        cwd = os.getcwd()
+        my_syspath = [x for x in sys.path if x != cwd]
+        test_path = os.path.abspath(build_py.build_lib)
+        my_syspath.insert(0, test_path)
+        environ = dict(os.environ)
+        mods = build_py.find_all_modules()
+        mods_to_wipe = set(x[0] for x in mods)
+        mods_to_wipe.update('.'.join(x[:2]) for x in mods)
+
+        pid = 0
+        pid = os.fork()
+        if not pid:
+            os.environ["PYTHONPATH"] = ':'.join(my_syspath)
+            sys.path = my_syspath
+            for mod in mods_to_wipe:
+                sys.modules.pop(mod, None)
+            unittest.main('snakeoil.test', argv=['setup.py', '-v'], testLoader=testLoader)
+            os._exit(1)
+        retval = os.waitpid(pid, 0)[1]
+        if retval:
+            raise errors.DistutilsExecError("tests failed")
 
 
 packages = [
