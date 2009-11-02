@@ -216,14 +216,15 @@ class Cpy_JoinTest(TestCase):
                 osutils.join(*val)))
 
     def test_reimplementation(self):
-        map(self.assertSame, [
+        for vals in [
             ["", "foo"],
             ["foo", "dar"],
             ["foo", "/bar"],
             ["/bar", "dar"],
             ["/bar", "../dar"],
             ["", "../dar"]
-            ])
+            ]:
+            self.assertSame(vals)
 
 
 

@@ -250,7 +250,8 @@ class StackedDictTest(TestCase):
         for x in chain(*map(iter, (self.orig_dict, self.new_dict))):
             self.failUnless(x in std)
 
-        map(o.__delitem__, iter(self.orig_dict))
+        for key in self.orig_dict.iterkeys():
+            del o[key]
         for x in self.orig_dict:
             self.failIf(x in std)
         for x in self.new_dict:
@@ -271,7 +272,8 @@ class StackedDictTest(TestCase):
 
     def test_iter(self):
         s = set()
-        map(s.add, chain(iter(self.orig_dict), iter(self.new_dict)))
+        for item in chain(iter(self.orig_dict), iter(self.new_dict)):
+            s.add(item)
         for x in mappings.StackedDict(self.orig_dict, self.new_dict):
             self.failUnless(x in s)
             s.remove(x)
