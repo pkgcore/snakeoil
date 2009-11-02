@@ -17,7 +17,7 @@ if not compatibility.is_py3k:
 else:
 
     class DictMixin_metaclass(type):
-    
+
         def __new__(cls, name, bases, d):
             if not d.get("disable_py3k_rewriting", False):
                 for var in ("keys", "values", "items", "has_key"):
@@ -57,7 +57,7 @@ class DictMixin(object):
 
     def items(self):
         return list(self.iteritems())
-    
+
     def has_key(self, key):
         return key in self
 
