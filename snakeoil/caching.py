@@ -40,9 +40,11 @@ class native_WeakInstMeta(type):
         else:
             d["__inst_caching__"] = False
         slots = d.get('__slots__')
+        # get ourselves a singleton to be safe...
+        o = object()
         if slots is not None:
             for base in bases:
-                if getattr(base, '__weakref__', False):
+                if getattr(base, '__weakref__', o) is not o:
                     break
             else:
                 d['__slots__'] = tuple(slots) + ('__weakref__',)

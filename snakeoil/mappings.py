@@ -9,6 +9,24 @@ import operator
 from itertools import imap, chain, ifilterfalse, izip
 from snakeoil.klass import get, contains
 from collections import deque
+from snakeoil import compatibility
+
+
+if not compatibility.is_py3k:
+    DictMixin_metclass = raw_DictMixin
+else:
+
+    class DictMixin_metaclass(type):
+    
+        def __new__(cls, name, bases, d):
+            if not d.get("disable_py3k_rewriting", False):
+                for var in ("keys", "values", "items", "has_key"):
+                    d.pop(var, None)
+                for var in ("keys", "values", "items"):
+                    itervar = 'iter%s' % var
+                    if itervar in d:
+                        d[var] = d.pop(itervar)
+            return type.__new__(cls, name, bases, d)
 
 
 class DictMixin(object):
@@ -18,8 +36,8 @@ class DictMixin(object):
     """
 
     __slots__ = ()
-
     __externally_mutable__ = True
+    __metaclass__ = DictMixin_metaclass
 
     def __init__(self, iterable=None, **kwargs):
         if iterable is not None:
@@ -39,6 +57,19 @@ class DictMixin(object):
 
     def items(self):
         return list(self.iteritems())
+    
+    def has_key(self, key):
+        return key in self
+
+    def iterkeys(self):
+        raise NotImplementedError(self, "iterkeys")
+
+    def itervalues(self):
+        return imap(self.__getitem__, self)
+
+    def iteritems(self):
+        for k in self:
+            yield k, self[k]
 
     def update(self, iterable):
         for k, v in iterable:
@@ -85,19 +116,6 @@ class DictMixin(object):
         self[key] = default
         return default
 
-    def has_key(self, key):
-        return key in self
-
-    def iterkeys(self):
-        raise NotImplementedError(self, "iterkeys")
-
-    def itervalues(self):
-        return imap(self.__getitem__, self)
-
-    def iteritems(self):
-        for k in self:
-            yield k, self[k]
-
     def __getitem__(self, key):
         raise NotImplementedError(self, "__getitem__")
 
@@ -114,8 +132,12 @@ class DictMixin(object):
     def clear(self):
         if not self.__externally_mutable__:
             raise AttributeError(self, "clear")
-        # crappy, override if faster method exists.
-        map(self.__delitem__, self.keys())
+
+        # yes, a bit ugly, but this works and is py3k compatible
+        # post conversion
+        df = self.__delitem__
+        for key in self.iterkeys():
+            df(key)
 
     def __len__(self):
         c = 0

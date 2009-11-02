@@ -4,14 +4,15 @@
 from snakeoil.test import TestCase
 from snakeoil import compatibility
 from snakeoil.currying import post_curry
+import __builtin__ as builtins
 
 class mixin(object):
-    overrode = 'any' in __builtins__
+    was_missing = (not compatibility.is_py3k) and not hasattr(builtins, 'any')
 
     def test_builtin_override(self):
-        if self.overrode:
-            self.assertIdentical(__builtins__[self.func_name],
-                                 getattr(compatibility, self.func_name))
+        if not self.was_missing:
+            self.assertIdentical(getattr(builtins, self.override_name),
+                                 getattr(compatibility, self.override_name))
 
     def check_func(self, name, result1, result2, test3, result3):
         i = iter(xrange(100))
@@ -22,9 +23,9 @@ class mixin(object):
 
 
 class AnyTest(TestCase, mixin):
-    func_name = "any"
+    override_name = "any"
 
-    if not mixin.overrode:
+    if mixin.was_missing:
         test_native_any = post_curry(mixin.check_func,
             "native_any", True, 4, (x==3 for x in xrange(2)), False)
         test_cpy_any = post_curry(mixin.check_func,
@@ -36,9 +37,9 @@ class AnyTest(TestCase, mixin):
 
 
 class AllTest(TestCase, mixin):
-    func_name = "all"
+    override_name = "all"
 
-    if not mixin.overrode:
+    if mixin.was_missing:
         test_native_all = post_curry(mixin.check_func,
             "native_all", False, 1,
                 (isinstance(x, int) for x in xrange(100)), True)

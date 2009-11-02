@@ -213,15 +213,8 @@ if sys.version_info < (2, 5):
     extensions.append(OptionalExtension(
             'snakeoil._compatibility', ['src/compatibility.c'], **extra_kwargs))
 
-from snakeoil.version import __version__ as VERSION
-
-core.setup(
-    name='snakeoil',
-    version=VERSION,
-    description='misc common functionality, and useful optimizations',
-    url='http://www.pkgcore.org/',
-    packages=packages,
-    ext_modules=[
+if sys.version_info < (3,):
+    extensions.extend([
         OptionalExtension(
             'snakeoil.osutils._posix', ['src/posix.c'], **extra_kwargs),
         OptionalExtension(
@@ -234,7 +227,18 @@ core.setup(
             'snakeoil.osutils._readdir', ['src/readdir.c'], **extra_kwargs),
         OptionalExtension(
             'snakeoil._formatters', ['src/formatters.c'], **extra_kwargs),
-        ] + extensions,
+        ]
+    )
+
+from snakeoil.version import __version__ as VERSION
+
+core.setup(
+    name='snakeoil',
+    version=VERSION,
+    description='misc common functionality, and useful optimizations',
+    url='http://www.pkgcore.org/',
+    packages=packages,
+    ext_modules=extensions,
     headers=common_includes,
     cmdclass={
         'sdist': mysdist,

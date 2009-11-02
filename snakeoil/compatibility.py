@@ -7,6 +7,8 @@ Compatibility module providing native reimplementations of python2.5 functionali
 Uses the native implementation from C{__builtins__} if available.
 """
 
+import sys
+
 def native_any(iterable):
     for x in iterable:
         if x:
@@ -22,11 +24,18 @@ def native_all(iterable):
 # using variable before assignment
 # pylint: disable-msg=E0601
 
-if "any" in __builtins__:
-    any = any
-    all = all
-else:
+is_py3k = int(sys.version[0]) == 3
+
+try:
+    from __builtin__ import any, all
+except ImportError:
     try:
         from snakeoil._compatibility import any, all
     except ImportError:
         any, all = native_any, native_all
+
+if int(sys.version[0]) >= 3:
+    import io
+    file_cls = io.TextIOWrapper
+else:
+    file_cls = file

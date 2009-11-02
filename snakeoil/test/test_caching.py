@@ -119,7 +119,7 @@ def gen_test(WeakInstMeta):
         test_uncachable.suppress = [
             (('error',), {}), (('ignore',), {'category': UserWarning})]
 
-        def test_uncachable_warning(self):
+        def test_uncachable_warning_msg(self):
             # This name is *important*, see above.
             class RaisingHashForTestUncachableWarnings(object):
                 def __init__(self, error):
@@ -131,7 +131,7 @@ def gen_test(WeakInstMeta):
                 self.assertRaises(UserWarning, weak_inst,
                                   RaisingHashForTestUncachableWarnings(x))
 
-        test_uncachable_warning.suppress = [
+        test_uncachable_warning_msg.suppress = [
             (('error',), {'category': UserWarning})]
 
         def test_hash_collision(self):

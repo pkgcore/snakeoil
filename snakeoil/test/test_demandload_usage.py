@@ -69,7 +69,10 @@ class TestDemandLoadTargets(TestCase):
 
     @staticmethod
     def poor_mans_load(namespace):
-        return reduce(getattr, namespace.split(".")[1:], __import__(namespace))
+        obj = __import__(namespace)
+        for chunk in namespace.split(".")[1:]:
+            obj = getattr(obj, chunk)
+        return obj
 
     def check_namespace(self, namespace, **kwds):
         location = os.path.abspath(os.path.dirname(

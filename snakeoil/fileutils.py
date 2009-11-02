@@ -9,8 +9,9 @@ import re, os
 from shlex import shlex
 from snakeoil.mappings import ProtectedDict
 from snakeoil.osutils import readlines
+from snakeoil import compatibility
 
-class AtomicWriteFile(file):
+class AtomicWriteFile(compatibility.file_cls):
 
     """File class that stores the changes in a tempfile.
 
@@ -37,7 +38,7 @@ class AtomicWriteFile(file):
             # give it just write perms
             old_umask = os.umask(0200)
         try:
-            file.__init__(self, self.temp_fp, mode=file_mode, **kwds)
+            compatibility.file_cls.__init__(self, self.temp_fp, mode=file_mode, **kwds)
         finally:
             if old_umask is not None:
                 os.umask(old_umask)
@@ -48,12 +49,12 @@ class AtomicWriteFile(file):
             os.chown(self.temp_fp, uid, gid)
 
     def close(self):
-        file.close(self)
+        compatibility.file_cls.close(self)
         os.rename(self.temp_fp, self.original_fp)
         self.is_finalized = True
 
     def __del__(self):
-        file.close(self)
+        compatibility.file_cls.close(self)
         if not self.is_finalized:
             os.unlink(self.temp_fp)
 
@@ -118,7 +119,7 @@ def read_dict(bash_source, splitter="=", source_isiter=False,
                 k, v = k.split(splitter, 1)
             except ValueError:
                 if filename == "<unknown>":
-                    if isinstance(bash_source, file):
+                    if isinstance(bash_source, compatibility.file_cls):
                         raise ParseError(bash_source.name, line_count)
                     else:
                         raise ParseError(bash_source, line_count)
