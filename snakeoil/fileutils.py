@@ -11,7 +11,8 @@ from snakeoil.mappings import ProtectedDict
 from snakeoil.osutils import readlines
 from snakeoil import compatibility
 
-class AtomicWriteFile(compatibility.file_cls):
+
+class AtomicWriteFile_mixin(object):
 
     """File class that stores the changes in a tempfile.
 
@@ -23,40 +24,72 @@ class AtomicWriteFile(compatibility.file_cls):
     if C{__del__} is triggered it's assumed that an exception occured,
     thus the changes shouldn't be made live.
     """
-    def __init__(self, fp, binary=False, perms=None, uid=-1, gid=-1, **kwds):
-        self.is_finalized = True
+
+    def __init__(self,fp, binary=False, perms=None, uid=-1, gid=-1):
+        self._is_finalized = True
         if binary:
-            file_mode = "wb"
+           file_mode = "wb"
         else:
             file_mode = "w"
+        self._computed_mode = file_mode
         fp = os.path.realpath(fp)
-        self.original_fp = fp
-        self.temp_fp = os.path.join(
+        self._original_fp = fp
+        self._temp_fp = os.path.join(
             os.path.dirname(fp), ".update.%s" % os.path.basename(fp))
         old_umask = None
         if perms:
             # give it just write perms
             old_umask = os.umask(0200)
         try:
-            compatibility.file_cls.__init__(self, self.temp_fp, mode=file_mode, **kwds)
+            self._actual_init()
         finally:
             if old_umask is not None:
                 os.umask(old_umask)
-        self.is_finalized = False
+        self._is_finalized = False
         if perms:
-            os.chmod(self.temp_fp, perms)
+            os.chmod(self._temp_fp, perms)
         if (gid, uid) != (-1, -1):
-            os.chown(self.temp_fp, uid, gid)
+            os.chown(self._temp_fp, uid, gid)
 
     def close(self):
-        compatibility.file_cls.close(self)
-        os.rename(self.temp_fp, self.original_fp)
-        self.is_finalized = True
+        self._real_close()
+        os.rename(self._temp_fp, self._original_fp)
+        self._is_finalized = True
 
     def __del__(self):
-        compatibility.file_cls.close(self)
-        if not self.is_finalized:
-            os.unlink(self.temp_fp)
+        self._real_close()
+        if not self._is_finalized:
+            os.unlink(self._temp_fp)
+
+if not compatibility.is_py3k:
+
+    class AtomicWriteFile(AtomicWriteFile_mixin, compatibility.file_cls):
+
+        def _actual_init(self):
+            compatibility.file_cls.__init__(self, self._temp_fp,
+                mode=self._computed_mode)
+
+        _real_close = compatibility.file_cls.close
+
+else:
+    import io
+    class AtomicWriteFile(AtomicWriteFile_mixin):
+
+        def _actual_init(self):
+            self.raw = io.open(self._temp_fp, mode=self._computed_mode)
+
+        def _real_close(self):
+            try:
+                raw = self.raw
+            except AttributeError:
+                # ignore it.  means that initialization flat out failed.
+                return None
+            return self.raw.close()
+
+        def __getattr__(self, attr):
+            # use object.__getattribute__ to ensure we don't go recursive
+            # here if initialization failed during init
+            return getattr(object.__getattribute__(self, 'raw'), attr)
 
 
 def iter_read_bash(bash_source, allow_inline_comments=True):

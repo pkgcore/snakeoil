@@ -111,11 +111,34 @@ class snakeoil_build_py(build_py.build_py):
             self.build_lib = '.'
         build_py.build_py.finalize_options(self)
 
+    def _compute_py3k_rebuilds(self):
+        pjoin = os.path.join
+        for base, mod_name, path in self.find_all_modules():
+            try:
+                new_mtime = os.lstat(path).st_mtime
+            except (OSError, IOError):
+                # ok... wtf distutils?
+                continue
+            trg_path = pjoin(self.build_lib, path)
+            try:
+                old_mtime = os.lstat(trg_path).st_mtime
+            except (OSError, IOError):
+                yield trg_path, new_mtime
+                continue
+            if old_mtime != new_mtime:
+                yield trg_path, new_mtime
+
     def run(self):
+        is_py3k = sys.version_info[0] >= 3
+        py3k_rebuilds = []
         if not self.inplace:
+            if is_py3k:
+                py3k_rebuilds = list(self._compute_py3k_rebuilds())
             build_py.build_py.run(self)
+
         bzr_ver = self.get_module_outfile(
             self.build_lib, ('snakeoil',), 'bzr_verinfo')
+        # this should check mtime...
         if not os.path.exists(bzr_ver):
             log.info('generating bzr_verinfo')
             if subprocess.call(
@@ -125,16 +148,17 @@ class snakeoil_build_py(build_py.build_py):
                 log.warn('generating bzr_verinfo failed!')
             else:
                 self.byte_compile([bzr_ver])
+                py3k_rebuilds.append((bzr_ver, os.lstat(bzr_ver).st_mtime))
 
-        if sys.version_info[0] < 3:
+        if not is_py3k:
             return
 
         log.info("stating py3k conversions")
 
         null_f = open("/dev/null", "w")
 
-        def rewrite(path):
-            mod_path = os.path.join(self.build_lib, path)
+        def rewrite(path, mtime):
+            mod_path = path
             log.info("doing py3k conversion of %s..." % path)
             ret = subprocess.call(["2to3", "-wn", mod_path],
                 stderr=null_f, stdout=null_f, shell=False)
@@ -144,9 +168,10 @@ class snakeoil_build_py(build_py.build_py):
                 raise errors.DistutilsExecError(
                     "py3k conversion of %s failed w/ exit code %i"
                     % (path, ret))
+            os.utime(path, (-1, mtime))
 
-        for base, mod_name, path in self.find_all_modules():
-            rewrite(path)
+        for path, mtime in py3k_rebuilds:
+            rewrite(path, mtime)
 
         log.info("completed py3k conversions")
 

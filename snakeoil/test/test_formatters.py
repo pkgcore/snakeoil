@@ -11,8 +11,15 @@ import StringIO
 import tempfile
 
 from snakeoil.test import TestCase
+from snakeoil import formatters, compatibility
 
-from snakeoil import formatters
+if compatibility.is_py3k:
+    import io
+    def mk_tempfile(*args, **kwds):
+        return io.TextIOWrapper(tempfile.TemporaryFile(*args, **kwds))
+
+else:
+    mk_tempfile = tempfile.TemporaryFile
 
 
 class native_PlainTextFormatterTest(TestCase):
@@ -160,21 +167,21 @@ class cpy_PlainTextFormatterTest(native_PlainTextFormatterTest):
 
 class TerminfoFormatterTest(TestCase):
 
-    def _test_stream(self, stream, formatter, *data):
-        for inputs, outputs in data:
-            stream.seek(0)
-            stream.truncate()
-            formatter.write(*inputs)
-            stream.seek(0)
-            self.assertEqual(''.join(outputs), stream.read())
+    def _test_stream(self, stream, formatter, inputs, output):
+        stream.seek(0)
+        stream.truncate()
+        formatter.write(*inputs)
+        stream.seek(0)
+        result = stream.read()
+        self.assertEqual(''.join(output), result,
+            msg="given(%r), expected(%r), got(%r)" % (inputs, output, result))
 
     def test_terminfo(self):
         esc = '\x1b['
-        stream = tempfile.TemporaryFile()
+        stream = mk_tempfile()
         f = formatters.TerminfoFormatter(stream, 'ansi', True, 'ascii')
         f.autoline = False
-        self._test_stream(
-            stream, f,
+        for inputs, output in (
             ((f.bold, 'bold'), (esc, '1m', 'bold', esc, '0;10m')),
             ((f.underline, 'underline'),
              (esc, '4m', 'underline', esc, '0;10m')),
@@ -185,9 +192,10 @@ class TerminfoFormatterTest(TestCase):
               esc, '0;10m', 'done')),
             ((42,), ('42',)),
             ((u'\N{SNOWMAN}',), ('?',))
-            )
+            ):
+            self._test_stream(stream, f, inputs, output)
         f.autoline = True
         self._test_stream(
-            stream, f, (('lala',), ('lala', '\n')))
+            stream, f, ('lala',), ('lala', '\n'))
 
 

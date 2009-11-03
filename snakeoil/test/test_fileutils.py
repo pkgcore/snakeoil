@@ -4,6 +4,14 @@
 
 import tempfile, os
 from StringIO import StringIO
+from snakeoil import compatibility
+
+mk_named_tempfile = tempfile.NamedTemporaryFile
+if compatibility.is_py3k:
+    import io
+    def mk_named_tempfile(*args, **kwds):
+        tmp_f = tempfile.NamedTemporaryFile(*args, **kwds)
+        return io.TextIOWrapper(tmp_f)
 
 from snakeoil.test import TestCase
 
@@ -66,7 +74,7 @@ class TestReadBashConfig(TestCase):
 class ReadBashDictTest(TestCase):
 
     def setUp(self):
-        self.valid_file = tempfile.NamedTemporaryFile()
+        self.valid_file = mk_named_tempfile()
         self.valid_file.write(
             '# hi I am a comment\n'
             'foo1=bar\n'
@@ -75,10 +83,10 @@ class ReadBashDictTest(TestCase):
             'foo4=-/:j4\n'
             'foo5=\n')
         self.valid_file.flush()
-        self.sourcing_file = tempfile.NamedTemporaryFile()
+        self.sourcing_file = mk_named_tempfile()
         self.sourcing_file.write('source "%s"\n' % self.valid_file.name)
         self.sourcing_file.flush()
-        self.advanced_file = tempfile.NamedTemporaryFile()
+        self.advanced_file = mk_named_tempfile()
         self.advanced_file.write(
             'one1=1\n'
             'one_=$one1\n'
@@ -86,19 +94,19 @@ class ReadBashDictTest(TestCase):
             'two_=${two1}\n'
             )
         self.advanced_file.flush()
-        self.env_file = tempfile.NamedTemporaryFile()
+        self.env_file = mk_named_tempfile()
         self.env_file.write(
             'imported=${external}\n'
             )
         self.env_file.flush()
-        self.escaped_file = tempfile.NamedTemporaryFile()
+        self.escaped_file = mk_named_tempfile()
         self.escaped_file.write(
             'end=bye\n'
             'quoteddollar="\${dollar}"\n'
             'quotedexpansion="\${${end}}"\n'
             )
         self.escaped_file.flush()
-        self.unclosed_file = tempfile.NamedTemporaryFile()
+        self.unclosed_file = mk_named_tempfile()
         self.unclosed_file.write('foo="bar')
         self.unclosed_file.flush()
 

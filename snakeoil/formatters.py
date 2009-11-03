@@ -8,6 +8,7 @@ import errno
 
 from snakeoil.klass import GetAttrProxy
 from snakeoil.demandload import demandload
+from snakeoil import compatibility
 demandload(globals(), 'locale')
 
 
@@ -143,6 +144,18 @@ class native_PlainTextFormatter(Formatter):
         self.first_prefix = []
         self.later_prefix = []
 
+    if compatibility.is_py3k:
+        def _encoding_conversion_needed(self, val):
+            return True
+
+        def _force_encoding(self, val):
+            return val.encode(self.encoding, 'replace').decode('ascii')
+    else:
+        def _encoding_conversion_needed(self, val):
+            return isinstance(val, unicode)
+
+        def _force_encoding(self, val):
+            return val.encode(self.encoding, 'replace')
 
     def _write_prefix(self, wrap):
         if self._in_first_line:
@@ -160,8 +173,7 @@ class native_PlainTextFormatter(Formatter):
             if not isinstance(thing, basestring):
                 thing = str(thing)
             self._pos += len(thing)
-            if isinstance(thing, unicode):
-                thing = thing.encode(self.encoding, 'replace')
+            thing = self._force_encoding(thing)
             self.stream.write(thing)
         if wrap and self._pos >= self.width:
             # XXX What to do? Our prefix does not fit.
@@ -221,7 +233,7 @@ class native_PlainTextFormatter(Formatter):
                         continue
                     if not isinstance(arg, basestring):
                         arg = str(arg)
-                    is_unicode = isinstance(arg, unicode)
+                    conversion_needed = self._encoding_conversion_needed(arg)
                     while wrap and self._pos + len(arg) > self.width:
                         # We have to split.
                         maxlen = self.width - self._pos
@@ -247,8 +259,8 @@ class native_PlainTextFormatter(Formatter):
                             bit = arg[:space]
                             # Omit the space we split on.
                             arg = arg[space+1:]
-                        if is_unicode:
-                            bit = bit.encode(self.encoding, 'replace')
+                        if conversion_needed:
+                            bit = self._force_encoding(bit)
                         self.stream.write(bit)
                         self.stream.write('\n')
                         self._pos = 0
@@ -259,8 +271,8 @@ class native_PlainTextFormatter(Formatter):
                     # This fits.
                     self._wrote_something = True
                     self._pos += len(arg)
-                    if is_unicode:
-                        arg = arg.encode(self.encoding, 'replace')
+                    if conversion_needed:
+                        arg = self._force_encoding(arg)
                     self.stream.write(arg)
                 if autoline:
                     self.stream.write('\n')
@@ -327,7 +339,7 @@ else:
                 # bogus template so check explicitly.
                 template = formatter._set_color[self.mode]
                 if template:
-                    res = curses.tparm(template, color)
+                    res = curses.tparm(template, color).decode("ascii")
                 else:
                     res = ''
                 formatter._current_colors[self.mode] = res
@@ -336,7 +348,7 @@ else:
 
     class TerminfoCode(object):
         def __init__(self, value):
-            self.value = value
+            self.value = value.decode('ascii')
 
     class TerminfoMode(TerminfoCode):
         def __call__(self, formatter):
@@ -411,9 +423,10 @@ else:
             self.reset = TerminfoReset(curses.tigetstr('sgr0'))
             self.bold = TerminfoMode(curses.tigetstr('bold'))
             self.underline = TerminfoMode(curses.tigetstr('smul'))
-            self._color_reset = curses.tigetstr('op')
+            self._color_reset = curses.tigetstr('op').decode("ascii")
             self._set_color = (
-                curses.tigetstr('setaf'), curses.tigetstr('setab'))
+                curses.tigetstr('setaf').decode("ascii"),
+                curses.tigetstr('setab').decode("ascii"))
             # [fg, bg]
             self._current_colors = [None, None]
             self._modes = set()
