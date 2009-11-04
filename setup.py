@@ -99,11 +99,13 @@ class mysdist(sdist.sdist):
 
 class snakeoil_build_py(build_py.build_py):
 
-    user_options = build_py.build_py.user_options + [("inplace", "i", "do any source conversions in place")]
+    user_options = build_py.build_py.user_options + [("inplace", "i", "do any source conversions in place"),
+        ("py2to3-tool=", None, "python conversion tool to use; defualts to 2to3")]
 
     def initialize_options(self):
         build_py.build_py.initialize_options(self)
         self.inplace = False
+        self.py2to3_tool = '2to3'
 
     def finalize_options(self):
         self.inplace = bool(self.inplace)
@@ -111,7 +113,7 @@ class snakeoil_build_py(build_py.build_py):
             self.build_lib = '.'
         build_py.build_py.finalize_options(self)
 
-    def _compute_py3k_rebuilds(self):
+    def _compute_py3k_rebuilds(self, force=False):
         pjoin = os.path.join
         for base, mod_name, path in self.find_all_modules():
             try:
@@ -120,6 +122,9 @@ class snakeoil_build_py(build_py.build_py):
                 # ok... wtf distutils?
                 continue
             trg_path = pjoin(self.build_lib, path)
+            if force:
+                yield trg_path, new_mtime
+                continue
             try:
                 old_mtime = os.lstat(trg_path).st_mtime
             except (OSError, IOError):
@@ -133,7 +138,8 @@ class snakeoil_build_py(build_py.build_py):
         py3k_rebuilds = []
         if not self.inplace:
             if is_py3k:
-                py3k_rebuilds = list(self._compute_py3k_rebuilds())
+                py3k_rebuilds = list(self._compute_py3k_rebuilds(
+                    self.force))
             build_py.build_py.run(self)
 
         bzr_ver = self.get_module_outfile(
@@ -150,6 +156,18 @@ class snakeoil_build_py(build_py.build_py):
                 self.byte_compile([bzr_ver])
                 py3k_rebuilds.append((bzr_ver, os.lstat(bzr_ver).st_mtime))
 
+        if sys.version_info[0:2] >= (2,5) and not self.inplace:
+            files = os.listdir(os.path.join(self.build_lib, 'snakeoil', 'xml'))
+            for x in files:
+                if x.startswith("bundled_elementtree.py"):
+                    os.unlink(os.path.join(self.build_lib,
+                        'snakeoil', 'xml', x))
+            if is_py3k:
+                kill_it = os.path.join(self.build_lib, 'snakeoil', 'xml',
+                    'bundled_elementtree.py')
+                py3k_rebuilds = [x for x in py3k_rebuilds
+                    if not x[0] == kill_it]
+
         if not is_py3k:
             return
 
@@ -157,21 +175,27 @@ class snakeoil_build_py(build_py.build_py):
 
         null_f = open("/dev/null", "w")
 
-        def rewrite(path, mtime):
-            mod_path = path
-            log.info("doing py3k conversion of %s..." % path)
-            ret = subprocess.call(["2to3", "-wn", mod_path],
+        while py3k_rebuilds:
+            chunk = py3k_rebuilds[:10]
+            py3k_rebuilds = py3k_rebuilds[10:]
+            paths = [x[0] for x in chunk]
+            for path in paths:
+                log.info("doing py3k conversion of %s..." % path)
+
+            ret = subprocess.call([self.py2to3_tool, "-wn"] + paths,
                 stderr=null_f, stdout=null_f, shell=False)
+
             if ret != 0:
                 # rerun to get the output for users.
-                subprocess.call(["2to3", "-wn", mod_path], shell=False)
-                raise errors.DistutilsExecError(
-                    "py3k conversion of %s failed w/ exit code %i"
-                    % (path, ret))
-            os.utime(path, (-1, mtime))
+                for path in paths:
+                    ret = subprocess.call(["2to3", mod_path], shell=False)
+                    if ret != 0:
+                        raise errors.DistutilsExecError(
+                            "py3k conversion of %s failed w/ exit code %i"
+                            % (path, ret))
 
-        for path, mtime in py3k_rebuilds:
-            rewrite(path, mtime)
+            for path, mtime in chunk:
+                os.utime(path, (-1, mtime))
 
         log.info("completed py3k conversions")
 
@@ -238,16 +262,24 @@ class test(core.Command):
         ("disable-fork", None, "disable forking of the testloader; primarily for debugging"),
         ("namespaces=", "t", "run only tests matching these namespaces.  "
             "comma delimited"),
+        ("pure-python", None, "disable building of extensions"),
+        ("force", "f", "force build_py/build_ext as needed"),
+        ("py2to3-tool=", None, "tool to use for 2to3 conversion; passed to build_py"),
         ]
 
     def initialize_options(self):
         self.inplace = False
         self.disable_fork = False
         self.namespaces = ''
+        self.pure_python = False
+        self.force = False
+        self.py2to3_tool = '2to3'
 
     def finalize_options(self):
         self.inplace = bool(self.inplace)
         self.disable_fork = bool(self.disable_fork)
+        self.pure_python = bool(self.pure_python)
+        self.force = bool(self.force)
         if self.namespaces:
             self.namespaces = tuple(set(self.namespaces.split(',')))
         else:
@@ -256,8 +288,12 @@ class test(core.Command):
     def run(self):
         build_ext = self.reinitialize_command('build_ext')
         build_py = self.reinitialize_command('build_py')
+        build_py.py2to3_tool = self.py2to3_tool
         build_ext.inplace = build_py.inplace = self.inplace
-        self.run_command('build_ext')
+        build_ext.force = build_py.force = self.force
+
+        if not self.pure_python:
+            self.run_command('build_ext')
         if not self.inplace:
             self.run_command('build_py')
 

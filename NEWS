@@ -1,8 +1,28 @@
 Snakeoil Release Notes
 ======================
 
-* initial py3k conversion work; should automatically invoke during
-  setup.py invocations, although it requires 2to3 conversion tool.
+
+* snakeoil/caching_2to3.py, a caching form of 2to3 that relies on an
+  env var 'PY2TO3_CACHEDIR' to determine where to store cached versions
+  of converted source.  Algorithm behind the cache is md5 based- if the
+  md5 of the targeted source exists in the cachedir, it reuses the results
+  from the previous run instead of invoking 2to3.  Massive performance
+  speed up from this- uncached, setup.py test is ~32s.  cached, ~1.9s.
+  That said, this is experimental- bug reports welcome however.
+
+* experimental py3.1 support via 2to3.  setup.py automatically will
+  convert the source if invoked by a py3k interpretter.
+
+* setup.py test has been heavily enhanced- now it does it's testing
+  against a standalone install of the source, should have zero
+  side affects on the underlying source.
+
+* snakeoil no longer installs a bundled copy of elementtree if the
+  python version is 2.5 or higher (no need, python bundles it's own).
+
+* snakeoil.test.test_demandload_usage now supports blacklisting- this
+  is primarily useful for blocking py3k specific modules from being checked
+  under py2k, and vice versa.
 
 * optimization in snakeoil.osutils.readlines; for small files, it's
   roughly a 4-8% speedup, for larger files (over half a meg) growing

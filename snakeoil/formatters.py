@@ -315,6 +315,11 @@ try:
 except ImportError:
     TerminfoColor = None
 else:
+
+    def py3k_cast(value):
+        if value is not None:
+            return value.decode("ascii")
+        return value
     class TerminfoColor(object):
 
         def __init__(self, mode, color):
@@ -348,7 +353,7 @@ else:
 
     class TerminfoCode(object):
         def __init__(self, value):
-            self.value = value.decode('ascii')
+            self.value = py3k_cast(value)
 
     class TerminfoMode(TerminfoCode):
         def __call__(self, formatter):
@@ -423,10 +428,10 @@ else:
             self.reset = TerminfoReset(curses.tigetstr('sgr0'))
             self.bold = TerminfoMode(curses.tigetstr('bold'))
             self.underline = TerminfoMode(curses.tigetstr('smul'))
-            self._color_reset = curses.tigetstr('op').decode("ascii")
+            self._color_reset = py3k_cast(curses.tigetstr('op'))
             self._set_color = (
-                curses.tigetstr('setaf').decode("ascii"),
-                curses.tigetstr('setab').decode("ascii"))
+                py3k_cast(curses.tigetstr('setaf')),
+                py3k_cast(curses.tigetstr('setab')))
             # [fg, bg]
             self._current_colors = [None, None]
             self._modes = set()

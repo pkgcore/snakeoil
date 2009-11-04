@@ -35,7 +35,11 @@ if not gotit:
         pass
 
 if not gotit:
+    import sys
+    if sys.version_info[:2] >= (2,5):
+        raise ImportError("no etree module found, yet we're running a version of python beyond 2.4...")
     from snakeoil.xml import bundled_elementtree as etree
+
 del gotit
 
 def escape(string):

@@ -4,10 +4,16 @@
 import os, stat, errno
 
 from snakeoil.test import TestCase
+from snakeoil import compatibility
 
 class TestDemandLoadTargets(TestCase):
 
     valid_inits = frozenset("__init__.%s" % x for x in ("py", "pyc", "pyo", "so"))
+
+    if compatibility.is_py3k:
+        blacklist = frozenset(['snakeoil.caching_2to3'])
+    else:
+        blacklist = frozenset()
 
     target_namespace = 'snakeoil'
     ignore_all_import_failures = False
@@ -100,9 +106,11 @@ class TestDemandLoadTargets(TestCase):
                 if x is None:
                     if namespace is None:
                         continue
-                    yield self.poor_mans_load(namespace)
                 else:
-                    yield self.poor_mans_load(mangle(x))
+                    namespaace = mangle(namespace)
+                if namespace in self.blacklist:
+                    continue
+                yield self.poor_mans_load(namespace)
             except ImportError:
                 if not ignore_failed_imports:
                     raise

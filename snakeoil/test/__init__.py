@@ -18,6 +18,8 @@ def _tryResultCall(result, methodname, *args):
     method = getattr(result, methodname, None)
     if method is not None:
         method(*args)
+        return True
+    return None
 
 
 class SkipTest(Exception):
@@ -150,7 +152,11 @@ class TestCase(unittest.TestCase, object):
             if todo is not None:
                 todo = Todo.parse(todo)
             if skip is not None:
-                _tryResultCall(result, 'addSkip', self, skip)
+                if not _tryResultCall(result, 'addSkip', self, skip):
+                    sys.stdout.flush()
+                    sys.stdout.write("%s: skipping ... " % skip)
+                    sys.stdout.flush()
+                    result.addSuccess(self)
                 return
 
             try:
