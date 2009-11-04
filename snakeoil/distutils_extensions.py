@@ -308,7 +308,7 @@ class test(core.Command):
         ("pure-python", None, "disable building of extensions"),
         ("force", "f", "force build_py/build_ext as needed"),
         ("py2to3-tool=", None, "tool to use for 2to3 conversion; passed to build_py"),
-        ("include-dirs=","I", "include dirs for build_ext if needed"),
+        ("include-dirs=", "I", "include dirs for build_ext if needed"),
         ]
 
     default_test_namespace = None
@@ -327,7 +327,7 @@ class test(core.Command):
         self.disable_fork = bool(self.disable_fork)
         self.pure_python = bool(self.pure_python)
         self.force = bool(self.force)
-        if isinstance(self.include_dirs, basestring):
+        if isinstance(self.include_dirs, str):
             self.include_dirs = self.include_dirs.split(os.pathsep)
         if self.namespaces:
             self.namespaces = tuple(set(self.namespaces.split(',')))
