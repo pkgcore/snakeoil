@@ -48,4 +48,3 @@ else:
     # note that 2to3 screws this up... non issue however, since
     # this codepath won't be executed.
     from __builtin__ import cmp, intern
-    
