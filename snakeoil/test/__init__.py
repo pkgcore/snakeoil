@@ -12,12 +12,22 @@ __all__ = ['scripts', 'SkipTest', 'TestCase']
 import sys
 import warnings
 import unittest
-
+from snakeoil.compatibility import is_py3k
 
 def _tryResultCall(result, methodname, *args):
     method = getattr(result, methodname, None)
     if method is not None:
-        method(*args)
+        if methodname != 'addExpectedFailure':
+            method(*args)
+            return True
+        if is_py3k:
+            if result.__class__.__module__ == 'unittest':
+                # bugger...
+                method(args[0], args[1])
+            else:
+                method(args[0], str(args[1][1]), args[2])
+        else:
+            method(args[0], str(args[1][1]), args[2])
         return True
     return None
 
@@ -180,7 +190,7 @@ class TestCase(unittest.TestCase, object):
                     exc = sys.exc_info()
                     if todo is not None and todo.expected(exc[0]):
                         _tryResultCall(result, 'addExpectedFailure',
-                                       self, str(exc[1]), todo)
+                                       self, exc, todo)
                     else:
                         result.addFailure(self, exc)
                 except SkipTest, e:
@@ -191,7 +201,7 @@ class TestCase(unittest.TestCase, object):
                     exc = sys.exc_info()
                     if todo is not None and todo.expected(exc[0]):
                         _tryResultCall(result, 'addExpectedFailure',
-                                       self, str(exc[1]), todo)
+                                       self, exc, todo)
                     else:
                         result.addError(self, exc)
                     # There is a tb in this so do not keep it around.

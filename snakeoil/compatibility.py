@@ -42,8 +42,10 @@ if int(sys.version[0]) >= 3:
     # docs for porting however...
     def cmp(a, b):
         return (a < b) - (a > b)
+    intern = sys.intern
 else:
     file_cls = file
     # note that 2to3 screws this up... non issue however, since
     # this codepath won't be executed.
-    from __builtin__ import cmp
+    from __builtin__ import cmp, intern
+    
