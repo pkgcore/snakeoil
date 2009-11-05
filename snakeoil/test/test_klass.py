@@ -162,7 +162,7 @@ class Test_inject_richcmp_methods_from_cmp(TestCase):
 
     def get_cls(self, force=False, overrides={}):
         class foo(object):
-        
+
             def __init__(self, value):
                 self.value = value
 
@@ -193,7 +193,7 @@ class Test_inject_richcmp_methods_from_cmp(TestCase):
             if not is_py3k and force:
                 for methname in ("lt", "le", "ge", "eq", "ne", "gt", "ge"):
                     self.assertTrue(hasattr(kls, '__%s__' % methname))
-            
+
 
 class Test_chained_getter(TestCase):
 
