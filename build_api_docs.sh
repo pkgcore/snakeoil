@@ -12,4 +12,5 @@ fi
 export SNAKEOIL_DEMANDLOAD_PROTECTION=n
 epydoc --${1} --no-frames --no-frames --graph=all -n snakeoil -u \
     http://pkgcore.org/trac/snakeoil --show-imports --include-log \
-    --inheritance=included --quiet --simple-term -o "$2" snakeoil
+    --inheritance=included --quiet --simple-term -o "$2" snakeoil --debug \
+        --exclude='snakeoil\.test\..*'

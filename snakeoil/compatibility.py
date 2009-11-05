@@ -34,15 +34,27 @@ except ImportError:
     except ImportError:
         any, all = native_any, native_all
 
-if int(sys.version[0]) >= 3:
+if is_py3k:
     import io
     file_cls = io.TextIOWrapper
 
     # yes this is heinous.  this is whay they recommended in the python
     # docs for porting however...
-    def cmp(a, b):
-        return (a < b) - (a > b)
+    def raw_cmp(a, b):
+        return (a > b) - (a < b)
+
+    def cmp(obj1, obj2, cmp=raw_cmp):
+        if obj1 is None:
+            if obj2 is None:
+                return 0
+            return -1
+        elif obj2 is None:
+            return 1
+        return raw_cmp(obj1, obj2)
+
     intern = sys.intern
+
+
 else:
     file_cls = file
     # note that 2to3 screws this up... non issue however, since

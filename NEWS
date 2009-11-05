@@ -2,6 +2,10 @@ Snakeoil Release Notes
 ======================
 
 
+* snakeoil.klass.generate_richcmp_from_cmp ; metaclass to generate
+  __le__, __lt__, __gt__, __eq__, etc, via invoking __cmp__.  Primarily
+  intended for compatibility py3k wise.
+
 * snakeoil/caching_2to3.py, a caching form of 2to3 that relies on an
   env var 'PY2TO3_CACHEDIR' to determine where to store cached versions
   of converted source.  Algorithm behind the cache is md5 based- if the

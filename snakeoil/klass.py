@@ -3,6 +3,7 @@
 
 from operator import attrgetter
 from snakeoil.caching import WeakInstMeta
+from snakeoil.compatibility import is_py3k
 from collections import deque
 
 def native_GetAttrProxy(target):
@@ -25,7 +26,7 @@ def native_get(self, key, default=None):
 
 
 attrlist_getter = attrgetter("__attr_comparison__")
-def native_generic_eq(inst1, inst2, sentinel=object()):
+def native_generic_attr_eq(inst1, inst2, sentinel=object()):
     if inst1 is inst2:
         return True
     for attr in attrlist_getter(inst1):
@@ -34,7 +35,7 @@ def native_generic_eq(inst1, inst2, sentinel=object()):
             return False
     return True
 
-def native_generic_ne(inst1, inst2, sentinel=object()):
+def native_generic_attr_ne(inst1, inst2, sentinel=object()):
     if inst1 is inst2:
         return False
     for attr in attrlist_getter(inst1):
@@ -45,17 +46,17 @@ def native_generic_ne(inst1, inst2, sentinel=object()):
 
 try:
     from snakeoil._klass import (GetAttrProxy, contains, get,
-        generic_eq, generic_ne)
+        generic_eq as generic_attr_eq, generic_ne as generic_attr_ne)
 except ImportError:
     GetAttrProxy = native_GetAttrProxy
     contains = native_contains
     get = native_get
-    generic_eq = native_generic_eq
-    generic_ne = native_generic_ne
+    generic_attr_eq = native_generic_attr_eq
+    generic_attr_ne = native_generic_attr_ne
 
 
 def generic_equality(name, bases, scope, real_type=type,
-    eq=generic_eq, ne=generic_ne):
+    eq=generic_attr_eq, ne=generic_attr_ne):
     attrlist = scope.pop("__attr_comparison__", None)
     if attrlist is None:
         raise TypeError("__attr_comparison__ must be in the classes scope")
@@ -68,6 +69,32 @@ def generic_equality(name, bases, scope, real_type=type,
     scope.setdefault("__eq__", eq)
     scope.setdefault("__ne__", ne)
     return real_type(name, bases, scope)
+
+def generic_lt(self, other):
+    return self.__cmp__(other) < 0
+
+def generic_le(self, other):
+    return self.__cmp__(other) <= 0
+
+def generic_eq(self, other):
+    return self.__cmp__(other) == 0
+
+def generic_ne(self, other):
+    return self.__cmp__(other) != 0
+
+def generic_ge(self, other):
+    return self.__cmp__(other) >= 0
+
+def generic_gt(self, other):
+    return self.__cmp__(other) > 0
+
+def inject_richcmp_methods_from_cmp(scope, inject_always=False):
+    if not (inject_always or is_py3k):
+        return
+    for key, func in (("__lt__", generic_lt), ("__le__", generic_le),
+        ("__eq__", generic_eq), ("__ne__", generic_ne),
+        ("__ge__", generic_ge), ("__gt__", generic_gt)):
+        scope.setdefault(key, func)
 
 
 def _chained_getter_metaclass(name, bases, scope):
