@@ -29,9 +29,9 @@ class AnyTest(TestCase, override_mixin, anyallmixin):
     override_name = "any"
 
     if anyallmixin.was_missing:
-        test_native_any = post_curry(mixin.check_func,
+        test_native_any = post_curry(anyallmixin.check_func,
             "native_any", True, 4, (x==3 for x in xrange(2)), False)
-        test_cpy_any = post_curry(mixin.check_func,
+        test_cpy_any = post_curry(anyallmixin.check_func,
             "any", True, 4, (x==3 for x in xrange(2)), False)
 
         if compatibility.native_any is compatibility.any:
@@ -43,11 +43,11 @@ class AllTest(TestCase, override_mixin, anyallmixin):
     override_name = "all"
 
     if anyallmixin.was_missing:
-        test_native_all = post_curry(mixin.check_func,
+        test_native_all = post_curry(anyallmixin.check_func,
             "native_all", False, 1,
                 (isinstance(x, int) for x in xrange(100)), True)
 
-        test_cpy_all = post_curry(mixin.check_func,
+        test_cpy_all = post_curry(anyallmixin.check_func,
             "all", False, 1,
                 (isinstance(x, int) for x in xrange(100)), True)
 
