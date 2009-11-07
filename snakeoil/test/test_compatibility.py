@@ -4,6 +4,7 @@
 from snakeoil.test import TestCase
 from snakeoil import compatibility
 from snakeoil.currying import post_curry
+from operator import itemgetter
 import __builtin__ as builtins
 
 class override_mixin(object):
@@ -71,3 +72,73 @@ class CmpTest(TestCase, override_mixin):
             self.assertTrue(f(1, None) > 0)
             self.assertTrue(f(None, 1) < 0)
             self.assertTrue(f(None, None) == 0)
+
+
+class NextTest(TestCase):
+
+    # done this way to keep 2to3 from mangling the name invalidly.
+    func = staticmethod(getattr(compatibility, 'next'))
+
+    def test_it(self):
+        f = self.func
+        self.assertRaises(TypeError, f, None)
+        self.assertRaises(TypeError, f, "s")
+        i = iter("sa")
+        self.assertEqual(f(i), "s")
+        self.assertEqual(f(i), "a")
+        self.assertRaises(StopIteration, f, i)
+
+
+class incomparable_obj(tuple):
+    # used to ensure that if this raw object is compared,
+    # it goes boom.
+    def __le__(self, other):
+        raise TypeError
+
+    __eq__ = __ne__ = __cmp__ = __le__
+
+
+class sorted_cmp_test(TestCase):
+
+    func = staticmethod(compatibility.sorted_cmp)
+
+    unchanging = True
+
+    @staticmethod
+    def get_list():
+        return range(100)
+
+    def test_it(self):
+        f = self.func
+        l = self.get_list()
+        cmp = compatibility.cmp
+        self.assertEqual(sorted(l, reverse=True),
+            f(l, lambda x, y:-cmp(x,y)))
+
+        if self.unchanging:
+            self.assertEqual(self.get_list(), l)
+
+        l = list(reversed(self.get_list()))
+        self.assertEqual(sorted(l),
+            f(l, cmp))
+
+        if self.unchanging:
+            self.assertEqual(list(reversed(self.get_list())), l)
+
+        zeroth = itemgetter(0)
+
+        l = self.get_list()
+        mangled = [incomparable_obj([x]) for x in l]
+        # finally, verify it combines key w/ cmp properly.
+        self.assertEqual(sorted(l, reverse=True),
+            map(zeroth, f(mangled, (lambda x, y:cmp(x,y)), key=zeroth,
+                reverse=True)))
+
+        if self.unchanging:
+            self.assertEqual(self.get_list(), map(zeroth, mangled))
+
+
+class sort_cmp_test(TestCase):
+
+    unchanging = False
+    func = staticmethod(compatibility.sort_cmp)

@@ -2,6 +2,8 @@ Snakeoil Release Notes
 ======================
 
 
+* snakeoil.compatibility additions; next, cmp, file_cls, and is_py3k.
+
 * snakeoil.klass.generate_richcmp_from_cmp ; metaclass to generate
   __le__, __lt__, __gt__, __eq__, etc, via invoking __cmp__.  Primarily
   intended for compatibility py3k wise.

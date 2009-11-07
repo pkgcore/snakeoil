@@ -34,6 +34,24 @@ except ImportError:
     except ImportError:
         any, all = native_any, native_all
 
+def sorted_key_from_cmp(cmp_func, key_func=None):
+    class _key_proxy(object):
+
+        __slots__ = ('_obj',)
+
+        if key_func: # done this way for speed reasons.
+            def __init__(self, obj, key_convert=key_func):
+                self._obj = key_convert(obj)
+        else:
+            def __init__(self, obj):
+                self._obj = obj
+
+        def __lt__(self, other, _cmp_func=cmp_func):
+            return _cmp_func(self._obj, other._obj) < 0
+
+    return _key_proxy
+
+
 if is_py3k:
     import io
     file_cls = io.TextIOWrapper
@@ -53,10 +71,30 @@ if is_py3k:
         return raw_cmp(obj1, obj2)
 
     intern = sys.intern
+    from __builtin__ import next
 
+    def sorted_cmp(sequence, func, key=None, reverse=False):
+        return sorted(sequence, reverse=reverse,
+            key=sorted_key_from_cmp(func, key_func=key))
+
+    def sort_cmp(list_inst, func, key=None, reverse=False):
+        list_inst.sort(reverse=reverse,
+            key=sorted_key_from_cmp(func, key_func=key))
 
 else:
     file_cls = file
     # note that 2to3 screws this up... non issue however, since
     # this codepath won't be executed.
     from __builtin__ import cmp, intern
+    def next(iterable):
+        try:
+            obj = iterable.next
+        except AttributeError:
+            raise TypeError("%s is not an iterator" % (iterable,))
+        return obj()
+
+    def sorted_cmp(sequence, func, key=None, reverse=False):
+        return sorted(sequence, cmp=func, key=key, reverse=reverse)
+
+    def sort_cmp(list_inst, func, key=None, reverse=False):
+        return list_inst.sort(cmp=func, key=key, reverse=reverse)
