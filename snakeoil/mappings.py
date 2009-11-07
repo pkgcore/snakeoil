@@ -13,10 +13,10 @@ from snakeoil import compatibility
 cmp = compatibility.cmp
 
 if not compatibility.is_py3k:
-    DictMixin_metaclass = type
+    auto_convert_py3k_methods_metaclass = type
 else:
 
-    class DictMixin_metaclass(type):
+    class autoconvert_py3k_methods_metaclass(type):
 
         def __new__(cls, name, bases, d):
             if not d.get("disable_py3k_rewriting", False):
@@ -37,7 +37,7 @@ class DictMixin(object):
 
     __slots__ = ()
     __externally_mutable__ = True
-    __metaclass__ = DictMixin_metaclass
+    __metaclass__ = autoconvert_py3k_methods_metaclass
 
     def __init__(self, iterable=None, **kwargs):
         if iterable is not None:
