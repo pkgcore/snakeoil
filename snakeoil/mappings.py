@@ -13,7 +13,7 @@ from snakeoil import compatibility
 cmp = compatibility.cmp
 
 if not compatibility.is_py3k:
-    auto_convert_py3k_methods_metaclass = type
+    autoconvert_py3k_methods_metaclass = type
 else:
 
     class autoconvert_py3k_methods_metaclass(type):
