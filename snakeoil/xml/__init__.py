@@ -1,4 +1,4 @@
-# Copyright: 2006 Brian Harring <ferringb@gmail.com>
+# Copyright: 2006-2009 Brian Harring <ferringb@gmail.com>
 # License: GPL2
 
 """
@@ -10,37 +10,41 @@ indirection to load ElementTree
 # "No name etree in module xml", "Reimport cElementTree"
 # pylint: disable-msg=E0611,W0404
 
-gotit = True
+etree = None
 try:
     import cElementTree as etree
-except ImportError:
-    gotit = False
-if not gotit:
+except ImportError: pass
+
+if etree is None:
     try:
         from xml.etree import cElementTree as etree
-        gotit = True
-    except ImportError:
-        pass
-if not gotit:
+        if not hasattr(etree, 'parse'):
+            etree = None
+    except ImportError: pass
+
+if etree is None:
     try:
         from elementtree import ElementTree as etree
-        gotit = True
-    except ImportError:
-        pass
-if not gotit:
+    except ImportError: pass
+
+if etree is None:
+    try:
+        from xml.etree import cElementTree as etree
+        if not hasattr(etree, 'parse'):
+            etree = None
+    except ImportError: pass
+
+if etree is None:
     try:
         from xml.etree import ElementTree as etree
-        gotit = True
+    except ImportError: pass
+
+if etree is None:
+    try:
+        from snakeoil.xml import bundled_elementtree as etree
     except ImportError:
-        pass
+        raise ImportError("no suitable etree module found")
 
-if not gotit:
-    import sys
-    if sys.version_info[:2] >= (2,5):
-        raise ImportError("no etree module found, yet we're running a version of python beyond 2.4...")
-    from snakeoil.xml import bundled_elementtree as etree
-
-del gotit
 
 def escape(string):
     """

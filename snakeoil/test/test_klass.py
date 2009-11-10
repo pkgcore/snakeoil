@@ -4,7 +4,7 @@
 from snakeoil.test import TestCase
 from snakeoil import klass, currying
 from snakeoil.compatibility import cmp, is_py3k
-
+from time import time
 
 class Test_native_GetAttrProxy(TestCase):
     kls = staticmethod(klass.native_GetAttrProxy)
@@ -231,3 +231,237 @@ class Test_chained_getter(TestCase):
         self.assertEqual(f('dar.foon')(m), 1)
         self.assertEqual(f('.'.join(['blah']*10))(m), m)
         self.assertRaises(AttributeError, f('foon.dar'), m)
+
+
+class Test_jit_attr(TestCase):
+
+    kls = staticmethod(klass._internal_jit_attr)
+
+    @property
+    def jit_attr(self):
+        return currying.partial(klass.jit_attr, kls=self.kls)
+
+    @property
+    def jit_attr2(self):
+        return currying.partial(klass.jit_attr2, kls=self.kls)
+
+    @property
+    def jit_attr_ext_method(self):
+        return currying.partial(klass.jit_attr_ext_method, kls=self.kls)
+
+    def mk_inst(self, attrname='_attr', method_lookup=False,
+        use_cls_setattr=False):
+        def f(self):
+            self._invokes.append(self)
+            return 54321
+
+        if method_lookup:
+            f = 'reflect'
+
+        class cls(object):
+
+            def __init__(self):
+                sf = currying.partial(object.__setattr__, self)
+                sf('_sets', [])
+                sf('_reflects', [])
+                sf('_invokes', [])
+
+            attr = self.kls(f, attrname, method_lookup=method_lookup,
+                use_cls_setattr=use_cls_setattr)
+
+            def __setattr__(self, attr, value):
+                self._sets.append(self)
+                object.__setattr__(self, attr, value)
+
+            def reflect(self):
+                self._reflects.append(self)
+                return 12345
+
+
+        return cls()
+
+    def assertState(self, instance, sets=0, reflects=0, invokes=0, value=54321):
+        self.assertEqual(instance.attr, value)
+        sets = [instance] * sets
+        reflects = [instance] * reflects
+        invokes = [instance] * invokes
+        msg = ("checking %s: got(%r), expected(%r); state was sets=%r, "
+            "reflects=%r, invokes=%r" % (
+            "%s", "%s", "%s", instance._sets, instance._reflects, instance._invokes))
+        self.assertEqual(instance._sets, sets,
+            msg=(msg % ("sets", instance._sets, sets,)))
+        self.assertEqual(instance._reflects, reflects,
+            msg=(msg % ("reflects", instance._reflects, reflects,)))
+        self.assertEqual(instance._invokes, invokes,
+            msg=(msg % ("invokes", instance._invokes, invokes,)))
+
+    def test_implementation(self):
+        obj = self.mk_inst()
+
+        # default state is use_cls_setattr = False
+        self.assertState(obj, invokes=1)
+        self.assertState(obj, invokes=1)
+        del obj._attr
+        self.assertState(obj, invokes=2)
+        self.assertState(obj, invokes=2)
+
+        # basic caching is now verified.
+        obj = self.mk_inst(use_cls_setattr=True)
+        self.assertState(obj, sets=1, invokes=1)
+        self.assertState(obj, sets=1, invokes=1)
+        del obj._attr
+        self.assertState(obj, sets=2, invokes=2)
+        self.assertState(obj, sets=2, invokes=2)
+
+        # check method aliasing (basically)
+        obj = self.mk_inst(method_lookup=True)
+        self.assertState(obj, reflects=1, value=12345)
+        self.assertState(obj, reflects=1, value=12345)
+        del obj._attr
+        self.assertState(obj, reflects=2, value=12345)
+        self.assertState(obj, reflects=2, value=12345)
+
+        #combined...
+        obj = self.mk_inst(method_lookup=True, use_cls_setattr=True)
+        self.assertState(obj, sets=1, reflects=1, value=12345)
+        self.assertState(obj, sets=1, reflects=1, value=12345)
+        del obj._attr
+        self.assertState(obj, sets=2, reflects=2, value=12345)
+        self.assertState(obj, sets=2, reflects=2, value=12345)
+
+    def test_jit_attr(self):
+        now = time()
+
+        class cls(object):
+            @self.jit_attr
+            def my_attr(self):
+                return now
+
+        o = cls()
+        self.assertEqual(o.my_attr, now)
+        self.assertEqual(o._my_attr, now)
+
+        class cls(object):
+            @self.jit_attr
+            def attr2(self):
+                return now
+
+            def __setattr__(self, attr, value):
+                raise AssertionError("setattr was invoked")
+
+        o = cls()
+        self.assertEqual(o.attr2, now)
+        self.assertEqual(o._attr2, now)
+        del o._attr2
+        self.assertEqual(o.attr2, now)
+        self.assertEqual(o._attr2, now)
+
+    def test_jit_attr2(self):
+        now = time()
+
+        # check attrname control and default object.__setattr__ avoidance
+        class cls(object):
+            @self.jit_attr2("_blah")
+            def my_attr(self):
+                return now
+
+            def __setattr__(self, attr, value):
+                raise AssertionError("setattr was invoked")
+
+        o = cls()
+        self.assertEqual(o.my_attr, now)
+        self.assertEqual(o._blah, now)
+
+        class cls(object):
+            @self.jit_attr2("_blah2", use_cls_setattr=True)
+            def my_attr(self):
+                return now
+
+            def __setattr__(self, attr, value):
+                object.__setattr__(self, "invoked", True)
+                object.__setattr__(self, attr, value)
+
+        o = cls()
+        self.assertFalse(hasattr(o, 'invoked'))
+        self.assertEqual(o.my_attr, now)
+        self.assertEqual(o._blah2, now)
+        self.assertTrue(o.invoked)
+
+    def test_jit_attr_ext_method(self):
+        now = time()
+        now2 = now + 100
+
+        class base(object):
+            def f1(self):
+                return now
+
+            def f2(self):
+                return now2
+
+            def __setattr__(self, attr, value):
+                if not getattr(self, '_setattr_allowed', False):
+                    raise TypeError("setattr isn't allowed for %s" % attr)
+                object.__setattr__(self, attr, value)
+
+        base.attr = self.jit_attr_ext_method('f1', '_attr')
+        o = base()
+        self.assertEqual(o.attr, now)
+        self.assertEqual(o._attr, now)
+        self.assertEqual(o.attr, now)
+
+        base.attr = self.jit_attr_ext_method('f1', '_attr', use_cls_setattr=True)
+        o = base()
+        self.assertRaises(TypeError, getattr, o, 'attr')
+        base._setattr_allowed = True
+        self.assertEqual(o.attr, now)
+
+        base.attr = self.jit_attr_ext_method('f2', '_attr2')
+        o = base()
+        self.assertEqual(o.attr, now2)
+        self.assertEqual(o._attr2, now2)
+
+        # finally, check that it's doing lookups rather then storing the func.
+        base.attr = self.jit_attr_ext_method('func', '_attr2')
+        o = base()
+        # no func...
+        self.assertRaises(AttributeError, getattr, o, 'attr')
+        base.func = base.f1
+        self.assertEqual(o.attr, now)
+        self.assertEqual(o._attr2, now)
+        # check caching...
+        base.func = base.f2
+        self.assertEqual(o.attr, now)
+        del o._attr2
+        self.assertEqual(o.attr, now2)
+
+
+class test_aliased_attr(TestCase):
+
+    func = staticmethod(klass.aliased_attr)
+
+    def test_it(self):
+        class cls(object):
+            attr = self.func("dar.blah")
+
+        o = cls()
+        self.assertRaises(AttributeError, getattr, o, 'attr')
+        o.dar = "foon"
+
+        self.assertRaises(AttributeError, getattr, o, 'attr')
+        o.dar = o
+        o.blah = "monkey"
+
+        self.assertEqual(o.attr, 'monkey')
+
+        # verify it'll cross properties...
+        class blah(object):
+            target = object()
+
+        class cls(object):
+            @property
+            def foon(self):
+                return blah()
+
+            alias = self.func("foon.target")
+        o = cls()
+        self.assertIdentical(o.alias, blah.target)

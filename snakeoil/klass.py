@@ -4,6 +4,7 @@
 from operator import attrgetter
 from snakeoil.caching import WeakInstMeta
 from snakeoil.compatibility import is_py3k
+from snakeoil.currying import partial, alias_class_method
 from collections import deque
 
 def native_GetAttrProxy(target):
@@ -122,3 +123,45 @@ class chained_getter(object):
         for f in self.chain:
             o = f(o)
         return o
+
+
+class _internal_jit_attr(object):
+
+    __singleton = object()
+
+    __slots__ = ("_attr_name", "_func", "_setter")
+
+    def __init__(self, func, attr_name, method_lookup=False,
+        use_cls_setattr=False):
+        if method_lookup:
+            func = alias_class_method(func)
+        if use_cls_setattr:
+            self._setter = setattr
+        else:
+            self._setter = object.__setattr__
+        self._func = func
+        self._attr_name = attr_name
+
+    def __get__(self, instance, obj_type):
+        obj = getattr(instance, self._attr_name, self.__singleton)
+        if obj is self.__singleton:
+            obj = self._func(instance)
+            self._setter(instance, self._attr_name, obj)
+        return obj
+
+def jit_attr(func, attr_name=None, kls=_internal_jit_attr):
+    if attr_name is None:
+        attr_name = "_%s" % func.__name__
+    return kls(func, attr_name)
+
+def jit_attr2(stored_attr_name, use_cls_setattr=False, kls=_internal_jit_attr):
+    return partial(kls, attr_name=stored_attr_name,
+        use_cls_setattr=use_cls_setattr)
+
+def jit_attr_ext_method(func_name, stored_attr_name,
+    use_cls_setattr=False, kls=_internal_jit_attr):
+    return kls(func_name, stored_attr_name, method_lookup=True,
+        use_cls_setattr=use_cls_setattr)
+
+def aliased_attr(target_attr):
+    return property(chained_getter(target_attr))

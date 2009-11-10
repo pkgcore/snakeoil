@@ -23,6 +23,9 @@ Snakeoil Release Notes
   against a standalone install of the source, should have zero
   side affects on the underlying source.
 
+* paper over a bug in cElementTree where it fails to import fully, but
+  doesn't raise ImportError.  This address upstream python bug 3475.
+
 * snakeoil no longer installs a bundled copy of elementtree if the
   python version is 2.5 or higher (no need, python bundles it's own).
 
