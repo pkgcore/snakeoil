@@ -98,24 +98,23 @@ def inject_richcmp_methods_from_cmp(scope, inject_always=False):
         scope.setdefault(key, func)
 
 
-def _chained_getter_metaclass(name, bases, scope):
-    return generic_equality(name, bases, scope, real_type=WeakInstMeta)
-
 class chained_getter(object):
     __slots__ = ('namespace', 'chain')
     __fifo_cache__ = deque()
     __inst_caching__ = True
     __attr_comparison__ = ("namespace",)
-    __metaclass__ = _chained_getter_metaclass
+    __metaclass__ = partial(generic_equality, real_type=WeakInstMeta)
 
     def __init__(self, namespace):
         self.namespace = namespace
-        self.chain = map(attrgetter, namespace.split("."))
+        self.chain = tuple(attrgetter(x) for x in namespace.split("."))
         if len(self.__fifo_cache__) > 10:
             self.__fifo_cache__.popleft()
         self.__fifo_cache__.append(self)
 
     def __hash__(self):
+        # XXX shouldn't this hash to self.__class__ in addition?
+        # via the __eq__, it won't invalidly be the same, but stil..
         return hash(self.namespace)
 
     def __call__(self, obj):
@@ -125,14 +124,15 @@ class chained_getter(object):
         return o
 
 
+_uncached_singleton = object()
+
 class _internal_jit_attr(object):
 
-    __singleton = object()
 
-    __slots__ = ("_attr_name", "_func", "_setter")
+    __slots__ = ("_attr_name", "_func", "_setter", "_singleton")
 
     def __init__(self, func, attr_name, method_lookup=False,
-        use_cls_setattr=False):
+        use_cls_setattr=False, singleton=_uncached_singleton):
         if method_lookup:
             func = alias_class_method(func)
         if use_cls_setattr:
@@ -141,27 +141,34 @@ class _internal_jit_attr(object):
             self._setter = object.__setattr__
         self._func = func
         self._attr_name = attr_name
+        self._singleton = singleton
 
     def __get__(self, instance, obj_type):
-        obj = getattr(instance, self._attr_name, self.__singleton)
-        if obj is self.__singleton:
+        obj = getattr(instance, self._attr_name, self._singleton)
+        if obj is self._singleton:
             obj = self._func(instance)
             self._setter(instance, self._attr_name, obj)
         return obj
 
-def jit_attr(func, attr_name=None, kls=_internal_jit_attr):
-    if attr_name is None:
-        attr_name = "_%s" % func.__name__
-    return kls(func, attr_name)
+def jit_attr(func, kls=_internal_jit_attr, uncached_val=_uncached_singleton):
+    attr_name = "_%s" % func.__name__
+    return kls(func, attr_name, singleton=uncached_val)
 
-def jit_attr2(stored_attr_name, use_cls_setattr=False, kls=_internal_jit_attr):
+def jit_attr_none(func, kls=_internal_jit_attr):
+    return jit_attr(func, kls=kls, uncached_val=None)
+
+def jit_attr_named(stored_attr_name, use_cls_setattr=False, kls=_internal_jit_attr,
+    uncached_val=_uncached_singleton):
     return partial(kls, attr_name=stored_attr_name,
         use_cls_setattr=use_cls_setattr)
 
 def jit_attr_ext_method(func_name, stored_attr_name,
-    use_cls_setattr=False, kls=_internal_jit_attr):
-    return kls(func_name, stored_attr_name, method_lookup=True,
-        use_cls_setattr=use_cls_setattr)
+    use_cls_setattr=False, kls=_internal_jit_attr,
+    uncached_val=_uncached_singleton):
 
-def aliased_attr(target_attr):
+    return kls(func_name, stored_attr_name, method_lookup=True,
+        use_cls_setattr=use_cls_setattr,
+        singleton=uncached_val)
+
+def alias_attr(target_attr):
     return property(chained_getter(target_attr))

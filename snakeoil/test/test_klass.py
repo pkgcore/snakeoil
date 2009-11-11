@@ -242,8 +242,8 @@ class Test_jit_attr(TestCase):
         return currying.partial(klass.jit_attr, kls=self.kls)
 
     @property
-    def jit_attr2(self):
-        return currying.partial(klass.jit_attr2, kls=self.kls)
+    def jit_attr_named(self):
+        return currying.partial(klass.jit_attr_named, kls=self.kls)
 
     @property
     def jit_attr_ext_method(self):
@@ -356,12 +356,12 @@ class Test_jit_attr(TestCase):
         self.assertEqual(o.attr2, now)
         self.assertEqual(o._attr2, now)
 
-    def test_jit_attr2(self):
+    def test_jit_attr_named(self):
         now = time()
 
         # check attrname control and default object.__setattr__ avoidance
         class cls(object):
-            @self.jit_attr2("_blah")
+            @self.jit_attr_named("_blah")
             def my_attr(self):
                 return now
 
@@ -373,7 +373,7 @@ class Test_jit_attr(TestCase):
         self.assertEqual(o._blah, now)
 
         class cls(object):
-            @self.jit_attr2("_blah2", use_cls_setattr=True)
+            @self.jit_attr_named("_blah2", use_cls_setattr=True)
             def my_attr(self):
                 return now
 
@@ -437,7 +437,7 @@ class Test_jit_attr(TestCase):
 
 class test_aliased_attr(TestCase):
 
-    func = staticmethod(klass.aliased_attr)
+    func = staticmethod(klass.alias_attr)
 
     def test_it(self):
         class cls(object):

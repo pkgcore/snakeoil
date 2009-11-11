@@ -2,6 +2,12 @@ Snakeoil Release Notes
 ======================
 
 
+* snakeoil.klass grew new properties to ease common tasks;
+  jit_attr (invoke the target func to get the value, cache the value,
+  return that value till the cached value is wiped).
+  alias_attr (when that attr is accessed, hand the attribute the alias
+  targets).
+
 * snakeoil.compatibility additions; next, cmp, file_cls, and is_py3k.
 
 * snakeoil.klass.generate_richcmp_from_cmp ; metaclass to generate
