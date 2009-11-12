@@ -479,13 +479,20 @@ class ObserverFormatter(object):
     __getattr__ = GetAttrProxy("_formatter")
 
 
+if compatibility.is_py3k:
+    import io
+    fileno_excepts = (AttributeError, io.UnsupportedOperation)
+else:
+    fileno_excepts = AttributeError
+
+
 def get_formatter(stream):
     """TerminfoFormatter if the stream is a tty, else PlainTextFormatter."""
     if TerminfoColor is None:
         return PlainTextFormatter(stream)
     try:
         fd = stream.fileno()
-    except AttributeError:
+    except fileno_excepts:
         pass
     else:
         # We do this instead of stream.isatty() because TerminfoFormatter
