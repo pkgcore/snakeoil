@@ -3,12 +3,14 @@
 # License: GPL2
 
 import os
+pjoin = os.path.join
 import grp
 import stat
 import fcntl
+import codecs
 
 from snakeoil.test import TestCase, SkipTest
-from snakeoil import osutils
+from snakeoil import osutils, compatibility, currying
 from snakeoil.osutils import native_readdir
 from snakeoil.test.mixins import TempDirMixin
 
@@ -19,15 +21,15 @@ class ReaddirCommon(TempDirMixin):
 
     def setUp(self):
         TempDirMixin.setUp(self)
-        self.subdir = os.path.join(self.dir, 'dir')
+        self.subdir = pjoin(self.dir, 'dir')
         os.mkdir(self.subdir)
-        f = open(os.path.join(self.dir, 'file'), 'w')
+        f = open(pjoin(self.dir, 'file'), 'w')
         f.close()
-        os.mkfifo(os.path.join(self.dir, 'fifo'))
+        os.mkfifo(pjoin(self.dir, 'fifo'))
 
     def _test_missing(self, funcs):
         for func in funcs:
-            self.assertRaises(OSError, func, os.path.join(self.dir, 'spork'))
+            self.assertRaises(OSError, func, pjoin(self.dir, 'spork'))
 
 
 class NativeListDirTest(ReaddirCommon):
@@ -53,7 +55,7 @@ class NativeListDirTest(ReaddirCommon):
         ))
 
     def test_dangling_sym(self):
-        os.symlink("foon", os.path.join(self.dir, "monkeys"))
+        os.symlink("foon", pjoin(self.dir, "monkeys"))
         self.assertEqual(["file"], self.module.listdir_files(self.dir))
 
 
@@ -61,8 +63,8 @@ class NativeReaddirTest(ReaddirCommon):
     # TODO: test char/block devices and sockets, devices might be a bit hard
     # because it seems like you need to be root to create them in linux
     def test_readdir(self):
-        os.symlink("foon", os.path.join(self.dir, "monkeys"))
-        os.symlink(os.path.join(self.dir, "file"), os.path.join(self.dir, "sym"))
+        os.symlink("foon", pjoin(self.dir, "monkeys"))
+        os.symlink(pjoin(self.dir, "file"), pjoin(self.dir, "sym"))
         self.assertEquals(set([
             ("dir", "directory"),
             ("file", "file"),
@@ -108,25 +110,25 @@ class EnsureDirsTest(TempDirMixin, TestCase):
 
     def test_ensure_dirs(self):
         # default settings
-        path = os.path.join(self.dir, 'foo', 'bar')
+        path = pjoin(self.dir, 'foo', 'bar')
         self.failUnless(osutils.ensure_dirs(path))
         self.check_dir(path, os.geteuid(), os.getegid(), 0777)
 
     def test_minimal_nonmodifying(self):
-        path = os.path.join(self.dir, 'foo', 'bar')
+        path = pjoin(self.dir, 'foo', 'bar')
         self.failUnless(osutils.ensure_dirs(path, mode=0755))
         os.chmod(path, 0777)
         self.failUnless(osutils.ensure_dirs(path, mode=0755, minimal=True))
         self.check_dir(path, os.geteuid(), os.getegid(), 0777)
 
     def test_minimal_modifying(self):
-        path = os.path.join(self.dir, 'foo', 'bar')
+        path = pjoin(self.dir, 'foo', 'bar')
         self.failUnless(osutils.ensure_dirs(path, mode=0750))
         self.failUnless(osutils.ensure_dirs(path, mode=0005, minimal=True))
         self.check_dir(path, os.geteuid(), os.getegid(), 0755)
 
     def test_create_unwritable_subdir(self):
-        path = os.path.join(self.dir, 'restricted', 'restricted')
+        path = pjoin(self.dir, 'restricted', 'restricted')
         # create the subdirs without 020 first
         self.failUnless(osutils.ensure_dirs(os.path.dirname(path)))
         self.failUnless(osutils.ensure_dirs(path, mode=0020))
@@ -136,7 +138,7 @@ class EnsureDirsTest(TempDirMixin, TestCase):
         self.check_dir(path, os.geteuid(), os.getegid(), 0777)
 
     def test_mode(self):
-        path = os.path.join(self.dir, 'mode', 'mode')
+        path = pjoin(self.dir, 'mode', 'mode')
         self.failUnless(osutils.ensure_dirs(path, mode=0700))
         self.check_dir(path, os.geteuid(), os.getegid(), 0700)
         # unrestrict it
@@ -148,7 +150,7 @@ class EnsureDirsTest(TempDirMixin, TestCase):
         portage_gid = grp.getgrnam('portage').gr_gid
         if portage_gid not in os.getgroups():
             raise SkipTest('you are not in the portage group')
-        path = os.path.join(self.dir, 'group', 'group')
+        path = pjoin(self.dir, 'group', 'group')
         self.failUnless(osutils.ensure_dirs(path, gid=portage_gid))
         self.check_dir(path, os.geteuid(), portage_gid, 0777)
         self.failUnless(osutils.ensure_dirs(path))
@@ -160,8 +162,8 @@ class EnsureDirsTest(TempDirMixin, TestCase):
 class SymlinkTest(TempDirMixin, TestCase):
 
     def test_abssymlink(self):
-        target = os.path.join(self.dir, 'target')
-        linkname = os.path.join(self.dir, 'link')
+        target = pjoin(self.dir, 'target')
+        linkname = pjoin(self.dir, 'link')
         os.mkdir(target)
         os.symlink('target', linkname)
         self.assertEqual(osutils.abssymlink(linkname), target)
@@ -233,10 +235,10 @@ class FsLockTest(TempDirMixin, TestCase):
 
     def test_nonexistant(self):
         self.assertRaises(osutils.NonExistant, osutils.FsLock,
-            os.path.join(self.dir, 'missing'))
+            pjoin(self.dir, 'missing'))
 
     def test_locking(self):
-        path = os.path.join(self.dir, 'lockfile')
+        path = pjoin(self.dir, 'lockfile')
         lock = osutils.FsLock(path, True)
         # do this all non-blocking to avoid hanging tests
         self.failUnless(lock.acquire_read_lock(False))
@@ -273,3 +275,102 @@ class FsLockTest(TempDirMixin, TestCase):
         lock.release_write_lock()
         fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
         fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
+
+def cpy_setup_class(scope, func_name):
+    if getattr(osutils, 'native_%s' % func_name) \
+        is getattr(osutils, func_name):
+        scope['skip'] = 'extensions disabled'
+    else:
+        scope['func'] = staticmethod(getattr(osutils, func_name))
+
+
+class native_readfile_Test(TempDirMixin, TestCase):
+    func = staticmethod(osutils.native_readfile)
+
+    test_cases = ['asdf\nfdasswer\1923',
+        '',
+        '987234']
+
+    default_encoding = 'ascii'
+    none_on_missing_ret_data = 'dar'
+
+    @staticmethod
+    def convert_data(data, encoding):
+        if compatibility.is_py3k:
+            if isinstance(data, bytes):
+                return data
+        if encoding:
+            return data.encode(encoding)
+        return data
+
+    def test_it(self):
+        fp = pjoin(self.dir, 'testfile')
+        for expected in self.test_cases:
+            raised = None
+            encoding = self.default_encoding
+            if isinstance(expected, tuple):
+                if len(expected) == 3:
+                    raised = expected[2]
+                if expected[1] is not None:
+                    encoding = expected[1]
+                expected = expected[0]
+            open(fp, 'wb').write(
+                self.convert_data(expected, encoding))
+            if raised:
+                self.assertRaises(raised, self.func, fp)
+            else:
+                self.assertEqual(self.func(fp), expected)
+
+    def test_none_on_missing(self):
+        fp = pjoin(self.dir, 'nonexistant')
+        self.assertRaises((OSError, IOError), self.func, fp)
+        self.assertEqual(self.func(fp, True), None)
+        data = self.test_cases[0]
+        open(fp, 'wb').write(self.convert_data('dar', 'ascii'))
+        self.assertEqual(self.func(fp, True),
+            self.none_on_missing_ret_data)
+
+
+class cpy_readfile_Test(native_readfile_Test):
+    cpy_setup_class(locals(), 'readfile')
+
+
+class native_readfile_ascii_Test(native_readfile_Test):
+    func = staticmethod(osutils.native_readfile_ascii)
+
+
+class cpy_readfile_ascii_Test(native_readfile_ascii_Test):
+    cpy_setup_class(locals(), 'readfile_ascii')
+
+
+class native_readfile_ascii_strict_Test(native_readfile_ascii_Test):
+    func = staticmethod(osutils.native_readfile_ascii_strict)
+    test_cases = native_readfile_ascii_Test.test_cases + [
+        (u'\xf2', 'latin', UnicodeDecodeError),
+        (u'\ua000', 'utf8', UnicodeDecodeError),
+        ]
+
+class cpy_readfile_ascii_strict_Test(native_readfile_ascii_strict_Test):
+    cpy_setup_class(locals(), 'readfile_ascii_strict')
+
+
+class native_readfile_utf8_Test(native_readfile_Test):
+    func = staticmethod(osutils.native_readfile_utf8)
+    default_encoding = 'utf8'
+    test_cases = native_readfile_ascii_Test.test_cases + [
+        u'\ua000fa',
+        ]
+
+class cpy_readfile_utf8_Test(native_readfile_utf8_Test):
+    cpy_setup_class(locals(), 'readfile_utf8')
+
+
+class native_readfile_bytes_Test(native_readfile_Test):
+    func = staticmethod(osutils.native_readfile_bytes)
+    default_encoding = None
+    test_cases = map(
+        currying.post_curry(native_readfile_Test.convert_data, 'ascii'),
+        native_readfile_Test.test_cases)
+    test_cases.append(u'\ua000fa'.encode("utf8"))
+    none_on_missing_ret_data = native_readfile_Test.convert_data(
+        native_readfile_Test.none_on_missing_ret_data, 'ascii')

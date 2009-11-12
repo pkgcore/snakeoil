@@ -2,6 +2,10 @@ Snakeoil Release Notes
 ======================
 
 
+* snakeoil.osutils.readfile was expanded out into multiple functions,
+  utf8, ascii, ascii_strict, and bytes.  Use the appropriate one- this
+  will make py3k compliance far easier.
+
 * snakeoil.klass grew new properties to ease common tasks;
   jit_attr (invoke the target func to get the value, cache the value,
   return that value till the cached value is wiped).

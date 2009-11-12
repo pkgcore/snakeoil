@@ -51,30 +51,39 @@ class PreCurryTest(TestCase):
     def test_curry_original(self):
         self.assertIdentical(self.pre_curry(passthrough).func, passthrough)
 
-    def test_module_magic(self):
-        self.assertIdentical(
-            currying.pretty_docs(self.pre_curry(passthrough)).__module__,
-            passthrough.__module__)
-        # test is kinda useless if they are identical without pretty_docs
-        self.assertNotIdentical(
-            getattr(self.pre_curry(passthrough), '__module__', None),
-            passthrough.__module__)
-
-    def test_pretty_docs(self):
-        for func in (passthrough, documented):
-            self.assertEqual(
-                currying.pretty_docs(
-                    self.pre_curry(func), 'new doc').__doc__,
-                'new doc')
-            self.assertIdentical(
-                currying.pretty_docs(self.pre_curry(func)).__doc__,
-                func.__doc__)
-
     def test_instancemethod(self):
         class Test(object):
             method = self.pre_curry(passthrough, 'test')
         test = Test()
         self.assertEqual((('test', test), {}), test.method())
+
+
+class pretty_docs_Test(TestCase):
+
+    currying_targets = (currying.native_partial, currying.partial,
+        currying.pre_curry, currying.post_curry)
+
+    def test_module_magic(self):
+        for target in self.currying_targets:
+            self.assertIdentical(
+                currying.pretty_docs(target(passthrough)).__module__,
+                passthrough.__module__)
+            # test is kinda useless if they are identical without pretty_docs
+            self.assertNotIdentical(
+                getattr(target(passthrough), '__module__', None),
+                passthrough.__module__)
+
+    def test_pretty_docs(self):
+        for target in self.currying_targets:
+            for func in (passthrough, documented):
+                self.assertEqual(
+                    currying.pretty_docs(
+                        target(func), 'new doc').__doc__,
+                    'new doc')
+                self.assertIdentical(
+                    currying.pretty_docs(target(func)).__doc__,
+                    func.__doc__)
+
 
 
 class NativePartialTest(PreCurryTest):

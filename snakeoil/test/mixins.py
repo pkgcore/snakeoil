@@ -7,6 +7,7 @@ import shutil
 import tempfile
 
 from snakeoil.test import TestCase
+from snakeoil import compatibility
 
 class TempDirMixin(TestCase):
 
@@ -34,3 +35,10 @@ def tempdir_decorator(func):
                     os.chmod(os.path.join(root, directory), 0777)
             shutil.rmtree(self.dir)
     return f
+
+mk_named_tempfile = tempfile.NamedTemporaryFile
+if compatibility.is_py3k:
+    import io
+    def mk_named_tempfile(*args, **kwds):
+        tmp_f = tempfile.NamedTemporaryFile(*args, **kwds)
+        return io.TextIOWrapper(tmp_f)

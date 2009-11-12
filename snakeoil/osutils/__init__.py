@@ -13,8 +13,9 @@ import errno
 
 __all__ = ['abspath', 'abssymlink', 'ensure_dirs', 'join', 'pjoin',
     'listdir_files', 'listdir_dirs', 'listdir', 'readlines', 'readfile',
-    'readdir', 'normpath', 'FsLock', 'GenericFailed', 'LockException',
-    'NonExistant']
+    'readfile_ascii', 'readfile_ascii_strict', 'readfile_bytes',
+    'readfile_utf8', 'readdir', 'normpath', 'FsLock', 'GenericFailed',
+    'LockException', 'NonExistant']
 
 
 # No name '_readdir' in module osutils
@@ -24,6 +25,12 @@ try:
     from snakeoil.osutils import _readdir as module
 except ImportError:
     from snakeoil.osutils import native_readdir as module
+
+# delay this... it's a 1ms hit, and not a lot of the consumers
+# force utf8 codepaths yet.
+from snakeoil.demandload import demandload
+demandload(globals(), "codecs")
+from snakeoil.currying import partial, pretty_docs
 
 listdir = module.listdir
 listdir_dirs = module.listdir_dirs
@@ -167,7 +174,7 @@ def native_normpath(mypath):
 
 native_join = os.path.join
 
-def native_readfile(mypath, none_on_missing=False):
+def _internal_native_readfile(mode, mypath, none_on_missing=False, encoding=None):
     """
     read a file, returning the contents
 
@@ -176,12 +183,21 @@ def native_readfile(mypath, none_on_missing=False):
         else through the exception
     """
     try:
-        return open(mypath, "r").read()
+        if encoding:
+            return codecs.open(mypath, mode, encoding=encoding).read()
+        return open(mypath, mode).read()
     except IOError, oe:
         if none_on_missing and oe.errno == errno.ENOENT:
             return None
         raise
 
+native_readfile = pretty_docs(partial(_internal_native_readfile, 'rt'))
+native_readfile_ascii = native_readfile
+native_readfile_ascii_strict = pretty_docs(partial(_internal_native_readfile,
+    'r', encoding='ascii'))
+native_readfile_bytes = pretty_docs(partial(_internal_native_readfile, 'rb'))
+native_readfile_utf8 = pretty_docs(partial(_internal_native_readfile, 'r',
+    encoding='utf8'))
 
 class readlines_iter(object):
     __slots__ = ("iterable", "mtime")
@@ -221,11 +237,16 @@ def native_readlines(mypath, strip_newlines=True, swallow_missing=False,
 
 try:
     from snakeoil.osutils._posix import normpath, join, readfile, readlines
+    readfile_ascii = readfile
 except ImportError:
     normpath = native_normpath
     join = native_join
-    readfile = native_readfile
+    readfile_ascii = readfile = native_readfile
     readlines = native_readlines
+
+readfile_ascii_strict = native_readfile_ascii_strict
+readfile_bytes = native_readfile_bytes
+readfile_utf8 = native_readfile_utf8
 
 # convenience.  importing join into a namespace is ugly, pjoin less so
 pjoin = join

@@ -5,14 +5,7 @@
 import tempfile, os
 from StringIO import StringIO
 from snakeoil import compatibility
-
-mk_named_tempfile = tempfile.NamedTemporaryFile
-if compatibility.is_py3k:
-    import io
-    def mk_named_tempfile(*args, **kwds):
-        tmp_f = tempfile.NamedTemporaryFile(*args, **kwds)
-        return io.TextIOWrapper(tmp_f)
-
+from snakeoil.test.mixins import mk_named_tempfile
 from snakeoil.test import TestCase
 
 from snakeoil.fileutils import (
