@@ -59,7 +59,8 @@ _allowed_chars = "".join((x.isalnum() or x in "_.") and " " or "a"
 
 py3k_translate = {
     "itertools": dict(("i%s" % k, k) for k in
-        ("filterfalse",))
+        ("filterfalse",)),
+    "ConfigParser": "configparser",
 }
 
 def parse_imports(imports):
@@ -98,6 +99,9 @@ def parse_imports(imports):
             base, targets = fromlist
             if not base.translate(_allowed_chars).isspace():
                 raise ValueError("bad target: %s" % base)
+            if is_py3k:
+                if isinstance(py3k_translate.get(base, None), str):
+                    base = py3k_translate[base]
             for target in targets.split(','):
                 split = target.split('@', 1)
                 for s in split:
