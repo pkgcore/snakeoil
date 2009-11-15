@@ -28,6 +28,7 @@ except ImportError:
 
 # delay this... it's a 1ms hit, and not a lot of the consumers
 # force utf8 codepaths yet.
+from snakeoil import compatibility
 from snakeoil.demandload import demandload
 demandload(globals(), "codecs")
 from snakeoil.currying import partial, pretty_docs
@@ -174,7 +175,8 @@ def native_normpath(mypath):
 
 native_join = os.path.join
 
-def _internal_native_readfile(mode, mypath, none_on_missing=False, encoding=None):
+def _internal_native_readfile(mode, mypath, none_on_missing=False, encoding=None,
+    strict=compatibility.is_py3k):
     """
     read a file, returning the contents
 
@@ -183,7 +185,7 @@ def _internal_native_readfile(mode, mypath, none_on_missing=False, encoding=None
         else through the exception
     """
     try:
-        if encoding:
+        if encoding and strict:
             return codecs.open(mypath, mode, encoding=encoding).read()
         return open(mypath, mode).read()
     except IOError, oe:
@@ -194,10 +196,10 @@ def _internal_native_readfile(mode, mypath, none_on_missing=False, encoding=None
 native_readfile = pretty_docs(partial(_internal_native_readfile, 'rt'))
 native_readfile_ascii = native_readfile
 native_readfile_ascii_strict = pretty_docs(partial(_internal_native_readfile,
-    'r', encoding='ascii'))
+    'r', encoding='ascii', strict=True))
 native_readfile_bytes = pretty_docs(partial(_internal_native_readfile, 'rb'))
 native_readfile_utf8 = pretty_docs(partial(_internal_native_readfile, 'r',
-    encoding='utf8'))
+    encoding='utf8', strict=True))
 
 class readlines_iter(object):
     __slots__ = ("iterable", "mtime")
@@ -209,8 +211,8 @@ class readlines_iter(object):
         return self.iterable
 
 
-def native_readlines(mypath, strip_newlines=True, swallow_missing=False,
-    none_on_missing=False):
+def native_readlines(mode, mypath, strip_newlines=True, swallow_missing=False,
+    none_on_missing=False, encoding=None, strict=compatibility.is_py3k):
     """
     read a file, yielding each line
 
@@ -221,7 +223,10 @@ def native_readlines(mypath, strip_newlines=True, swallow_missing=False,
         if the file is missing return an empty iterable
     """
     try:
-        f = open(mypath, "r")
+        if encoding and strict:
+            f = codecs.open(mypath, mode, encoding=encoding)
+        else:
+            f = open(mypath, mode)
     except IOError, ie:
         if ie.errno != errno.ENOENT or not swallow_missing:
             raise
@@ -243,6 +248,16 @@ except ImportError:
     join = native_join
     readfile_ascii = readfile = native_readfile
     readlines = native_readlines
+
+readlines_ascii = pretty_docs(partial(native_readlines, 'r',
+    encoding='ascii'))
+readlines_ascii = pretty_docs(partial(native_readlines, 'r',
+    encoding='ascii', strict=True))
+readlines_bytes = pretty_docs(partial(native_readlines, 'rb'))
+readlines_utf8 = pretty_docs(partial(native_readlines, 'r',
+    encoding='utf8'))
+readlines_utf8_strict = pretty_docs(partial(native_readlines, 'r',
+    encoding='utf8', strict=True))
 
 readfile_ascii_strict = native_readfile_ascii_strict
 readfile_bytes = native_readfile_bytes

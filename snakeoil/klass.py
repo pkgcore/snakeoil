@@ -172,3 +172,12 @@ def jit_attr_ext_method(func_name, stored_attr_name,
 
 def alias_attr(target_attr):
     return property(chained_getter(target_attr))
+
+def cached_hash(func):
+    def __hash__(self):
+        val = getattr(self, '_hash', None)
+        if val is None:
+            val = func(self)
+            object.__setattr__(self, '_hash', val)
+        return val
+    return __hash__

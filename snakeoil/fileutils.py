@@ -8,7 +8,7 @@ file related operations, mainly reading
 import re, os
 from shlex import shlex
 from snakeoil.mappings import ProtectedDict
-from snakeoil.osutils import readlines
+from snakeoil.osutils import readlines_utf8
 from snakeoil import compatibility
 
 
@@ -108,7 +108,7 @@ def iter_read_bash(bash_source, allow_inline_comments=True):
         after a # that isn't at the start of a line.
     """
     if isinstance(bash_source, basestring):
-        bash_source = readlines(bash_source, True)
+        bash_source = readlines_utf8(bash_source, True)
     for s in bash_source:
         s = s.strip()
         if s and s[0] != "#":
@@ -121,7 +121,6 @@ def read_bash(bash_source, allow_inline_comments=True):
     return list(iter_read_bash(bash_source,
         allow_inline_comments=allow_inline_comments))
 read_bash.__doc__ = iter_read_bash.__doc__
-
 
 def read_dict(bash_source, splitter="=", source_isiter=False,
     allow_inline_comments=True):

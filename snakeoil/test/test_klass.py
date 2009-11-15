@@ -465,3 +465,23 @@ class test_aliased_attr(TestCase):
             alias = self.func("foon.target")
         o = cls()
         self.assertIdentical(o.alias, blah.target)
+
+
+class test_cached_hash(TestCase):
+    func = staticmethod(klass.cached_hash)
+
+    def test_it(self):
+        now = long(time())
+        class cls(object):
+            invoked = []
+            @self.func
+            def __hash__(self):
+                self.invoked.append(self)
+                return now
+        o = cls()
+        self.assertEqual(hash(o), now)
+        self.assertEqual(o.invoked, [o])
+        # ensure it cached...
+        self.assertEqual(hash(o), now)
+        self.assertEqual(o.invoked, [o])
+        self.assertEqual(o._hash, now)
