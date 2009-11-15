@@ -2,6 +2,8 @@ Snakeoil Release Notes
 ======================
 
 
+* experimental py3k support.
+
 * snakeoil.osutils.readlines was expanded out into multiple functions,
   utf8, ascii, utf8_strict, ascii_strict, and bytes.  'Strict' means
   that we always want it decoded.  Non strict is useful when the file
