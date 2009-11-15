@@ -54,10 +54,17 @@ def iter_stable_unique(iterable):
     generator yielding unique elements from iterable, preserving ordering
     """
     s = set()
+    sl = []
     for x in iterable:
-        if x not in s:
-            yield x
-            s.add(x)
+        try:
+            if x not in s:
+                yield x
+                s.add(x)
+        except TypeError:
+            # unhashable...
+            if x not in sl:
+                yield x
+                sl.append(x)
 
 def native_iflatten_instance(l, skip_flattening=(basestring,)):
     """

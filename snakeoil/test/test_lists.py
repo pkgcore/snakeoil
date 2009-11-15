@@ -29,6 +29,11 @@ class UniqueTest(TestCase):
 
     def test_iter_stable_unique(self):
         self.test_stable_unique(lambda x:list(lists.iter_stable_unique(x)))
+        o = UnhashableComplex()
+        l = [1, 2, 3, o, UnhashableComplex(), 4, 3, UnhashableComplex()]
+        self.assertEqual(list(lists.iter_stable_unique(l)),
+            [1, 2, 3, o, 4])
+        
 
     def test_unstable_unique(self):
         self.common_check(lists.unstable_unique)

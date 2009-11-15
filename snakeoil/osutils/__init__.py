@@ -248,7 +248,8 @@ except ImportError:
     normpath = native_normpath
     join = native_join
     readfile_ascii = readfile = native_readfile
-    readlines_ascii = readlines = native_readlines
+    readlines_ascii = readlines = pretty_docs(partial(native_readlines, 'r',
+        encoding='ascii'))
 
 readlines_bytes = pretty_docs(partial(native_readlines, 'rb'))
 readlines_ascii_strict = pretty_docs(partial(native_readlines, 'r',
