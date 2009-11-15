@@ -243,17 +243,16 @@ def native_readlines(mode, mypath, strip_newlines=True, swallow_missing=False,
 try:
     from snakeoil.osutils._posix import normpath, join, readfile, readlines
     readfile_ascii = readfile
+    readlines_ascii = readlines
 except ImportError:
     normpath = native_normpath
     join = native_join
     readfile_ascii = readfile = native_readfile
-    readlines = native_readlines
+    readlines_ascii = readlines = native_readlines
 
-readlines_ascii = pretty_docs(partial(native_readlines, 'r',
-    encoding='ascii'))
-readlines_ascii = pretty_docs(partial(native_readlines, 'r',
-    encoding='ascii', strict=True))
 readlines_bytes = pretty_docs(partial(native_readlines, 'rb'))
+readlines_ascii_strict = pretty_docs(partial(native_readlines, 'r',
+    encoding='ascii', strict=True))
 readlines_utf8 = pretty_docs(partial(native_readlines, 'r',
     encoding='utf8'))
 readlines_utf8_strict = pretty_docs(partial(native_readlines, 'r',
