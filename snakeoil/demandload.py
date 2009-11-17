@@ -48,6 +48,7 @@ have to be careful with:
 # __getattribute__/__setattr__ override.
 
 
+import os
 from snakeoil.modules import load_any
 from snakeoil.currying import partial
 from snakeoil.compatibility import is_py3k
@@ -113,8 +114,7 @@ def parse_imports(imports):
 
 
 def protection_enabled():
-    import os
-    val = os.environ.get("SNAKEOIL_DEMANDLOAD_PROTECTION", "y").lower()
+    val = os.environ.get("SNAKEOIL_DEMANDLOAD_PROTECTION", "n").lower()
     return val in ("yes", "true", "1", "y")
 
 
@@ -139,9 +139,12 @@ class Placeholder(object):
 
     def _already_replaced(self):
         name = object.__getattribute__(self, '_name')
+        scope = object.__getattribute__(self, '_scope')
         if protection_enabled():
             raise ValueError('Placeholder for %r was triggered twice' % (name,))
-        scope = object.__getattribute__(self, '_scope')
+        else:
+            logging.warning('Placeholder for %r was triggered multiple times '
+                'in file %r' % (name, scope.get("__file__", "unknown")))
         return scope[name]
 
     def _replace(self):
@@ -203,8 +206,6 @@ def demandload(scope, *imports):
         scope[target] = Placeholder(scope, target, partial(load_any, source))
 
 
-demandload(globals(), 're')
-
 # Extra name to make undoing monkeypatching demandload with
 # disabled_demandload easier.
 enabled_demandload = demandload
@@ -246,3 +247,9 @@ def demand_compile_regexp(scope, name, *args, **kwargs):
     @returns: the placeholder object.
     """
     return RegexPlaceholder(scope, name, (args, kwargs))
+
+
+if os.environ.get("SNAKEOIL_DEMANDLOAD_DISABLED", 'n').lower() in ('y', 'yes' '1', 'true'):
+    demandload = disabled_demandload
+
+demandload(globals(), 're', 'logging')

@@ -2,7 +2,8 @@ Snakeoil Release Notes
 ======================
 
 
-* experimental py3k support.
+* experimental py3.1 support via 2to3.  setup.py automatically will
+  convert the source if invoked by a py3k interpretter.
 
 * snakeoil.osutils.readlines was expanded out into multiple functions,
   utf8, ascii, utf8_strict, ascii_strict, and bytes.  'Strict' means
@@ -26,14 +27,16 @@ Snakeoil Release Notes
   alias_attr (when that attr is accessed, hand the attribute the alias
   targets).
 
-* snakeoil.compatibility additions; next, cmp, file_cls, and is_py3k.
+* snakeoil.compatibility additions; next, cmp, file_cls, and is_py3k, next,
+  intern, sort_cmp (to paper over sorted no longer accepting a cmp arg), and
+  sort_cmp (to paper over list.sort no longer accepting a cmp arg).
 
 * snakeoil.klass.cached_hash; decorator to automatically cache the results
   of the target function.  primarily intended for __hash__ implementations.
 
-* snakeoil.klass.generate_richcmp_from_cmp ; metaclass to generate
-  __le__, __lt__, __gt__, __eq__, etc, via invoking __cmp__.  Primarily
-  intended for compatibility py3k wise.
+* snakeoil.klass.inject_richcmp_methods_from_cmp ; passed a class scope,
+  it'll automatically add __le__, __lt__, __gt__, __eq__, etc, via invoking
+  __cmp__ if the python version is py3k.
 
 * snakeoil/caching_2to3.py, a caching form of 2to3 that relies on an
   env var 'PY2TO3_CACHEDIR' to determine where to store cached versions
@@ -42,9 +45,6 @@ Snakeoil Release Notes
   from the previous run instead of invoking 2to3.  Massive performance
   speed up from this- uncached, setup.py test is ~32s.  cached, ~1.9s.
   That said, this is experimental- bug reports welcome however.
-
-* experimental py3.1 support via 2to3.  setup.py automatically will
-  convert the source if invoked by a py3k interpretter.
 
 * setup.py test has been heavily enhanced- now it does it's testing
   against a standalone install of the source, should have zero
