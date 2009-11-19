@@ -267,12 +267,18 @@ class TestLoader(unittest.TestLoader):
 
     """Test loader that knows how to recurse packages."""
 
+    def __init__(self, blacklist):
+        self.blacklist = blacklist
+        unittest.TestLoader.__init__(self)
+
     def loadTestsFromModule(self, module):
         """Recurses if module is actually a package."""
         paths = getattr(module, '__path__', None)
         tests = [unittest.TestLoader.loadTestsFromModule(self, module)]
         if paths is None:
             # Not a package.
+            return tests[0]
+        if module.__name__ in self.blacklist:
             return tests[0]
         for path in paths:
             for child in os.listdir(path):
@@ -299,6 +305,8 @@ class test(core.Command):
 
     Based on code from setuptools.
     """
+
+    blacklist = frozenset()
 
     user_options = [("inplace", "i", "do building/testing in place"),
         ("skip-rebuilding", "s", "skip rebuilds. primarily for development"),
@@ -382,7 +390,8 @@ class test(core.Command):
                 default_mod = None
             else:
                 default_mod = self.default_test_namespace
-            unittest.main(default_mod, argv=args, testLoader=TestLoader())
+            unittest.main(default_mod, argv=args,
+                testLoader=TestLoader(self.blacklist))
             if not self.disable_fork:
                 os._exit(1)
             return

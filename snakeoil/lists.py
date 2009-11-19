@@ -13,7 +13,12 @@ def unstable_unique(sequence):
     Return a list of the elements in s in arbitrary order, sans duplicates
     """
 
-    n = len(sequence)
+    try:
+        n = len(sequence)
+    except TypeError:
+        # if it doesn't support len, assume it's an iterable
+        # and fallback to the slower stable_unique
+        return stable_unique(sequence)
     # assume all elements are hashable, if so, it's linear
     try:
         return list(set(sequence))
@@ -54,17 +59,26 @@ def iter_stable_unique(iterable):
     generator yielding unique elements from iterable, preserving ordering
     """
     s = set()
+    sadd = s.add
     sl = []
-    for x in iterable:
+    slappend = sl.append
+    iterable = iter(iterable)
+    # the reason for this structuring is purely speed- entering try/except
+    # repeatedly is costly, thus structure it to penalize the unhashables
+    # instead of penalizing the hashables.
+    while True:
         try:
-            if x not in s:
-                yield x
-                s.add(x)
+            for x in iterable:
+                if x not in s:
+                    yield x
+                    sadd(x)
         except TypeError:
-            # unhashable...
+            # unhashable item...
             if x not in sl:
                 yield x
-                sl.append(x)
+                slappend(x)
+            continue
+        break
 
 def native_iflatten_instance(l, skip_flattening=(basestring,)):
     """

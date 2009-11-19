@@ -62,6 +62,8 @@ py3k_translate = {
     "itertools": dict(("i%s" % k, k) for k in
         ("filterfalse",)),
     "ConfigParser": "configparser",
+    "Queue":"queue",
+    "StringIO":"io",
 }
 
 def parse_imports(imports):
@@ -94,7 +96,14 @@ def parse_imports(imports):
             if len(split) == 2:
                 yield tuple(split)
             else:
-                yield split[0], split[0]
+                split = split[0]
+                if is_py3k:
+                    if isinstance(py3k_translate.get(split, None), str):
+                        yield py3k_translate[split], split
+                    else:
+                        yield split, split
+                else:
+                    yield split, split
         else:
             # "from" import.
             base, targets = fromlist

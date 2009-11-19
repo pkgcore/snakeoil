@@ -34,6 +34,10 @@ class UniqueTest(TestCase):
         self.assertEqual(list(lists.iter_stable_unique(l)),
             [1, 2, 3, o, 4])
 
+    def _generator(self):
+        for x in xrange(5, -1, -1):
+            yield x
+
     def test_unstable_unique(self):
         self.common_check(lists.unstable_unique)
         uc = UnhashableComplex
@@ -43,6 +47,8 @@ class UniqueTest(TestCase):
                     [[1, 2], [1, 3], [1, 2], [1, 3]])), [[1, 2], [1, 3]])
         self.failUnless(
             res == [uc(1, 0), uc(0, 1)] or res == [uc(0, 1), uc(1, 0)], res)
+        self.assertEqual(sorted(lists.unstable_unique(self._generator())),
+            sorted(xrange(6)))
 
 
 class ChainedListsTest(TestCase):
