@@ -186,6 +186,10 @@ def _internal_native_readfile(mode, mypath, none_on_missing=False, encoding=None
     """
     try:
         if encoding and strict:
+            # we special case this- codecs.open is about 2x slower,
+            # thus if py3k, use the native one (which supports encoding directly)
+            if compatibility.is_py3k:
+                return open(mypath, mode, encoding=encoding).read()
             return codecs.open(mypath, mode, encoding=encoding).read()
         return open(mypath, mode).read()
     except IOError, oe:
@@ -224,6 +228,10 @@ def native_readlines(mode, mypath, strip_newlines=True, swallow_missing=False,
     """
     try:
         if encoding and strict:
+            # we special case this- codecs.open is about 2x slower,
+            # thus if py3k, use the native one (which supports encoding directly)
+            if compatibility.is_py3k:
+                return open(mypath, mode, encoding=encoding)
             f = codecs.open(mypath, mode, encoding=encoding)
         else:
             f = open(mypath, mode)
