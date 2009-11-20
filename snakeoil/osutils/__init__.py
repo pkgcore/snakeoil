@@ -231,8 +231,9 @@ def native_readlines(mode, mypath, strip_newlines=True, swallow_missing=False,
             # we special case this- codecs.open is about 2x slower,
             # thus if py3k, use the native one (which supports encoding directly)
             if compatibility.is_py3k:
-                return open(mypath, mode, encoding=encoding)
-            f = codecs.open(mypath, mode, encoding=encoding)
+                f = open(mypath, mode, encoding=encoding)
+            else:
+                f = codecs.open(mypath, mode, encoding=encoding)
         else:
             f = open(mypath, mode)
     except IOError, ie:
