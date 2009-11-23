@@ -13,10 +13,13 @@ import errno
 
 __all__ = ['abspath', 'abssymlink', 'ensure_dirs', 'join', 'pjoin',
     'listdir_files', 'listdir_dirs', 'listdir', 'readlines', 'readfile',
-    'readfile_ascii', 'readfile_ascii_strict', 'readfile_bytes',
-    'readfile_utf8', 'readdir', 'normpath', 'FsLock', 'GenericFailed',
+    'readdir', 'normpath', 'FsLock', 'GenericFailed',
     'LockException', 'NonExistant']
 
+for val in ("readlines", "readfile"):
+    __all__ += list("%s_%s" % (val, mode) for mode in 
+        ['ascii', 'ascii_strict', 'bytes', 'utf8', 'utf8_strict'])
+del val
 
 # No name '_readdir' in module osutils
 # pylint: disable-msg=E0611
@@ -197,13 +200,23 @@ def _internal_native_readfile(mode, mypath, none_on_missing=False, encoding=None
             return None
         raise
 
-native_readfile = pretty_docs(partial(_internal_native_readfile, 'rt'))
-native_readfile_ascii = native_readfile
-native_readfile_ascii_strict = pretty_docs(partial(_internal_native_readfile,
-    'r', encoding='ascii', strict=True))
-native_readfile_bytes = pretty_docs(partial(_internal_native_readfile, 'rb'))
-native_readfile_utf8 = pretty_docs(partial(_internal_native_readfile, 'r',
-    encoding='utf8', strict=True))
+def _mk_pretty_derived_func(func, name_base, name, *args, **kwds):
+    if name:
+        name = '_' + name
+    return pretty_docs(partial(_internal_native_readfile, *args, **kwds),
+        name='%s%s' % (name_base, name))
+
+_mk_readfile = partial(_mk_pretty_derived_func, _internal_native_readfile,
+    'readfile')
+
+native_readfile_ascii = _mk_readfile('ascii', 'rt')
+native_readfile = native_readfile_ascii
+native_readfile_ascii_strict = _mk_readfile('ascii_strict', 'r',
+    encoding='ascii', strict=True)
+native_readfile_bytes = _mk_readfile('bytes', 'rb')
+native_readfile_utf8 = _mk_readfile('utf8', 'r',
+    encoding='utf8', strict=True)
+
 
 class readlines_iter(object):
     __slots__ = ("iterable", "mtime")
@@ -246,8 +259,12 @@ def native_readlines(mode, mypath, strip_newlines=True, swallow_missing=False,
     if not strip_newlines:
         return readlines_iter(f, os.fstat(f.fileno()).st_mtime)
 
-    return readlines_iter((x.strip("\n") for x in f), os.fstat(f.fileno()).st_mtime)
+    return readlines_iter((x.strip("\n") for x in f),
+        os.fstat(f.fileno()).st_mtime)
 
+
+_mk_readlines = partial(_mk_pretty_derived_func, native_readlines, 
+    'readlines')
 
 try:
     from snakeoil.osutils._posix import normpath, join, readfile, readlines
@@ -256,17 +273,18 @@ try:
 except ImportError:
     normpath = native_normpath
     join = native_join
-    readfile_ascii = readfile = native_readfile
-    readlines_ascii = readlines = pretty_docs(partial(native_readlines, 'r',
-        encoding='ascii'))
+    readfile_ascii = native_readfile_ascii
+    readfile = native_readfile
+    readlines_ascii = _mk_readlines('ascii', 'r',
+        encoding='ascii')
+    readlines = readlines_ascii
 
-readlines_bytes = pretty_docs(partial(native_readlines, 'rb'))
-readlines_ascii_strict = pretty_docs(partial(native_readlines, 'r',
-    encoding='ascii', strict=True))
-readlines_utf8 = pretty_docs(partial(native_readlines, 'r',
-    encoding='utf8'))
-readlines_utf8_strict = pretty_docs(partial(native_readlines, 'r',
-    encoding='utf8', strict=True))
+readlines_bytes = _mk_readlines('bytes', 'rb')
+readlines_ascii_strict = _mk_readlines('ascii_strict', 'r',
+    encoding='ascii', strict=True)
+readlines_utf8 = _mk_readlines('utf8', 'r', encoding='utf8')
+readlines_utf8_strict = _mk_readlines('utf8_strict', 'r',
+    encoding='utf8', strict=True)
 
 readfile_ascii_strict = native_readfile_ascii_strict
 readfile_bytes = native_readfile_bytes

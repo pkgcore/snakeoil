@@ -93,7 +93,28 @@ def _pydoc_isdata_override(object):
                 inspect.istraceback(object) or inspect.iscode(object))
 
 
+def _inspect_isroutine_override(object):
+    import inspect
+    return (isinstance(object, partial)
+            or inspect.isbuiltin(object)
+            or inspect.isfunction(object)
+            or inspect.ismethod(object)
+            or inspect.ismethoddescriptor(object))
+
+
+def force_inspect_partial_awareness(only_if_loaded=True):
+    if native_partial is not partial:
+        if only_if_loaded:
+            mod = sys.modules.get('inspect', None)
+        else:
+            import inspect as mod
+        if mod:
+            mod.isroutine = _inspect_isroutine_override
+
+
 def force_pydoc_partial_awareness(only_if_loaded=True):
+    # this is probably redundant due to inspect_partial overrides
+    # better safe then sorry however.
     if native_partial is not partial:
         if only_if_loaded:
             mod = sys.modules.get('pydoc', None)
@@ -117,6 +138,7 @@ def force_epydoc_partial_awareness(only_if_loaded=True):
             mod.register_introspecter(_epydoc_isroutine_override,
                 mod.introspect_routine, priority=26)
 
+force_inspect_partial_awareness()
 force_pydoc_partial_awareness()
 force_epydoc_partial_awareness()
 
@@ -140,13 +162,15 @@ def post_curry(func, *args, **kwargs):
     callit.func = func
     return callit
 
-def pretty_docs(wrapped, extradocs=None):
+def pretty_docs(wrapped, extradocs=None, name=None):
     wrapped.__module__ = wrapped.func.__module__
     doc = wrapped.func.__doc__
     if extradocs is None:
         wrapped.__doc__ = doc
     else:
         wrapped.__doc__ = extradocs
+    if name:
+        wrapped.__name__ = name
     return wrapped
 
 
