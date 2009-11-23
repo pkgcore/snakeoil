@@ -17,7 +17,7 @@ __all__ = ['abspath', 'abssymlink', 'ensure_dirs', 'join', 'pjoin',
     'LockException', 'NonExistant']
 
 for val in ("readlines", "readfile"):
-    __all__ += list("%s_%s" % (val, mode) for mode in 
+    __all__ += list("%s_%s" % (val, mode) for mode in
         ['ascii', 'ascii_strict', 'bytes', 'utf8', 'utf8_strict'])
 del val
 
@@ -263,7 +263,7 @@ def native_readlines(mode, mypath, strip_newlines=True, swallow_missing=False,
         os.fstat(f.fileno()).st_mtime)
 
 
-_mk_readlines = partial(_mk_pretty_derived_func, native_readlines, 
+_mk_readlines = partial(_mk_pretty_derived_func, native_readlines,
     'readlines')
 
 try:
