@@ -2,6 +2,11 @@ Snakeoil Release Notes
 ======================
 
 
+* use the registration framework for epydoc to make it aware of partials.
+
+* monkeypatch pydoc.isdata on the fly to be aware of partials.  This
+  makes pydoc output far more useful (and matches what is expected).
+
 * experimental py3.1 support via 2to3.  setup.py automatically will
   convert the source if invoked by a py3k interpretter.
 
