@@ -34,6 +34,7 @@ def tempdir_decorator(func):
                 for directory in dirs:
                     os.chmod(os.path.join(root, directory), 0777)
             shutil.rmtree(self.dir)
+    f.__name__ = func.__name__
     return f
 
 mk_named_tempfile = tempfile.NamedTemporaryFile

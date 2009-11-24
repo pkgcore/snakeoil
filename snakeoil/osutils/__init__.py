@@ -12,14 +12,13 @@ import fcntl
 import errno
 
 __all__ = ['abspath', 'abssymlink', 'ensure_dirs', 'join', 'pjoin',
-    'listdir_files', 'listdir_dirs', 'listdir', 'readlines', 'readfile',
+    'listdir_files', 'listdir_dirs', 'listdir',
     'readdir', 'normpath', 'FsLock', 'GenericFailed',
     'LockException', 'NonExistant']
-
-for val in ("readlines", "readfile"):
-    __all__ += list("%s_%s" % (val, mode) for mode in
-        ['ascii', 'ascii_strict', 'bytes', 'utf8', 'utf8_strict'])
-del val
+__all__.extend("%s%s" % ('readfile', mode) for mode in
+        ['', '_ascii', '_ascii_strict', '_bytes', '_utf8'])
+__all__.extend("%s%s" % ('readlines', mode) for mode in
+        ['', '_ascii', '_ascii_strict', '_bytes', '_utf8', '_utf8_strict'])
 
 # No name '_readdir' in module osutils
 # pylint: disable-msg=E0611
@@ -203,7 +202,7 @@ def _internal_native_readfile(mode, mypath, none_on_missing=False, encoding=None
 def _mk_pretty_derived_func(func, name_base, name, *args, **kwds):
     if name:
         name = '_' + name
-    return pretty_docs(partial(_internal_native_readfile, *args, **kwds),
+    return pretty_docs(partial(func, *args, **kwds),
         name='%s%s' % (name_base, name))
 
 _mk_readfile = partial(_mk_pretty_derived_func, _internal_native_readfile,
@@ -215,8 +214,9 @@ native_readfile_ascii_strict = _mk_readfile('ascii_strict', 'r',
     encoding='ascii', strict=True)
 native_readfile_bytes = _mk_readfile('bytes', 'rb')
 native_readfile_utf8 = _mk_readfile('utf8', 'r',
+    encoding='utf8', strict=False)
+native_readfile_utf8_strict = _mk_readfile('utf8_strict', 'r',
     encoding='utf8', strict=True)
-
 
 class readlines_iter(object):
     __slots__ = ("iterable", "mtime")
@@ -226,6 +226,21 @@ class readlines_iter(object):
 
     def __iter__(self):
         return self.iterable
+
+def _py2k_ascii_strict_filter(source):
+    any = compatibility.any
+    for line in source:
+        if any((0x80 & ord(char)) for char in line):
+            raise ValueError("character ordinal over 127");
+        yield line
+
+
+def _strip_newlines_filter(iterable, val='\n'):
+    for line in iterable:
+        if line[-1] == val:
+            yield line[:-1]
+        else:
+            yield line
 
 
 def native_readlines(mode, mypath, strip_newlines=True, swallow_missing=False,
@@ -239,16 +254,19 @@ def native_readlines(mode, mypath, strip_newlines=True, swallow_missing=False,
     @param none_on_missing: if the file is missing, return None, else
         if the file is missing return an empty iterable
     """
+    handle = iterable = None
     try:
         if encoding and strict:
             # we special case this- codecs.open is about 2x slower,
             # thus if py3k, use the native one (which supports encoding directly)
             if compatibility.is_py3k:
-                f = open(mypath, mode, encoding=encoding)
+                handle = open(mypath, mode, encoding=encoding)
             else:
-                f = codecs.open(mypath, mode, encoding=encoding)
+                handle = codecs.open(mypath, mode, encoding=encoding)
+                if encoding == 'ascii':
+                    iterable = _py2k_ascii_strict_filter(handle)
         else:
-            f = open(mypath, mode)
+            handle = open(mypath, mode)
     except IOError, ie:
         if ie.errno != errno.ENOENT or not swallow_missing:
             raise
@@ -256,11 +274,15 @@ def native_readlines(mode, mypath, strip_newlines=True, swallow_missing=False,
             return None
         return readlines_iter(iter([]), None)
 
+    mtime = os.fstat(handle.fileno()).st_mtime
+    if not iterable:
+        iterable = iter(handle)
     if not strip_newlines:
-        return readlines_iter(f, os.fstat(f.fileno()).st_mtime)
-
-    return readlines_iter((x.strip("\n") for x in f),
-        os.fstat(f.fileno()).st_mtime)
+        return readlines_iter(iterable, mtime)
+    val = '\n'
+    if 'b' in mode and compatibility.is_py3k:
+        val = 10
+    return readlines_iter(_strip_newlines_filter(iterable, val), mtime)
 
 
 _mk_readlines = partial(_mk_pretty_derived_func, native_readlines,
@@ -286,9 +308,11 @@ readlines_utf8 = _mk_readlines('utf8', 'r', encoding='utf8')
 readlines_utf8_strict = _mk_readlines('utf8_strict', 'r',
     encoding='utf8', strict=True)
 
+
 readfile_ascii_strict = native_readfile_ascii_strict
 readfile_bytes = native_readfile_bytes
 readfile_utf8 = native_readfile_utf8
+readfile_utf8_strict = native_readfile_utf8_strict
 
 # convenience.  importing join into a namespace is ugly, pjoin less so
 pjoin = join
