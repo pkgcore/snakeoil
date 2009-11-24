@@ -47,7 +47,7 @@ def write_bzr_verinfo(destination):
         f.close()
 
 
-class snk_sdist(sdist.sdist):
+class sdist(sdist.sdist):
 
     """sdist command specifying the right files and generating ChangeLog."""
 
@@ -132,7 +132,7 @@ class snk_sdist(sdist.sdist):
                     os.unlink(os.path.join(base, x))
 
 
-class snk_build_py(build_py.build_py):
+class build_py(build_py.build_py):
 
     user_options = build_py.build_py.user_options + [("inplace", "i", "do any source conversions in place"),
         ("py2to3-tool=", None, "python conversion tool to use; defualts to 2to3")]
