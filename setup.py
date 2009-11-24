@@ -12,19 +12,19 @@ from distutils.command import build, sdist, build_ext, build_py, build_scripts, 
 from snakeoil import distutils_extensions as snk_distutils
 OptionalExtension = snk_distutils.OptionalExtension
 
-class mysdist(snk_distutils.snk_sdist):
+class mysdist(snk_distutils.sdist):
 
     """sdist command specifying the right files and generating ChangeLog."""
 
     package_namespace = 'snakeoil'
 
 
-class snakeoil_build_py(snk_distutils.snk_build_py):
+class snakeoil_build_py(snk_distutils.build_py):
 
     package_namespace = 'snakeoil'
 
     def _inner_run(self, py3k_rebuilds):
-        snk_distutils.snk_build_py._inner_run(self, py3k_rebuilds)
+        snk_distutils.build_py._inner_run(self, py3k_rebuilds)
 
         if sys.version_info[0:2] >= (2,5) and not self.inplace:
             files = os.listdir(os.path.join(self.build_lib, 'snakeoil', 'xml'))
@@ -104,7 +104,7 @@ core.setup(
     headers=common_includes,
     cmdclass={
         'sdist': mysdist,
-        'build_ext': snk_distutils.snakeoil_build_ext,
+        'build_ext': snk_distutils.build_ext,
         'build_py': snakeoil_build_py,
         'test': test,
         },
