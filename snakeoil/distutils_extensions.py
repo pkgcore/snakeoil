@@ -7,7 +7,9 @@ import subprocess
 import unittest
 
 from distutils import core, ccompiler, log, errors
-from distutils.command import build, sdist, build_ext, build_py, build_scripts, install
+from distutils.command import (
+    sdist as dst_sdist, build_ext as dst_build_ext, build_py as dst_build_py,
+    build as dst_build)
 
 class OptionalExtension(core.Extension):
     pass
@@ -47,27 +49,27 @@ def write_bzr_verinfo(destination):
         f.close()
 
 
-class sdist(sdist.sdist):
+class sdist(dst_sdist.sdist):
 
     """sdist command specifying the right files and generating ChangeLog."""
 
-    user_options = sdist.sdist.user_options + [
+    user_options = dst_sdist.sdist.user_options + [
         ('changelog', None, 'create a ChangeLog [default]'),
         ('no-changelog', None, 'do not create the ChangeLog file'),
         ]
 
-    boolean_options = sdist.sdist.boolean_options + ['changelog']
+    boolean_options = dst_sdist.sdist.boolean_options + ['changelog']
 
     negative_opt = {'no-changelog': 'changelog'}
-    negative_opt.update(sdist.sdist.negative_opt)
+    negative_opt.update(dst_sdist.sdist.negative_opt)
 
-    default_format = dict(sdist.sdist.default_format)
+    default_format = dict(dst_sdist.sdist.default_format)
     default_format["posix"] = "bztar"
 
     package_namespace = None
 
     def initialize_options(self):
-        sdist.sdist.initialize_options(self)
+        dst_sdist.sdist.initialize_options(self)
         self.changelog = True
 
     def get_file_list(self):
@@ -113,7 +115,7 @@ class sdist(sdist.sdist):
         into the release and adds generated files that should not
         exist in a working tree.
         """
-        sdist.sdist.make_release_tree(self, base_dir, files)
+        dst_sdist.sdist.make_release_tree(self, base_dir, files)
         if self.changelog:
             log.info("regenning ChangeLog (may take a while)")
             if subprocess.call(
@@ -132,16 +134,16 @@ class sdist(sdist.sdist):
                     os.unlink(os.path.join(base, x))
 
 
-class build_py(build_py.build_py):
+class build_py(dst_build_py.build_py):
 
-    user_options = build_py.build_py.user_options + [("inplace", "i", "do any source conversions in place"),
+    user_options = dst_build_py.build_py.user_options + [("inplace", "i", "do any source conversions in place"),
         ("py2to3-tool=", None, "python conversion tool to use; defualts to 2to3")]
 
     package_namespace = None
     generate_bzr_ver = True
 
     def initialize_options(self):
-        build_py.build_py.initialize_options(self)
+        dst_build_py.build_py.initialize_options(self)
         self.inplace = False
         self.py2to3_tool = compute_default_2to3_value()
 
@@ -149,7 +151,7 @@ class build_py(build_py.build_py):
         self.inplace = bool(self.inplace)
         if self.inplace:
             self.build_lib = '.'
-        build_py.build_py.finalize_options(self)
+        dst_build_py.build_py.finalize_options(self)
 
     def _compute_py3k_rebuilds(self, force=False):
         pjoin = os.path.join
@@ -195,7 +197,7 @@ class build_py(build_py.build_py):
             if is_py3k:
                 py3k_rebuilds = list(self._compute_py3k_rebuilds(
                     self.force))
-            build_py.build_py.run(self)
+            dst_build_py.build_py.run(self)
 
         if self.generate_bzr_ver:
             self._run_generate_bzr_ver(py3k_rebuilds)
@@ -234,20 +236,20 @@ class build_py(build_py.build_py):
         log.info("completed py3k conversions")
 
 
-class build_ext(build_ext.build_ext):
+class build_ext(dst_build_ext.build_ext):
 
-    user_options = build_ext.build_ext.user_options + [
+    user_options = dst_build_ext.build_ext.user_options + [
         ("build-optional=", "o", "build optional C modules"),
     ]
 
-    boolean_options = build.build.boolean_options + ["build-optional"]
+    boolean_options = dst_build.build.boolean_options + ["build-optional"]
 
     def initialize_options(self):
-        build_ext.build_ext.initialize_options(self)
+        dst_build_ext.build_ext.initialize_options(self)
         self.build_optional = None
 
     def finalize_options(self):
-        build_ext.build_ext.finalize_options(self)
+        dst_build_ext.build_ext.finalize_options(self)
         if self.build_optional is None:
             self.build_optional = True
         if not self.build_optional:
@@ -260,7 +262,7 @@ class build_ext(build_ext.build_ext):
                 l = [y for y in getattr(self.compiler, x) if y != '-DNEDBUG']
                 l.append('-Wall')
                 setattr(self.compiler, x, l)
-        return build_ext.build_ext.build_extensions(self)
+        return dst_build_ext.build_ext.build_extensions(self)
 
 
 class TestLoader(unittest.TestLoader):
