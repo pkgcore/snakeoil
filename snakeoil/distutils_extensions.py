@@ -234,7 +234,7 @@ class build_py(build_py.build_py):
         log.info("completed py3k conversions")
 
 
-class snakeoil_build_ext(build_ext.build_ext):
+class build_ext(build_ext.build_ext):
 
     user_options = build_ext.build_ext.user_options + [
         ("build-optional=", "o", "build optional C modules"),
