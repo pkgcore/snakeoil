@@ -2,7 +2,7 @@ Snakeoil Release Notes
 ======================
 
 
-snakeoil-0.3.3: October 26th, 2009
+snakeoil 0.3.3: October 26th, 2009
 
 * use the registration framework for epydoc to make it aware of partials.
 
