@@ -214,3 +214,9 @@ class RefCountingSet(dict):
             del self[item]
         else:
             self[item] = count - 1
+
+    def discard(self, item):
+        try:
+            self.remove(item)
+        except KeyError:
+            pass
