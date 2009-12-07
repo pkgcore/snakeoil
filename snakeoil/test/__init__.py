@@ -21,7 +21,8 @@ def _tryResultCall(result, methodname, *args):
             method(*args)
             return True
         if is_py3k_like:
-            if result.__class__.__module__ == 'unittest':
+            clsmodule = result.__class__.__module__
+            if clsmodule == 'unittest' or clsmodule.startswith("unittest."):
                 # bugger...
                 method(args[0], args[1])
             else:
