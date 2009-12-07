@@ -2,6 +2,9 @@ Snakeoil Release Notes
 ======================
 
 
+* add compatibility.is_py3k_like for marking if it's >=py2.7, or py3k
+
+
 snakeoil 0.3.3: October 26th, 2009
 
 * use the registration framework for epydoc to make it aware of partials.

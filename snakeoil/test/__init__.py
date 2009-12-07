@@ -12,7 +12,7 @@ __all__ = ['scripts', 'SkipTest', 'TestCase']
 import sys
 import warnings
 import unittest
-from snakeoil.compatibility import is_py3k
+from snakeoil.compatibility import is_py3k_like
 
 def _tryResultCall(result, methodname, *args):
     method = getattr(result, methodname, None)
@@ -20,7 +20,7 @@ def _tryResultCall(result, methodname, *args):
         if methodname != 'addExpectedFailure':
             method(*args)
             return True
-        if is_py3k:
+        if is_py3k_like:
             if result.__class__.__module__ == 'unittest':
                 # bugger...
                 method(args[0], args[1])
