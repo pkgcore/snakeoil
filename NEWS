@@ -1,6 +1,7 @@
 Snakeoil Release Notes
 ======================
 
+snakeoil 0.3.4: December 13th, 2009
 
 * add compatibility.is_py3k_like for marking if it's >=py2.7, or py3k
 
