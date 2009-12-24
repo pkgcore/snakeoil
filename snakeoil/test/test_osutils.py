@@ -429,6 +429,3 @@ for case in ("ascii", "ascii_strict", "bytes",
 
     name = 'readlines_%s' % case
     mk_readlines_test(locals(), case)
-#        locals()['native_readfile_%s_Test' % case],
-#        getattr(osutils, name), 'native_%s_Test' % name)
-print readlines_ascii_Test

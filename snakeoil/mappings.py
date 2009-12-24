@@ -431,7 +431,7 @@ class OrderedDict(DictMixin):
 
 class ListBackedDict(DictMixin):
 
-    __slots__ = ("_data")
+    __slots__ = ("_data",)
     _kls = list
     _key_grabber = operator.itemgetter(0)
     _value_grabber = operator.itemgetter(1)

@@ -64,7 +64,6 @@ common_includes=[
     ]
 
 extra_kwargs = dict(
-    extra_compile_args=['-Wall'],
     depends=common_includes,
     include_dirs=['include'],
     )
