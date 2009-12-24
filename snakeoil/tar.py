@@ -21,10 +21,14 @@ del t
 # ok, we now have our own local copy to monkey patch
 
 class TarInfo(tarfile.TarInfo):
-    __slots__ = (
-        "name", "mode", "uid", "gid", "size", "mtime", "chksum", "type",
-        "linkname", "_uname", "_gname", "devmajor", "devminor", "prefix",
-        "offset", "offset_data", "_buf", "sparse", "_link_target")
+
+    if not hasattr(tarfile.TarInfo, '__slots__'):
+        __slots__ = (
+            "name", "mode", "uid", "gid", "size", "mtime", "chksum", "type",
+            "linkname", "_uname", "_gname", "devmajor", "devminor", "prefix",
+            "offset", "offset_data", "_buf", "sparse", "_link_target")
+    else:
+        __slots__ = ()
 
     def get_buf(self):
         return self.tobuf()
