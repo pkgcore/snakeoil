@@ -1,4 +1,4 @@
-# Copyright: 2005-2007 Brian Harring <ferringb@gmail.com>
+# Copyright: 2005-2009 Brian Harring <ferringb@gmail.com>
 # License: GPL2
 
 """
@@ -191,7 +191,7 @@ class ProtectedSet(SetMixin):
             ifilterfalse(self._new.__contains__, self._orig))
 
     def __len__(self):
-        return len(self._orig.union(self._new))
+        return len(self._new.union(self._orig))
 
     def add(self, key):
         if key not in self._orig:

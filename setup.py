@@ -18,6 +18,9 @@ class mysdist(snk_distutils.sdist):
 
     package_namespace = 'snakeoil'
 
+    def _add_to_file_list(self):
+        self.filelist.include_pattern('.h', prefix='include/snakeoil')
+
 
 class snakeoil_build_py(snk_distutils.build_py):
 

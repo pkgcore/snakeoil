@@ -56,6 +56,8 @@ class sdist(dst_sdist.sdist):
     user_options = dst_sdist.sdist.user_options + [
         ('changelog', None, 'create a ChangeLog [default]'),
         ('no-changelog', None, 'do not create the ChangeLog file'),
+        ('changelog-start', None, 'the bzr rev to start dumping the changelog'
+            ' from; defaults to the last 5 tagged versions'),
         ]
 
     boolean_options = dst_sdist.sdist.boolean_options + ['changelog']
@@ -65,12 +67,14 @@ class sdist(dst_sdist.sdist):
 
     default_format = dict(dst_sdist.sdist.default_format)
     default_format["posix"] = "bztar"
+    default_log_format = '--short'
 
     package_namespace = None
 
     def initialize_options(self):
         dst_sdist.sdist.initialize_options(self)
         self.changelog = True
+        self.changelog_start = None
 
     def get_file_list(self):
         """Get a filelist without doing anything involving MANIFEST files."""
@@ -89,8 +93,7 @@ class sdist(dst_sdist.sdist):
         self.filelist.append("NEWS")
         self.filelist.append("COPYING")
 
-        self.filelist.include_pattern('.c', prefix='src')
-        self.filelist.include_pattern('.h', prefix='include/snakeoil')
+        self.filelist.include_pattern('.[ch]', prefix='src')
 
         for prefix in ['doc', 'dev-notes']:
             self.filelist.include_pattern('.rst', prefix=prefix)
@@ -101,12 +104,45 @@ class sdist(dst_sdist.sdist):
         self.filelist.include_pattern('*', prefix='examples')
         self.filelist.include_pattern('*', prefix='bin')
 
+        self._add_to_file_list()
+
         if self.prune:
             self.prune_file_list()
 
         # This is not optional: remove_duplicates needs sorted input.
         self.filelist.sort()
         self.filelist.remove_duplicates()
+
+    def _add_to_file_list(self):
+        pass
+
+    def find_last_tags_back(self, last_n_tags=5, majors_only=False):
+        p = subprocess.Popen(['bzr', 'tags', '--sort=time'],
+            stdout=subprocess.PIPE)
+        data = [x.split() for x in p.stdout if x]
+        data_d = dict(data)
+        if not p.returncode != 0:
+            raise errors.DistutilsExecError("bzr tags returned non zero: %r"
+                % (p.returncode,))
+        seen = set()
+        tags = []
+        for tag, revno in data:
+            tag_targ = tag
+            if majors_only:
+                tag_targ = '.'.join(tag.split(".")[:2])
+            if tag_targ not in seen:
+                seen.add(tag_targ)
+                tags.append((tag_targ, tag, revno))
+        tags = tags[max(len(tags) - last_n_tags, 0):]
+        return 'tag:%s' % (tags[0][1],)
+
+    def generate_bzr_verinfo(self, base_dir):
+        log.info('generating bzr_verinfo')
+        if subprocess.call(
+            [bzrbin, 'version-info', '--format=python'],
+            stdout=open(os.path.join(
+                    base_dir, self.package_namespace, 'bzr_verinfo.py'), 'w')):
+            raise errors.DistutilsExecError('bzr version-info failed')
 
     def make_release_tree(self, base_dir, files):
         """Create and populate the directory tree that is put in source tars.
@@ -117,17 +153,24 @@ class sdist(dst_sdist.sdist):
         """
         dst_sdist.sdist.make_release_tree(self, base_dir, files)
         if self.changelog:
-            log.info("regenning ChangeLog (may take a while)")
+            args = []
+            if not self.changelog_start:
+                self.changelog_start = self.find_last_tags_back()
+            if self.changelog_start:
+                args += ['-r', '%s..' % (self.changelog_start,),
+                    '--include-merge']
+            if self.default_log_format:
+                args += [self.default_log_format]
+            log.info("regenning ChangeLog to %r (may take a while)" %
+                (self.changelog_start,))
             if subprocess.call(
-                [bzrbin, 'log', '--verbose'],
+                [bzrbin, 'log', '--verbose'] + args,
                 stdout=open(os.path.join(base_dir, 'ChangeLog'), 'w')):
                 raise errors.DistutilsExecError('bzr log failed')
-        log.info('generating bzr_verinfo')
-        if subprocess.call(
-            [bzrbin, 'version-info', '--format=python'],
-            stdout=open(os.path.join(
-                    base_dir, self.package_namespace, 'bzr_verinfo.py'), 'w')):
-            raise errors.DistutilsExecError('bzr version-info failed')
+        self.generate_bzr_verinfo(base_dir)
+        self.cleanup_post_release_tree(base_dir)
+
+    def cleanup_post_release_tree(self, base_dir):
         for base, dirs, files in os.walk(base_dir):
             for x in files:
                 if x.endswith(".pyc") or x.endswith(".pyo"):
