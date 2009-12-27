@@ -2,6 +2,8 @@ Snakeoil Release Notes
 ======================
 
 
+snakeoil 0.3.5: December 27th, 2009
+
 * snakeoil.struct_compat module was added; provides py2.4 compat, and
   adds read/write methods that take an fd and operate as unpack/pack
   against that fd.  This simplifies invocation/stream access primarily.
