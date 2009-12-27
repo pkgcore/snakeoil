@@ -2,6 +2,10 @@ Snakeoil Release Notes
 ======================
 
 
+* snakeoil.struct_compat module was added; provides py2.4 compat, and
+  adds read/write methods that take an fd and operate as unpack/pack
+  against that fd.  This simplifies invocation/stream access primarily.
+
 * add test_slot_shadowing; basically looks for __slots__ usage where
   a derivative class adds slotting the parent already provides, thus
   leading to a very unfun set of bugs and wasted memory.
