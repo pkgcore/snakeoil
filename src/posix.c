@@ -576,8 +576,7 @@ snakeoil_readlines_set_mtime(snakeoil_readlines *self, PyObject *v,
 static PyObject *
 snakeoil_readlines_get_mtime(snakeoil_readlines *self)
 {
-    PyObject *ret = PyObject_Call(snakeoil_stat_float_times,
-        snakeoil_empty_tuple, NULL);
+    PyObject *ret = PyObject_CallFunctionObjArgs(snakeoil_stat_float_times, NULL);
     if(!ret)
         return NULL;
     int is_float;

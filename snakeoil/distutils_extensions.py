@@ -201,7 +201,7 @@ class build_py(dst_build_py.build_py):
         for base, mod_name, path in self.find_all_modules():
             try:
                 new_mtime = os.lstat(path).st_mtime
-            except (OSError, IOError):
+            except EnvironmentError:
                 # ok... wtf distutils?
                 continue
             trg_path = pjoin(self.build_lib, path)
@@ -210,7 +210,7 @@ class build_py(dst_build_py.build_py):
                 continue
             try:
                 old_mtime = os.lstat(trg_path).st_mtime
-            except (OSError, IOError):
+            except EnvironmentError:
                 yield trg_path, new_mtime
                 continue
             if old_mtime != new_mtime:
