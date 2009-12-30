@@ -146,6 +146,57 @@ def DelayedInstantiation(resultant_kls, func, *a, **kwd):
     return o(resultant_kls, func, *a, **kwd)
 
 
+def native_attr_getitem(self, key):
+    try:
+        return getattr(self, key)
+    except AttributeError:
+        raise KeyError(key)
+
+def native_attr_update(self, iterable):
+    for k, v in iterable:
+        setattr(self, k, v)
+
+def native_attr_contains(self, key):
+     return hasattr(self, key)
+
+def native_attr_delitem(self, key):
+     # Python does not raise anything if you delattr an
+     # unset slot (works ok if __slots__ is not involved).
+     try:
+         getattr(self, key)
+     except AttributeError:
+         raise KeyError(key)
+     delattr(self, key)
+
+def native_attr_pop(self, key, *a):
+    # faster then the exception form...
+    l = len(a)
+    if l > 1:
+        raise TypeError("pop accepts 1 or 2 args only")
+    if hasattr(self, key):
+        o = getattr(self, key)
+        object.__delattr__(self, key)
+    elif l:
+        o = a[0]
+    else:
+        raise KeyError(key)
+    return o
+
+def native_attr_get(self, key, default=None):
+    return getattr(self, key, default)
+
+try:
+    from snakeoil._klass import (attr_getitem, attr_setitem, attr_delitem,
+        attr_update, attr_contains, attr_pop, attr_get)
+except ImportError:
+    attr_getitem = native_attr_getitem
+    attr_setitem = object.__setattr__
+    attr_delitem = native_attr_delitem
+    attr_update = native_attr_update
+    attr_contains = native_attr_contains
+    attr_pop = native_attr_pop
+    attr_get = native_attr_get
+
 slotted_dict_cache = {}
 def make_SlottedDict_kls(keys):
     new_keys = tuple(sorted(keys))
@@ -159,22 +210,13 @@ def make_SlottedDict_kls(keys):
                 if iterables:
                     self.update(iterables)
 
-            __setitem__ = object.__setattr__
-
-            def __getitem__(self, key):
-                try:
-                    return getattr(self, key)
-                except AttributeError:
-                    raise KeyError(key)
-
-            def __delitem__(self, key):
-                # Python does not raise anything if you delattr an
-                # unset slot (works ok if __slots__ is not involved).
-                try:
-                    getattr(self, key)
-                except AttributeError:
-                    raise KeyError(key)
-                delattr(self, key)
+            __setitem__ = attr_setitem
+            __getitem__ = attr_getitem
+            __delitem__ = attr_delitem
+            __contains__ = attr_contains
+            update = attr_update
+            pop = attr_pop
+            get = attr_get
 
             def __iter__(self):
                 for k in self.__slots__:
@@ -188,36 +230,13 @@ def make_SlottedDict_kls(keys):
                 for k in self:
                     yield self[k]
 
-            def get(self, key, default=None):
-                return getattr(self, key, default)
-
-            def pop(self, key, *a):
-                # faster then the exception form...
-                l = len(a)
-                if l > 1:
-                    raise TypeError("pop accepts 1 or 2 args only")
-                if hasattr(self, key):
-                    o = getattr(self, key)
-                    object.__delattr__(self, key)
-                elif l:
-                    o = a[0]
-                else:
-                    raise KeyError(key)
-                return o
-
             def clear(self):
                 for k in self:
                     del self[k]
 
-            def update(self, iterable):
-                for k, v in iterable:
-                    setattr(self, k, v)
-
             def __len__(self):
                 return len(self.keys())
 
-            def __contains__(self, key):
-                return hasattr(self, key)
 
         o = SlottedDict
         slotted_dict_cache[new_keys] = o

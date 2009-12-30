@@ -356,6 +356,541 @@ static PyTypeObject snakeoil_ContainsType = {
     0,                                               /* tp_descr_set */
 };
 
+
+static PyObject *
+snakeoil_mapping_slot_getitem(PyObject *self, PyObject *key)
+{
+    PyObject *value = PyObject_GetAttr(self, key);
+    if(value)
+        return value;
+    if(!PyErr_Occurred()) {
+        // this should be impossible...
+        PyErr_SetString(PyExc_SystemError,
+            "null returned from getattr, but no error set");
+        return NULL;
+    } else if(!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+        // only one potential we care about... TypeError if key wasn't a string.
+        if(!PyErr_ExceptionMatches(PyExc_TypeError))
+            return value;
+        // if it was a string or unicode... just propagate it.
+        // some form of bug in the __getattr__...
+        if(PyString_Check(key) || PyUnicode_Check(key)) {
+            return value;
+        }
+    }
+    Py_INCREF(key);
+    PyErr_SetObject(PyExc_KeyError, key);
+    return value;
+}
+
+static PyMethodDef snakeoil_mapping_slot_getitem_def = {
+    "getitem", snakeoil_mapping_slot_getitem, METH_O|METH_COEXIST, NULL};
+
+static PyObject *
+snakeoil_mapping_slot_getitem_descr(PyObject *self, PyObject *obj, PyObject *type)
+{
+    return PyCFunction_New(&snakeoil_mapping_slot_getitem_def, obj);
+}
+
+static PyTypeObject snakeoil_AttrGetItemType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                               /* ob_size */
+    "snakeoil_attr_getitem_type",                    /* tp_name */
+    sizeof(PyObject),                                /* tp_basicsize */
+    0,                                               /* tp_itemsize */
+    0,                                               /* tp_dealloc */
+    0,                                               /* tp_print */
+    0,                                               /* tp_getattr */
+    0,                                               /* tp_setattr */
+    0,                                               /* tp_compare */
+    0,                                               /* tp_repr */
+    0,                                               /* tp_as_number */
+    0,                                               /* tp_as_sequence */
+    0,                                               /* tp_as_mapping */
+    0,                                               /* tp_hash  */
+    0,                                               /* tp_call */
+    0,                                               /* tp_str */
+    0,                                               /* tp_getattro */
+    0,                                               /* tp_setattro */
+    0,                                               /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT,                              /* tp_flags */
+    "type of the getitem proxy",                     /* tp_doc */
+    0,                                               /* tp_traverse */
+    0,                                               /* tp_clear */
+    0,                                               /* tp_richcompare */
+    0,                                               /* tp_weaklistoffset */
+    0,                                               /* tp_iter */
+    0,                                               /* tp_iternext */
+    0,                                               /* tp_methods */
+    0,                                               /* tp_members */
+    0,                                               /* tp_getset */
+    0,                                               /* tp_base */
+    0,                                               /* tp_dict */
+    snakeoil_mapping_slot_getitem_descr,             /* tp_descr_get */
+    0,                                               /* tp_descr_set */
+};
+
+static PyObject *
+snakeoil_mapping_slot_setitem(PyObject *self, PyObject *args)
+{
+    PyObject *key, *value;
+    if(!PyArg_UnpackTuple(args, "snakeoil_attr_setitem", 2, 2, &key, &value)) {
+        // should be impossible, but better safe then sorry.
+        return NULL;
+    }
+    int result = PyObject_SetAttr(self, key, value);
+    if(-1 == result) {
+        return (PyObject *)NULL;
+    }
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef snakeoil_mapping_slot_setitem_def = {
+    "setitem", snakeoil_mapping_slot_setitem, METH_VARARGS|METH_COEXIST, NULL};
+
+static PyObject *
+snakeoil_mapping_slot_setitem_descr(PyObject *self, PyObject *obj, PyObject *type)
+{
+    return PyCFunction_New(&snakeoil_mapping_slot_setitem_def, obj);
+}
+
+static PyTypeObject snakeoil_AttrSetItemType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                               /* ob_size */
+    "snakeoil_attr_setitem_type",                    /* tp_name */
+    sizeof(PyObject),                                /* tp_basicsize */
+    0,                                               /* tp_itemsize */
+    0,                                               /* tp_dealloc */
+    0,                                               /* tp_print */
+    0,                                               /* tp_getattr */
+    0,                                               /* tp_setattr */
+    0,                                               /* tp_compare */
+    0,                                               /* tp_repr */
+    0,                                               /* tp_as_number */
+    0,                                               /* tp_as_sequence */
+    0,                                               /* tp_as_mapping */
+    0,                                               /* tp_hash  */
+    0,                                               /* tp_call */
+    0,                                               /* tp_str */
+    0,                                               /* tp_getattro */
+    0,                                               /* tp_setattro */
+    0,                                               /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT,                              /* tp_flags */
+    "type of the setitem proxy",                     /* tp_doc */
+    0,                                               /* tp_traverse */
+    0,                                               /* tp_clear */
+    0,                                               /* tp_richcompare */
+    0,                                               /* tp_weaklistoffset */
+    0,                                               /* tp_iter */
+    0,                                               /* tp_iternext */
+    0,                                               /* tp_methods */
+    0,                                               /* tp_members */
+    0,                                               /* tp_getset */
+    0,                                               /* tp_base */
+    0,                                               /* tp_dict */
+    snakeoil_mapping_slot_setitem_descr,             /* tp_descr_get */
+    0,                                               /* tp_descr_set */
+};
+
+static PyObject *
+snakeoil_mapping_slot_delitem(PyObject *self, PyObject *key)
+{
+
+    // because pythons __slots__ is retarded (see python issue 7604),
+    // do a hasattr first.
+    if(PyObject_HasAttr(self, key)) {
+        if(0 == PyObject_DelAttr(self, key)) {
+            Py_RETURN_NONE;
+        }
+
+        if(PyErr_Occurred()) {
+            if(PyErr_ExceptionMatches(PyExc_AttributeError)) {
+                PyErr_SetObject(PyExc_KeyError, key);
+            }
+        } else {
+            PyErr_SetObject(PyExc_KeyError, key);
+        }
+    } else {
+        PyErr_SetObject(PyExc_KeyError, key);
+    }
+    return NULL;
+}
+
+static PyMethodDef snakeoil_mapping_slot_delitem_def = {
+    "delitem", snakeoil_mapping_slot_delitem, METH_O|METH_COEXIST, NULL};
+
+static PyObject *
+snakeoil_mapping_slot_delitem_descr(PyObject *self, PyObject *obj, PyObject *type)
+{
+    return PyCFunction_New(&snakeoil_mapping_slot_delitem_def, obj);
+}
+
+static PyTypeObject snakeoil_AttrDelItemType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                               /* ob_size */
+    "snakeoil_attr_delitem_type",                    /* tp_name */
+    sizeof(PyObject),                                /* tp_basicsize */
+    0,                                               /* tp_itemsize */
+    0,                                               /* tp_dealloc */
+    0,                                               /* tp_print */
+    0,                                               /* tp_getattr */
+    0,                                               /* tp_setattr */
+    0,                                               /* tp_compare */
+    0,                                               /* tp_repr */
+    0,                                               /* tp_as_number */
+    0,                                               /* tp_as_sequence */
+    0,                                               /* tp_as_mapping */
+    0,                                               /* tp_hash  */
+    0,                                               /* tp_call */
+    0,                                               /* tp_str */
+    0,                                               /* tp_getattro */
+    0,                                               /* tp_setattro */
+    0,                                               /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT,                              /* tp_flags */
+    "type of the delitem proxy",                     /* tp_doc */
+    0,                                               /* tp_traverse */
+    0,                                               /* tp_clear */
+    0,                                               /* tp_richcompare */
+    0,                                               /* tp_weaklistoffset */
+    0,                                               /* tp_iter */
+    0,                                               /* tp_iternext */
+    0,                                               /* tp_methods */
+    0,                                               /* tp_members */
+    0,                                               /* tp_getset */
+    0,                                               /* tp_base */
+    0,                                               /* tp_dict */
+    snakeoil_mapping_slot_delitem_descr,             /* tp_descr_get */
+    0,                                               /* tp_descr_set */
+};
+
+static PyObject *
+snakeoil_mapping_slot_contains(PyObject *self, PyObject *key)
+{
+    if(PyObject_HasAttr(self, key)) {
+        Py_RETURN_TRUE;
+    }
+    Py_RETURN_FALSE;
+}
+
+static PyMethodDef snakeoil_mapping_slot_contains_def = {
+    "contains", snakeoil_mapping_slot_contains, METH_O|METH_COEXIST, NULL};
+
+static PyObject *
+snakeoil_mapping_slot_contains_descr(PyObject *self, PyObject *obj, PyObject *type)
+{
+    return PyCFunction_New(&snakeoil_mapping_slot_contains_def, obj);
+}
+
+static PyTypeObject snakeoil_AttrContainsType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                               /* ob_size */
+    "snakeoil_attr_contains_type",                   /* tp_name */
+    sizeof(PyObject),                                /* tp_basicsize */
+    0,                                               /* tp_itemsize */
+    0,                                               /* tp_dealloc */
+    0,                                               /* tp_print */
+    0,                                               /* tp_getattr */
+    0,                                               /* tp_setattr */
+    0,                                               /* tp_compare */
+    0,                                               /* tp_repr */
+    0,                                               /* tp_as_number */
+    0,                                               /* tp_as_sequence */
+    0,                                               /* tp_as_mapping */
+    0,                                               /* tp_hash  */
+    0,                                               /* tp_call */
+    0,                                               /* tp_str */
+    0,                                               /* tp_getattro */
+    0,                                               /* tp_setattro */
+    0,                                               /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT,                              /* tp_flags */
+    "type of the contains proxy",                    /* tp_doc */
+    0,                                               /* tp_traverse */
+    0,                                               /* tp_clear */
+    0,                                               /* tp_richcompare */
+    0,                                               /* tp_weaklistoffset */
+    0,                                               /* tp_iter */
+    0,                                               /* tp_iternext */
+    0,                                               /* tp_methods */
+    0,                                               /* tp_members */
+    0,                                               /* tp_getset */
+    0,                                               /* tp_base */
+    0,                                               /* tp_dict */
+    snakeoil_mapping_slot_contains_descr,            /* tp_descr_get */
+    0,                                               /* tp_descr_set */
+};
+
+static PyObject *
+snakeoil_mapping_slot_pop(PyObject *self, PyObject *args)
+{
+    PyObject *key = NULL, *default_val = NULL;
+    if(!PyArg_UnpackTuple(args, "snakeoil_attr_pop", 1, 2, &key, &default_val)) {
+        // should be impossible, but better safe then sorry.
+        return NULL;
+    }
+    PyObject *result = PyObject_GetAttr(self, key);
+    if(result) {
+        if(0 != PyObject_DelAttr(self, key)) {
+            Py_DECREF(result);
+            return NULL;
+        }
+    } else{
+        if(!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+            return NULL;
+        }
+        if(default_val) {
+            Py_INCREF(default_val);
+            PyErr_Clear();
+            return default_val;
+        }
+        PyErr_SetObject(PyExc_KeyError, key);
+    }
+    return result;
+}
+
+static PyMethodDef snakeoil_mapping_slot_pop_def = {
+    "pop", snakeoil_mapping_slot_pop, METH_VARARGS|METH_COEXIST, NULL};
+
+static PyObject *
+snakeoil_mapping_slot_pop_descr(PyObject *self, PyObject *obj, PyObject *type)
+{
+    return PyCFunction_New(&snakeoil_mapping_slot_pop_def, obj);
+}
+
+static PyTypeObject snakeoil_AttrPopType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                               /* ob_size */
+    "snakeoil_attr_pop_type",                        /* tp_name */
+    sizeof(PyObject),                                /* tp_basicsize */
+    0,                                               /* tp_itemsize */
+    0,                                               /* tp_dealloc */
+    0,                                               /* tp_print */
+    0,                                               /* tp_getattr */
+    0,                                               /* tp_setattr */
+    0,                                               /* tp_compare */
+    0,                                               /* tp_repr */
+    0,                                               /* tp_as_number */
+    0,                                               /* tp_as_sequence */
+    0,                                               /* tp_as_mapping */
+    0,                                               /* tp_hash  */
+    0,                                               /* tp_call */
+    0,                                               /* tp_str */
+    0,                                               /* tp_getattro */
+    0,                                               /* tp_setattro */
+    0,                                               /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT,                              /* tp_flags */
+    "type of the pop proxy",                         /* tp_doc */
+    0,                                               /* tp_traverse */
+    0,                                               /* tp_clear */
+    0,                                               /* tp_richcompare */
+    0,                                               /* tp_weaklistoffset */
+    0,                                               /* tp_iter */
+    0,                                               /* tp_iternext */
+    0,                                               /* tp_methods */
+    0,                                               /* tp_members */
+    0,                                               /* tp_getset */
+    0,                                               /* tp_base */
+    0,                                               /* tp_dict */
+    snakeoil_mapping_slot_pop_descr,                  /* tp_descr_get */
+    0,                                               /* tp_descr_set */
+};
+
+static PyObject *
+snakeoil_mapping_slot_get(PyObject *self, PyObject *args)
+{
+    PyObject *key = NULL, *default_val = NULL;
+    if(!PyArg_UnpackTuple(args, "snakeoil_attr_pop", 1, 2, &key, &default_val)) {
+        // should be impossible, but better safe then sorry.
+        return NULL;
+    }
+    PyObject *result = PyObject_GetAttr(self, key);
+    if(!result) {
+        if(!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+            return NULL;
+        }
+        PyErr_Clear();
+        if(!default_val) {
+            result = Py_None;
+        } else {
+            result = default_val;
+        }
+        Py_INCREF(result);;
+    }
+    return result;
+}
+
+static PyMethodDef snakeoil_mapping_slot_get_def = {
+    "get", snakeoil_mapping_slot_get, METH_VARARGS|METH_COEXIST, NULL};
+
+static PyObject *
+snakeoil_mapping_slot_get_descr(PyObject *self, PyObject *obj, PyObject *type)
+{
+    return PyCFunction_New(&snakeoil_mapping_slot_get_def, obj);
+}
+
+static PyTypeObject snakeoil_AttrGetType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                               /* ob_size */
+    "snakeoil_attr_get_type",                        /* tp_name */
+    sizeof(PyObject),                                /* tp_basicsize */
+    0,                                               /* tp_itemsize */
+    0,                                               /* tp_dealloc */
+    0,                                               /* tp_print */
+    0,                                               /* tp_getattr */
+    0,                                               /* tp_setattr */
+    0,                                               /* tp_compare */
+    0,                                               /* tp_repr */
+    0,                                               /* tp_as_number */
+    0,                                               /* tp_as_sequence */
+    0,                                               /* tp_as_mapping */
+    0,                                               /* tp_hash  */
+    0,                                               /* tp_call */
+    0,                                               /* tp_str */
+    0,                                               /* tp_getattro */
+    0,                                               /* tp_setattro */
+    0,                                               /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT,                              /* tp_flags */
+    "type of the get proxy",                         /* tp_doc */
+    0,                                               /* tp_traverse */
+    0,                                               /* tp_clear */
+    0,                                               /* tp_richcompare */
+    0,                                               /* tp_weaklistoffset */
+    0,                                               /* tp_iter */
+    0,                                               /* tp_iternext */
+    0,                                               /* tp_methods */
+    0,                                               /* tp_members */
+    0,                                               /* tp_getset */
+    0,                                               /* tp_base */
+    0,                                               /* tp_dict */
+    snakeoil_mapping_slot_get_descr,                  /* tp_descr_get */
+    0,                                               /* tp_descr_set */
+};
+
+static PyObject *
+snakeoil_mapping_slot_update(PyObject *self, PyObject *sequence)
+{
+    PyObject *iterator = PyObject_GetIter(sequence);
+    PyObject *item = NULL;
+    Py_ssize_t position = 0;
+    int result = 0;
+
+    if(!iterator)
+        return NULL;
+
+    while(item = PyIter_Next(iterator)) {
+        if(PyTuple_CheckExact(item)) {
+            // fast path this to avoid unpacking and other nasty checks
+            if(2 == PyTuple_GET_SIZE(item)) {
+                result = PyObject_SetAttr(self,
+                    PyTuple_GET_ITEM(item, 0), PyTuple_GET_ITEM(item, 1));
+            } else {
+                result = -2;
+            }
+        } else if (!PySequence_Check(item)) {
+            result = -3;
+        } else {
+            // manually unpack the bugger.
+            Py_ssize_t size = PySequence_Size(item);
+            if(2 != size) {
+                result = -2;
+            } else if (-1 != size) {
+                result = -1;
+                PyObject *key = PySequence_GetItem(item, 0);
+                if(key) {
+                    PyObject *value = PySequence_GetItem(item, 1);
+                    if(value) {
+                        result = PyObject_SetAttr(self, key, value);
+                        Py_DECREF(value);
+                    }
+                    Py_DECREF(key);
+                }
+            }
+        }
+        Py_DECREF(item);
+        if(0 != result) {
+            PyObject *errstr = NULL;
+            if(-2 == result) {
+                // wrong size.
+                errstr = PyString_FromFormat(
+                    "attr dictionary update sequence element #%i has the wrong length",
+                    (int)position);
+                if(errstr) {
+                    PyErr_SetObject(PyExc_ValueError, errstr);
+                }
+            } else if(-3 == result) {
+                errstr = PyString_FromFormat(
+                    "cannot convert attr dictionary update sequence element #%i to a sequence",
+                    (int)position);
+                if(errstr) {
+                    PyErr_SetObject(PyExc_TypeError, errstr);
+                }
+            } else if(-1 != result) {
+                errstr = PyString_FromFormat(
+                    "unhandled result(%i) during update at position %i- constants changed?",
+                        (int)result, (int)position);
+                if(errstr) {
+                    PyErr_SetObject(PyExc_RuntimeError, errstr);
+                }
+            }
+            Py_XDECREF(errstr);
+            break;
+        }
+        position++;
+    }
+    Py_DECREF(iterator);
+    if(0 == result) {
+        Py_RETURN_NONE;
+    }
+    return NULL;
+}
+
+static PyMethodDef snakeoil_mapping_slot_update_def = {
+    "update", snakeoil_mapping_slot_update, METH_O|METH_COEXIST, NULL};
+
+static PyObject *
+snakeoil_mapping_slot_update_descr(PyObject *self, PyObject *obj, PyObject *type)
+{
+    return PyCFunction_New(&snakeoil_mapping_slot_update_def, obj);
+}
+
+static PyTypeObject snakeoil_AttrUpdateType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                               /* ob_size */
+    "snakeoil_attr_update_type",                     /* tp_name */
+    sizeof(PyObject),                                /* tp_basicsize */
+    0,                                               /* tp_itemsize */
+    0,                                               /* tp_dealloc */
+    0,                                               /* tp_print */
+    0,                                               /* tp_getattr */
+    0,                                               /* tp_setattr */
+    0,                                               /* tp_compare */
+    0,                                               /* tp_repr */
+    0,                                               /* tp_as_number */
+    0,                                               /* tp_as_sequence */
+    0,                                               /* tp_as_mapping */
+    0,                                               /* tp_hash  */
+    0,                                               /* tp_call */
+    0,                                               /* tp_str */
+    0,                                               /* tp_getattro */
+    0,                                               /* tp_setattro */
+    0,                                               /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT,                              /* tp_flags */
+    "type of the update proxy",                      /* tp_doc */
+    0,                                               /* tp_traverse */
+    0,                                               /* tp_clear */
+    0,                                               /* tp_richcompare */
+    0,                                               /* tp_weaklistoffset */
+    0,                                               /* tp_iter */
+    0,                                               /* tp_iternext */
+    0,                                               /* tp_methods */
+    0,                                               /* tp_members */
+    0,                                               /* tp_getset */
+    0,                                               /* tp_base */
+    0,                                               /* tp_dict */
+    snakeoil_mapping_slot_update_descr,              /* tp_descr_get */
+    0,                                               /* tp_descr_set */
+};
+
+
 PyDoc_STRVAR(
     snakeoil_klass_documentation,
     "misc cpython class functionality");
@@ -377,6 +912,27 @@ init_klass()
     if (PyType_Ready(&snakeoil_ContainsType) < 0)
         return;
 
+    if (PyType_Ready(&snakeoil_AttrGetItemType) < 0)
+        return;
+
+    if (PyType_Ready(&snakeoil_AttrSetItemType) < 0)
+        return;
+
+    if (PyType_Ready(&snakeoil_AttrDelItemType) < 0)
+        return;
+
+    if (PyType_Ready(&snakeoil_AttrContainsType) < 0)
+        return;
+
+    if (PyType_Ready(&snakeoil_AttrPopType) < 0)
+        return;
+
+    if (PyType_Ready(&snakeoil_AttrGetType) < 0)
+        return;
+
+    if (PyType_Ready(&snakeoil_AttrUpdateType) < 0)
+        return;
+
     if (PyType_Ready(&snakeoil_generic_equality_eq_type) < 0)
         return;
 
@@ -389,30 +945,32 @@ init_klass()
             return;
     }
 
-    PyObject *tmp;
-    if (!(tmp = PyType_GenericNew(&snakeoil_GetType, NULL, NULL)))
-        return;
-    if (PyModule_AddObject(m, "get", tmp) == -1)
-        return;
 
-    if (!(tmp = PyType_GenericNew(&snakeoil_ContainsType, NULL, NULL)))
-        return;
-    if (PyModule_AddObject(m, "contains", tmp) == -1)
-        return;
+#define ADD_TYPE_INSTANCE(type_ptr, name)                   \
+{                                                           \
+    PyObject *tmp;                                          \
+    if (!(tmp = PyType_GenericNew((type_ptr), NULL, NULL))) \
+        return;                                             \
+    if (PyModule_AddObject(m, name, tmp) == -1)             \
+        return;                                             \
+}
+
+    ADD_TYPE_INSTANCE(&snakeoil_GetType, "get");
+    ADD_TYPE_INSTANCE(&snakeoil_ContainsType, "contains");
+    ADD_TYPE_INSTANCE(&snakeoil_AttrGetItemType, "attr_getitem");
+    ADD_TYPE_INSTANCE(&snakeoil_AttrSetItemType, "attr_setitem");
+    ADD_TYPE_INSTANCE(&snakeoil_AttrDelItemType, "attr_delitem");
+    ADD_TYPE_INSTANCE(&snakeoil_AttrContainsType, "attr_contains");
+    ADD_TYPE_INSTANCE(&snakeoil_AttrPopType, "attr_pop");
+    ADD_TYPE_INSTANCE(&snakeoil_AttrGetType, "attr_get");
+    ADD_TYPE_INSTANCE(&snakeoil_AttrUpdateType, "attr_update");
+    ADD_TYPE_INSTANCE(&snakeoil_generic_equality_eq_type, "generic_eq");
+    ADD_TYPE_INSTANCE(&snakeoil_generic_equality_ne_type, "generic_ne");
+
+#undef ADD_TYPE_INSTANCE
 
     Py_INCREF(&snakeoil_GetAttrProxyType);
     if (PyModule_AddObject(
             m, "GetAttrProxy", (PyObject *)&snakeoil_GetAttrProxyType) == -1)
-        return;
-
-    tmp = PyType_GenericNew(&snakeoil_generic_equality_eq_type, NULL, NULL);
-    if(!tmp)
-        return;
-    if (PyModule_AddObject(m, "generic_eq", tmp) == -1)
-        return;
-    tmp = PyType_GenericNew(&snakeoil_generic_equality_ne_type, NULL, NULL);
-    if(!tmp)
-        return;
-    if (PyModule_AddObject(m, "generic_ne", tmp) == -1)
         return;
 }
