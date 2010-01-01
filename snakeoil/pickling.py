@@ -16,3 +16,7 @@ def iter_stream(stream):
             yield load(stream)
     except EOFError:
         pass
+
+def dump_stream(handle, stream):
+    for item in stream:
+        dump(item, handle)

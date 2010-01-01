@@ -485,3 +485,35 @@ class test_cached_hash(TestCase):
         self.assertEqual(hash(o), now)
         self.assertEqual(o.invoked, [o])
         self.assertEqual(o._hash, now)
+
+
+class test_native_reflective_hash(TestCase):
+    func = staticmethod(klass.native_reflective_hash)
+
+    def test_it(self):
+        class cls(object):
+            __hash__ = self.func('_hash')
+
+        obj = cls()
+        self.assertRaises(AttributeError, hash, obj)
+        obj._hash = 1
+        self.assertEqual(hash(obj), 1)
+        obj._hash = 123123123
+        self.assertEqual(hash(obj), 123123123)
+        # verify it's not caching in any form
+        del obj._hash
+        self.assertRaises(AttributeError, hash, obj)
+
+        class cls2(object):
+            __hash__ = self.func('_dar')
+        obj = cls2()
+        self.assertRaises(AttributeError, hash, obj)
+        obj._dar = 4
+        self.assertEqual(hash(obj), 4)
+
+
+class test_cpy_reflective_hash(test_native_reflective_hash):
+    
+    kls = staticmethod(klass.reflective_hash)
+    if klass.reflective_hash is klass.native_reflective_hash:
+        skip = "cpython extension isn't available"

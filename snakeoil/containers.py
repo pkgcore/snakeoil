@@ -173,6 +173,14 @@ class Unchangable(Exception):
         Exception.__init__(self, "key '%s' is unchangable" % (key,))
         self.key = key
 
+def _ProtectedSet_native_contains(self, key):
+    return key in self._orig or key in self._new
+
+try:
+    from snakeoil._klass import ProtectedSet_contains
+except ImportError:
+    ProtectedSet_contains = _ProtectedSet_native_contains
+
 
 class ProtectedSet(SetMixin):
 
@@ -183,8 +191,7 @@ class ProtectedSet(SetMixin):
         self._orig = orig_set
         self._new = set()
 
-    def __contains__(self, key):
-        return key in self._orig or key in self._new
+    __contains__ = ProtectedSet_contains
 
     def __iter__(self):
         return chain(iter(self._new),

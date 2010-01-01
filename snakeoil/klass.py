@@ -45,15 +45,22 @@ def native_generic_attr_ne(inst1, inst2, sentinel=object()):
             return True
     return False
 
+def native_reflective_hash(attr='_hash'):
+    def __hash__(self):
+        return getattr(self, attr)
+    return __hash__
+
 try:
     from snakeoil._klass import (GetAttrProxy, contains, get,
-        generic_eq as generic_attr_eq, generic_ne as generic_attr_ne)
+        generic_eq as generic_attr_eq, generic_ne as generic_attr_ne,
+        reflective_hash)
 except ImportError:
     GetAttrProxy = native_GetAttrProxy
     contains = native_contains
     get = native_get
     generic_attr_eq = native_generic_attr_eq
     generic_attr_ne = native_generic_attr_ne
+    reflective_hash = native_reflective_hash
 
 
 def generic_equality(name, bases, scope, real_type=type,

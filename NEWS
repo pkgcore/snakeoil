@@ -2,6 +2,12 @@ Snakeoil Release Notes
 ======================
 
 
+* add a reflective_hash class to snakeoil.klass; this is primarily used
+  for when the has is precomputed and stored somewhere.
+
+* add an extension for ProtectedSet.__contains__; this levels a nice
+  speedup for pcheck scans.
+
 * enable a set of extensions for slots backed mappings; primarily affects
   pkgcore cache data objects, end result being pquery against a full
   repo in raw mode is about 8% faster overall.

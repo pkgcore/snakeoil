@@ -15,6 +15,8 @@
 #include <ceval.h>
 
 static PyObject *snakeoil_equality_attr = NULL;
+static PyObject *snakeoil__orig_attr = NULL;
+static PyObject *snakeoil__new_attr = NULL;
 
 typedef struct {
     PyObject_HEAD
@@ -113,6 +115,99 @@ static PyTypeObject snakeoil_GetAttrProxyType = {
     0,                                               /* tp_init */
     0,                                               /* tp_alloc */
     snakeoil_GetAttrProxy_new,                        /* tp_new */
+
+};
+
+typedef struct {
+    PyObject_HEAD
+    PyObject *hash_attr;
+} snakeoil_ReflectiveHash;
+
+static void
+snakeoil_ReflectiveHash_dealloc(snakeoil_ReflectiveHash *self)
+{
+    Py_CLEAR(self->hash_attr);
+    self->ob_type->tp_free((PyObject *)self);
+}
+
+static PyObject *
+snakeoil_ReflectiveHash_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    snakeoil_ReflectiveHash *self;
+    PyObject *hash_attr;
+
+    if(!PyArg_ParseTuple(args, "S:__new__", &hash_attr))
+        return NULL;
+    self = (snakeoil_ReflectiveHash *)type->tp_alloc(type, 0);
+
+    if (self) {
+        Py_INCREF(hash_attr);
+        self->hash_attr = hash_attr;
+    }
+    return (PyObject *)self;
+}
+
+static PyObject *
+snakeoil_ReflectiveHash_call(snakeoil_ReflectiveHash *self, PyObject *args,
+    PyObject *kwds)
+{
+    PyObject *val = NULL;
+
+    if(PyArg_ParseTuple(args, "O:__hash__", &val)) {
+        val = PyObject_GetAttr(val, self->hash_attr);
+    }
+    return val;
+}
+
+static PyObject *
+snakeoil_ReflectiveHash_get(PyObject *func, PyObject *obj, PyObject *type)
+{
+    if (obj == Py_None)
+        obj = NULL;
+    return PyMethod_New(func, obj, type);
+}
+
+static PyTypeObject snakeoil_ReflectiveHashType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                               /* ob_size */
+    "snakeoil._klass.GetAttrProxy",                  /* tp_name */
+    sizeof(snakeoil_ReflectiveHash),                    /* tp_basicsize */
+    0,                                               /* tp_itemsize */
+    (destructor)snakeoil_ReflectiveHash_dealloc,        /* tp_dealloc */
+    0,                                               /* tp_print */
+    0,                                               /* tp_getattr */
+    0,                                               /* tp_setattr */
+    0,                                               /* tp_compare */
+    0,                                               /* tp_repr */
+    0,                                               /* tp_as_number */
+    0,                                               /* tp_as_sequence */
+    0,                                               /* tp_as_mapping */
+    0,                                               /* tp_hash  */
+    (ternaryfunc)snakeoil_ReflectiveHash_call,          /* tp_call */
+    (reprfunc)0,                                     /* tp_str */
+    0,                                               /* tp_getattro */
+    0,                                               /* tp_setattro */
+    0,                                               /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,         /* tp_flags */
+    "GetAttrProxy object; used mainly for native __getattr__ speed",
+                                                     /* tp_doc */
+    0,                                               /* tp_traverse */
+    0,                                               /* tp_clear */
+    0,                                               /* tp_richcompare */
+    0,                                               /* tp_weaklistoffset */
+    0,                                               /* tp_iter */
+    0,                                               /* tp_iternext */
+    0,                                               /* tp_methods */
+    0,                                               /* tp_members */
+    0,                                               /* tp_getset */
+    0,                                               /* tp_base */
+    0,                                               /* tp_dict */
+    snakeoil_ReflectiveHash_get,                       /* tp_descr_get */
+    0,                                               /* tp_descr_set */
+    0,                                               /* tp_dictoffset */
+    0,                                               /* tp_init */
+    0,                                               /* tp_alloc */
+    snakeoil_ReflectiveHash_new,                        /* tp_new */
 
 };
 
@@ -891,6 +986,87 @@ static PyTypeObject snakeoil_AttrUpdateType = {
 };
 
 
+PyObject *
+snakeoil_protectedset_contains(PyObject *self, PyObject *key)
+{
+    PyObject *set = NULL;
+    int result = -1;
+    if(!(set = PyObject_GetAttr(self, snakeoil__orig_attr))) {
+        return NULL;
+    }
+    if(PyAnySet_Check(set)) {
+        result = PySet_Contains(set, key);
+    } else {
+        result = PySequence_Contains(set, key);
+    }
+    Py_DECREF(set);
+    if(result == 0) {
+        if(!(set = PyObject_GetAttr(self, snakeoil__new_attr))) {
+            return NULL;
+        }
+        if(PyAnySet_Check(set)) {
+            result = PySet_Contains(set, key);
+        } else {
+            result = PySequence_Contains(set, key);
+        }
+        Py_DECREF(set);
+    }
+    if(-1 == result) {
+        return NULL;
+    } else if (0 == result) {
+        Py_RETURN_FALSE;
+    }
+    Py_RETURN_TRUE;
+}
+
+static PyMethodDef snakeoil_protectedset_contains_def = {
+    "contains", snakeoil_protectedset_contains, METH_O|METH_COEXIST, NULL};
+
+static PyObject *
+snakeoil_protectedset_contains_descr(PyObject *self, PyObject *obj, PyObject *type)
+{
+    return PyCFunction_New(&snakeoil_protectedset_contains_def, obj);
+}
+
+static PyTypeObject snakeoil_ProtectedSetContainsType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                               /* ob_size */
+    "snakeoil_ProtectedSet_contains_type",           /* tp_name */
+    sizeof(PyObject),                                /* tp_basicsize */
+    0,                                               /* tp_itemsize */
+    0,                                               /* tp_dealloc */
+    0,                                               /* tp_print */
+    0,                                               /* tp_getattr */
+    0,                                               /* tp_setattr */
+    0,                                               /* tp_compare */
+    0,                                               /* tp_repr */
+    0,                                               /* tp_as_number */
+    0,                                               /* tp_as_sequence */
+    0,                                               /* tp_as_mapping */
+    0,                                               /* tp_hash  */
+    0,                                               /* tp_call */
+    0,                                               /* tp_str */
+    0,                                               /* tp_getattro */
+    0,                                               /* tp_setattro */
+    0,                                               /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT,                              /* tp_flags */
+    "type of the update proxy",                      /* tp_doc */
+    0,                                               /* tp_traverse */
+    0,                                               /* tp_clear */
+    0,                                               /* tp_richcompare */
+    0,                                               /* tp_weaklistoffset */
+    0,                                               /* tp_iter */
+    0,                                               /* tp_iternext */
+    0,                                               /* tp_methods */
+    0,                                               /* tp_members */
+    0,                                               /* tp_getset */
+    0,                                               /* tp_base */
+    0,                                               /* tp_dict */
+    snakeoil_protectedset_contains_descr,            /* tp_descr_get */
+    0,                                               /* tp_descr_set */
+};
+
+
 PyDoc_STRVAR(
     snakeoil_klass_documentation,
     "misc cpython class functionality");
@@ -904,6 +1080,9 @@ init_klass()
         return;
 
     if (PyType_Ready(&snakeoil_GetAttrProxyType) < 0)
+        return;
+
+    if (PyType_Ready(&snakeoil_ReflectiveHashType) < 0)
         return;
 
     if (PyType_Ready(&snakeoil_GetType) < 0)
@@ -933,6 +1112,9 @@ init_klass()
     if (PyType_Ready(&snakeoil_AttrUpdateType) < 0)
         return;
 
+    if (PyType_Ready(&snakeoil_ProtectedSetContainsType) < 0)
+        return;
+
     if (PyType_Ready(&snakeoil_generic_equality_eq_type) < 0)
         return;
 
@@ -942,6 +1124,18 @@ init_klass()
     if(!snakeoil_equality_attr) {
         if(!(snakeoil_equality_attr = PyString_FromString(
             "__attr_comparison__")))
+            return;
+    }
+
+    if(!snakeoil__orig_attr) {
+        if(!(snakeoil__orig_attr = PyString_FromString(
+            "_orig")))
+            return;
+    }
+
+    if(!snakeoil__new_attr) {
+        if(!(snakeoil__new_attr = PyString_FromString(
+            "_new")))
             return;
     }
 
@@ -964,6 +1158,7 @@ init_klass()
     ADD_TYPE_INSTANCE(&snakeoil_AttrPopType, "attr_pop");
     ADD_TYPE_INSTANCE(&snakeoil_AttrGetType, "attr_get");
     ADD_TYPE_INSTANCE(&snakeoil_AttrUpdateType, "attr_update");
+    ADD_TYPE_INSTANCE(&snakeoil_ProtectedSetContainsType, "ProtectedSet_contains");
     ADD_TYPE_INSTANCE(&snakeoil_generic_equality_eq_type, "generic_eq");
     ADD_TYPE_INSTANCE(&snakeoil_generic_equality_ne_type, "generic_ne");
 
@@ -972,5 +1167,10 @@ init_klass()
     Py_INCREF(&snakeoil_GetAttrProxyType);
     if (PyModule_AddObject(
             m, "GetAttrProxy", (PyObject *)&snakeoil_GetAttrProxyType) == -1)
+        return;
+
+    Py_INCREF(&snakeoil_ReflectiveHashType);
+    if (PyModule_AddObject(
+            m, "reflective_hash", (PyObject *)&snakeoil_ReflectiveHashType) == -1)
         return;
 }
