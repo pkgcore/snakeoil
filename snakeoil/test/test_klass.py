@@ -513,7 +513,7 @@ class test_native_reflective_hash(TestCase):
 
 
 class test_cpy_reflective_hash(test_native_reflective_hash):
-    
+
     kls = staticmethod(klass.reflective_hash)
     if klass.reflective_hash is klass.native_reflective_hash:
         skip = "cpython extension isn't available"
