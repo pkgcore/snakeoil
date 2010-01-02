@@ -994,9 +994,13 @@ snakeoil_protectedset_contains(PyObject *self, PyObject *key)
     if(!(set = PyObject_GetAttr(self, snakeoil__orig_attr))) {
         return NULL;
     }
+#if PY_MAJOR_VERSION > 2 || (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION >= 5)
     if(PyAnySet_Check(set)) {
         result = PySet_Contains(set, key);
-    } else {
+    } else
+#endif
+    {
+
         result = PySequence_Contains(set, key);
     }
     Py_DECREF(set);
@@ -1004,9 +1008,13 @@ snakeoil_protectedset_contains(PyObject *self, PyObject *key)
         if(!(set = PyObject_GetAttr(self, snakeoil__new_attr))) {
             return NULL;
         }
+
+#if PY_MAJOR_VERSION > 2 || (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION >= 5)
         if(PyAnySet_Check(set)) {
             result = PySet_Contains(set, key);
-        } else {
+        } else 
+#endif
+        {
             result = PySequence_Contains(set, key);
         }
         Py_DECREF(set);
