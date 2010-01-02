@@ -4,7 +4,7 @@
 from operator import attrgetter
 from snakeoil.caching import WeakInstMeta
 from snakeoil.compatibility import is_py3k
-from snakeoil.currying import partial, alias_class_method
+from snakeoil.currying import partial, alias_class_method, post_curry
 from collections import deque
 
 def native_GetAttrProxy(target):
@@ -50,10 +50,30 @@ def native_reflective_hash(attr):
         return getattr(self, attr)
     return __hash__
 
+class _native_internal_jit_attr(object):
+
+    __slots__ = ("_attr_name", "_func", "_setter", "_singleton")
+
+    def __init__(self, func, attr_name, singleton, use_cls_setattr):
+        if bool(use_cls_setattr):
+            self._setter = setattr
+        else:
+            self._setter = object.__setattr__
+        self._func = func
+        self._attr_name = attr_name
+        self._singleton = singleton
+
+    def __get__(self, instance, obj_type):
+        obj = getattr(instance, self._attr_name, self._singleton)
+        if obj is self._singleton:
+            obj = self._func(instance)
+            self._setter(instance, self._attr_name, obj)
+        return obj
+
 try:
     from snakeoil._klass import (GetAttrProxy, contains, get,
         generic_eq as generic_attr_eq, generic_ne as generic_attr_ne,
-        reflective_hash)
+        reflective_hash, _internal_jit_attr)
 except ImportError:
     GetAttrProxy = native_GetAttrProxy
     contains = native_contains
@@ -61,6 +81,7 @@ except ImportError:
     generic_attr_eq = native_generic_attr_eq
     generic_attr_ne = native_generic_attr_ne
     reflective_hash = native_reflective_hash
+    _internal_jit_attr = _native_internal_jit_attr
 
 
 def generic_equality(name, bases, scope, real_type=type,
@@ -133,49 +154,24 @@ class chained_getter(object):
 
 _uncached_singleton = object()
 
-class _internal_jit_attr(object):
-
-
-    __slots__ = ("_attr_name", "_func", "_setter", "_singleton")
-
-    def __init__(self, func, attr_name, method_lookup=False,
-        use_cls_setattr=False, singleton=_uncached_singleton):
-        if method_lookup:
-            func = alias_class_method(func)
-        if use_cls_setattr:
-            self._setter = setattr
-        else:
-            self._setter = object.__setattr__
-        self._func = func
-        self._attr_name = attr_name
-        self._singleton = singleton
-
-    def __get__(self, instance, obj_type):
-        obj = getattr(instance, self._attr_name, self._singleton)
-        if obj is self._singleton:
-            obj = self._func(instance)
-            self._setter(instance, self._attr_name, obj)
-        return obj
-
 def jit_attr(func, kls=_internal_jit_attr, uncached_val=_uncached_singleton):
     attr_name = "_%s" % func.__name__
-    return kls(func, attr_name, singleton=uncached_val)
+    return kls(func, attr_name, uncached_val, False)
 
 def jit_attr_none(func, kls=_internal_jit_attr):
     return jit_attr(func, kls=kls, uncached_val=None)
 
 def jit_attr_named(stored_attr_name, use_cls_setattr=False, kls=_internal_jit_attr,
     uncached_val=_uncached_singleton):
-    return partial(kls, attr_name=stored_attr_name,
-        use_cls_setattr=use_cls_setattr)
+    return post_curry(kls, stored_attr_name,
+        uncached_val, use_cls_setattr)
 
 def jit_attr_ext_method(func_name, stored_attr_name,
     use_cls_setattr=False, kls=_internal_jit_attr,
     uncached_val=_uncached_singleton):
 
-    return kls(func_name, stored_attr_name, method_lookup=True,
-        use_cls_setattr=use_cls_setattr,
-        singleton=uncached_val)
+    return kls(alias_class_method(func_name), stored_attr_name,
+        uncached_val, use_cls_setattr)
 
 def alias_attr(target_attr):
     return property(chained_getter(target_attr))

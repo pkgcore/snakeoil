@@ -2,6 +2,9 @@ Snakeoil Release Notes
 ======================
 
 
+* add a cpy extension for jit_attr functionality; this brings the
+  overhead down to effectively background noise for most usages.
+
 * add a reflective_hash class to snakeoil.klass; this is primarily used
   for when the has is precomputed and stored somewhere.
 

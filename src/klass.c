@@ -211,6 +211,134 @@ static PyTypeObject snakeoil_ReflectiveHashType = {
 
 };
 
+typedef struct {
+    PyObject_HEAD
+    PyObject *storage_attr;
+    PyObject *function;
+    PyObject *singleton;
+    int use_setattr;
+} snakeoil_InternalJitAttr;
+
+static void
+snakeoil_InternalJitAttr_dealloc(snakeoil_InternalJitAttr *self)
+{
+    Py_CLEAR(self->storage_attr);
+    Py_CLEAR(self->function);
+    Py_CLEAR(self->singleton);
+    self->ob_type->tp_free((PyObject *)self);
+}
+
+static PyObject *
+snakeoil_InternalJitAttr_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    snakeoil_InternalJitAttr *self;
+    PyObject *attr = NULL, *func = NULL, *singleton = NULL,
+        *use_setattr_obj = NULL;
+
+    int use_setattr = 0;
+
+    if(!PyArg_ParseTuple(args, "OOOO:__new__", &func, &attr, &singleton,
+        &use_setattr_obj))
+        return NULL;
+
+    if(-1 == (use_setattr = PyObject_IsTrue(use_setattr_obj))) {
+        return NULL;
+    }
+
+    self = (snakeoil_InternalJitAttr *)type->tp_alloc(type, 0);
+    if (self) {
+        Py_INCREF(attr);
+        self->storage_attr = attr;
+        Py_INCREF(func);
+        self->function = func;
+        Py_INCREF(singleton);
+        self->singleton = singleton;
+        self->use_setattr = use_setattr;
+    }
+    return (PyObject *)self;
+}
+
+static PyObject *
+snakeoil_InternalJitAttr_get(PyObject *self_pyo, PyObject *obj,
+    PyObject *type)
+{
+    PyObject *result = NULL;
+    snakeoil_InternalJitAttr *self = (snakeoil_InternalJitAttr *)self_pyo;
+    // mimic property behaviour.
+    if(!obj || obj == Py_None) {
+        Py_INCREF(self_pyo);
+        return self_pyo;
+    }
+    if(!(result = PyObject_GetAttr(obj, self->storage_attr))) {
+        if(!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+            return result;
+        }
+        PyErr_Clear();
+    } else if(self->singleton != result) {
+        return result;
+    } else {
+        Py_DECREF(result);
+    }
+    // generate the attr.
+    result = PyObject_CallFunctionObjArgs(self->function, obj, NULL);
+    if(result) {
+        if(self->use_setattr) {
+            if(-1 == PyObject_SetAttr(obj, self->storage_attr, result)) {
+                Py_CLEAR(result);
+            }
+        } else {
+            if(-1 == PyObject_GenericSetAttr(obj, self->storage_attr, result)) {
+                Py_CLEAR(result);
+            }
+        }
+    }
+    return result;
+}
+
+static PyTypeObject snakeoil_InternalJitAttrType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                               /* ob_size */
+    "snakeoil._klass.GetAttrProxy",                  /* tp_name */
+    sizeof(snakeoil_InternalJitAttr),                    /* tp_basicsize */
+    0,                                               /* tp_itemsize */
+    (destructor)snakeoil_InternalJitAttr_dealloc,        /* tp_dealloc */
+    0,                                               /* tp_print */
+    0,                                               /* tp_getattr */
+    0,                                               /* tp_setattr */
+    0,                                               /* tp_compare */
+    0,                                               /* tp_repr */
+    0,                                               /* tp_as_number */
+    0,                                               /* tp_as_sequence */
+    0,                                               /* tp_as_mapping */
+    0,                                               /* tp_hash  */
+    0,                                               /* tp_call */
+    (reprfunc)0,                                     /* tp_str */
+    0,                                               /* tp_getattro */
+    0,                                               /* tp_setattro */
+    0,                                               /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,         /* tp_flags */
+    "GetAttrProxy object; used mainly for native __getattr__ speed",
+                                                     /* tp_doc */
+    0,                                               /* tp_traverse */
+    0,                                               /* tp_clear */
+    0,                                               /* tp_richcompare */
+    0,                                               /* tp_weaklistoffset */
+    0,                                               /* tp_iter */
+    0,                                               /* tp_iternext */
+    0,                                               /* tp_methods */
+    0,                                               /* tp_members */
+    0,                                               /* tp_getset */
+    0,                                               /* tp_base */
+    0,                                               /* tp_dict */
+    snakeoil_InternalJitAttr_get,                       /* tp_descr_get */
+    0,                                               /* tp_descr_set */
+    0,                                               /* tp_dictoffset */
+    0,                                               /* tp_init */
+    0,                                               /* tp_alloc */
+    snakeoil_InternalJitAttr_new,                        /* tp_new */
+
+};
+
 static PyObject *
 snakeoil_mapping_get(PyObject *self, PyObject *args)
 {
@@ -1093,6 +1221,9 @@ init_klass()
     if (PyType_Ready(&snakeoil_ReflectiveHashType) < 0)
         return;
 
+    if (PyType_Ready(&snakeoil_InternalJitAttrType) < 0)
+        return;
+
     if (PyType_Ready(&snakeoil_GetType) < 0)
         return;
 
@@ -1180,5 +1311,10 @@ init_klass()
     Py_INCREF(&snakeoil_ReflectiveHashType);
     if (PyModule_AddObject(
             m, "reflective_hash", (PyObject *)&snakeoil_ReflectiveHashType) == -1)
+        return;
+
+    Py_INCREF(&snakeoil_InternalJitAttrType);
+    if (PyModule_AddObject(
+            m, "_internal_jit_attr", (PyObject *)&snakeoil_InternalJitAttrType) == -1)
         return;
 }

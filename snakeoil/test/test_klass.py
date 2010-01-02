@@ -233,9 +233,9 @@ class Test_chained_getter(TestCase):
         self.assertRaises(AttributeError, f('foon.dar'), m)
 
 
-class Test_jit_attr(TestCase):
+class Test_native_jit_attr(TestCase):
 
-    kls = staticmethod(klass._internal_jit_attr)
+    kls = staticmethod(klass._native_internal_jit_attr)
 
     @property
     def jit_attr(self):
@@ -250,13 +250,13 @@ class Test_jit_attr(TestCase):
         return currying.partial(klass.jit_attr_ext_method, kls=self.kls)
 
     def mk_inst(self, attrname='_attr', method_lookup=False,
-        use_cls_setattr=False):
-        def f(self):
-            self._invokes.append(self)
-            return 54321
+        use_cls_setattr=False, func=None, singleton=klass._uncached_singleton):
 
-        if method_lookup:
-            f = 'reflect'
+        f = func
+        if not func:
+            def f(self):
+                self._invokes.append(self)
+                return 54321
 
         class cls(object):
 
@@ -266,8 +266,9 @@ class Test_jit_attr(TestCase):
                 sf('_reflects', [])
                 sf('_invokes', [])
 
-            attr = self.kls(f, attrname, method_lookup=method_lookup,
-                use_cls_setattr=use_cls_setattr)
+            attr = self.kls(f, attrname,
+                singleton,
+                use_cls_setattr)
 
             def __setattr__(self, attr, value):
                 self._sets.append(self)
@@ -276,7 +277,6 @@ class Test_jit_attr(TestCase):
             def reflect(self):
                 self._reflects.append(self)
                 return 12345
-
 
         return cls()
 
@@ -312,22 +312,6 @@ class Test_jit_attr(TestCase):
         del obj._attr
         self.assertState(obj, sets=2, invokes=2)
         self.assertState(obj, sets=2, invokes=2)
-
-        # check method aliasing (basically)
-        obj = self.mk_inst(method_lookup=True)
-        self.assertState(obj, reflects=1, value=12345)
-        self.assertState(obj, reflects=1, value=12345)
-        del obj._attr
-        self.assertState(obj, reflects=2, value=12345)
-        self.assertState(obj, reflects=2, value=12345)
-
-        #combined...
-        obj = self.mk_inst(method_lookup=True, use_cls_setattr=True)
-        self.assertState(obj, sets=1, reflects=1, value=12345)
-        self.assertState(obj, sets=1, reflects=1, value=12345)
-        del obj._attr
-        self.assertState(obj, sets=2, reflects=2, value=12345)
-        self.assertState(obj, sets=2, reflects=2, value=12345)
 
     def test_jit_attr(self):
         now = time()
@@ -433,6 +417,28 @@ class Test_jit_attr(TestCase):
         self.assertEqual(o.attr, now)
         del o._attr2
         self.assertEqual(o.attr, now2)
+
+    def test_check_singleton_is_compare(self):
+        def throw_assert(*args, **kwds):
+            raise AssertionError("I shouldn't be invoked: %s, %s" % (args, kwds,))
+
+        class puker(object):
+            __cmp__ = __eq__ = throw_assert
+
+        puker_singleton = puker()
+
+        obj = self.mk_inst(singleton=puker_singleton)
+        obj._attr = puker_singleton
+        # force attr access. if it's done wrong, it'll puke.
+        obj.attr
+
+
+class Test_cpy_jit_attr(Test_native_jit_attr):
+
+    kls = staticmethod(klass._internal_jit_attr)
+    if klass._internal_jit_attr is klass._native_internal_jit_attr:
+        skip = "extension is missing"
+
 
 
 class test_aliased_attr(TestCase):
