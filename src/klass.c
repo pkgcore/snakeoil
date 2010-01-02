@@ -1012,7 +1012,7 @@ snakeoil_protectedset_contains(PyObject *self, PyObject *key)
 #if PY_MAJOR_VERSION > 2 || (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION >= 5)
         if(PyAnySet_Check(set)) {
             result = PySet_Contains(set, key);
-        } else 
+        } else
 #endif
         {
             result = PySequence_Contains(set, key);
