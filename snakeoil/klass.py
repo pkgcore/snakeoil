@@ -45,7 +45,7 @@ def native_generic_attr_ne(inst1, inst2, sentinel=object()):
             return True
     return False
 
-def native_reflective_hash(attr='_hash'):
+def native_reflective_hash(attr):
     def __hash__(self):
         return getattr(self, attr)
     return __hash__
