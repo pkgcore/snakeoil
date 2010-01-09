@@ -10,7 +10,8 @@ if [ "$1" != "html" ] && [ "$1" != "pdf" ]; then
 fi
 
 export SNAKEOIL_DEMANDLOAD_PROTECTION=n
+export SNAKEOIL_DEMANDLOAD_DISABLED=y
 epydoc --${1} --no-frames --no-frames --graph=all -n snakeoil -u \
     http://pkgcore.org/trac/snakeoil --show-imports --include-log \
     --inheritance=included --quiet --simple-term -o "$2" snakeoil --debug \
-        --exclude='snakeoil\.test\..*'
+        --exclude='snakeoil\.test\..*' -v
