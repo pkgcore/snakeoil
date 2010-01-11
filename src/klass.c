@@ -18,6 +18,11 @@ static PyObject *snakeoil_equality_attr = NULL;
 static PyObject *snakeoil__orig_attr = NULL;
 static PyObject *snakeoil__new_attr = NULL;
 
+
+/* Note since the redirect target is a tuple of strings, we don't do
+ GC on the object- it can only refer to noncyclic targets.
+*/
+
 typedef struct {
     PyObject_HEAD
     PyObject *redirect_target;
@@ -95,7 +100,7 @@ static PyTypeObject snakeoil_GetAttrProxyType = {
     0,                                               /* tp_getattro */
     0,                                               /* tp_setattro */
     0,                                               /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,         /* tp_flags */
+    Py_TPFLAGS_DEFAULT,                              /* tp_flags */
     "GetAttrProxy object; used mainly for native __getattr__ speed",
                                                      /* tp_doc */
     0,                                               /* tp_traverse */
@@ -117,6 +122,11 @@ static PyTypeObject snakeoil_GetAttrProxyType = {
     snakeoil_GetAttrProxy_new,                        /* tp_new */
 
 };
+
+/* 
+ Note since the hash_attr target is a string, we don't do
+ GC on the object- it can only refer to noncyclic targets.
+*/
 
 typedef struct {
     PyObject_HEAD
@@ -188,8 +198,9 @@ static PyTypeObject snakeoil_ReflectiveHashType = {
     0,                                               /* tp_getattro */
     0,                                               /* tp_setattro */
     0,                                               /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,         /* tp_flags */
-    "GetAttrProxy object; used mainly for native __getattr__ speed",
+    Py_TPFLAGS_DEFAULT,                              /* tp_flags */
+    "ReflectiveHash; used mainly for near native __hash__ speed" 
+        " when the hash value is precomputed on an object",
                                                      /* tp_doc */
     0,                                               /* tp_traverse */
     0,                                               /* tp_clear */
@@ -219,12 +230,18 @@ typedef struct {
     int use_setattr;
 } snakeoil_InternalJitAttr;
 
-static void
-snakeoil_InternalJitAttr_dealloc(snakeoil_InternalJitAttr *self)
+static int
+snakeoil_InternalJitAttr_clear(snakeoil_InternalJitAttr *self)
 {
     Py_CLEAR(self->storage_attr);
     Py_CLEAR(self->function);
     Py_CLEAR(self->singleton);
+    return 0;
+}
+static void
+snakeoil_InternalJitAttr_dealloc(snakeoil_InternalJitAttr *self)
+{
+    self->ob_type->tp_clear((PyObject *)self);
     self->ob_type->tp_free((PyObject *)self);
 }
 
@@ -237,7 +254,7 @@ snakeoil_InternalJitAttr_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     int use_setattr = 0;
 
-    if(!PyArg_ParseTuple(args, "OOOO:__new__", &func, &attr, &singleton,
+    if(!PyArg_ParseTuple(args, "OSOO:__new__", &func, &attr, &singleton,
         &use_setattr_obj))
         return NULL;
 
@@ -256,6 +273,15 @@ snakeoil_InternalJitAttr_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         self->use_setattr = use_setattr;
     }
     return (PyObject *)self;
+}
+
+static int
+snakeoil_InternalJitAttr_traverse(snakeoil_InternalJitAttr *self,
+    visitproc visit, void *arg)
+{
+    Py_VISIT(self->function);
+    Py_VISIT(self->singleton);
+    return 0;
 }
 
 static PyObject *
@@ -316,11 +342,11 @@ static PyTypeObject snakeoil_InternalJitAttrType = {
     0,                                               /* tp_getattro */
     0,                                               /* tp_setattro */
     0,                                               /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,         /* tp_flags */
-    "GetAttrProxy object; used mainly for native __getattr__ speed",
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,         /* tp_flags */
+    "InternalJitAttr object; basis of JIT cached attr access",
                                                      /* tp_doc */
-    0,                                               /* tp_traverse */
-    0,                                               /* tp_clear */
+    (traverseproc)snakeoil_InternalJitAttr_traverse, /* tp_traverse */
+    (inquiry)snakeoil_InternalJitAttr_clear,         /* tp_clear */
     0,                                               /* tp_richcompare */
     0,                                               /* tp_weaklistoffset */
     0,                                               /* tp_iter */
