@@ -123,7 +123,7 @@ static PyTypeObject snakeoil_GetAttrProxyType = {
 
 };
 
-/* 
+/*
  Note since the hash_attr target is a string, we don't do
  GC on the object- it can only refer to noncyclic targets.
 */
@@ -199,7 +199,7 @@ static PyTypeObject snakeoil_ReflectiveHashType = {
     0,                                               /* tp_setattro */
     0,                                               /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT,                              /* tp_flags */
-    "ReflectiveHash; used mainly for near native __hash__ speed" 
+    "ReflectiveHash; used mainly for near native __hash__ speed"
         " when the hash value is precomputed on an object",
                                                      /* tp_doc */
     0,                                               /* tp_traverse */
