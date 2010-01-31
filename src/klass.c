@@ -365,30 +365,6 @@ static PyTypeObject snakeoil_InternalJitAttrType = {
 
 };
 
-static PyObject *
-snakeoil_mapping_get(PyObject *self, PyObject *args)
-{
-    PyObject *key, *default_val = Py_None;
-    if(!self) {
-        PyErr_SetString(PyExc_TypeError,
-            "need to be called with a mapping as the first arg");
-        return NULL;
-    }
-    if(!PyArg_UnpackTuple(args, "get", 1, 2, &key, &default_val))
-        return NULL;
-
-    PyObject *ret = PyObject_GetItem(self, key);
-    if(ret) {
-        return ret;
-    } else if (!PyErr_ExceptionMatches(PyExc_KeyError)) {
-        return NULL;
-    }
-
-    PyErr_Clear();
-    Py_INCREF(default_val);
-    return default_val;
-}
-
 static inline PyObject *
 internal_generic_equality(PyObject *inst1, PyObject *inst2,
     int desired)
@@ -487,6 +463,29 @@ snakeoil_FUNC_BINDING("generic_eq", "snakeoil._klass.generic_eq",
 snakeoil_FUNC_BINDING("generic_ne", "snakeoil._klass.generic_ne",
     snakeoil_generic_equality_ne, METH_O)
 
+static PyObject *
+snakeoil_mapping_get(PyObject *self, PyObject *args)
+{
+    PyObject *key, *default_val = Py_None;
+    if(!self) {
+        PyErr_SetString(PyExc_TypeError,
+            "need to be called with a mapping as the first arg");
+        return NULL;
+    }
+    if(!PyArg_UnpackTuple(args, "get", 1, 2, &key, &default_val))
+        return NULL;
+
+    PyObject *ret = PyObject_GetItem(self, key);
+    if(ret) {
+        return ret;
+    } else if (!PyErr_ExceptionMatches(PyExc_KeyError)) {
+        return NULL;
+    }
+
+    PyErr_Clear();
+    Py_INCREF(default_val);
+    return default_val;
+}
 
 static PyMethodDef snakeoil_mapping_get_def = {
     "get", snakeoil_mapping_get, METH_VARARGS, NULL};
