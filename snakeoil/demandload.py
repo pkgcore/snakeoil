@@ -1,5 +1,5 @@
 # Copyright: 2006 Vadim Gelfer <vadim.gelfer@gmail.com>
-# Copyright: 2007 Marien Zwart <marienz@gentoo.org>
+# Copyright: 2007 Marien Zwart <marienz@gentoo.org>: GPL2/BSD
 # License: GPL2
 
 """Demand load things when used.

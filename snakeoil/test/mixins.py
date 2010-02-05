@@ -1,6 +1,6 @@
 # Copyright: 2005 Marien Zwart <marienz@gentoo.org>
 # Copyright: 2009 Brian Harring <ferringb@gmail.com>
-# License: GPL2
+# License: BSD/GPL2
 
 
 import os
@@ -46,7 +46,7 @@ if compatibility.is_py3k:
         return io.TextIOWrapper(tmp_f)
 
 # Copyright: 2005 Brian Harring <ferringb@gmail.com>
-# License: GPL2
+# License: BSD/GPL2
 
 import os, stat, errno
 

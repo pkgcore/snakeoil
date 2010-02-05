@@ -1,6 +1,6 @@
 # Copyright 2004-2007 Brian Harring <ferringb@gmail.com>
 # Copyright 2006 Marien Zwart <marienz@gentoo.org>
-# Distributed under the terms of the GNU General Public License v2
+# License: BSD/GPL2
 
 """
 os specific utilities, FS access mainly

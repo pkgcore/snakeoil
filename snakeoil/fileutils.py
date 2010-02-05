@@ -1,5 +1,5 @@
 # Copyright: 2005-2006 Brian Harring <ferringb@gmail.com>
-# License: GPL2
+# License: BSD/GPL2
 
 """
 file related operations, mainly reading

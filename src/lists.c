@@ -1,6 +1,6 @@
 /*
  * Copyright: 2006 Marien Zwart <marienz@gentoo.org>
- * License: GPL2
+ * License: GPL2/BSD
  *
  * C version of some of snakeoil (for extra speed).
  */
@@ -456,7 +456,7 @@ PyDoc_STRVAR(
     "C reimplementation of some of snakeoil.lists.");
 
 PyMODINIT_FUNC
-init_lists()
+init_lists(void)
 {
     /* Create the module and add the functions */
     PyObject *m = Py_InitModule3("_lists", NULL, snakeoil_lists_documentation);

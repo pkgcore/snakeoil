@@ -1,5 +1,5 @@
 # Copyright: 2005-2008 Brian Harring <ferringb@gmail.com>
-# License: GPL2
+# License: BSD/GPL2
 
 """Metaclass to inject dependencies into method calls.
 

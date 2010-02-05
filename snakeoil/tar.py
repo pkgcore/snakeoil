@@ -1,5 +1,5 @@
 # Copyright: 2006-2009 Brian Harring <ferringb@gmail.com>
-# License: GPL2
+# License: BSD/GPL2
 
 """
 tar file access

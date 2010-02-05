@@ -1,6 +1,6 @@
 /*
  * Copyright: 2006-2007 Brian Harring <ferringb@gmail.com>
- * License: GPL2
+ * License: GPL2/BSD
  *
  * C version of some of snakeoil (for extra speed).
  */
@@ -1234,7 +1234,7 @@ PyDoc_STRVAR(
 
 
 PyMODINIT_FUNC
-init_klass()
+init_klass(void)
 {
     PyObject *m = Py_InitModule3("_klass", NULL, snakeoil_klass_documentation);
     if (!m)

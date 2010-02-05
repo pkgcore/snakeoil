@@ -1,7 +1,7 @@
 /*
  * Copyright: 2006 Brian Harring <ferringb@gmail.com>
  * Copyright: 2006-2007 Marien Zwart <marienz@gentoo.org>
- * License: GPL2
+ * License: GPL2/BSD
  *
  * C version of some of snakeoil (for extra speed).
  */
@@ -360,7 +360,7 @@ PyDoc_STRVAR(
     "C reimplementation of some of snakeoil.osutils");
 
 PyMODINIT_FUNC
-init_readdir()
+init_readdir(void)
 {
     PyObject *m;
 

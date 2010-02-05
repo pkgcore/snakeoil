@@ -1,7 +1,7 @@
 /*
  * Copyright: 2006-2007 Brian Harring <ferringb@gmail.com>
  * Copyright: 2006 Marien Zwart <marienz@gentoo.org>
- * License: GPL2
+ * License: GPL2/BSD
  *
  * C version of some of snakeoil (for extra speed).
  */
@@ -660,7 +660,7 @@ PyDoc_STRVAR(
     "C reimplementation of snakeoil.caching.");
 
 PyMODINIT_FUNC
-init_caching()
+init_caching(void)
 {
     /* Create the module and add the functions */
     PyObject *m = Py_InitModule3(

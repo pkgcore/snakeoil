@@ -1,6 +1,6 @@
 /*
  * Copyright: 2006-2007 Brian Harring <ferringb@gmail.com>
- * License: GPL2
+ * License: GPL2/BSD
  *
  * C version of some of snakeoil (for extra speed).
  */
@@ -676,7 +676,7 @@ PyDoc_STRVAR(
     "cpython posix path functionality");
 
 PyMODINIT_FUNC
-init_posix()
+init_posix(void)
 {
     PyObject *s = PyString_FromString("os");
     if(!s)

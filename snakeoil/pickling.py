@@ -1,5 +1,5 @@
 # Copyright: 2007 Brian Harring <ferringb@gmail.com>
-# License: GPL2
+# License: BSD/GPL2
 
 """
 convenience module using cPickle if available, else failing back to pickle

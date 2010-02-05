@@ -1,3 +1,9 @@
+/*
+ Copyright: 2007-2010 Charlie Shepherd <masterdriverz@gentoo.org>
+ Copyright: 2009-2010 Brian Harring <ferringb@gmail.com>
+ License: BSD/GPL2
+*/
+
 #include "Python.h"
 #include <snakeoil/common.h>
 #include "structmember.h"
@@ -813,7 +819,7 @@ PyDoc_STRVAR(
     "C implementation of snakeoil.formatters.PlainTextFormatter.\n");
 
 PyMODINIT_FUNC
-init_formatters()
+init_formatters(void)
 {
     PyObject *tmp;
     PyObject *m = Py_InitModule3("_formatters", NULL, formatters_module_doc);

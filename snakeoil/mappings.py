@@ -1,5 +1,5 @@
 # Copyright: 2005-2009 Brian Harring <ferringb@gmail.com>
-# License: GPL2
+# License: BSD/GPL2
 
 """
 miscellanious mapping/dict related classes

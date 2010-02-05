@@ -1,5 +1,5 @@
 # Copyright: 2006 Marien Zwart <marienz@gentoo.org>
-# License: GPL2
+# License: BSD/GPL2
 
 """Classes wrapping a file-like object to do fancy output on it."""
 
