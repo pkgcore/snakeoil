@@ -2,6 +2,14 @@ Snakeoil Release Notes
 ======================
 
 
+snakeoil 0.3.6.1: February 7th, 2010
+
+* Licensing changes- see COPYING for specifics.  Majority of snakeoil
+  is now GPL2/BSD 3 clause w/ a few exemptions.
+
+* minor cleanup to extensions for GC support and stricter gcc.
+
+
 snakeoil 0.3.6: January 8th, 2010
 
 * add a cpy extension for jit_attr functionality; this brings the
