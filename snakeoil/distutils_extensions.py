@@ -283,6 +283,8 @@ class build_ext(dst_build_ext.build_ext):
 
     user_options = dst_build_ext.build_ext.user_options + [
         ("build-optional=", "o", "build optional C modules"),
+        ("disable-distutils-flag-fixing", None, "disable fixing of issue "
+            "969718 in python, adding missing -fno-strict-aliasing"),
     ]
 
     boolean_options = dst_build.build.boolean_options + ["build-optional"]
@@ -290,6 +292,7 @@ class build_ext(dst_build_ext.build_ext):
     def initialize_options(self):
         dst_build_ext.build_ext.initialize_options(self)
         self.build_optional = None
+        self.disable_distutils_flag_fixing = False
 
     def finalize_options(self):
         dst_build_ext.build_ext.finalize_options(self)
@@ -305,6 +308,11 @@ class build_ext(dst_build_ext.build_ext):
                 l = [y for y in getattr(self.compiler, x) if y != '-DNEDBUG']
                 l.append('-Wall')
                 setattr(self.compiler, x, l)
+        if not self.disable_distutils_flag_fixing:
+            for x in ("compiler_so", "compiler", "compiler_cxx"):
+                val = getattr(self.compiler, x)
+                if "-fno-strict-aliasing" not in val:
+                    val.append("-fno-strict-aliasing")
         return dst_build_ext.build_ext.build_extensions(self)
 
 

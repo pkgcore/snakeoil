@@ -2,6 +2,13 @@ Snakeoil Release Notes
 ======================
 
 
+* force -fno-strict-aliasing to be appended when it's invalidly left out by
+  distutils internals.  See issue 969718 in pythons tracker.
+  If you're using a non gcc compiler, you'll need to pass
+  --disable-distutils-flag-fixing to disable the -fno-strict-aliasing 
+  additions.
+
+
 snakeoil 0.3.6.1: February 7th, 2010
 
 * Licensing changes- see COPYING for specifics.  Majority of snakeoil
