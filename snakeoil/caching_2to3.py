@@ -42,32 +42,25 @@ class caching_mixin(object):
 
     def refactor_file(self, filename, write=False, doctests_only=False):
         if not write:
-            return self.base_cls.refactor_file(self, filename, write=write,
+            return super(caching_mixin, base_cls).refactor_file(filename, write=write,
                 doctests_only=doctests_only)
         input, encoding = self._read_python_source(filename)
         cache_key = self.compute_cache_key(input, encoding)
         cache_data = self.check_cache(cache_key, encoding)
         if cache_data is None:
-            self.base_cls.refactor_file(self, filename, write=write,
+            super(caching_mixin, self).refactor_file(filename, write=write,
                 doctests_only=doctests_only)
             self.update_cache_from_file(cache_key, filename, encoding)
         else:
-            print("cache hit")
             self.processed_file(cache_data, filename, write=write,
                 encoding=encoding, old_text=input)
 
 class RefactoringTool(caching_mixin, lib2to3.refactor.RefactoringTool):
-
-    base_cls = lib2to3.refactor.RefactoringTool
-
+    pass
 
 class MultiprocessRefactoringTool(caching_mixin, lib2to3.refactor.MultiprocessRefactoringTool):
+    pass
 
-    base_cls = lib2to3.refactor.MultiprocessRefactoringTool
-
-class my_StdoutRefactoringTool(caching_mixin, lib2to3.main.StdoutRefactoringTool):
-
-    base_cls = lib2to3.main.StdoutRefactoringTool
 
 def StdoutRefactoringTool(*args):
     # stupid hacks...

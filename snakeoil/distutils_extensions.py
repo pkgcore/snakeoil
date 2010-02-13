@@ -177,10 +177,10 @@ class sdist(dst_sdist.sdist):
                     os.unlink(os.path.join(base, x))
 
 
+
 class build_py(dst_build_py.build_py):
 
-    user_options = dst_build_py.build_py.user_options + [("inplace", "i", "do any source conversions in place"),
-        ("py2to3-tool=", None, "python conversion tool to use; defualts to 2to3")]
+    user_options = dst_build_py.build_py.user_options + [("inplace", "i", "do any source conversions in place")]
 
     package_namespace = None
     generate_bzr_ver = True
@@ -188,7 +188,6 @@ class build_py(dst_build_py.build_py):
     def initialize_options(self):
         dst_build_py.build_py.initialize_options(self)
         self.inplace = False
-        self.py2to3_tool = compute_default_2to3_value()
 
     def finalize_options(self):
         self.inplace = bool(self.inplace)
@@ -234,6 +233,32 @@ class build_py(dst_build_py.build_py):
                 self.byte_compile([bzr_ver])
                 py3k_rebuilds.append((bzr_ver, os.lstat(bzr_ver).st_mtime))
 
+    def get_py2to3_converter(self, options=None, proc_count=0):
+        from lib2to3 import refactor as ref_mod
+        from snakeoil import caching_2to3
+
+        if proc_count == 0:
+            proc_count = get_number_of_processors()
+
+        assert proc_count >= 1
+
+        if proc_count > 1:
+            try:
+                import multiprocessing
+            except ImportError:
+                proc_count == 1
+
+        refactor_kls = caching_2to3.MultiprocessRefactoringTool
+
+        fixer_names = ref_mod.get_fixers_from_package('lib2to3.fixes')
+        f = refactor_kls(fixer_names, options=options).refactor
+
+        def f2(*args, **kwds):
+            kwds['num_processes'] = proc_count
+            return f(*args, **kwds)
+
+        return f2
+
     def run(self):
         py3k_rebuilds = []
         if not self.inplace:
@@ -250,31 +275,11 @@ class build_py(dst_build_py.build_py):
         if not is_py3k:
             return
 
-        log.info("stating py3k conversions using %s" % (self.py2to3_tool,))
-
-        null_f = open("/dev/null", "w")
-
-        while py3k_rebuilds:
-            chunk = py3k_rebuilds[:10]
-            py3k_rebuilds = py3k_rebuilds[10:]
-            paths = [x[0] for x in chunk]
-            for path in paths:
-                log.info("doing py3k conversion of %s..." % path)
-
-            ret = subprocess.call([self.py2to3_tool, "-wn"] + paths,
-                stderr=null_f, stdout=null_f, shell=False)
-
-            if ret != 0:
-                # rerun to get the output for users.
-                for path in paths:
-                    ret = subprocess.call(["2to3", path], shell=False)
-                    if ret != 0:
-                        raise errors.DistutilsExecError(
-                            "py3k conversion of %s failed w/ exit code %i"
-                            % (path, ret))
-
-            for path, mtime in chunk:
-                os.utime(path, (-1, mtime))
+        converter = self.get_py2to3_converter()
+        log.info("starting 2to3 conversion; this may take a while...")
+        converter([x[0] for x in py3k_rebuilds], write=True)
+        for path, mtime in py3k_rebuilds:
+            os.utime(path, (-1, mtime))
 
         log.info("completed py3k conversions")
 
@@ -368,7 +373,6 @@ class test(core.Command):
             "comma delimited"),
         ("pure-python", None, "disable building of extensions"),
         ("force", "f", "force build_py/build_ext as needed"),
-        ("py2to3-tool=", None, "tool to use for 2to3 conversion; passed to build_py"),
         ("include-dirs=", "I", "include dirs for build_ext if needed"),
         ]
 
@@ -380,7 +384,6 @@ class test(core.Command):
         self.namespaces = ''
         self.pure_python = False
         self.force = False
-        self.py2to3_tool = compute_default_2to3_value()
         self.include_dirs = None
 
     def finalize_options(self):
@@ -398,7 +401,6 @@ class test(core.Command):
     def run(self):
         build_ext = self.reinitialize_command('build_ext')
         build_py = self.reinitialize_command('build_py')
-        build_py.py2to3_tool = self.py2to3_tool
         build_ext.inplace = build_py.inplace = self.inplace
         build_ext.force = build_py.force = self.force
 
@@ -454,8 +456,11 @@ class test(core.Command):
 
 is_py3k = sys.version_info >= (3,0)
 
-def compute_default_2to3_value():
-    if "PY2TO3_CACHEDIR" not in os.environ:
-        return "2to3"
-    base = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(base, "caching_2to3.py")
+def get_number_of_processors():
+    try:
+        val = len([x for x in open("/proc/cpuinfo") if ''.join(x.split()).split(":")[0] == "processor"])
+        if not val:
+            return 1
+        return val
+    except EnvironmentError:
+        return 1

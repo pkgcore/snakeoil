@@ -2,6 +2,11 @@ Snakeoil Release Notes
 ======================
 
 
+* overhauls to 2to3k support; speedup caching by near 16% via moving it into
+  the process rather then as an external invocation.  Additionally fork the
+  workers off to # of cpus on the system for parallelization when the results
+  aren't cached.
+
 * force -fno-strict-aliasing to be appended when it's invalidly left out by
   distutils internals.  See issue 969718 in pythons tracker.
   If you're using a non gcc compiler, you'll need to pass
