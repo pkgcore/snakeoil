@@ -22,13 +22,13 @@ class caching_mixin(object):
     def get_cache_path(self, cache_key):
         return os.path.join(self.cache_dir, cache_key)
 
-    def update_cache_from_file(self, cache_key, filename, encoding):
+    def update_cache_from_file(self, cache_key, filename, encoding, new_text=None):
         cache_dir = self.cache_dir
         if not os.path.exists(cache_dir):
             os.mkdir(cache_dir)
-            return None
-        output = open(filename, 'rb').read().decode(encoding)
-        open(os.path.join(cache_dir, cache_key), 'wb').write(output.encode(encoding))
+        if new_text is None:
+            new_text = open(filename, 'rb').read().decode(encoding)
+        open(os.path.join(cache_dir, cache_key), 'wb').write(new_text.encode(encoding))
 
     def check_cache(self, cache_key, encoding):
         cache_path = self.get_cache_path(cache_key)
@@ -41,19 +41,29 @@ class caching_mixin(object):
         return md5_hash_data(input.encode(encoding))
 
     def refactor_file(self, filename, write=False, doctests_only=False):
-        if not write:
-            return super(caching_mixin, base_cls).refactor_file(filename, write=write,
-                doctests_only=doctests_only)
         input, encoding = self._read_python_source(filename)
         cache_key = self.compute_cache_key(input, encoding)
         cache_data = self.check_cache(cache_key, encoding)
-        if cache_data is None:
-            super(caching_mixin, self).refactor_file(filename, write=write,
+
+        if not write or cache_data is None:
+            return super(caching_mixin, self).refactor_file(filename, write=write,
                 doctests_only=doctests_only)
-            self.update_cache_from_file(cache_key, filename, encoding)
         else:
             self.processed_file(cache_data, filename, write=write,
                 encoding=encoding, old_text=input)
+
+    def processed_file(self, new_text, filename, old_text=None, write=False,
+        encoding=None):
+        if write:
+            if old_text is None:
+                cache_key = self.compute_cache_key(*self._read_python_source(filename))
+            else:
+                cache_key = self.compute_cache_key(old_text, encoding)
+            self.update_cache_from_file(cache_key, filename, encoding,
+                new_text=new_text)
+        return super(caching_mixin, self).processed_file(new_text, filename,
+            old_text=old_text, write=write, encoding=encoding)
+
 
 class RefactoringTool(caching_mixin, lib2to3.refactor.RefactoringTool):
     pass
