@@ -2,6 +2,8 @@ Snakeoil Release Notes
 ======================
 
 
+snakeoil 0.3.6.2: February 15th, 2010
+
 * overhauls to 2to3k support; speedup caching by near 16% via moving it into
   the process rather then as an external invocation.  Additionally fork the
   workers off to # of cpus on the system for parallelization when the results
