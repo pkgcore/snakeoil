@@ -1,3 +1,4 @@
+# Copyright: 2009-2010 Brian Harring <ferringb@gmail.com>
 # Copyright: 2006 Marien Zwart <marienz@gentoo.org>
 # License: BSD/GPL2
 
@@ -308,6 +309,10 @@ except ImportError:
     PlainTextFormatter = native_PlainTextFormatter
     StreamClosed = native_StreamClosed
 
+class TerminfoDisabled(Exception):
+
+    pass
+
 # This is necessary because the curses module is optional (and we
 # should run on a very minimal python for bootstrapping).
 try:
@@ -353,6 +358,7 @@ else:
 
     class TerminfoCode(object):
         def __init__(self, value):
+            assert value is not None
             self.value = py3k_cast(value)
 
     class TerminfoMode(TerminfoCode):
@@ -409,7 +415,7 @@ else:
                 # term_alternates lookup there is easy enough.)
                 term_env = os.environ.get('TERM')
                 term_alt = self.term_alternates.get(term_env)
-                for term in (term_alt, term_env, 'dumb'):
+                for term in (term_alt, term_env):
                     if term is not None:
                         try:
                             curses.setupterm(fd=fd, term=term)
@@ -418,14 +424,20 @@ else:
                         else:
                             break
                 else:
-                    raise ValueError(
+                    raise TerminfoDisabled(
                         'no terminfo entries, not even for "dumb"?')
             else:
                 # TODO maybe do something more useful than raising curses.error
                 # if term is not in the terminfo db here?
                 curses.setupterm(fd=fd, term=term)
+            self._term = term
             self.width = curses.tigetnum('cols')
-            self.reset = TerminfoReset(curses.tigetstr('sgr0'))
+            try:
+                self.reset = TerminfoReset(curses.tigetstr('sgr0'))
+            except Exception:
+                import sys
+                sys.stderr.write("term was %s\n" % self._term)
+                raise
             self.bold = TerminfoMode(curses.tigetstr('bold'))
             self.underline = TerminfoMode(curses.tigetstr('smul'))
             self._color_reset = py3k_cast(curses.tigetstr('op'))
@@ -500,7 +512,7 @@ def get_formatter(stream):
         if os.isatty(fd):
             try:
                 return TerminfoFormatter(stream)
-            except curses.error:
+            except (curses.error, TerminfoDisabled):
                 # This happens if TERM is unset and possibly in more cases.
                 # Just fall back to the PlainTextFormatter.
                 pass
