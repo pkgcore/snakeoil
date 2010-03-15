@@ -1,6 +1,3 @@
-snakeoil-0.1 < http://www.pkgcore.org/snakeoil/ >
-
-
 WHAT IS SNAKEOIL?
 
   snakeoil is a python library that implements optimized versions of common
