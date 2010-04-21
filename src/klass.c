@@ -369,6 +369,12 @@ static inline PyObject *
 internal_generic_equality(PyObject *inst1, PyObject *inst2,
     int desired)
 {
+	if(!inst1) {
+		PyErr_SetString(PyExc_TypeError,
+			"__eq__ or __ne__ method was invalidly assigned transferred across "
+				"classes");
+		return NULL;
+	}
     if(inst1 == inst2) {
         PyObject *res = desired == Py_EQ ? Py_True : Py_False;
         Py_INCREF(res);

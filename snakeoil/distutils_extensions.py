@@ -310,7 +310,7 @@ class build_ext(dst_build_ext.build_ext):
         if self.debug:
             # say it with me kids... distutils sucks!
             for x in ("compiler_so", "compiler", "compiler_cxx"):
-                l = [y for y in getattr(self.compiler, x) if y != '-DNEDBUG']
+                l = [y for y in getattr(self.compiler, x) if y != '-DDEBUG']
                 l.append('-Wall')
                 setattr(self.compiler, x, l)
         if not self.disable_distutils_flag_fixing:

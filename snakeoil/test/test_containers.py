@@ -13,8 +13,8 @@ class InvertedContainsTest(TestCase):
         self.set = containers.InvertedContains(range(12))
 
     def test_basic(self):
-        self.failIf(7 in self.set)
-        self.failUnless(-7 in self.set)
+        self.assertFalse(7 in self.set)
+        self.assertTrue(-7 in self.set)
         self.assertRaises(TypeError, iter, self.set)
 
 
@@ -105,8 +105,8 @@ class LimitedChangeSetTest(TestCase):
         self.set.rollback(changes)
         # and this is invalid
         self.assertRaises(TypeError, self.set.rollback, changes + 1)
-        self.failUnless(0 in self.set)
-        self.failIf(12 in self.set)
+        self.assertTrue(0 in self.set)
+        self.assertFalse(12 in self.set)
         self.assertEqual(12, len(self.set))
         self.assertEqual(sorted(list(self.set)), list(range(12)))
         self.assertEqual(changes, self.set.changes_count())
@@ -120,7 +120,7 @@ class LimitedChangeSetTest(TestCase):
 
     def test_adding(self):
         self.set.add(13)
-        self.failUnless(13 in self.set)
+        self.assertTrue(13 in self.set)
         self.assertEqual(13, len(self.set))
         self.assertEqual(sorted(list(self.set)), list(range(12)) + [13])
         self.assertEqual(1, self.set.changes_count())
@@ -149,7 +149,7 @@ class LimitedChangeSetTest(TestCase):
 
     def test_removing(self):
         self.set.remove(0)
-        self.failIf(0 in self.set)
+        self.assertFalse(0 in self.set)
         self.assertEqual(11, len(self.set))
         self.assertEqual(sorted(list(self.set)), list(range(1, 12)))
         self.assertEqual(1, self.set.changes_count())
@@ -164,7 +164,7 @@ class LimitedChangeSetTest(TestCase):
     def test_remove_commit_add_commit(self):
         self.set.remove(0)
         self.set.commit()
-        self.failIf(0 in self.set)
+        self.assertFalse(0 in self.set)
         self.assertEqual(11, len(self.set))
         self.assertEqual(sorted(list(self.set)), range(1, 12))
         self.assertEqual(0, self.set.changes_count())
@@ -200,8 +200,8 @@ class LimitedChangeSetWithBlacklistTest(TestCase):
         self.set = containers.LimitedChangeSet(range(12), [3, 13])
 
     def test_basic(self):
-        self.failUnless(0 in self.set)
-        self.failIf(12 in self.set)
+        self.assertTrue(0 in self.set)
+        self.assertFalse(12 in self.set)
         self.assertEqual(12, len(self.set))
         self.assertEqual(sorted(list(self.set)), list(range(12)))
         self.assertEqual(0, self.set.changes_count())

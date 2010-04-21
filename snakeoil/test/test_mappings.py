@@ -98,8 +98,8 @@ class LazyValDictTestMixin(object):
 
     def test_keys(self):
         # Called twice because the first call will trigger a keyfunc call.
-        self.failUnlessEqual(sorted(self.dict.keys()), list(xrange(12)))
-        self.failUnlessEqual(sorted(self.dict.keys()), list(xrange(12)))
+        self.assertEqual(sorted(self.dict.keys()), list(xrange(12)))
+        self.assertEqual(sorted(self.dict.keys()), list(xrange(12)))
 
     def test_len(self):
         # Called twice because the first call will trigger a keyfunc call.

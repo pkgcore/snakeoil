@@ -45,7 +45,7 @@ class UniqueTest(TestCase):
         # sortable
         self.assertEqual(sorted(lists.unstable_unique(
                     [[1, 2], [1, 3], [1, 2], [1, 3]])), [[1, 2], [1, 3]])
-        self.failUnless(
+        self.assertTrue(
             res == [uc(1, 0), uc(0, 1)] or res == [uc(0, 1), uc(1, 0)], res)
         self.assertEqual(sorted(lists.unstable_unique(self._generator())),
             sorted(xrange(6)))
@@ -122,7 +122,7 @@ class Test_iflatten_instance(TestCase):
         self.assertRaises(ValueError, iterator.next)
 
         # Regression test: this was triggered through demandload.
-        self.failUnless(self.func((), **{}))
+        self.assertTrue(self.func((), **{}))
 
 
 class Test_iflatten_func(TestCase):
@@ -155,7 +155,7 @@ class Test_iflatten_func(TestCase):
         self.assertRaises(ValueError, iterator.next)
 
         # Regression test: this was triggered through demandload.
-        self.failUnless(self.func((), lambda x: True, **{}))
+        self.assertTrue(self.func((), lambda x: True, **{}))
 
 
 class CPY_Test_iflatten_instance(Test_iflatten_instance):

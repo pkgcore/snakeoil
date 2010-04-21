@@ -321,10 +321,15 @@ except ImportError:
     TerminfoColor = None
 else:
 
-    def py3k_cast(value):
-        if value is not None:
-            return value.decode("ascii")
-        return value
+    if compatibility.is_py3k:
+        def tigetstr(key):
+            val = curses.tigetstr(key)
+            if val is not None:
+                return str(val, 'ascii')
+            return val
+    else:
+        tigetstr = curses.tigetstr
+
     class TerminfoColor(object):
 
         def __init__(self, mode, color):
@@ -359,7 +364,7 @@ else:
     class TerminfoCode(object):
         def __init__(self, value):
             assert value is not None
-            self.value = py3k_cast(value)
+            self.value = value
 
     class TerminfoMode(TerminfoCode):
         def __call__(self, formatter):
@@ -433,17 +438,17 @@ else:
             self._term = term
             self.width = curses.tigetnum('cols')
             try:
-                self.reset = TerminfoReset(curses.tigetstr('sgr0'))
+                self.reset = TerminfoReset(tigetstr('sgr0'))
             except Exception:
                 import sys
                 sys.stderr.write("term was %s\n" % self._term)
                 raise
-            self.bold = TerminfoMode(curses.tigetstr('bold'))
-            self.underline = TerminfoMode(curses.tigetstr('smul'))
-            self._color_reset = py3k_cast(curses.tigetstr('op'))
+            self.bold = TerminfoMode(tigetstr('bold'))
+            self.underline = TerminfoMode(tigetstr('smul'))
+            self._color_reset = tigetstr('op')
             self._set_color = (
-                py3k_cast(curses.tigetstr('setaf')),
-                py3k_cast(curses.tigetstr('setab')))
+                tigetstr('setaf'),
+                tigetstr('setab'))
             # [fg, bg]
             self._current_colors = [None, None]
             self._modes = set()
@@ -474,9 +479,9 @@ else:
             # not set the hs flag. So just check for the ability to
             # jump to and out of the status line, without checking if
             # the status line we're using exists.
-            if curses.tigetstr('tsl') and curses.tigetstr('fsl'):
+            if tigetstr('tsl') and tigetstr('fsl'):
                 self.stream.write(
-                    curses.tigetstr('tsl') + string + curses.tigetstr('fsl'))
+                    tigetstr('tsl') + string + tigetstr('fsl'))
                 self.stream.flush()
 
 

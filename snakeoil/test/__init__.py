@@ -96,14 +96,14 @@ class TestCase(unittest.TestCase, object):
         unittest.TestCase.__init__(self, methodName)
 
     def assertLen(self, obj, length, msg=None):
-        self.failUnless(len(obj) == length,
+        self.assertTrue(len(obj) == length,
             msg or '%r needs to be len %i, is %i' % (obj, length, len(obj)))
 
     def assertInstance(self, obj, kls, msg=None):
         """
         assert that obj is an instance of kls
         """
-        self.failUnless(isinstance(obj, kls),
+        self.assertTrue(isinstance(obj, kls),
             msg or '%r needs to be an instance of %r, is %r' % (obj, kls,
                 getattr(obj, '__class__', "__class__ wasn't pullable")))
 
@@ -111,38 +111,38 @@ class TestCase(unittest.TestCase, object):
         """
         assert that obj is not an instance of kls
         """
-        self.failIf(isinstance(obj, kls),
+        self.assertFalse(isinstance(obj, kls),
             msg or '%r must not be an instance of %r, is %r' % (obj, kls,
                 getattr(obj, '__class__', "__class__ wasn't pullable")))
 
     def assertIdentical(self, this, other, reason=None):
-        self.failUnless(
+        self.assertTrue(
             this is other, reason or '%r is not %r' % (this, other))
 
     def assertNotIdentical(self, this, other, reason=None):
-        self.failUnless(
+        self.assertTrue(
             this is not other, reason or '%r is %r' % (this, other))
 
     def assertIn(self, needle, haystack, reason=None):
-        self.failUnless(
+        self.assertTrue(
             needle in haystack, reason or '%r not in %r' % (needle, haystack))
 
     def assertNotIn(self, needle, haystack, reason=None):
-        self.failUnless(
+        self.assertTrue(
             needle not in haystack, reason or '%r in %r' % (needle, haystack))
 
     def assertEqual(self, obj1, obj2, msg=None, reflective=True):
-        self.failUnless(obj1 == obj2,
+        self.assertTrue(obj1 == obj2,
             msg or '%r != %r' % (obj1, obj2))
         if reflective:
-            self.failUnless(not (obj1 != obj2),
+            self.assertTrue(not (obj1 != obj2),
                 msg or 'not (%r != %r)' % (obj1, obj2))
 
     def assertNotEqual(self, obj1, obj2, msg=None, reflective=True):
-        self.failUnless(obj1 != obj2,
+        self.assertTrue(obj1 != obj2,
             msg or '%r == %r' % (obj1, obj2))
         if reflective:
-            self.failUnless(not (obj1 == obj2),
+            self.assertTrue(not (obj1 == obj2),
                 msg or 'not (%r == %r)' % (obj1, obj2))
 
     # unittest and twisted each have a differing count of how many frames

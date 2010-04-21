@@ -2,6 +2,12 @@ Snakeoil Release Notes
 ======================
 
 
+* fix rare segfault potential with cpython generic_equality __eq__/__ne__
+  when it's blindly transferred across classes.
+
+* fix py3k handling of terminfo entries- xterm for example was affected.
+
+
 snakeoil 0.3.6.3: March 14th, 2010
 
 * 'dumb' terminfo is no longer tempted- to useless to hack around it.

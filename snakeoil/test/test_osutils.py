@@ -100,38 +100,38 @@ class CPyReaddirTest(NativeReaddirTest):
 class EnsureDirsTest(TempDirMixin, TestCase):
 
     def check_dir(self, path, uid, gid, mode):
-        self.failUnless(os.path.isdir(path))
+        self.assertTrue(os.path.isdir(path))
         st = os.stat(path)
-        self.failUnlessEqual(stat.S_IMODE(st.st_mode), mode,
+        self.assertEqual(stat.S_IMODE(st.st_mode), mode,
                              '0%o != 0%o' % (stat.S_IMODE(st.st_mode), mode))
-        self.failUnlessEqual(st.st_uid, uid)
-        self.failUnlessEqual(st.st_gid, gid)
+        self.assertEqual(st.st_uid, uid)
+        self.assertEqual(st.st_gid, gid)
 
 
     def test_ensure_dirs(self):
         # default settings
         path = pjoin(self.dir, 'foo', 'bar')
-        self.failUnless(osutils.ensure_dirs(path))
+        self.assertTrue(osutils.ensure_dirs(path))
         self.check_dir(path, os.geteuid(), os.getegid(), 0777)
 
     def test_minimal_nonmodifying(self):
         path = pjoin(self.dir, 'foo', 'bar')
-        self.failUnless(osutils.ensure_dirs(path, mode=0755))
+        self.assertTrue(osutils.ensure_dirs(path, mode=0755))
         os.chmod(path, 0777)
-        self.failUnless(osutils.ensure_dirs(path, mode=0755, minimal=True))
+        self.assertTrue(osutils.ensure_dirs(path, mode=0755, minimal=True))
         self.check_dir(path, os.geteuid(), os.getegid(), 0777)
 
     def test_minimal_modifying(self):
         path = pjoin(self.dir, 'foo', 'bar')
-        self.failUnless(osutils.ensure_dirs(path, mode=0750))
-        self.failUnless(osutils.ensure_dirs(path, mode=0005, minimal=True))
+        self.assertTrue(osutils.ensure_dirs(path, mode=0750))
+        self.assertTrue(osutils.ensure_dirs(path, mode=0005, minimal=True))
         self.check_dir(path, os.geteuid(), os.getegid(), 0755)
 
     def test_create_unwritable_subdir(self):
         path = pjoin(self.dir, 'restricted', 'restricted')
         # create the subdirs without 020 first
-        self.failUnless(osutils.ensure_dirs(os.path.dirname(path)))
-        self.failUnless(osutils.ensure_dirs(path, mode=0020))
+        self.assertTrue(osutils.ensure_dirs(os.path.dirname(path)))
+        self.assertTrue(osutils.ensure_dirs(path, mode=0020))
         self.check_dir(path, os.geteuid(), os.getegid(), 0020)
         # unrestrict it
         osutils.ensure_dirs(path)
@@ -139,7 +139,7 @@ class EnsureDirsTest(TempDirMixin, TestCase):
 
     def test_mode(self):
         path = pjoin(self.dir, 'mode', 'mode')
-        self.failUnless(osutils.ensure_dirs(path, mode=0700))
+        self.assertTrue(osutils.ensure_dirs(path, mode=0700))
         self.check_dir(path, os.geteuid(), os.getegid(), 0700)
         # unrestrict it
         osutils.ensure_dirs(path)
@@ -151,11 +151,11 @@ class EnsureDirsTest(TempDirMixin, TestCase):
         if portage_gid not in os.getgroups():
             raise SkipTest('you are not in the portage group')
         path = pjoin(self.dir, 'group', 'group')
-        self.failUnless(osutils.ensure_dirs(path, gid=portage_gid))
+        self.assertTrue(osutils.ensure_dirs(path, gid=portage_gid))
         self.check_dir(path, os.geteuid(), portage_gid, 0777)
-        self.failUnless(osutils.ensure_dirs(path))
+        self.assertTrue(osutils.ensure_dirs(path))
         self.check_dir(path, os.geteuid(), portage_gid, 0777)
-        self.failUnless(osutils.ensure_dirs(path, gid=os.getegid()))
+        self.assertTrue(osutils.ensure_dirs(path, gid=os.getegid()))
         self.check_dir(path, os.geteuid(), os.getegid(), 0777)
 
 
@@ -241,7 +241,7 @@ class FsLockTest(TempDirMixin, TestCase):
         path = pjoin(self.dir, 'lockfile')
         lock = osutils.FsLock(path, True)
         # do this all non-blocking to avoid hanging tests
-        self.failUnless(lock.acquire_read_lock(False))
+        self.assertTrue(lock.acquire_read_lock(False))
         # file should exist now
         f = open(path)
         # acquire and release a read lock
@@ -253,15 +253,15 @@ class FsLockTest(TempDirMixin, TestCase):
         lock.release_read_lock()
         # but now we can
         fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        self.failIf(lock.acquire_read_lock(False))
-        self.failIf(lock.acquire_write_lock(False))
+        self.assertFalse(lock.acquire_read_lock(False))
+        self.assertFalse(lock.acquire_write_lock(False))
         fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
         # acquire an exclusive/write lock
-        self.failUnless(lock.acquire_write_lock(False))
+        self.assertTrue(lock.acquire_write_lock(False))
         self.assertRaises(
             IOError, fcntl.flock, f, fcntl.LOCK_EX | fcntl.LOCK_NB)
         # downgrade to read lock
-        self.failUnless(lock.acquire_read_lock())
+        self.assertTrue(lock.acquire_read_lock())
         fcntl.flock(f, fcntl.LOCK_SH | fcntl.LOCK_NB)
         fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
         self.assertRaises(
@@ -271,7 +271,7 @@ class FsLockTest(TempDirMixin, TestCase):
         fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
         fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
 
-        self.failUnless(lock.acquire_write_lock(False))
+        self.assertTrue(lock.acquire_write_lock(False))
         lock.release_write_lock()
         fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
         fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)

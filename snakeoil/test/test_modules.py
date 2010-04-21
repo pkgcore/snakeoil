@@ -133,4 +133,4 @@ class ModulesTest(TestCase):
         for func in [modules.load_module, modules.load_any]:
             self.assertRaises(
                 modules.FailedImport, func, 'mod_testpack.mod_horked')
-            self.failIf('mod_testpack.mod_horked' in sys.modules, func)
+            self.assertFalse('mod_testpack.mod_horked' in sys.modules, func)
