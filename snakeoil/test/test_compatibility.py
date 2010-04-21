@@ -92,6 +92,11 @@ class NextTest(TestCase):
 class incomparable_obj(tuple):
     # used to ensure that if this raw object is compared,
     # it goes boom.
+
+    # this is needed to avoid a false positive in a test for py2k->py3k
+    # conversion errors; we don't care about it since this is just a mock.
+    __hash__intentionally_disabled__ = True
+
     def __le__(self, other):
         raise TypeError
 

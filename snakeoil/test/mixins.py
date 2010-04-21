@@ -1,11 +1,12 @@
 # Copyright: 2005 Marien Zwart <marienz@gentoo.org>
-# Copyright: 2009 Brian Harring <ferringb@gmail.com>
+# Copyright: 2009-2010 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
 
-import os
+import os, stat, errno
 import shutil
 import tempfile
+import inspect
 
 from snakeoil.test import TestCase
 from snakeoil import compatibility
@@ -45,13 +46,6 @@ if compatibility.is_py3k:
         tmp_f = tempfile.NamedTemporaryFile(*args, **kwds)
         return io.TextIOWrapper(tmp_f)
 
-# Copyright: 2005 Brian Harring <ferringb@gmail.com>
-# License: BSD/GPL2
-
-import os, stat, errno
-
-from snakeoil.test import TestCase
-from snakeoil import compatibility
 
 class PythonNamespaceWalker(object):
 
@@ -162,13 +156,51 @@ class PythonNamespaceWalker(object):
         return obj
 
 
-class SubclassWalker(object):
-
+class TargetedNamespaceWalker(PythonNamespaceWalker):
     target_namespace = None
+
+    def load_namespaces(self, namespace=None):
+        if namespace is None:
+            namespace = self.target_namespace
+        for mod in self.walk_namespace(namespace):
+            pass
+
+class _classWalker(object):
+
     cls_blacklist = frozenset()
 
     def is_blacklisted(self, cls):
         return cls.__name__ in self.cls_blacklist
+
+    def test_object_derivatives(self, *args, **kwds):
+        # first load all namespaces...
+        self.load_namespaces()
+
+        # next walk all derivatives of object
+        for cls in self.walk_derivatives(object, *args, **kwds):
+            self.run_check(cls)
+
+    def iter_builtin_targets(self):
+        for attr in dir(__builtins__):
+            obj = getattr(__builtins__, attr)
+            if not inspect.isclass(obj):
+                continue
+            yield obj
+
+    def test_builtin_derivatives(self, *args, **kwds):
+        self.load_namespaces()
+        for obj in self.iter_builtin_targets():
+            for cls in self.walk_derivatives(obj, *args, **kwds):
+                self.run_check(cls)
+
+    def walk_derivatives(self, obj):
+        raise NotImplementedError(self.__class__, "walk_derivatives")
+
+    def run_check(self, cls):
+        raise NotImplementedError
+
+
+class SubclassWalker(_classWalker):
 
     def walk_derivatives(self, cls, seen=None):
         if cls == type:
@@ -186,3 +218,22 @@ class SubclassWalker(object):
                 yield grand_daddy
         if pos == 0:
             yield cls
+
+
+class KlassWalker(_classWalker):
+
+    def walk_derivatives(self, cls, seen=None):
+        if cls == type:
+            return
+
+        if seen is None:
+            seen = set()
+        elif cls not in seen:
+            seen.add(cls)
+            yield cls
+
+        for subcls in cls.__subclasses__():
+            if subcls in seen:
+                continue
+            for node in self.walk_derivatives(subcls, seen=seen):
+                yield node

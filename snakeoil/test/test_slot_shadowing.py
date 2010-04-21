@@ -5,36 +5,13 @@ from snakeoil.test import mixins, TestCase, test_demandload_usage
 from snakeoil.compatibility import any
 import inspect
 
-class Test_slot_shadowing(mixins.SubclassWalker, mixins.PythonNamespaceWalker,
-    TestCase):
+
+class Test_slot_shadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker, TestCase):
 
     target_namespace = 'snakeoil'
     module_blacklist = test_demandload_usage.TestDemandLoadTargets.module_blacklist
     err_if_slots_is_str = True
     err_if_slots_is_mutable = True
-
-    def load_namespaces(self, namespace=None):
-        if namespace is None:
-            namespace = self.target_namespace
-        for mod in self.walk_namespace(namespace):
-            pass
-
-    def test_object_derivatives(self):
-        # first load all namespaces...
-        self.load_namespaces()
-
-        # next walk all derivatives of object
-        for cls in self.walk_derivatives(object):
-            self.check_slotting(cls)
-
-    def test_builtin_derivatives(self):
-        self.load_namespaces()
-        for attr in dir(__builtins__):
-            obj = getattr(__builtins__, attr)
-            if not inspect.isclass(obj):
-                continue
-            for cls in self.walk_derivatives(obj):
-                self.check_slotting(cls)
 
     def recurse_parents(self, kls, seen=None):
         if not seen:
@@ -54,7 +31,7 @@ class Test_slot_shadowing(mixins.SubclassWalker, mixins.PythonNamespaceWalker,
     def _should_check_cls(self, kls):
         return self.mk_name(kls).split(".")[0] == self.target_namespace
 
-    def check_slotting(self, kls):
+    def run_check(self, kls):
         # note we ignore diamond mro slotting...
         if not self._should_check_cls(kls):
             return
