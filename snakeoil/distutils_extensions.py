@@ -452,7 +452,7 @@ class test(core.Command):
             return
         retval = os.waitpid(pid, 0)[1]
         if retval:
-            raise errors.DistutilsExecError("tests failed")
+            raise errors.DistutilsExecError("tests failed; return %i" % (retval,))
 
 is_py3k = sys.version_info >= (3,0)
 
