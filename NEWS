@@ -2,6 +2,8 @@ Snakeoil Release Notes
 ======================
 
 
+snakeoil 0.3.6.4: April 21st, 2010
+
 * fix rare segfault potential with cpython generic_equality __eq__/__ne__
   when it's blindly transferred across classes.
 
