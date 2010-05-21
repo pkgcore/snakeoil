@@ -1,4 +1,5 @@
 # Copyright: 2005 Marien Zwart <marienz@gentoo.org>
+# Copyright: 2010 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
 
@@ -199,10 +200,12 @@ class ReadBashDictTest(TestCase):
 
 class TestAtomicWriteFile(TempDirMixin, TestCase):
 
+    kls = AtomicWriteFile
+
     def test_normal_ops(self):
         fp = pjoin(self.dir, "target")
         open(fp, "w").write("me")
-        af = AtomicWriteFile(fp)
+        af = self.kls(fp)
         af.write("dar")
         self.assertEqual(open(fp, "r").read(), "me")
         af.close()
@@ -212,7 +215,7 @@ class TestAtomicWriteFile(TempDirMixin, TestCase):
         fp = pjoin(self.dir, 'target')
         orig_um = os.umask(0777)
         try:
-            af = AtomicWriteFile(fp, perms=0644)
+            af = self.kls(fp, perms=0644)
             af.write("dar")
             af.close()
         finally:
@@ -224,7 +227,7 @@ class TestAtomicWriteFile(TempDirMixin, TestCase):
         fp = pjoin(self.dir, "target")
         open(fp, "w").write("me")
         self.assertEqual(open(fp, "r").read(), "me")
-        af = AtomicWriteFile(fp)
+        af = self.kls(fp)
         af.write("dar")
         del af
         self.assertEqual(open(fp, "r").read(), "me")
@@ -232,7 +235,7 @@ class TestAtomicWriteFile(TempDirMixin, TestCase):
 
     def test_close(self):
         # verify that we handle multiple closes; no exception is good.
-        af = AtomicWriteFile(pjoin(self.dir, "target"))
+        af = self.kls(pjoin(self.dir, "target"))
         af.close()
         af.close()
 
@@ -240,7 +243,7 @@ class TestAtomicWriteFile(TempDirMixin, TestCase):
         fp = pjoin(self.dir, "target")
         open(fp, "w").write("me")
         self.assertEqual(open(fp, "r").read(), "me")
-        af = AtomicWriteFile(fp)
+        af = self.kls(fp)
         af.write("dar")
         af.discard()
         self.assertFalse(os.path.exists(af._temp_fp))
@@ -248,7 +251,7 @@ class TestAtomicWriteFile(TempDirMixin, TestCase):
         self.assertEqual(open(fp, "r").read(), "me")
 
         # finally validate that it handles multiple discards properly.
-        af = AtomicWriteFile(fp)
+        af = self.kls(fp)
         af.write("dar")
         af.discard()
         af.discard()
