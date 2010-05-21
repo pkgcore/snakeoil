@@ -2,6 +2,13 @@ Snakeoil Release Notes
 ======================
 
 
+* add discard method to AtomicWriteFile to intentionally discard the
+  updated content.
+
+* fix initialization of RefCountingSet to set the refcount correctly on
+  duplicate keys
+
+
 snakeoil 0.3.6.4: April 21st, 2010
 
 * fix rare segfault potential with cpython generic_equality __eq__/__ne__

@@ -8,6 +8,8 @@ from snakeoil import compatibility
 from snakeoil.test.mixins import mk_named_tempfile
 from snakeoil.test import TestCase
 
+pjoin = os.path.join
+
 from snakeoil.fileutils import (
     iter_read_bash, read_bash, read_dict, AtomicWriteFile, read_bash_dict,
     ParseError)
@@ -198,7 +200,7 @@ class ReadBashDictTest(TestCase):
 class TestAtomicWriteFile(TempDirMixin, TestCase):
 
     def test_normal_ops(self):
-        fp = os.path.join(self.dir, "target")
+        fp = pjoin(self.dir, "target")
         open(fp, "w").write("me")
         af = AtomicWriteFile(fp)
         af.write("dar")
@@ -207,7 +209,7 @@ class TestAtomicWriteFile(TempDirMixin, TestCase):
         self.assertEqual(open(fp, "r").read(), "dar")
 
     def test_perms(self):
-        fp = os.path.join(self.dir, 'target')
+        fp = pjoin(self.dir, 'target')
         orig_um = os.umask(0777)
         try:
             af = AtomicWriteFile(fp, perms=0644)
@@ -219,7 +221,7 @@ class TestAtomicWriteFile(TempDirMixin, TestCase):
         self.assertEqual(os.stat(fp).st_mode & 04777, 0644)
 
     def test_del(self):
-        fp = os.path.join(self.dir, "target")
+        fp = pjoin(self.dir, "target")
         open(fp, "w").write("me")
         self.assertEqual(open(fp, "r").read(), "me")
         af = AtomicWriteFile(fp)
@@ -227,3 +229,27 @@ class TestAtomicWriteFile(TempDirMixin, TestCase):
         del af
         self.assertEqual(open(fp, "r").read(), "me")
         self.assertEqual(len(os.listdir(self.dir)), 1)
+
+    def test_close(self):
+        # verify that we handle multiple closes; no exception is good.
+        af = AtomicWriteFile(pjoin(self.dir, "target"))
+        af.close()
+        af.close()
+
+    def test_discard(self):
+        fp = pjoin(self.dir, "target")
+        open(fp, "w").write("me")
+        self.assertEqual(open(fp, "r").read(), "me")
+        af = AtomicWriteFile(fp)
+        af.write("dar")
+        af.discard()
+        self.assertFalse(os.path.exists(af._temp_fp))
+        af.close()
+        self.assertEqual(open(fp, "r").read(), "me")
+
+        # finally validate that it handles multiple discards properly.
+        af = AtomicWriteFile(fp)
+        af.write("dar")
+        af.discard()
+        af.discard()
+        af.close()

@@ -209,7 +209,7 @@ class RefCountingSet(dict):
 
     def __init__(self, iterable=None):
         if iterable is not None:
-            dict.__init__(self, ((x, 1) for x in iterable))
+            self.update(iterable)
 
     def add(self, item):
         count = self.get(item, 0)
@@ -227,3 +227,7 @@ class RefCountingSet(dict):
             self.remove(item)
         except KeyError:
             pass
+
+    def update(self, items):
+        for item in items:
+            self.add(item)

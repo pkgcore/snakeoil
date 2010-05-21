@@ -241,8 +241,10 @@ class ProtectedSetTest(TestCase):
 
 class TestRefCountingSet(TestCase):
 
+    kls = containers.RefCountingSet
+
     def test_it(self):
-        c = containers.RefCountingSet((1, 2))
+        c = self.kls((1, 2))
         self.assertIn(1, c)
         self.assertIn(2, c)
         c.remove(1)
@@ -269,3 +271,9 @@ class TestRefCountingSet(TestCase):
         self.assertIn(4, c)
         c.discard(4)
         self.assertNotIn(4, c)
+
+    def test_init(self):
+        self.assertEqual(self.kls(xrange(5))[4], 1)
+        c = self.kls([1,2,3,1])
+        self.assertEqual(c[2], 1)
+        self.assertEqual(c[1], 2)

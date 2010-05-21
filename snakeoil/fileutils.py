@@ -51,15 +51,20 @@ class AtomicWriteFile_mixin(object):
         if (gid, uid) != (-1, -1):
             os.chown(self._temp_fp, uid, gid)
 
+    def discard(self):
+        if not self._is_finalized:
+            self._real_close()
+            os.unlink(self._temp_fp)
+            self._is_finalized = True
+
     def close(self):
-        self._real_close()
-        os.rename(self._temp_fp, self._original_fp)
-        self._is_finalized = True
+        if not self._is_finalized:
+            self._real_close()
+            os.rename(self._temp_fp, self._original_fp)
+            self._is_finalized = True
 
     def __del__(self):
-        self._real_close()
-        if not self._is_finalized:
-            os.unlink(self._temp_fp)
+        self.discard()
 
 if not compatibility.is_py3k:
 
