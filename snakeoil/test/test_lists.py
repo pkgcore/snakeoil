@@ -122,6 +122,7 @@ class Test_iflatten_instance(TestCase):
         self.assertRaises(ValueError, iterator.next)
 
         # Regression test: this was triggered through demandload.
+        # **{} is there to explicitly force a dict.
         self.assertTrue(self.func((), **{}))
 
 
@@ -155,6 +156,7 @@ class Test_iflatten_func(TestCase):
         self.assertRaises(ValueError, iterator.next)
 
         # Regression test: this was triggered through demandload.
+        # **{} is there to explicitly force a dict to the underly cpy
         self.assertTrue(self.func((), lambda x: True, **{}))
 
 

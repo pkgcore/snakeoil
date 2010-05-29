@@ -2,6 +2,10 @@ Snakeoil Release Notes
 ======================
 
 
+* snakeoil.mappings.defaultdict; compatibility implementation, defaults to
+  collections.defaultdict for >=python-2.5, a native python implementation
+  for 2.4
+
 snakeoil 0.3.6.5: May 21st, 2010
 
 * add discard method to AtomicWriteFile to intentionally discard the

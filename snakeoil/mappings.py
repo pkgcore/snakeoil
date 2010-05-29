@@ -5,7 +5,7 @@
 miscellanious mapping/dict related classes
 """
 
-import operator
+import operator, sys
 from itertools import imap, chain, ifilterfalse, izip
 from snakeoil.klass import get, contains
 from collections import deque
@@ -599,3 +599,42 @@ class NonPreservingFoldingDict(DictMixin):
 
     def clear(self):
         self._dict = {}
+
+if sys.version_info >= (2, 5):
+    from collections import defaultdict
+else:
+    class defaultdict(DictMixin):
+        def __init__(self, default_factory=None):
+            if default_factory is not None:
+                self.__missing__ = default_factory
+            self._storage = {}
+
+        @staticmethod
+        def __missing__():
+            raise KeyError
+
+
+        def __getitem__(self, key):
+            try:
+                return self._storage[key]
+            except KeyError:
+                obj = self._storage[key] = self.__missing__()
+                return obj
+
+        def __setitem__(self, key, value):
+            self._storage[key] = value
+
+        def __delitem__(self, key):
+            del self._storage[key]
+
+        def iterkeys(self):
+            return iter(self._storage)
+
+        def clear(self):
+            return self._storage.clear()
+
+        def __len__(self):
+            return len(self._storage)
+
+        def __nonzero__(self):
+            return bool(self._storage)
