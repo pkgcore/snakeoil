@@ -507,6 +507,15 @@ class defaultdictTest(TestCase):
         d.clear()
         self.assertFalse(d)
 
-    def test_default(self):
-        d = self.kls()
-        self.assertRaises(KeyError, d.__getitem__, "asdf")
+
+class defaultdictkeyTest(TestCase):
+
+    kls = mappings.defaultdictkey
+
+    def test_it(self):
+        d = self.kls(lambda x:[x])
+        self.assertEqual(d[0], [0])
+        val = d[0]
+        self.assertEqual(d.items(), [(0, [0])])
+        self.assertEqual(d[0], [0])
+        self.assertIdentical(d[0], val)

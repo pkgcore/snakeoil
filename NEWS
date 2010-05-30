@@ -2,6 +2,14 @@ Snakeoil Release Notes
 ======================
 
 
+* snakeoil.lists.predicate_split; given a predicate function, a stream, and
+  an optional key function (think DSU pattern for sorted), split the stream
+  into two sequences- one sequence where the predicate evalutes true, the
+  other sequence where it evaluates false.
+
+* minor optimization to TerminfoFormatters to cache and reuse TerminfoColor.
+  Exempting the formatter, Terminfo* objects are now immutable
+
 * snakeoil.mappings.defaultdict; compatibility implementation, defaults to
   collections.defaultdict for >=python-2.5, a native python implementation
   for 2.4

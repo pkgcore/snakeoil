@@ -5,6 +5,7 @@
 sequence related operations
 """
 
+from itertools import imap
 from snakeoil.iterables import expandable_chain
 
 def unstable_unique(sequence):
@@ -190,3 +191,22 @@ class ChainedLists(object):
 
     def extend(self, items):
         self._lists.extend(items)
+
+def predicate_split(func, stream, key=None):
+    true_l, false_l = [], []
+    tappend, fappend = true_l.append, false_l.append
+    # needs to be fast... this this since a simple
+    # lambda x:x # is a bit more of a killer then you would think.
+    if key is not None:
+        for item in stream:
+            if func(key(item)):
+                tappend(item)
+            else:
+                fappend(item)
+    else:
+        for item in stream:
+            if func(item):
+                tappend(item)
+            else:
+                fappend(item)
+    return false_l, true_l

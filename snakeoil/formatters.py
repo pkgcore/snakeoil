@@ -10,6 +10,8 @@ import errno
 from snakeoil.klass import GetAttrProxy
 from snakeoil.demandload import demandload
 from snakeoil import compatibility
+from snakeoil.mappings import defaultdictkey
+from snakeoil.currying import partial
 demandload(globals(), 'locale')
 
 
@@ -332,9 +334,11 @@ else:
 
     class TerminfoColor(object):
 
+        __slots__ = ("mode", "color", "__weakref__")
+
         def __init__(self, mode, color):
-            self.mode = mode
-            self.color = color
+            object.__setattr__(self, 'mode', mode)
+            object.__setattr__(self, 'color', color)
 
         def __call__(self, formatter):
             if self.color is None:
@@ -360,18 +364,36 @@ else:
                 formatter._current_colors[self.mode] = res
             formatter.stream.write(res)
 
+        def __setattr__(self, key, val):
+            raise AttributeError("%s instances are immutable" %
+                (self.__class__.__name__,))
+
 
     class TerminfoCode(object):
+
+        __slots__ = ("value", "__weakref__")
+
         def __init__(self, value):
             assert value is not None
-            self.value = value
+            object.__setattr__(self, 'value', value)
+
+        def __setattr__(self, key, value):
+            raise AttributeError("%s instances are immutable" %
+                (self.__class__.__name__,))
+
 
     class TerminfoMode(TerminfoCode):
+
+        __slots__ = ()
+
         def __call__(self, formatter):
             formatter._modes.add(self)
             formatter.stream.write(self.value)
 
     class TerminfoReset(TerminfoCode):
+
+        __slots__ = ()
+
         def __call__(self, formatter):
             formatter._modes.clear()
             formatter.stream.write(self.value)
@@ -453,12 +475,14 @@ else:
             self._current_colors = [None, None]
             self._modes = set()
             self._pos = 0
+            self._fg_cache = defaultdictkey(partial(TerminfoColor, 0))
+            self._bg_cache = defaultdictkey(partial(TerminfoColor, 1))
 
         def fg(self, color=None):
-            return TerminfoColor(0, color)
+            return self._fg_cache[color]
 
         def bg(self, color=None):
-            return TerminfoColor(1, color)
+            return self._bg_cache[color]
 
         def write(self, *args, **kwargs):
             PlainTextFormatter.write(self, *args, **kwargs)

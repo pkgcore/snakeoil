@@ -604,22 +604,19 @@ if sys.version_info >= (2, 5):
     from collections import defaultdict
 else:
     class defaultdict(DictMixin):
-        def __init__(self, default_factory=None):
-            if default_factory is not None:
-                self.__missing__ = default_factory
+        def __init__(self, default_factory):
+            self.default_factory = default_factory
             self._storage = {}
 
-        @staticmethod
-        def __missing__():
-            raise KeyError
-
+        def __missing__(self, key):
+            obj = self._storage[key] = self.default_factory()
+            return obj
 
         def __getitem__(self, key):
             try:
                 return self._storage[key]
             except KeyError:
-                obj = self._storage[key] = self.__missing__()
-                return obj
+                return self.__missing__(key)
 
         def __setitem__(self, key, value):
             self._storage[key] = value
@@ -638,3 +635,15 @@ else:
 
         def __nonzero__(self):
             return bool(self._storage)
+
+
+class defaultdictkey(defaultdict):
+
+    def __init__(self, default_factory):
+        # we have our own init to explicitly force via prototype
+        # that a default_factory is required
+        defaultdict.__init__(self, default_factory)
+
+    def __missing__(self, key):
+        obj = self[key] = self.default_factory(key)
+        return obj
