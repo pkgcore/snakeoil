@@ -2,6 +2,11 @@ Snakeoil Release Notes
 ======================
 
 
+* snakeoil.weakrefs grew a new experimental metaclass; WeakRefFinalizer.
+  Basically this class allows __del__ without the GC issues __del__ normally
+  suffers.  Experimental, but should work- just keep in mind you get proxies
+  back from users of that class.
+
 * snakeoil.lists.predicate_split; given a predicate function, a stream, and
   an optional key function (think DSU pattern for sorted), split the stream
   into two sequences- one sequence where the predicate evalutes true, the

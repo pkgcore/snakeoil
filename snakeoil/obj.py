@@ -9,14 +9,6 @@ from snakeoil import compatibility
 def alias_method(getter, self, *a, **kwd):
     return getter(self.__obj__)(*a, **kwd)
 
-def instantiate(inst):
-    delayed = object.__getattribute__(inst, "__delayed__")
-    obj = delayed[1](*delayed[2], **delayed[3])
-    object.__setattr__(inst, "__obj__", obj)
-    object.__delattr__(inst, "__delayed__")
-    return obj
-
-
 # we exempt __getattribute__ since we cover it already, same
 # for __new__ and __init__
 
@@ -37,6 +29,7 @@ if hasattr(object, '__sizeof__'):
     base_kls_descriptors = base_kls_descriptors.union(['__sizeof__',
         '__format__', '__subclasshook__'])
 
+
 class BaseDelayedObject(object):
     """
     delay actual instantiation
@@ -51,16 +44,22 @@ class BaseDelayedObject(object):
     def __getattribute__(self, attr):
         obj = object.__getattribute__(self, "__obj__")
         if obj is None:
-            if attr == "__class__":
+            if attr == '__class__':
                 return object.__getattribute__(self, "__delayed__")[0]
 
-            obj = instantiate(self)
-            # now we grow some attributes.
+            obj = object.__getattribute__(self, '__instantiate_proxy_instance__')()
 
         if attr == "__obj__":
             # special casing for alias_method
             return obj
         return getattr(obj, attr)
+
+    def __instantiate_proxy_instance__(self):
+        delayed = object.__getattribute__(self, "__delayed__")
+        obj = delayed[1](*delayed[2], **delayed[3])
+        object.__setattr__(self, "__obj__", obj)
+        object.__delattr__(self, "__delayed__")
+        return obj
 
     # special case the normal descriptors
     for x in base_kls_descriptors:
@@ -106,13 +105,13 @@ descriptor_overrides = dict((k, pre_curry(alias_method, attrgetter(k)))
     for k in kls_descriptors)
 
 method_cache = {}
-def make_kls(kls):
+def make_kls(kls, proxy_base=BaseDelayedObject):
     special_descriptors = tuple(sorted(kls_descriptors.intersection(dir(kls))))
     if not special_descriptors:
-        return BaseDelayedObject
+        return proxy_base
     o = method_cache.get(special_descriptors, None)
     if o is None:
-        class CustomDelayedObject(BaseDelayedObject):
+        class CustomDelayedObject(proxy_base):
             locals().update((k, descriptor_overrides[k])
                 for k in special_descriptors)
 
