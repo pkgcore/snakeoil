@@ -26,6 +26,8 @@ else:
                     itervar = 'iter%s' % var
                     if itervar in d:
                         d[var] = d.pop(itervar)
+                # ensure that the __metaclass__ attribute hangs around for usage by introspection
+                d["__metaclass__"] = autoconvert_py3k_methods_metaclass
             return super(autoconvert_py3k_methods_metaclass, cls).__new__(cls, name, bases, d)
 
 
