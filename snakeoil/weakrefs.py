@@ -41,7 +41,7 @@ class WeakRefFinalizer(type):
                 raise TypeError("neither __finalizer__ nor __del__ was defined")
         elif "__del__" in d:
             raise TypeError("it's pointless to have a __del__ in a WeakrefFinalizer")
-        new_cls = type.__new__(cls, name, bases, d)
+        new_cls = super(WeakRefFinalizer, cls).__new__(cls, name, bases, d)
         new_cls.__proxy_class__ = partial(make_kls(new_cls, WeakRefProxy), cls, lambda x:x)
         new_cls.__proxy_class__.__name__ = name
         return new_cls
