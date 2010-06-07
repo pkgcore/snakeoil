@@ -32,14 +32,12 @@ class WeakRefProxy(BaseDelayedObject):
 class WeakRefFinalizer(type):
 
     def __new__(cls, name, bases, d):
-        if not '__finalizer__' in d and not \
+        if '__del__' in d:
+            d['__finalizer__'] = d.pop("__del__")
+        elif not '__finalizer__' in d and not \
             any(hasattr(parent, "__finalizer__") for parent in bases):
-            try:
-                d['__finalizer__'] = d.pop("__del__")
-            except KeyError:
-                raise TypeError("neither __finalizer__ nor __del__ was defined")
-        elif "__del__" in d:
-            raise TypeError("it's pointless to have a __del__ in a WeakrefFinalizer")
+            raise TypeError("cls %s doesn't have either __del__ nor a __finalizer__" 
+                % (name,))
         new_cls = super(WeakRefFinalizer, cls).__new__(cls, name, bases, d)
         new_cls.__proxy_class__ = partial(make_kls(new_cls, WeakRefProxy), cls, lambda x:x)
         new_cls.__proxy_class__.__name__ = name

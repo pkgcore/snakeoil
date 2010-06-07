@@ -27,7 +27,7 @@ class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker, TestCase):
         name = "%s.%s" % (cls.__module__, cls.__name__)
 
         self.assertTrue(issubclass(cls, WeakRefFinalizer),
-            msg="class %s has a __del__ metho, but should be using "
+            msg="class %s has a __del__ method, but should be using "
             "weakrefs.WeakRefFinalizer to avoid gc cycle issues.  If "
             "WeakRefFinalizer isn't an option, set __allow_del__ in the cls "
             "namespace to True" % (name,))
