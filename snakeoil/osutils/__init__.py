@@ -31,6 +31,7 @@ except ImportError:
 # delay this... it's a 1ms hit, and not a lot of the consumers
 # force utf8 codepaths yet.
 from snakeoil import compatibility
+from snakeoil.weakrefs import WeakRefFinalizer
 from snakeoil.demandload import demandload
 demandload(globals(), "codecs")
 from snakeoil.currying import partial, pretty_docs
@@ -352,7 +353,9 @@ class FsLock(object):
     fnctl based locks
     """
 
+    __metaclass__ = WeakRefFinalizer
     __slots__ = ("path", "fd", "create")
+
     def __init__(self, path, create=False):
         """
         @param path: fs path for the lock

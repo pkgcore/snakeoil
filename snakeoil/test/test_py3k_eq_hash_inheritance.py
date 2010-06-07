@@ -30,10 +30,6 @@ class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker, TestCase):
         return not namepath.startswith(self.target_namespace)
 
     def run_check(self, cls):
-
-        if self._should_ignore(cls):
-            return
-
         for parent in cls.__bases__:
             if parent == object:
                 # object sets __hash__/__eq__, which isn't usually

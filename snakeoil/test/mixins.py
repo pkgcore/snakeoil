@@ -178,7 +178,8 @@ class _classWalker(object):
 
         # next walk all derivatives of object
         for cls in self.walk_derivatives(object, *args, **kwds):
-            self.run_check(cls)
+            if not self._should_ignore(cls):
+                self.run_check(cls)
 
     def iter_builtin_targets(self):
         for attr in dir(__builtins__):
@@ -191,7 +192,8 @@ class _classWalker(object):
         self.load_namespaces()
         for obj in self.iter_builtin_targets():
             for cls in self.walk_derivatives(obj, *args, **kwds):
-                self.run_check(cls)
+                if not self._should_ignore(cls):
+                    self.run_check(cls)
 
     def walk_derivatives(self, obj):
         raise NotImplementedError(self.__class__, "walk_derivatives")

@@ -10,7 +10,7 @@ from shlex import shlex
 from snakeoil.mappings import ProtectedDict
 from snakeoil.osutils import readlines_utf8
 from snakeoil import compatibility
-
+from snakeoil.weakrefs import WeakRefFinalizer
 
 class AtomicWriteFile_mixin(object):
 
@@ -24,6 +24,8 @@ class AtomicWriteFile_mixin(object):
     if C{__del__} is triggered it's assumed that an exception occured,
     thus the changes shouldn't be made live.
     """
+
+    __metaclass__ = WeakRefFinalizer
 
     def __init__(self,fp, binary=False, perms=None, uid=-1, gid=-1):
         self._is_finalized = True

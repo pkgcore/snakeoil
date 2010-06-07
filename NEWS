@@ -7,6 +7,9 @@ Snakeoil Release Notes
   suffers.  Experimental, but should work- just keep in mind you get proxies
   back from users of that class.
 
+* snakeoil.test.test_del_usage was added to scan for classes using __del__
+  when they could use WeakRefFinalizer instead.
+
 * snakeoil.lists.predicate_split; given a predicate function, a stream, and
   an optional key function (think DSU pattern for sorted), split the stream
   into two sequences- one sequence where the predicate evalutes true, the

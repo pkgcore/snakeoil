@@ -37,7 +37,6 @@ class WeakRefFinalizer(type):
             try:
                 d['__finalizer__'] = d.pop("__del__")
             except KeyError:
-                import pdb;pdb.set_trace()
                 raise TypeError("neither __finalizer__ nor __del__ was defined")
         elif "__del__" in d:
             raise TypeError("it's pointless to have a __del__ in a WeakrefFinalizer")

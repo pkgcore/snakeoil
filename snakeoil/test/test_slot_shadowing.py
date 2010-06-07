@@ -28,14 +28,11 @@ class Test_slot_shadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker,
     def mk_name(kls):
         return '%s.%s' % (kls.__module__, kls.__name__)
 
-    def _should_check_cls(self, kls):
-        return self.mk_name(kls).split(".")[0] == self.target_namespace
+
+    def _should_ignore(self, kls):
+        return self.mk_name(kls).split(".")[0] != self.target_namespace
 
     def run_check(self, kls):
-        # note we ignore diamond mro slotting...
-        if not self._should_check_cls(kls):
-            return
-
         if getattr(kls, '__slotting_intentionally_disabled__', False):
             return
 
