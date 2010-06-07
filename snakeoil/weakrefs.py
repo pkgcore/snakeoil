@@ -36,7 +36,7 @@ class WeakRefFinalizer(type):
             d['__finalizer__'] = d.pop("__del__")
         elif not '__finalizer__' in d and not \
             any(hasattr(parent, "__finalizer__") for parent in bases):
-            raise TypeError("cls %s doesn't have either __del__ nor a __finalizer__" 
+            raise TypeError("cls %s doesn't have either __del__ nor a __finalizer__"
                 % (name,))
         new_cls = super(WeakRefFinalizer, cls).__new__(cls, name, bases, d)
         new_cls.__proxy_class__ = partial(make_kls(new_cls, WeakRefProxy), cls, lambda x:x)
