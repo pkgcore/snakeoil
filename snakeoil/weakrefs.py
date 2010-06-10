@@ -18,15 +18,28 @@ from snakeoil.compatibility import any
 
 
 def finalize_instance(obj, weakref_inst):
-    obj.__finalizer__()
+    try:
+        obj.__finalizer__()
+    finally:
+        obj.__disable_finalization__()
 
 
 class WeakRefProxy(BaseDelayedObject):
 
     def __instantiate_proxy_instance__(self):
         obj = BaseDelayedObject.__instantiate_proxy_instance__(self)
-        object.__setattr__(self, '__obj_weakref__', ref(self, partial(finalize_instance, obj)))
+        weakref = ref(self, partial(finalize_instance, obj))
+        obj.__enable_finalization__(weakref)
         return obj
+
+def __enable_finalization__(self, weakref):
+    # note we directly access the class, to ensure the instance hasn't overshadowed.
+    self.__class__.__finalizer_weakrefs__[id(self)] = weakref
+
+def __disable_finalization__(self):
+    # note we directly access the class, to ensure the instance hasn't overshadowed.
+    # use pop to allow for repeat invocations of __disable_finalization__
+    self.__class__.__finalizer_weakrefs__.pop(id(self), None)
 
 
 class WeakRefFinalizer(type):
@@ -38,6 +51,17 @@ class WeakRefFinalizer(type):
             any(hasattr(parent, "__finalizer__") for parent in bases):
             raise TypeError("cls %s doesn't have either __del__ nor a __finalizer__"
                 % (name,))
+
+        if not '__disable_finalization__' in d and not \
+            any(hasattr(parent, "__disable_finalization__") for parent in bases):
+            # install tracking
+            d['__disable_finalization__'] = __disable_finalization__
+            d['__enable_finalization__'] = __enable_finalization__
+        # install tracking bits.  we do this per class- this is intended to avoid any
+        # potential stupid subclasses wiping a parents tracking.
+
+        d['__finalizer_weakrefs__'] = {}
+
         new_cls = super(WeakRefFinalizer, cls).__new__(cls, name, bases, d)
         new_cls.__proxy_class__ = partial(make_kls(new_cls, WeakRefProxy), cls, lambda x:x)
         new_cls.__proxy_class__.__name__ = name
