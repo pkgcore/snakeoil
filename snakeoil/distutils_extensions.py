@@ -239,6 +239,12 @@ class build_py(dst_build_py.build_py):
 
         if proc_count == 0:
             proc_count = get_number_of_processors()
+        if proc_count and (sys.version_info >= (3,0) and sys.version_info < (3,1,2)) or \
+            (sys.version_info >=  (2,6) and sys.version_info < (2,6,5)):
+            log.warn("disabling parallelization: you're running a python "
+                "version with a broken multiprocessing.queue.JoinableQueue.put "
+                "(python bug 4660).")
+            proc_count = 1
 
         assert proc_count >= 1
 
