@@ -414,8 +414,11 @@ class readlines_mixin(object):
         fp = pjoin(self.dir, 'data')
         open(fp, 'wb').write(self.convert_data(' dar1 \ndar2 \n dar3\n',
             'ascii'))
-        self.assertEqual(tuple(self.func(fp, True)),
-            ('dar1', 'dar2', 'dar3'))
+        results = tuple(self.func(fp, True))
+        expected = ('dar1', 'dar2', 'dar3')
+        if self.encoding_mode == 'bytes' and compatibility.is_py3k:
+            expected = tuple(x.encode("ascii") for x in expected)
+        self.assertEqual(results, expected)
 
 
 def mk_readlines_test(scope, mode):
