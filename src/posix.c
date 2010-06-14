@@ -390,7 +390,7 @@ typedef struct {
     char *end;
     char *map;
     int fd;
-    int strip_newlines;
+    int strip_whitespace;
     time_t mtime;
     unsigned long mtime_nsec;
     PyObject *fallback;
@@ -399,7 +399,7 @@ typedef struct {
 static PyObject *
 snakeoil_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 {
-    PyObject *path, *swallow_missing = NULL, *strip_newlines = NULL;
+    PyObject *path, *swallow_missing = NULL, *strip_whitespace = NULL;
     PyObject *none_on_missing = NULL;
     snakeoil_readlines *self = NULL;
     if(kwargs && PyDict_Size(kwargs)) {
@@ -407,7 +407,7 @@ snakeoil_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
             "readlines.__new__ doesn't accept keywords");
         return NULL;
     } else if (!PyArg_ParseTuple(args, "S|OOOO:readlines.__new__",
-        &path, &strip_newlines, &swallow_missing, &none_on_missing)) {
+        &path, &strip_whitespace, &swallow_missing, &none_on_missing)) {
         return NULL;
     }
 
@@ -499,20 +499,20 @@ snakeoil_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
     }
     self->end = self->start + st.st_size;
 
-    if(strip_newlines) {
-        if(strip_newlines == Py_True) {
-            self->strip_newlines = 1;
-        } else if (strip_newlines == Py_False) {
-            self->strip_newlines = 0;
+    if(strip_whitespace) {
+        if(strip_whitespace == Py_True) {
+            self->strip_whitespace = 1;
+        } else if (strip_whitespace == Py_False) {
+            self->strip_whitespace = 0;
         } else {
-            self->strip_newlines = PyObject_IsTrue(strip_newlines) ? 1 : 0;
+            self->strip_whitespace = PyObject_IsTrue(strip_whitespace) ? 1 : 0;
             if(PyErr_Occurred()) {
                 Py_DECREF(self);
                 return NULL;
             }
         }
     } else
-        self->strip_newlines = 1;
+        self->strip_whitespace = 1;
     return (PyObject *)self;
 }
 
@@ -550,8 +550,24 @@ snakeoil_readlines_iternext(snakeoil_readlines *self)
         p = self->end;
 
     PyObject *ret;
-    if(self->strip_newlines) {
-        ret = PyString_FromStringAndSize(self->start, p - self->start);
+    if(self->strip_whitespace) {
+    	char *real_start = self->start;
+    	char *real_end = p;
+    	while(real_start < p && isspace(*real_start)) {
+    		real_start++;
+    	}
+    	while(real_start < real_end && isspace(*real_end)) {
+    		real_end--;
+    	}
+    	if(p != real_end) {
+    		// fix math above w/ something more efficient.
+    		// can't think of the proper form to write this.
+    		if(real_start != real_end) {
+    			// bump it forward so the size calculation includes everything
+    			real_end++;
+    		}
+    	}
+        ret = PyString_FromStringAndSize(real_start, real_end - real_start);
     } else {
         if(p == self->end)
             ret = PyString_FromStringAndSize(self->start, p - self->start);

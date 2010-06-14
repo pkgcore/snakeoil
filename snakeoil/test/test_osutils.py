@@ -410,7 +410,12 @@ class readlines_mixin(object):
         self.assertEqual(tuple(self.func(fp, True)),
             (self.none_on_missing_ret_data,))
 
-#    def test_strip_newlines
+    def test_strip_newlines(self):
+        fp = pjoin(self.dir, 'data')
+        open(fp, 'wb').write(self.convert_data(' dar1 \ndar2 \n dar3\n',
+            'ascii'))
+        self.assertEqual(tuple(self.func(fp, True)),
+            ('dar1', 'dar2', 'dar3'))
 
 
 def mk_readlines_test(scope, mode):

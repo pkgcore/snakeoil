@@ -2,6 +2,13 @@ Snakeoil Release Notes
 ======================
 
 
+* osutils.readlines arg strip_newlines became strip_whitespace; if set,
+  it'll wipe all leading/trailing whitespace from a line.
+
+* detect python bug 4660, and disable parallelization in 2to3 conversion if
+  the system suffers from it.  This fixes an occasional "task_not_done"
+  ValueError.
+
 * snakeoil.weakrefs grew a new experimental metaclass; WeakRefFinalizer.
   Basically this class allows __del__ without the GC issues __del__ normally
   suffers.  Experimental, but should work- just keep in mind you get proxies

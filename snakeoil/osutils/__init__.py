@@ -236,21 +236,18 @@ def _py2k_ascii_strict_filter(source):
         yield line
 
 
-def _strip_newlines_filter(iterable, val='\n'):
+def _strip_whitespace_filter(iterable):
     for line in iterable:
-        if line[-1] == val:
-            yield line[:-1]
-        else:
-            yield line
+        yield line.strip()
 
 
-def native_readlines(mode, mypath, strip_newlines=True, swallow_missing=False,
+def native_readlines(mode, mypath, strip_whitespace=True, swallow_missing=False,
     none_on_missing=False, encoding=None, strict=compatibility.is_py3k):
     """
     read a file, yielding each line
 
     @param mypath: fs path for the file to read
-    @param strip_newlines: strip trailing newlines?
+    @param strip_whitespace: strip any leading or trailing whitespace including newline?
     @param swallow_missing: throw an IOError if missing, or swallow it?
     @param none_on_missing: if the file is missing, return None, else
         if the file is missing return an empty iterable
@@ -278,12 +275,9 @@ def native_readlines(mode, mypath, strip_newlines=True, swallow_missing=False,
     mtime = os.fstat(handle.fileno()).st_mtime
     if not iterable:
         iterable = iter(handle)
-    if not strip_newlines:
+    if not strip_whitespace:
         return readlines_iter(iterable, mtime)
-    val = '\n'
-    if 'b' in mode and compatibility.is_py3k:
-        val = 10
-    return readlines_iter(_strip_newlines_filter(iterable, val), mtime)
+    return readlines_iter(_strip_whitespace_filter(iterable), mtime)
 
 
 _mk_readlines = partial(_mk_pretty_derived_func, native_readlines,
