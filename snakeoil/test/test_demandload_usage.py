@@ -14,6 +14,17 @@ class TestDemandLoadTargets(mixins.PythonNamespaceWalker, TestCase):
     if not compatibility.is_py3k:
         module_blacklist = frozenset(['snakeoil.caching_2to3'])
 
+    def setUp(self):
+        self._failures = []
+
+    def tearDown(self):
+        if not self._failures:
+            return
+
+        msg = "\n".join(sorted("%s: error %s" % (target, e) for
+            target, e in self._failures))
+        self.fail("bad demandload targets:\n%s" % (msg,))
+
     def test_demandload_targets(self):
         for x in self.walk_namespace(self.target_namespace,
             ignore_failed_imports=self.ignore_all_import_failures):
@@ -27,5 +38,4 @@ class TestDemandLoadTargets(mixins.PythonNamespaceWalker, TestCase):
                 getattr(obj, "__class__", None)
             except ImportError, ie:
                 # hit one.
-                self.fail("failed 'touching' demandloaded %s.%s: error %s" %
-                    (mod.__name__, attr, ie))
+                self._failures.append((mod.__name__ + attr, ie))

@@ -2,6 +2,11 @@ Snakeoil Release Notes
 ======================
 
 
+* pkgcore.chksum was moved to snakeoil.chksum; pkgcore.interfaces.data_source
+  was moved to snakeoil.data_source in addition.
+
+* all bash functionality was split out of .fileutils into .bash
+
 * osutils.readlines arg strip_newlines became strip_whitespace; if set,
   it'll wipe all leading/trailing whitespace from a line.
 
