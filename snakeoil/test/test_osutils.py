@@ -410,12 +410,36 @@ class readlines_mixin(object):
         self.assertEqual(tuple(self.func(fp, True)),
             (self.none_on_missing_ret_data,))
 
-    def test_strip_newlines(self):
+    def test_strip_whitespace(self):
         fp = pjoin(self.dir, 'data')
+
         open(fp, 'wb').write(self.convert_data(' dar1 \ndar2 \n dar3\n',
             'ascii'))
         results = tuple(self.func(fp, True))
         expected = ('dar1', 'dar2', 'dar3')
+        if self.encoding_mode == 'bytes' and compatibility.is_py3k:
+            expected = tuple(x.encode("ascii") for x in expected)
+        self.assertEqual(results, expected)
+
+        # this time without the trailing newline...
+        open(fp, 'wb').write(self.convert_data(' dar1 \ndar2 \n dar3',
+            'ascii'))
+        results = tuple(self.func(fp, True))
+        self.assertEqual(results, expected)
+
+
+        # test a couple of edgecases; underly c extension has gotten these
+        # wrong before.
+        open(fp, 'wb').write(self.convert_data('0', 'ascii'))
+        results = tuple(self.func(fp, True))
+        expected = ('0',)
+        if self.encoding_mode == 'bytes' and compatibility.is_py3k:
+            expected = tuple(x.encode("ascii") for x in expected)
+        self.assertEqual(results, expected)
+
+        open(fp, 'wb').write(self.convert_data('0\n', 'ascii'))
+        results = tuple(self.func(fp, True))
+        expected = ('0',)
         if self.encoding_mode == 'bytes' and compatibility.is_py3k:
             expected = tuple(x.encode("ascii") for x in expected)
         self.assertEqual(results, expected)

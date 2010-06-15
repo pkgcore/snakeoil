@@ -556,16 +556,8 @@ snakeoil_readlines_iternext(snakeoil_readlines *self)
     	while(real_start < p && isspace(*real_start)) {
     		real_start++;
     	}
-    	while(real_start < real_end && isspace(*real_end)) {
+    	while(real_start < real_end && isspace(real_end[-1])) {
     		real_end--;
-    	}
-    	if(p != real_end) {
-    		// fix math above w/ something more efficient.
-    		// can't think of the proper form to write this.
-    		if(real_start != real_end) {
-    			// bump it forward so the size calculation includes everything
-    			real_end++;
-    		}
     	}
         ret = PyString_FromStringAndSize(real_start, real_end - real_start);
     } else {
