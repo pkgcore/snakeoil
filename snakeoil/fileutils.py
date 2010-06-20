@@ -10,6 +10,8 @@ from snakeoil import compatibility
 from snakeoil.weakrefs import WeakRefFinalizer
 from snakeoil.bash import *
 
+__all__ = ("AtomicWriteFile", "read_dict", "ParseError")
+
 class AtomicWriteFile_mixin(object):
 
     """File class that stores the changes in a tempfile.

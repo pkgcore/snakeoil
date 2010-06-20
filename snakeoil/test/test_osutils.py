@@ -444,6 +444,13 @@ class readlines_mixin(object):
             expected = tuple(x.encode("ascii") for x in expected)
         self.assertEqual(results, expected)
 
+        open(fp, 'wb').write(self.convert_data('0 ', 'ascii'))
+        results = tuple(self.func(fp, True))
+        expected = ('0',)
+        if self.encoding_mode == 'bytes' and compatibility.is_py3k:
+            expected = tuple(x.encode("ascii") for x in expected)
+        self.assertEqual(results, expected)
+
 
 def mk_readlines_test(scope, mode):
     func_name = 'readlines_%s' % mode

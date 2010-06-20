@@ -7,6 +7,9 @@ data source.
 Think of it as a far more minimal form of file protocol
 """
 
+__all__ = ("base", "data_source", "local_source", "text_data_source",
+    "bytes_data_source")
+
 from StringIO import StringIO
 from snakeoil.currying import pre_curry, alias_class_method, post_curry
 from snakeoil import compatibility, demandload

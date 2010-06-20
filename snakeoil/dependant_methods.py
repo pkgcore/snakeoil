@@ -10,7 +10,7 @@ if b is called first.
 from snakeoil.lists import iflatten_instance
 from snakeoil.currying import pre_curry
 
-__all__ = ["ForcedDepends"]
+__all__ = ("ForcedDepends",)
 
 def ensure_deps(cls_id, name, func, self, *a, **kw):
     ignore_deps = kw.pop("ignore_deps", False)

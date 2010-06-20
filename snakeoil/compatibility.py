@@ -7,6 +7,9 @@ Compatibility module providing native reimplementations of python2.5 functionali
 Uses the native implementation from C{__builtins__} if available.
 """
 
+__all__ = ("all", "any", "is_py3k", "is_py3k_like", "file_cls", "next",
+    "intern", "cmp", "sorted_cmp", "sort_cmp")
+
 import sys
 
 def native_any(iterable):

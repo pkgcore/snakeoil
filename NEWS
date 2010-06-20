@@ -2,6 +2,9 @@ Snakeoil Release Notes
 ======================
 
 
+* fix_copy.inject_copy will be removed after the next major version.  What
+  remains does nothing.
+
 * pkgcore.chksum was moved to snakeoil.chksum; pkgcore.interfaces.data_source
   was moved to snakeoil.data_source in addition.
 

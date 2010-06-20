@@ -5,6 +5,9 @@
 collection of container classes
 """
 
+__all__ = ("InvertedContains", "SetMixin", "LimitedChangeSet", "Unchangable",
+    "ProtectedSet", "RefCountingSet")
+
 from snakeoil import compatibility
 from snakeoil.demandload import demandload
 demandload(

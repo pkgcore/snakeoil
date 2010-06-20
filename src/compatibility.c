@@ -255,28 +255,28 @@ static PyTypeObject partial_type = {
 static PyObject *
 builtin_all(PyObject *self, PyObject *v)
 {
-    PyObject *it, *item;
+	PyObject *it, *item;
 
-    it = PyObject_GetIter(v);
-    if (it == NULL)
-        return NULL;
+	it = PyObject_GetIter(v);
+	if (it == NULL)
+		return NULL;
 
-    while ((item = PyIter_Next(it)) != NULL) {
-        int cmp = PyObject_IsTrue(item);
-        Py_DECREF(item);
-        if (cmp < 0) {
-            Py_DECREF(it);
-            return NULL;
-        }
-        if (cmp == 0) {
-            Py_DECREF(it);
-            Py_RETURN_FALSE;
-        }
-    }
-    Py_DECREF(it);
-    if (PyErr_Occurred())
-        return NULL;
-    Py_RETURN_TRUE;
+	while ((item = PyIter_Next(it)) != NULL) {
+		int cmp = PyObject_IsTrue(item);
+		Py_DECREF(item);
+		if (cmp < 0) {
+			Py_DECREF(it);
+			return NULL;
+		}
+		if (cmp == 0) {
+			Py_DECREF(it);
+			Py_RETURN_FALSE;
+		}
+	}
+	Py_DECREF(it);
+	if (PyErr_Occurred())
+		return NULL;
+	Py_RETURN_TRUE;
 }
 
 PyDoc_STRVAR(all_doc,
@@ -287,28 +287,28 @@ Return True if bool(x) is True for all values x in the iterable.");
 static PyObject *
 builtin_any(PyObject *self, PyObject *v)
 {
-    PyObject *it, *item;
+	PyObject *it, *item;
 
-    it = PyObject_GetIter(v);
-    if (it == NULL)
-        return NULL;
+	it = PyObject_GetIter(v);
+	if (it == NULL)
+		return NULL;
 
-    while ((item = PyIter_Next(it)) != NULL) {
-        int cmp = PyObject_IsTrue(item);
-        Py_DECREF(item);
-        if (cmp < 0) {
-            Py_DECREF(it);
-            return NULL;
-        }
-        if (cmp == 1) {
-            Py_DECREF(it);
-            Py_RETURN_TRUE;
-        }
-    }
-    Py_DECREF(it);
-    if (PyErr_Occurred())
-        return NULL;
-    Py_RETURN_FALSE;
+	while ((item = PyIter_Next(it)) != NULL) {
+		int cmp = PyObject_IsTrue(item);
+		Py_DECREF(item);
+		if (cmp < 0) {
+			Py_DECREF(it);
+			return NULL;
+		}
+		if (cmp == 1) {
+			Py_DECREF(it);
+			Py_RETURN_TRUE;
+		}
+	}
+	Py_DECREF(it);
+	if (PyErr_Occurred())
+		return NULL;
+	Py_RETURN_FALSE;
 }
 
 PyDoc_STRVAR(any_doc,
@@ -324,8 +324,8 @@ PyDoc_STRVAR(module_doc,
 "and partial.\nCopyright PSF 2006");
 
 static PyMethodDef module_methods[] = {
-    {"all",         builtin_all,        METH_O, all_doc},
-    {"any",         builtin_any,        METH_O, any_doc},
+	{"all",		 builtin_all,		METH_O, all_doc},
+	{"any",		 builtin_any,		METH_O, any_doc},
  	{NULL,		NULL}		/* sentinel */
 };
 

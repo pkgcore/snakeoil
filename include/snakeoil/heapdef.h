@@ -6,14 +6,14 @@
 */
 
 typedef struct {
-    int flags;
-    PyObject *hv; /* A HeapView object providing context to the traversal
-		     function, if necessary. It is defined as a PyObject
-		     rather than HeapView to avoid include file dependency. */
-    PyObject *obj;  /* The object that is to be traversed */
-    void *arg;   /* the argument to pass when visiting referred objects. */
-    visitproc visit; /* The visit procedure to call */
-    PyObject *_hiding_tag_; /* The hiding tag in use by current context. */
+	int flags;
+	PyObject *hv; /* A HeapView object providing context to the traversal
+			 function, if necessary. It is defined as a PyObject
+			 rather than HeapView to avoid include file dependency. */
+	PyObject *obj;  /* The object that is to be traversed */
+	void *arg;   /* the argument to pass when visiting referred objects. */
+	visitproc visit; /* The visit procedure to call */
+	PyObject *_hiding_tag_; /* The hiding tag in use by current context. */
 
 
 } NyHeapTraverse;
@@ -23,12 +23,12 @@ typedef struct {
 */
 
 typedef struct NyHeapRelate {
-    int flags;		/* As yet unused */
-    PyObject *hv;	/* Heap view object */
-    PyObject *src;	/* Source of relation, and which is dispatched on */
-    PyObject *tgt;	/* Target of relation */
+	int flags;		/* As yet unused */
+	PyObject *hv;	/* Heap view object */
+	PyObject *src;	/* Source of relation, and which is dispatched on */
+	PyObject *tgt;	/* Target of relation */
 
-    	/* visit() should be called once for each unique pointer
+		/* visit() should be called once for each unique pointer
 	   from src to tgt.
 	   The relation type is indicated by the relatype argument
 	   and defined in the NYHR_ definitions below.
@@ -40,9 +40,9 @@ typedef struct NyHeapRelate {
 	   Return value: non-zero, means the relate function should
 	   not provide any more relations but should return. A zero
 	   return value means visit may be called again.
-       */
+	   */
 
-    int (*visit)(unsigned int relatype, PyObject *relator, struct NyHeapRelate *arg);
+	int (*visit)(unsigned int relatype, PyObject *relator, struct NyHeapRelate *arg);
 } NyHeapRelate;
 
 /* Values for 'relatype' argument to be passed to visit callback in NyHeapRelate */
@@ -69,12 +69,12 @@ typedef int (*NyHeapDef_Traverser) (NyHeapTraverse *arg);
 typedef int (*NyHeapDef_RelationGetter) (NyHeapRelate *r);
 
 typedef struct {
-    int flags;			/* As yet, only 0 */
-    PyTypeObject *type;		/* The type it regards */
-    NyHeapDef_SizeGetter size;
-    NyHeapDef_Traverser traverse;
-    NyHeapDef_RelationGetter relate;
-    void *resv3, *resv4, *resv5; /* Reserved for future bin. comp. */
+	int flags;			/* As yet, only 0 */
+	PyTypeObject *type;		/* The type it regards */
+	NyHeapDef_SizeGetter size;
+	NyHeapDef_Traverser traverse;
+	NyHeapDef_RelationGetter relate;
+	void *resv3, *resv4, *resv5; /* Reserved for future bin. comp. */
 } NyHeapDef;
 
 #endif /* Ny_HEAPDEF_H */
