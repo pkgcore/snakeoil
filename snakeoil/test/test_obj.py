@@ -32,19 +32,35 @@ class TestDelayedInstantiation(TestCase):
 
 
     def test_descriptor_awareness(self):
-        o = set(obj.kls_descriptors.difference(dir(object)))
-        o.difference_update(dir(1))
-        o.difference_update(dir('s'))
-        o.difference_update(dir(list))
-        o.difference_update(dir({}))
+        def assertKls(cls, ignores=[],
+            default_ignores=["__new__", "__init__",
+                "__getattribute__", "__class__", "__getnewargs__", "__doc__"]):
+            required = set(x for x in dir(cls) if
+                x.startswith("__") and x.endswith("__"))
+            missing = required.difference(obj.kls_descriptors)
+            missing.difference_update(obj.base_kls_descriptors)
+            missing.difference_update(default_ignores)
+            missing.difference_update(ignores)
+            self.assertFalse(missing,
+                msg="object %r potentially has unsupported special "
+                "attributes: %s" % (cls, ', '.join(missing)))
+
+        assertKls(object)
+        assertKls(1)
+        assertKls(object())
+        assertKls(list)
+        assertKls({})
+        assertKls(set())
 
     def test_BaseDelayedObject(self):
         # assert that all methods/descriptors of object
         # are covered via the base.
         o = set(dir(object)).difference("__%s__" % x for x in
-            ["class", "getattribute", "new", "init"])
+            ["class", "getattribute", "new", "init", "doc"])
         diff = o.difference(obj.base_kls_descriptors)
-        self.assertEqual(set(), diff)
+        self.assertFalse(diff, msg="base delayed instantiation class "
+            "should cover all of object, but %r was spotted" % (
+                ",".join(sorted(diff)),))
 
     def test__class__(self):
         l = []
@@ -53,7 +69,22 @@ class TestDelayedInstantiation(TestCase):
             return True
         o = make_DI(bool, f)
         self.assertTrue(isinstance(o, bool))
-        self.assertFalse(l)
+        self.assertFalse(l, "accessing __class__ shouldn't trigger "
+            "instantiation")
+
+    def test__doc__(self):
+        l = []
+        def f():
+            l.append(True)
+            return foon()
+        class foon(object):
+            __doc__ = "monkey"
+
+        o = make_DI(foon, f)
+        self.assertEqual(o.__doc__, 'monkey')
+        self.assertFalse(l, "in accessing __doc__, the instance"
+            " was generated- this is a class level attribute, thus"
+            " shouldn't trigger instantiation")
 
 
 SporkDict = obj.make_SlottedDict_kls(['spork'])

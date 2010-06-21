@@ -18,7 +18,7 @@ if compatibility.is_py3k:
         ("le", "lt", "ge", "gt", "eq", "ne")])
 
 base_kls_descriptors = frozenset(
-    ('__delattr__', '__doc__', '__hash__', '__reduce__',
+    ('__delattr__', '__hash__', '__reduce__',
         '__reduce_ex__', '__repr__', '__setattr__', '__str__'))
 if base_kls_descriptors_compat:
     base_kls_descriptors = base_kls_descriptors.union(
@@ -46,6 +46,9 @@ class BaseDelayedObject(object):
         if obj is None:
             if attr == '__class__':
                 return object.__getattribute__(self, "__delayed__")[0]
+            elif attr == '__doc__':
+                kls = object.__getattribute__(self, "__delayed__")[0]
+                return getattr(kls, '__doc__', None)
 
             obj = object.__getattribute__(self, '__instantiate_proxy_instance__')()
 
@@ -76,10 +79,10 @@ kls_descriptors = frozenset([
         # unicode conversion
         '__unicode__',
         # truth...
-        '__nonzero__',
+        '__nonzero__', '__bool__',
         # container protocol...
         '__len__', '__getitem__', '__setitem__', '__delitem__',
-        '__iter__', '__contains__',
+        '__iter__', '__contains__', '__index__', '__reversed__',
         # deprecated sequence protocol bits...
         '__getslice__', '__setslice__', '__delslice__',
         # numeric...
@@ -94,7 +97,8 @@ kls_descriptors = frozenset([
         '__irshift__', '__iand__', '__ixor__', '__ior__',
         '__neg__', '__pos__', '__abs__', '__invert__', '__complex__',
         '__int__', '__long__', '__float__', '__oct__', '__hex__',
-        '__coerce__',
+        '__coerce__', '__trunc__', '__radd__', '__floor__', '__ceil__',
+        '__round__',
         # remaining...
         '__call__'])
 
@@ -106,17 +110,20 @@ descriptor_overrides = dict((k, pre_curry(alias_method, attrgetter(k)))
 
 method_cache = {}
 def make_kls(kls, proxy_base=BaseDelayedObject):
-    special_descriptors = tuple(sorted(kls_descriptors.intersection(dir(kls))))
-    if not special_descriptors:
+    special_descriptors = kls_descriptors.intersection(dir(kls))
+    doc = getattr(kls, '__doc__', None)
+    if not special_descriptors or doc is None:
         return proxy_base
-    o = method_cache.get(special_descriptors, None)
+    key = (tuple(sorted(special_descriptors)), doc)
+    o = method_cache.get(key, None)
     if o is None:
         class CustomDelayedObject(proxy_base):
             locals().update((k, descriptor_overrides[k])
                 for k in special_descriptors)
+            __doc__ = doc
 
         o = CustomDelayedObject
-        method_cache[special_descriptors] = o
+        method_cache[key] = o
     return o
 
 def DelayedInstantiation_kls(kls, *a, **kwd):
