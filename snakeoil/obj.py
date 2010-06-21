@@ -112,7 +112,7 @@ method_cache = {}
 def make_kls(kls, proxy_base=BaseDelayedObject):
     special_descriptors = kls_descriptors.intersection(dir(kls))
     doc = getattr(kls, '__doc__', None)
-    if not special_descriptors or doc is None:
+    if not special_descriptors and doc is None:
         return proxy_base
     key = (tuple(sorted(special_descriptors)), doc)
     o = method_cache.get(key, None)

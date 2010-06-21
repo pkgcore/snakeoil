@@ -30,7 +30,6 @@ class TestDelayedInstantiation(TestCase):
         self.assertFalse(t > o)
         self.assertFalse(t != o)
 
-
     def test_descriptor_awareness(self):
         def assertKls(cls, ignores=[],
             default_ignores=["__new__", "__init__",
@@ -61,6 +60,31 @@ class TestDelayedInstantiation(TestCase):
         self.assertFalse(diff, msg="base delayed instantiation class "
             "should cover all of object, but %r was spotted" % (
                 ",".join(sorted(diff)),))
+
+    def test_klass_choice_optimization(self):
+        """ensure that BaseDelayedObject is used whenever possible"""
+
+        # note object is an odd one- it actually has a __doc__, thus
+        # it must always be a custom
+        o = make_DI(object, object)
+        self.assertNotIdentical(object.__getattribute__(o, '__class__'),
+            obj.BaseDelayedObject)
+        class foon(object):
+            pass
+        o = make_DI(foon, foon)
+        cls = object.__getattribute__(o, '__class__')
+        self.assertIdentical(cls, obj.BaseDelayedObject)
+
+        # now ensure we always get the same kls back for derivatives
+        class foon(object):
+            def __nonzero__(self): return True
+
+        o = make_DI(foon, foon)
+        cls = object.__getattribute__(o, '__class__')
+        self.assertNotIdentical(cls, obj.BaseDelayedObject)
+        o = make_DI(foon, foon)
+        cls2 = object.__getattribute__(o, '__class__')
+        self.assertIdentical(cls, cls2)
 
     def test__class__(self):
         l = []
