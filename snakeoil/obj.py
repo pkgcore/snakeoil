@@ -1,8 +1,8 @@
-# Copyright: 2006 Brian Harring <ferringb@gmail.com>
+# Copyright: 2006-2010 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
 from operator import attrgetter
-from snakeoil.currying import pre_curry
+from snakeoil.currying import pre_curry, pretty_docs
 from snakeoil.mappings import DictMixin
 from snakeoil import compatibility
 
@@ -66,7 +66,8 @@ class BaseDelayedObject(object):
 
     # special case the normal descriptors
     for x in base_kls_descriptors:
-        locals()[x] = pre_curry(alias_method, attrgetter(x))
+        locals()[x] = pretty_docs(pre_curry(alias_method, attrgetter(x)),
+            getattr(getattr(object, x), '__doc__', None), x)
     del x
 
 

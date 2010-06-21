@@ -11,7 +11,8 @@ __all__ = ("base", "data_source", "local_source", "text_data_source",
     "bytes_data_source")
 
 from StringIO import StringIO
-from snakeoil.currying import pre_curry, alias_class_method, post_curry
+from snakeoil.currying import (pre_curry, alias_class_method, post_curry,
+    pretty_docs)
 from snakeoil import compatibility, demandload
 demandload.demandload(globals(), 'codecs')
 
@@ -19,7 +20,10 @@ def generic_immutable_method(attr, self, *a, **kwds):
     raise AttributeError("%s doesn't have %s" % (self.__class__, attr))
 
 def make_ro_cls(scope):
-    scope.update([(k, pre_curry(generic_immutable_method, k)) for k in
+    scope.update([(k,
+        pretty_docs(pre_curry(generic_immutable_method, k),
+            "%s; not allowed for this class"))
+        for k in
         ["write", "writelines", "truncate"]])
 
 class text_native_ro_StringIO(StringIO):
@@ -90,13 +94,14 @@ class local_source(base):
     def get_text_fileobj(self, writable=False):
         if writable and not self.mutable:
             raise TypeError("data source %s is immutable" % (self,))
-        opener = post_curry(open, self.buffering_window)
         if self.encoding:
             opener = open
             if not compatibility.is_py3k:
                 opener = codecs.open
             opener = post_curry(opener, buffering=self.buffering_window,
                 encoding=self.encoding)
+        else:
+            opener = post_curry(open, self.buffering_window)
         if writable:
             return opener(self.path, "r+")
         return opener(self.path, "r")
