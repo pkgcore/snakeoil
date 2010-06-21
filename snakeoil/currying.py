@@ -174,7 +174,7 @@ def pretty_docs(wrapped, extradocs=None, name=None):
     return wrapped
 
 
-def alias_class_method(attr):
+def alias_class_method(attr, doc=None):
     """at runtime, redirect to another method
 
     attr is the desired attr name to lookup, and supply all later passed in
@@ -188,4 +188,6 @@ def alias_class_method(attr):
     def _asecond_level_call(self, *a, **kw):
         return grab_attr(self)(*a, **kw)
 
+    if doc:
+        _asecond_level_call.__doc__ = doc
     return _asecond_level_call

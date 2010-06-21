@@ -70,8 +70,11 @@ else:
 
 class base(object):
     """base class, all implementations should match this protocol"""
-    get_fileobj = get_path = None
 
+    get_text_fileobj = get_bytes_fileobj = get_path = None
+
+    get_fileobj = alias_class_method("get_text_fileobj",
+        "deprecated; use get_text_fileobj instead")
 
 class local_source(base):
 
@@ -112,8 +115,6 @@ class local_source(base):
                 raise TypeError("data source %s is immutable" % (self,))
             return open(self.path, "rb+", self.buffering_window)
         return open(self.path, 'rb', self.buffering_window)
-
-    get_fileobj = alias_class_method("get_text_fileobj")
 
 
 class data_source(base):
@@ -158,8 +159,6 @@ class data_source(base):
     else:
         def _reset_data(self, data):
             self.data = data
-
-    get_fileobj = alias_class_method("get_text_fileobj")
 
     def get_bytes_fileobj(self, writable=False):
         if writable:
