@@ -15,6 +15,10 @@ from snakeoil.currying import partial
 demandload(globals(), 'locale')
 
 
+__all__ = ("Formatter", "PlainTextFormatter", "get_formatter", "TermInfoColor",
+    "decorate_forced_wrapping")
+
+
 class native_StreamClosed(KeyboardInterrupt):
     """Raised by L{Formatter.write} if the stream it prints to was closed.
 

@@ -1,6 +1,12 @@
 # Copyright: 2006 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
+"""
+Collection of functionality to make using iterators transparently easier
+"""
+
+__all__ = ("expandable_chain", "caching_iter", "iter_sort")
+
 from collections import deque
 
 class expandable_chain(object):

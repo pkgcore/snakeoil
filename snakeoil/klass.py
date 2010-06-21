@@ -1,6 +1,10 @@
 # Copyright: 2006 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
+"""
+common class implementations, and optimizations
+"""
+
 from operator import attrgetter
 from snakeoil.caching import WeakInstMeta
 from snakeoil.compatibility import is_py3k
