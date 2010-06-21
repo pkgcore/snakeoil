@@ -73,7 +73,7 @@ class base(object):
 
     get_text_fileobj = get_bytes_fileobj = get_path = None
 
-    get_fileobj = alias_class_method("get_text_fileobj",
+    get_fileobj = alias_class_method("get_text_fileobj", "get_fileobj",
         "deprecated; use get_text_fileobj instead")
 
 class local_source(base):
