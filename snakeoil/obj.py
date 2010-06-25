@@ -9,8 +9,12 @@ from snakeoil import compatibility
 def alias_method(getter, self, *a, **kwd):
     return getter(self.__obj__)(*a, **kwd)
 
-# we exempt __getattribute__ since we cover it already, same
-# for __new__ and __init__
+# for our proxy, we have two sets of descriptors-
+# common, "always there" descriptors that come from
+# object itself (this is the base_kls_descriptors sequence)
+# and kls_descriptors.  we have a minor optimization in place
+# to try and use BaseDelayedObject wherever possible to avoid
+# pointless class creation- thus having two seperate lists.
 
 base_kls_descriptors_compat = []
 if compatibility.is_py3k:

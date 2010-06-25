@@ -10,6 +10,7 @@ from snakeoil.caching import WeakInstMeta
 from snakeoil.compatibility import is_py3k
 from snakeoil.currying import partial, alias_class_method, post_curry
 from collections import deque
+import sys
 
 def native_GetAttrProxy(target):
     def reflected_getattr(self, attr):
@@ -131,7 +132,7 @@ def inject_richcmp_methods_from_cmp(scope, inject_always=False):
 
 
 class chained_getter(object):
-    __slots__ = ('namespace', 'chain')
+    __slots__ = ('namespace', 'getter')
     __fifo_cache__ = deque()
     __inst_caching__ = True
     __attr_comparison__ = ("namespace",)
@@ -139,7 +140,7 @@ class chained_getter(object):
 
     def __init__(self, namespace):
         self.namespace = namespace
-        self.chain = tuple(attrgetter(x) for x in namespace.split("."))
+        self.getter = self._mk_getter(namespace)
         if len(self.__fifo_cache__) > 10:
             self.__fifo_cache__.popleft()
         self.__fifo_cache__.append(self)
@@ -149,12 +150,24 @@ class chained_getter(object):
         # via the __eq__, it won't invalidly be the same, but stil..
         return hash(self.namespace)
 
-    def __call__(self, obj):
-        o = obj
-        for f in self.chain:
-            o = f(o)
-        return o
+    if sys.version_info >= (2,6):
+        _mk_getter = attrgetter
+    else:
+        def _mk_getter(namespace):
+            def f(obj, attrs=tuple(attrgetter(x) for x in namespace.split("."))):
+                o = obj
+                for attr in attrs:
+                    o = attr(o)
+                return o
+            return f
+    _mk_getter = staticmethod(_mk_getter)
 
+    def __call__(self, obj):
+        return self.getter(obj)
+
+static_attrgetter = instance_attrgetter = chained_getter
+if sys.version_info >= (2,6):
+    static_attrgetter = attrgetter
 
 _uncached_singleton = object()
 
@@ -178,7 +191,7 @@ def jit_attr_ext_method(func_name, stored_attr_name,
         uncached_val, use_cls_setattr)
 
 def alias_attr(target_attr):
-    return property(chained_getter(target_attr))
+    return property(instance_attrgetter(target_attr))
 
 def cached_hash(func):
     def __hash__(self):
