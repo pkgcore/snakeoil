@@ -7,6 +7,8 @@
 # that compares native vs cpy behaviour behind the scenes for each test.
 # aside from that, tests need heavy expansion
 
+import os
+import pty
 import StringIO
 import tempfile
 
@@ -198,4 +200,54 @@ class TerminfoFormatterTest(TestCase):
         self._test_stream(
             stream, f, ('lala',), ('lala', '\n'))
 
+    def test_terminfo_hates_term(self):
+        stream = mk_tempfile()
+        self.assertRaises(
+            formatters.TerminfoHatesOurTerminal,
+            formatters.TerminfoFormatter, stream, term='dumb')
 
+
+def _with_term(term, func, *args, **kwargs):
+    orig_term = os.environ.get('TERM')
+    try:
+        os.environ['TERM'] = term
+        return func(*args, **kwargs)
+    finally:
+        if orig_term is None:
+            del os.environ['TERM']
+        else:
+            os.environ['TERM'] = orig_term
+
+# XXX ripped from pkgcore's test_commandline
+def _get_pty_pair(encoding='ascii'):
+    master_fd, slave_fd = pty.openpty()
+    master = os.fdopen(master_fd, 'rb', 0)
+    out = os.fdopen(slave_fd, 'wb', 0)
+    if compatibility.is_py3k:
+        # note that 2to3 converts the global StringIO import to io
+        master = io.TextIOWrapper(master)
+        out = io.TextIOWrapper(out)
+    return master, out
+
+
+class GetFormatterTest(TestCase):
+
+    def test_dumb_terminal(self):
+        master, out = _get_pty_pair()
+        formatter = _with_term('dumb', formatters.get_formatter, master)
+        self.failUnless(isinstance(formatter, formatters.PlainTextFormatter))
+
+    def test_smart_terminal(self):
+        master, out = _get_pty_pair()
+        formatter = _with_term('xterm', formatters.get_formatter, master)
+        self.failUnless(isinstance(formatter, formatters.TerminfoFormatter))
+
+    def test_not_a_tty(self):
+        stream = mk_tempfile()
+        formatter = _with_term('xterm', formatters.get_formatter, stream)
+        self.failUnless(isinstance(formatter, formatters.PlainTextFormatter))
+
+    def test_no_fd(self):
+        stream = StringIO.StringIO()
+        formatter = _with_term('xterm', formatters.get_formatter, stream)
+        self.failUnless(isinstance(formatter, formatters.PlainTextFormatter))

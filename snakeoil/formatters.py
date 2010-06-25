@@ -316,8 +316,21 @@ except ImportError:
     StreamClosed = native_StreamClosed
 
 class TerminfoDisabled(Exception):
-
     pass
+
+class _BogusTerminfo(ValueError):
+    """Used internally."""
+
+class TerminfoHatesOurTerminal(Exception):
+
+    """Raised if our terminal type is unsupported."""
+
+    def __init__(self, term):
+        self.term = term
+
+    def __str__(self):
+        return '"%s" is not a supported terminal type' % (self.term,)
+
 
 # This is necessary because the curses module is optional (and we
 # should run on a very minimal python for bootstrapping).
@@ -378,7 +391,8 @@ else:
         __slots__ = ("value", "__weakref__")
 
         def __init__(self, value):
-            assert value is not None
+            if value is None:
+                raise _BogusTerminfo()
             object.__setattr__(self, 'value', value)
 
         def __setattr__(self, key, value):
@@ -465,16 +479,14 @@ else:
             self.width = curses.tigetnum('cols')
             try:
                 self.reset = TerminfoReset(tigetstr('sgr0'))
-            except Exception:
-                import sys
-                sys.stderr.write("term was %s\n" % self._term)
-                raise
-            self.bold = TerminfoMode(tigetstr('bold'))
-            self.underline = TerminfoMode(tigetstr('smul'))
-            self._color_reset = tigetstr('op')
-            self._set_color = (
-                tigetstr('setaf'),
-                tigetstr('setab'))
+                self.bold = TerminfoMode(tigetstr('bold'))
+                self.underline = TerminfoMode(tigetstr('smul'))
+                self._color_reset = tigetstr('op')
+                self._set_color = (
+                    tigetstr('setaf'),
+                    tigetstr('setab'))
+            except (_BogusTerminfo, curses.error):
+                raise TerminfoHatesOurTerminal(self._term)
             # [fg, bg]
             self._current_colors = [None, None]
             self._modes = set()
@@ -545,7 +557,7 @@ def get_formatter(stream):
         if os.isatty(fd):
             try:
                 return TerminfoFormatter(stream)
-            except (curses.error, TerminfoDisabled):
+            except (curses.error, TerminfoDisabled, TerminfoHatesOurTerminal):
                 # This happens if TERM is unset and possibly in more cases.
                 # Just fall back to the PlainTextFormatter.
                 pass
