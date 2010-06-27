@@ -13,10 +13,6 @@ Snakeoil Release Notes
 * osutils.readlines arg strip_newlines became strip_whitespace; if set,
   it'll wipe all leading/trailing whitespace from a line.
 
-* detect python bug 4660, and disable parallelization in 2to3 conversion if
-  the system suffers from it.  This fixes an occasional "task_not_done"
-  ValueError.
-
 * snakeoil.weakrefs grew a new experimental metaclass; WeakRefFinalizer.
   Basically this class allows __del__ without the GC issues __del__ normally
   suffers.  Experimental, but should work- just keep in mind you get proxies
@@ -30,12 +26,20 @@ Snakeoil Release Notes
   into two sequences- one sequence where the predicate evalutes true, the
   other sequence where it evaluates false.
 
+
+snakeoil 0.3.7: June 26th, 2010
+
+* detect python bug 4660, and disable parallelization in 2to3 conversion if
+  the system suffers from it.  This fixes an occasional "task_not_done"
+  ValueError.
+
 * minor optimization to TerminfoFormatters to cache and reuse TerminfoColor.
   Exempting the formatter, Terminfo* objects are now immutable
 
 * snakeoil.mappings.defaultdict; compatibility implementation, defaults to
   collections.defaultdict for >=python-2.5, a native python implementation
   for 2.4
+
 
 snakeoil 0.3.6.5: May 21st, 2010
 
