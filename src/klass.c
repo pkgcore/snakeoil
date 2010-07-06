@@ -617,20 +617,13 @@ snakeoil_mapping_slot_getitem(PyObject *self, PyObject *key)
 	PyObject *value = PyObject_GetAttr(self, key);
 	if(value)
 		return value;
-	if(!PyErr_Occurred()) {
-		// this should be impossible...
-		PyErr_SetString(PyExc_SystemError,
-			"null returned from getattr, but no error set");
+	if(PyErr_ExceptionMatches(PyExc_TypeError)) {
 		return NULL;
-	} else if(!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+	} else if(!PyErr_ExceptionMatches(PyExc_AttributeError) &&
+		(PyString_Check(key) || PyUnicode_Check(key))) {
 		// only one potential we care about... TypeError if key wasn't a string.
-		if(!PyErr_ExceptionMatches(PyExc_TypeError))
-			return value;
-		// if it was a string or unicode... just propagate it.
 		// some form of bug in the __getattr__...
-		if(PyString_Check(key) || PyUnicode_Check(key)) {
-			return value;
-		}
+		return value;
 	}
 	Py_INCREF(key);
 	PyErr_SetObject(PyExc_KeyError, key);
@@ -756,12 +749,9 @@ snakeoil_mapping_slot_delitem(PyObject *self, PyObject *key)
 		if(0 == PyObject_DelAttr(self, key)) {
 			Py_RETURN_NONE;
 		}
-
-		if(PyErr_Occurred()) {
-			if(PyErr_ExceptionMatches(PyExc_AttributeError)) {
-				PyErr_SetObject(PyExc_KeyError, key);
-			}
-		} else {
+		// convert AttributeError into KeyError... let the rest
+		// pass thru
+		if(PyErr_ExceptionMatches(PyExc_AttributeError)) {
 			PyErr_SetObject(PyExc_KeyError, key);
 		}
 	} else {

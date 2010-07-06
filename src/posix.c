@@ -265,12 +265,13 @@ handle_failed_open_stat(int fd, PyObject *path, PyObject *swallow_missing)
 	if(fd < 0) {
 		if(errno == ENOENT) {
 			if(swallow_missing) {
-				if(PyObject_IsTrue(swallow_missing)) {
+				int result = PyObject_IsTrue(swallow_missing);
+				if(result == -1) {
+					return 1;
+				} else if (result) {
 					errno = 0;
 					return 0;
 				}
-				if(PyErr_Occurred())
-					return 1;
 			}
 		}
 		PyErr_SetFromErrnoWithFilenameObject(PyExc_IOError, path);
@@ -505,8 +506,7 @@ snakeoil_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 		} else if (strip_whitespace == Py_False) {
 			self->strip_whitespace = 0;
 		} else {
-			self->strip_whitespace = PyObject_IsTrue(strip_whitespace) ? 1 : 0;
-			if(PyErr_Occurred()) {
+			if(-1 == (self->strip_whitespace = PyObject_IsTrue(strip_whitespace))) {
 				Py_DECREF(self);
 				return NULL;
 			}
