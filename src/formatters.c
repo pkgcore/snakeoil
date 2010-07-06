@@ -149,8 +149,6 @@ PTF_setstream(PTF_object *self, PyObject *value, void *closure)
 	} else {
 		tmp = PyObject_GetAttrString(value, "write");
 		if (!tmp) {
-			if (!PyErr_Occurred())
-				PyErr_SetString(PyExc_TypeError, "stream has no write method");
 			return -1;
 		}
 		PyObject *tmp2 = self->stream_callable;
@@ -426,9 +424,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 	Py_ssize_t first_prune = 0, later_prune = 0;
 	Py_ssize_t arg_len = 0;
 
-#define getitem(ptr) ptr = PyDict_GetItemString(kwargs, #ptr);	 \
-		if (!ptr && PyErr_Occurred())							  \
-			return NULL;
+#define getitem(ptr) ptr = PyDict_GetItemString(kwargs, #ptr);
 
 	if(kwargs) {
 		getitem(prefix);

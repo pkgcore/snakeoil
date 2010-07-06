@@ -226,11 +226,8 @@ snakeoil_WeakValCache_getitem(snakeoil_WeakValCache *self, PyObject *key)
 			// PyWeakref_GetObject returns a borrowed reference, do not
 			// clear it
 			actual = NULL;
-			/* wipe the weakref err */
-			PyErr_Clear();
-			PyDict_DelItem(self->dict, key);
-			if(!PyErr_Occurred()) {
-				PyErr_SetObject(PyExc_KeyError, key);
+			if(-1 == PyDict_DelItem(self->dict, key)) {
+				return NULL;
 			}
 		} else {
 			Py_INCREF(actual);
@@ -255,19 +252,16 @@ snakeoil_WeakValCache_get(snakeoil_WeakValCache *self, PyObject *args)
 	}
 	key = PyTuple_GET_ITEM(args, 0);
 	if(!key) {
-		assert(PyErr_Occurred());
 		return NULL;
 	}
 
-	PyErr_Clear();
 	resobj = PyObject_GetItem((PyObject *)self, key);
 	if(resobj) {
-		assert(!PyErr_Occurred());
 		return resobj;
 
 	} else if(PyErr_Occurred() && !PyErr_ExceptionMatches(PyExc_KeyError)) {
 		// if the error wasn't that the key isn't found, return
-		return resobj;
+		return NULL;
 	}
 
 	PyErr_Clear();

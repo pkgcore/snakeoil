@@ -44,8 +44,6 @@ class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker, TestCase):
         else:
             return
 
-        # this is just verifying our own assumptions about the inheritance behaviour.
-        self.assertTrue(self, getattr(cls, '__eq__'))
         self.assertNotEqual(getattr(cls, '__hash__'), None, msg=
             "class '%s.%s' had it's __hash__ reset, while it would've inherited "
             "__hash__ from parent '%s.%s'; this occurs in py3k when __eq__ is "
