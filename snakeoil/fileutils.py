@@ -70,13 +70,13 @@ class AtomicWriteFile_mixin(object):
 
 if not compatibility.is_py3k:
 
-    class AtomicWriteFile(AtomicWriteFile_mixin, compatibility.file_cls):
+    class AtomicWriteFile(AtomicWriteFile_mixin, file):
 
         def _actual_init(self):
-            compatibility.file_cls.__init__(self, self._temp_fp,
+            file.__init__(self, self._temp_fp,
                 mode=self._computed_mode)
 
-        _real_close = compatibility.file_cls.close
+        _real_close = file.close
 
 else:
     import io
@@ -127,12 +127,8 @@ def read_dict(bash_source, splitter="=", source_isiter=False,
                 k, v = k.split(splitter, 1)
             except ValueError:
                 if filename == "<unknown>":
-                    if isinstance(bash_source, compatibility.file_cls):
-                        raise ParseError(bash_source.name, line_count)
-                    else:
-                        raise ParseError(bash_source, line_count)
-                else:
-                    raise ParseError(filename, line_count)
+                    filename = getattr(bash_source, 'name', bash_source)
+                raise ParseError(filename, line_count)
             if len(v) > 2 and v[0] == v[-1] and v[0] in ("'", '"'):
                 v = v[1:-1]
             d[k] = v

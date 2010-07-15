@@ -2,6 +2,10 @@ Snakeoil Release Notes
 ======================
 
 
+* pkgcore ticket 13; data_source.get* functions return handles that have
+  .exceptions holding the exceptions they can throw, and that are caused by
+  underlying implementation issues (versus caused by bad usage of the object).
+
 * fix_copy.inject_copy will be removed after the next major version.  What
   remains does nothing.
 

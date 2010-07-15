@@ -28,11 +28,13 @@ def make_ro_cls(scope):
 
 class text_native_ro_StringIO(StringIO):
     make_ro_cls(locals())
+    exceptions = (MemoryError,)
 
 
 class StringIO_wr_mixin(object):
 
     base_cls = None
+    exceptions = (MemoryError,)
 
     def __init__(self, callback, *args, **kwds):
         if not callable(callback):
@@ -63,9 +65,26 @@ else:
     import io
     class bytes_ro_StringIO(io.BytesIO):
         make_ro_cls(locals())
+        exceptions = (MemoryError,)
 
     class bytes_wr_StringIO(StringIO_wr_mixin, io.BytesIO):
         base_cls = io.BytesIO
+
+
+# derive our file classes- we derive *strictly* to append
+# the exceptions class attribute for consumer usage.
+if compatibility.is_py3k:
+
+    def open_file(*args, **kwds):
+        handle = io.open(*args, **kwds)
+        handle.exceptions = (EnvironmentError,)
+        return handle
+
+else:
+    # have to derive since you can't modify file objects in py2k
+    class open_file(file):
+        __slots__ = ()
+        exceptions = (EnvironmentError,)
 
 
 class base(object):
@@ -75,6 +94,7 @@ class base(object):
 
     get_fileobj = alias_class_method("get_text_fileobj", "get_fileobj",
         "deprecated; use get_text_fileobj instead")
+
 
 class local_source(base):
 
@@ -98,13 +118,13 @@ class local_source(base):
         if writable and not self.mutable:
             raise TypeError("data source %s is immutable" % (self,))
         if self.encoding:
-            opener = open
+            opener = open_file
             if not compatibility.is_py3k:
                 opener = codecs.open
             opener = post_curry(opener, buffering=self.buffering_window,
                 encoding=self.encoding)
         else:
-            opener = post_curry(open, self.buffering_window)
+            opener = post_curry(open_file, self.buffering_window)
         if writable:
             return opener(self.path, "r+")
         return opener(self.path, "r")
@@ -113,8 +133,8 @@ class local_source(base):
         if writable:
             if not self.mutable:
                 raise TypeError("data source %s is immutable" % (self,))
-            return open(self.path, "rb+", self.buffering_window)
-        return open(self.path, 'rb', self.buffering_window)
+            return open_file(self.path, "rb+", self.buffering_window)
+        return open_file(self.path, 'rb', self.buffering_window)
 
 
 class data_source(base):

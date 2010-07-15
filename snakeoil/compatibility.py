@@ -7,7 +7,7 @@ Compatibility module providing native reimplementations of python2.5 functionali
 Uses the native implementation from C{__builtins__} if available.
 """
 
-__all__ = ("all", "any", "is_py3k", "is_py3k_like", "file_cls", "next",
+__all__ = ("all", "any", "is_py3k", "is_py3k_like", "next",
     "intern", "cmp", "sorted_cmp", "sort_cmp")
 
 import sys
@@ -57,9 +57,6 @@ def sorted_key_from_cmp(cmp_func, key_func=None):
 
 
 if is_py3k:
-    import io
-    file_cls = io.TextIOWrapper
-
     # yes this is heinous.  this is whay they recommended in the python
     # docs for porting however...
     def raw_cmp(a, b):
@@ -86,7 +83,6 @@ if is_py3k:
             key=sorted_key_from_cmp(func, key_func=key))
 
 else:
-    file_cls = file
     # note that 2to3 screws this up... non issue however, since
     # this codepath won't be executed.
     from __builtin__ import cmp, intern
