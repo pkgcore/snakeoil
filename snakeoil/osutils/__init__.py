@@ -433,3 +433,51 @@ class FsLock(object):
         finally:
             if self.fd is not None:
                 os.close(self.fd)
+
+
+def fallback_access(path, mode, root=0):
+    try:
+        st = os.lstat(path)
+    except EnvironmentError:
+        return False
+    if mode == os.F_OK:
+        return True
+    # rules roughly are as follows; if process uid == file uid, those perms
+    # apply.
+    # if groups match... that perm group is the fallback (authorative)
+    # if neither, then other
+    # if root, w/r is guranteed, x is actually checked
+    # note posix says X_OK can be True, which is a worthless result, hence this
+    # fallback for systems that take advantage of that posix misfeature.
+
+    myuid = os.getuid()
+
+    # if we're root... pull out X_OK and check that alone.  the rules of
+    # X_OK under linux (which this function emulates) are that any +x is a True
+    # as for WR, that's always allowed (well not always- selinux may change that)
+
+    if myuid == 0:
+        mode &= os.X_OK
+        if not mode:
+            # w/r are always True for root, so return up front
+            return True
+        # py3k doesn't like octal syntax; this is 0111
+        return bool(st.st_mode & 73)
+
+    mygroups = os.getgroups()
+
+    if myuid == st.st_uid:
+        # shift to the user octet, filter to 3 bits, verify intersect.
+        return mode == (mode & ((st.st_mode >> 6) & 0x7))
+    if st.st_gid in mygroups:
+        return mode == (mode & ((st.st_mode >> 3) & 0x7))
+    return mode == (mode & (st.st_mode & 0x7))
+
+fallback_access.__doc__ = getattr(os.access, '__doc__', None)
+
+if 'sunos' == os.uname()[0].lower():
+    # XXX snakeoil needs to grow a "steal the docs from another function"
+    access = fallback_access
+    access.__name__ = 'access'
+else:
+    access = os.access

@@ -82,6 +82,9 @@ if is_py3k:
         list_inst.sort(reverse=reverse,
             key=sorted_key_from_cmp(func, key_func=key))
 
+    def force_bytes(string):
+        return string.encode()
+
 else:
     # note that 2to3 screws this up... non issue however, since
     # this codepath won't be executed.
@@ -98,3 +101,5 @@ else:
 
     def sort_cmp(list_inst, func, key=None, reverse=False):
         return list_inst.sort(cmp=func, key=key, reverse=reverse)
+
+    force_bytes = str

@@ -471,3 +471,22 @@ for case in ("ascii", "ascii_strict", "bytes",
 
     name = 'readlines_%s' % case
     mk_readlines_test(locals(), case)
+
+
+class TestAccess(TempDirMixin):
+
+    if osutils.access is os.access:
+        skip = "os.access is used, no need to test"
+    elif os.getuid() != 0:
+        skip = "these tests must be ran as root"
+
+    func = staticmethod(osutils.access)
+
+    def test_fallback(self):
+        fp = pjoin(self.dir, "file")
+        os.chmod(fp, 000)
+        self.assertFalse(self.func(fp, os.X_OK))
+        self.assertTrue(self.func(fp, os.W_OK))
+        self.assertTrue(self.func(fp, os.R_OK))
+        self.assertTrue(self.func(fp, os.W_OK|os.R_OK))
+        self.assertFalse(self.func(fp, os.W_OK|os.R_OK|os.X_OK))

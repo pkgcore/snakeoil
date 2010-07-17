@@ -2,6 +2,13 @@ Snakeoil Release Notes
 ======================
 
 
+* pkgcore ticket 172; posix access technically allows for a root invoker to
+  get a True result when doing X_OK on a non-executable file; this renders the
+  function a fair bit useless for doing $PATH lookups for example, so we bundle
+  a native python implementation that is fallen back to for userlands
+  (opensolaris for example) that choose to implement that broken posix option.
+  Linux/*BSDs don't have this issue, so os.access is used for those userlands.
+
 * pkgcore ticket 13; data_source.get* functions return handles that have
   .exceptions holding the exceptions they can throw, and that are caused by
   underlying implementation issues (versus caused by bad usage of the object).

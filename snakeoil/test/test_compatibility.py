@@ -147,3 +147,16 @@ class sort_cmp_test(TestCase):
 
     unchanging = False
     func = staticmethod(compatibility.sort_cmp)
+
+
+class BytesTest(TestCase):
+
+    func = staticmethod(compatibility.force_bytes)
+
+    def test_conversion(self):
+        if compatibility.is_py3k:
+            kls = bytes
+        else:
+            kls = str
+        self.assertEqual(self.func("adsf"), "adsf".encode())
+        self.assertTrue(isinstance(self.func("adsf"), kls))
