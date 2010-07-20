@@ -33,6 +33,7 @@ def ensure_deps(cls_id, name, func, self, *a, **kw):
             if not r:
                 return r
             self._stage_state.add(dep)
+            self.__stage_step_callback__(dep)
     return r
 
 
@@ -86,6 +87,12 @@ def __unwrap_stage_dependencies__(cls):
         f2 = getattr(f, 'sd_raw_func', x)
         setattr(cls, x, getattr(f, 'sd_raw_func', f))
 
+def __set_stage_state__(self, state):
+    self._stage_state = set(state)
+
+def __stage_step_callback__(self, stage):
+    pass
+
 
 class ForcedDepends(type):
     """
@@ -111,4 +118,8 @@ class ForcedDepends(type):
 
         obj.__unwrap_stage_dependencies__()
         obj.__wrap_stage_dependencies__()
+        if not hasattr(obj, '__force_stage_state__'):
+            obj.__set_stage_state__ = __set_stage_state__
+        if not hasattr(obj, '__stage_step_callback__'):
+            obj.__stage_step_callback__ = __stage_step_callback__
         return obj

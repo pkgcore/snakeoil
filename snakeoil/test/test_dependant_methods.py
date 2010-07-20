@@ -56,6 +56,12 @@ class TestDependantMethods(TestCase):
         self.assertEqual(results, [0, 1, 2])
         getattr(o, "2")()
         self.assertEqual(results, [0, 1, 2])
+        o.__set_stage_state__(["0", "1"])
+        l = []
+        o.__stage_step_callback__ = l.append
+        getattr(o, "2")()
+        self.assertEqual(results, [0, 1, 2, 2])
+        self.assertEqual(l, ["2"])
 
     def test_stage_depends(self):
         results = []
