@@ -145,6 +145,22 @@ class TestCase(unittest.TestCase, object):
             self.assertTrue(not (obj1 == obj2),
                 msg or 'not (%r == %r)' % (obj1, obj2))
 
+    def assertRaisesMsg(self, msg, excClass, callableObj, *args, **kwargs):
+        """Fail unless an exception of class excClass is thrown
+           by callableObj when invoked with arguments args and keyword
+           arguments kwargs. If a different type of exception is
+           thrown, it will not be caught, and the test case will be
+           deemed to have suffered an error, exactly as for an
+           unexpected exception.
+        """
+        try:
+            callableObj(*args, **kwargs)
+        except excClass:
+            return
+        else:
+            excName = getattr(excClass, '__name__', str(excClass))
+            raise self.failureException("%s not raised: %s" % (excName, msg))
+
     # unittest and twisted each have a differing count of how many frames
     # to pop off when displaying an exception; thus we force an extra
     # frame so that trial results are usable
