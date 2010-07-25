@@ -77,8 +77,8 @@ class Test_slot_shadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker,
             # this means that the child either didn't define __slots__, or
             # daftly copied the parents... thus defeating the purpose.
             raise self.failureException("cls %r; slots is %r, seemingly "
-                "inherited from %r- should be __slots__ = ()" %
-                (kls, slots, raw_slottings[slots]))
+                "inherited from %r; the derivative class should be "
+                "__slots__ = ()" % (kls, slots, raw_slottings[slots]))
 
         for slot in slots:
             if slot in slotting:

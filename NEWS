@@ -17,6 +17,9 @@ Snakeoil Release Notes
   .exceptions holding the exceptions they can throw, and that are caused by
   underlying implementation issues (versus caused by bad usage of the object).
 
+* snakeoil data_source's will loose their get_ methods in the next major
+  version- they're kept strictly for compatibility.
+
 * fix_copy.inject_copy will be removed after the next major version.  What
   remains does nothing.
 

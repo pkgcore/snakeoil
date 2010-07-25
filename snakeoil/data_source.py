@@ -29,12 +29,14 @@ def make_ro_cls(scope):
 class text_native_ro_StringIO(StringIO):
     make_ro_cls(locals())
     exceptions = (MemoryError,)
+    __slots__ = ()
 
 
 class StringIO_wr_mixin(object):
 
     base_cls = None
     exceptions = (MemoryError,)
+    __slots__ = ()
 
     def __init__(self, callback, *args, **kwds):
         if not callable(callback):
@@ -52,6 +54,7 @@ class StringIO_wr_mixin(object):
 
 class text_wr_StringIO(StringIO_wr_mixin, StringIO):
     base_cls = StringIO
+    __slots__ = ()
 
 text_ro_StringIO = text_native_ro_StringIO
 if not compatibility.is_py3k:
@@ -66,9 +69,11 @@ else:
     class bytes_ro_StringIO(io.BytesIO):
         make_ro_cls(locals())
         exceptions = (MemoryError,)
+        __slots__ = ()
 
     class bytes_wr_StringIO(StringIO_wr_mixin, io.BytesIO):
         base_cls = io.BytesIO
+        __slots__ = ()
 
 
 # derive our file classes- we derive *strictly* to append
@@ -90,13 +95,13 @@ else:
 class base(object):
     """base class, all implementations should match this protocol"""
 
-    get_text_fileobj = get_bytes_fileobj = get_path = path = None
+    text_fileobj = bytes_fileobj = get_path = path = None
 
-    get_fileobj = alias_class_method("get_text_fileobj", "get_fileobj",
+    get_fileobj = alias_class_method("text_fileobj", "get_fileobj",
         "deprecated; use get_text_fileobj instead")
 
-    text_fileobj = alias_class_method("get_text_fileobj")
-    bytes_fileobj = alias_class_method("get_bytes_fileobj")
+    get_text_fileobj = alias_class_method("text_fileobj")
+    get_bytes_fileobj = alias_class_method("bytes_fileobj")
 
 
 class local_source(base):
@@ -117,7 +122,7 @@ class local_source(base):
     def get_path(self):
         return self.path
 
-    def get_text_fileobj(self, writable=False):
+    def text_fileobj(self, writable=False):
         if writable and not self.mutable:
             raise TypeError("data source %s is immutable" % (self,))
         if self.encoding:
@@ -132,7 +137,7 @@ class local_source(base):
             return opener(self.path, "r+")
         return opener(self.path, "r")
 
-    def get_bytes_fileobj(self, writable=False):
+    def bytes_fileobj(self, writable=False):
         if writable:
             if not self.mutable:
                 raise TypeError("data source %s is immutable" % (self,))
@@ -142,13 +147,13 @@ class local_source(base):
 
 class data_source(base):
 
+    __slots__ = ('data', 'mutable')
+
     def __init__(self, data, mutable=False):
         """@param data: data to wrap"""
         base.__init__(self)
         self.data = data
         self.mutable = mutable
-
-    get_path = None
 
     if compatibility.is_py3k:
         def _convert_data(self, mode):
@@ -163,7 +168,7 @@ class data_source(base):
         def _convert_data(self, mode):
             return self.data
 
-    def get_text_fileobj(self, writable=False):
+    def text_fileobj(self, writable=False):
         if writable:
             if not self.mutable:
                 raise TypeError("data source %s is not mutable" % (self,))
@@ -183,7 +188,7 @@ class data_source(base):
         def _reset_data(self, data):
             self.data = data
 
-    def get_bytes_fileobj(self, writable=False):
+    def bytes_fileobj(self, writable=False):
         if writable:
             if not self.mutable:
                 raise TypeError("data source %s is not mutable" % (self,))
@@ -197,6 +202,9 @@ if not compatibility.is_py3k:
     bytes_data_source = data_source
 else:
     class text_data_source(data_source):
+
+        __slots__ = ()
+
         def __init__(self, data, mutable=False):
             if not isinstance(data, str):
                 raise TypeError("data must be a str")
@@ -208,6 +216,9 @@ else:
             return self.data.encode()
 
     class bytes_data_source(data_source):
+
+        __slots__ = ()
+
         def __init__(self, data, mutable=False):
             if not isinstance(data, bytes):
                 raise TypeError("data must be bytes")
@@ -217,3 +228,9 @@ else:
             if mode == 'bytes':
                 return self.data
             return self.data.decode()
+
+def transfer_data(read_fsobj, write_fsobj, bufsize=(4096 * 16)):
+    data = read_fsobj.read(bufsize)
+    while data:
+        write_fsobj.write(data)
+        data = read_obj.read(bufsize)
