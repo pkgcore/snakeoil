@@ -12,7 +12,7 @@ __all__ = ("base", "data_source", "local_source", "text_data_source",
 
 from StringIO import StringIO
 from snakeoil.currying import (pre_curry, alias_class_method, post_curry,
-    pretty_docs)
+    pretty_docs, alias_class_method)
 from snakeoil import compatibility, demandload
 demandload.demandload(globals(), 'codecs')
 
@@ -90,10 +90,13 @@ else:
 class base(object):
     """base class, all implementations should match this protocol"""
 
-    get_text_fileobj = get_bytes_fileobj = get_path = None
+    get_text_fileobj = get_bytes_fileobj = get_path = path = None
 
     get_fileobj = alias_class_method("get_text_fileobj", "get_fileobj",
         "deprecated; use get_text_fileobj instead")
+
+    text_fileobj = alias_class_method("get_text_fileobj")
+    bytes_fileobj = alias_class_method("get_bytes_fileobj")
 
 
 class local_source(base):
