@@ -95,6 +95,8 @@ else:
 class base(object):
     """base class, all implementations should match this protocol"""
 
+    __slots__ = ("weakref",)
+
     text_fileobj = bytes_fileobj = get_path = path = None
 
     get_fileobj = alias_class_method("text_fileobj", "get_fileobj",
@@ -108,7 +110,7 @@ class local_source(base):
 
     """locally accessible data source"""
 
-    __slots__ = ("path", "mutable")
+    __slots__ = ("path", "mutable", "encoding")
 
     buffering_window = 32768
 

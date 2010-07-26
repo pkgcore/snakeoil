@@ -126,6 +126,9 @@ def protection_enabled():
     val = os.environ.get("SNAKEOIL_DEMANDLOAD_PROTECTION", "n").lower()
     return val in ("yes", "true", "1", "y")
 
+def noisy_protection():
+    val = os.environ.get("SNAKEOIL_DEMANDLOAD_WARN", "y").lower()
+    return val in ("yes", "true", "1", "y")
 
 class Placeholder(object):
 
@@ -151,7 +154,7 @@ class Placeholder(object):
         scope = object.__getattribute__(self, '_scope')
         if protection_enabled():
             raise ValueError('Placeholder for %r was triggered twice' % (name,))
-        else:
+        elif noisy_protection():
             logging.warning('Placeholder for %r was triggered multiple times '
                 'in file %r' % (name, scope.get("__file__", "unknown")))
         return scope[name]
