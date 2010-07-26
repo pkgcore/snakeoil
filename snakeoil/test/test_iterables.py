@@ -117,6 +117,14 @@ class CachingIterTest(TestCase):
         self.assertRaises(IndexError, operator.getitem, c, -21)
         self.assertRaises(IndexError, operator.getitem, c, 21)
 
+    def test_edgecase(self):
+        c = caching_iter(xrange(5))
+        self.assertEqual(c[0], 0)
+        # do an off by one access- this actually has broke before
+        self.assertEqual(c[2], 2)
+        self.assertEqual(c[1], 1)
+        self.assertEqual(list(c), list(xrange(5)))
+
     def test_setitem(self):
         self.assertRaises(
             TypeError, operator.setitem, caching_iter(xrange(10)), 3, 4)

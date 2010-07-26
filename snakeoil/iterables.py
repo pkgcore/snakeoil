@@ -8,6 +8,7 @@ Collection of functionality to make using iterators transparently easier
 __all__ = ("expandable_chain", "caching_iter", "iter_sort")
 
 from collections import deque
+from itertools import islice
 
 class expandable_chain(object):
     """
@@ -96,10 +97,9 @@ class caching_iter(object):
 
         elif index >= existing_len - 1:
             if self.iterable is not None:
-                try:
-                    self.cached_list.extend(self.iterable.next()
-                        for i in xrange(existing_len - index + 1))
-                except StopIteration:
+                i = islice(self.iterable, 0, index - (existing_len - 1))
+                self.cached_list.extend(i)
+                if len(self.cached_list) -1 != index:
                     # consumed, baby.
                     self.iterable = None
                     self.cached_list = tuple(self.cached_list)
