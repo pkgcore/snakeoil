@@ -8,6 +8,12 @@ Snakeoil Release Notes
   __set_stage_state__ for tweaking stage state manually, and
   __stage_step_callback__ for being notified on each stage completed.
 
+* snakeoil.stringio; basically a py2k/py3k compatible set of class wrapping
+  cStringIO/StringIO as necessary to provide readonly or writable versions of
+  text vs bytes StringIO handles.  Note that readonly instances throw
+  TypeError on write/truncate/etc, instead of cStringIO's behaviour or
+  just not having the methods (or silently modifying things).
+
 * pkgcore ticket 172; posix access technically allows for a root invoker to
   get a True result when doing X_OK on a non-executable file; this renders the
   function a fair bit useless for doing $PATH lookups for example, so we bundle

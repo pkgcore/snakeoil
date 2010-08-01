@@ -1,4 +1,4 @@
-snakeoil is available under BSD 3 clause (see BSD file adjacent to this file) or GPL2 with the following exemptions-
+snakeoil is available under BSD 3 clause (see BSD file adjacent to this file) or GPL2 (just v2) with the following exemptions-
 snakeoil/demandload.py is GPL2 only
 snakeoil/fix_copy.py is GPL2 only
 src/compatibility.py is PSF-2.2 or GPL2 (this file is only used on python2.4)

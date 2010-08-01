@@ -10,75 +10,62 @@ Think of it as a far more minimal form of file protocol
 __all__ = ("base", "data_source", "local_source", "text_data_source",
     "bytes_data_source")
 
-from StringIO import StringIO
 from snakeoil.currying import (pre_curry, alias_class_method, post_curry,
     pretty_docs, alias_class_method)
-from snakeoil import compatibility, demandload
+from snakeoil import compatibility, demandload, stringio
 demandload.demandload(globals(), 'codecs')
 
-def generic_immutable_method(attr, self, *a, **kwds):
-    raise AttributeError("%s doesn't have %s" % (self.__class__, attr))
+def _mk_writable_cls(base, name):
+    """
+    inline mixin of writable overrides
 
-def make_ro_cls(scope):
-    scope.update([(k,
-        pretty_docs(pre_curry(generic_immutable_method, k),
-            "%s; not allowed for this class"))
-        for k in
-        ["write", "writelines", "truncate"]])
+    while a normal mixin is preferable, this is required due to
+    differing slot layouts between py2k/py3k base classes of
+    stringio.
+    """
 
-class text_native_ro_StringIO(StringIO):
-    make_ro_cls(locals())
-    exceptions = (MemoryError,)
-    __slots__ = ()
+    class kls(base):
 
-
-class StringIO_wr_mixin(object):
-
-    base_cls = None
-    exceptions = (MemoryError,)
-    __slots__ = ()
-
-    def __init__(self, callback, *args, **kwds):
-        if not callable(callback):
-            raise TypeError("callback must be callable")
-        self.base_cls.__init__(self, *args, **kwds)
-        self._callback = callback
-
-    def close(self):
-        self.flush()
-        if self._callback is not None:
-            self.seek(0)
-            self._callback(self.read())
-            self._callback = None
-        self.base_cls.close(self)
-
-class text_wr_StringIO(StringIO_wr_mixin, StringIO):
-    base_cls = StringIO
-    __slots__ = ()
-
-text_ro_StringIO = text_native_ro_StringIO
-if not compatibility.is_py3k:
-    try:
-        from cStringIO import StringIO as text_ro_StringIO
-    except ImportError:
-        pass
-    bytes_ro_StringIO = text_ro_StringIO
-    bytes_wr_StringIO = text_wr_StringIO
-else:
-    import io
-    class bytes_ro_StringIO(io.BytesIO):
-        make_ro_cls(locals())
+        base_cls = base
         exceptions = (MemoryError,)
-        __slots__ = ()
+        __slots__ = ('_callback',)
 
-    class bytes_wr_StringIO(StringIO_wr_mixin, io.BytesIO):
-        base_cls = io.BytesIO
-        __slots__ = ()
+        def __init__(self, callback, *args, **kwds):
+            if not callable(callback):
+                raise TypeError("callback must be callable")
+            self.base_cls.__init__(self, *args, **kwds)
+            self._callback = callback
+
+        def close(self):
+            self.flush()
+            if self._callback is not None:
+                self.seek(0)
+                self._callback(self.read())
+                self._callback = None
+            self.base_cls.close(self)
+    kls.__name__ = name
+    return kls
+
+
+text_wr_StringIO = _mk_writable_cls(stringio.text_writable, "text_wr_StringIO")
+bytes_wr_StringIO = _mk_writable_cls(stringio.bytes_writable, "bytes_wr_StringIO")
+
+
+class text_ro_StringIO(stringio.text_readonly):
+    __slots__ = ()
+    exceptions = (MemoryError, TypeError)
+
+
+class bytes_ro_StringIO(stringio.bytes_readonly):
+    __slots__ = ()
+    exceptions = (MemoryError, TypeError)
 
 
 # derive our file classes- we derive *strictly* to append
 # the exceptions class attribute for consumer usage.
 if compatibility.is_py3k:
+
+    import io
 
     def open_file(*args, **kwds):
         handle = io.open(*args, **kwds)
@@ -235,4 +222,4 @@ def transfer_data(read_fsobj, write_fsobj, bufsize=(4096 * 16)):
     data = read_fsobj.read(bufsize)
     while data:
         write_fsobj.write(data)
-        data = read_obj.read(bufsize)
+        data = read_fsobj.read(bufsize)
