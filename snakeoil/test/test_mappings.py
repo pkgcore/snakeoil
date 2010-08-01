@@ -71,6 +71,14 @@ class TestDictMixin(TestCase):
         d.clear()
         self.assertEqual(d, {})
 
+    def test_nonzero(self):
+        d = MutableDict()
+        self.assertFalse(d)
+        d['x'] = 1
+        self.assertTrue(d)
+        del d['x']
+        self.assertFalse(d)
+
 class RememberingNegateMixin(object):
 
     def setUp(self):

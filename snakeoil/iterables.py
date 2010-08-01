@@ -1,4 +1,4 @@
-# Copyright: 2006 Brian Harring <ferringb@gmail.com>
+# Copyright: 2006-2010 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
 """
@@ -13,7 +13,23 @@ from itertools import islice
 class expandable_chain(object):
     """
     chained iterables, with the ability to add new iterables to the chain
-    as long as the instance hasn't raised StopIteration already.
+    as long as the instance hasn't raised StopIteration already.  This is
+    fairly useful for implementing queues of things that must be processed.
+
+    >>> from snakeoil.iterables import expandable_chain
+    >>> l = range(5)
+    >>> i = expandable_chain(l)
+    >>> print i.next()
+    0
+    >>> print i.next()
+    1
+    >>> i.appendleft(range(5, 7))
+    >>> print i.next()
+    5
+    >>> print i.next()
+    6
+    >>> print i.next()
+    2
     """
 
     __slot__ = ("iterables", "__weakref__")
@@ -66,6 +82,17 @@ class expandable_chain(object):
 class caching_iter(object):
     """
     On demand consumes from an iterable so as to appear like a tuple
+
+    >>> from snakeoil.iterables import caching_iter
+    >>> i = iter(range(5))
+    >>> ci = caching_iter(i)
+    >>> print ci[0]
+    0
+    >>> print ci[2]
+    2
+    >>> print i.next()
+    3
+
     """
     __slots__ = ("iterable", "__weakref__", "cached_list", "sorter")
 
@@ -174,10 +201,24 @@ class caching_iter(object):
 def iter_sort(sorter, *iterables):
     """Merge a number of sorted iterables into a single sorted iterable.
 
-    @type  sorter: callable.
-    @param sorter: function, passed a list of [element, iterable].
-    @param iterables: iterables to consume from.
-        B{Required} to yield in presorted order.
+    :type sorter: callable.
+    :param sorter: function, passed a list of [element, iterable].
+    :param iterables: iterables to consume from.  It's **required**
+       that each iterable to consume from is presorted already within
+       that specific iterable.
+    :return: yields items one by one in combined sorted order
+
+    For example:
+
+    >>> from snakeoil.iterables import iter_sort
+    >>> from snakeoil.compatibility import cmp
+    >>> iter1 = xrange(0, 5, 2)
+    >>> iter2 = xrange(1, 6, 2)
+    >>> # note that these lists will be consumed as they go,
+    >>> # sorted is just being used to compare the individual items
+    >>> sorted_iter = iter_sort(sorted, iter1, iter2)
+    >>> print list(sorted_iter)
+    [0, 1, 2, 3, 4, 5]
     """
     l = []
     for x in iterables:

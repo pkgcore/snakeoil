@@ -1,4 +1,13 @@
-#!/usr/bin/env python
+# Copyright: 2008 Brian Harring <ferringb@gmail.com>
+# License: BSD/GPL2
+
+"""
+collection of distutils extensions adding things like automatic 2to3 translation,
+a test runner, basic bzr changelog generation, and working around broken stdlib
+extensions CFLAG passing in distutils.
+
+Generally speaking, you should flip through this modules src.
+"""
 
 import os
 import sys
@@ -12,6 +21,13 @@ from distutils.command import (
     build as dst_build)
 
 class OptionalExtension(core.Extension):
+    """python extension that is optional to build.
+
+    If it's not required to have the exception built, just preferable,
+    use this class instead of :py:class:`core.Extension` since the machinery
+    in this module relies on isinstance to identify what absolutely must
+    be built vs what would be nice to have built.
+    """
     pass
 
 if os.name == "nt":

@@ -1,10 +1,52 @@
-# Copyright: 2006 Brian Harring <ferringb@gmail.com>
+# Copyright: 2006-2010 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
 """
-Compatibility module providing native reimplementations of python2.5 functionality.
+Compatibility functionality for python 2.4 through 3.2
 
-Uses the native implementation from C{__builtins__} if available.
+For those of us still supporting older python versions, we're in a bit of a
+bind- we'd *love* to use the newer python functions but cannot without
+abandoning support for the versions we target.
+
+This module exists to ease compatibility across multiple python versions
+via indirection, and fallback implementationsso that a select subset of
+newer python functionality is usable in older python versions.  Additionally,
+functionality that has been moved in py3k and isn't translated by 2to3 is
+accessible via this module.
+
+An example would be python2.4 users wanting access to the :py:func:`any`
+or :py:func:`all` functions- they're only available in python2.5 however
+the following code will work regardless if the python versions is 2.4, 2.6,
+or 3.2:
+
+>>> from snakeoil.compatibility import any, all
+>>> print all(True for x in (1 ,2))
+True
+>>> print all(0 == (x % 2) for x in (0, 1))
+False
+>>> print any(1 == (x % 2) for x in (0, 1))
+True
+
+The module is designed such that if there is a builtin version of
+the target functionality available, it will always prefer that.  Essentially,
+you'll get the cpython version of any/all for python 2.5 and up, and the fallback
+implementation for python 2.4 alone.
+
+For easing py3k compatibility:
+
+* :py:data:`is_py3k` is a boolean you can rely on to indicate if you're running py2k
+   or py3k
+* :py:data:`is_py3k_like` is a boolean you can rely on to indicate if you're not running
+  py3k, but will encounter py3k behaviour- primarily useful for instances where backports
+  of py3k bits into py2.6 and py2.7 have broken previous stdlib behaviour.
+* :py:func:`intern` is accessible from here
+* :py:func:`sorted_cmp`, :py:func:`sort_cmp`, :py:func:`cmp` are available for easing
+  compatibility across py2k/py3k for comparison and sorting args; these implementations by
+  default defer to the builtins whenever they're available, only kicking in when needed.
+* :py:func:`force_bytes` is useful for if you know you'll need a bytes string under py3k,
+  but cannot force a minimal python version of 2.6 to get that syntax.  Essentially instead of
+  writing b'content', you would write force_bytes("content").  Under py3k, you get a bytes object,
+  under py2k you get a plain old string w/ minimal overhead.
 """
 
 __all__ = ("all", "any", "is_py3k", "is_py3k_like", "next",

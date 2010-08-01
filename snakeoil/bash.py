@@ -2,20 +2,29 @@
 # License: BSD/GPL2
 
 """
-file related operations, mainly reading
+Functionality for reading bash like files
+
+
+Please note that while this functionality can do variable interpolation,
+it strictly treats the source as non-executable code.  It cannot parse
+subshells, variable additions, etc.
+
+It's primary usage is for reading things like gentoo make.conf's, or
+libtool .la files that are bash compatible, but non executable.
 """
+
+__all__ = ("iter_read_bash", "read_bash", "read_bash_dict", "bash_parser",
+    "BashParseError")
 
 import re
 from shlex import shlex
 from snakeoil.mappings import ProtectedDict
 from snakeoil.osutils import readlines_utf8
 
-__all__ = ("iter_read_bash", "read_bash", "read_bash_dict", "bash_parser",
-    "BashParseError")
 
 def iter_read_bash(bash_source, allow_inline_comments=True):
     """
-    Read file honoring bash commenting rules.
+    iterate over a file honoring bash commenting rules.
 
     Note that it's considered good behaviour to close filehandles, as
     such, either iterate fully through this, or use read_bash instead.
@@ -23,10 +32,11 @@ def iter_read_bash(bash_source, allow_inline_comments=True):
     closed, but be proactive instead of relying on the garbage
     collector.
 
-    @param bash_source: either a file to read from
+    :param bash_source: either a file to read from
         or a string holding the filename to open.
-    @param allow_inline_comments: whether or not to prune characters
+    :param allow_inline_comments: whether or not to prune characters
         after a # that isn't at the start of a line.
+    :return: yields lines w/ commenting stripped out
     """
     if isinstance(bash_source, basestring):
         bash_source = readlines_utf8(bash_source, True)
@@ -39,24 +49,32 @@ def iter_read_bash(bash_source, allow_inline_comments=True):
 
 
 def read_bash(bash_source, allow_inline_comments=True):
+    """
+    read a file honoring bash commenting rules
+
+    see :py:func:`iter_read_bash` for the details of parameters.
+
+    returns a list of lines w/ comments stripped out.
+
+    """
     return list(iter_read_bash(bash_source,
         allow_inline_comments=allow_inline_comments))
-read_bash.__doc__ = iter_read_bash.__doc__
+
 
 def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
     """
     read bash source, yielding a dict of vars
 
-    @param bash_source: either a file to read from
+    :param bash_source: either a file to read from
         or a string holding the filename to open
-    @param vars_dict: initial 'env' for the sourcing.
+    :param vars_dict: initial 'env' for the sourcing.
         Is protected from modification.
-    @type vars_dict: dict or None
-    @param sourcing_command: controls whether a source command exists.
+    :type vars_dict: dict or None
+    :param sourcing_command: controls whether a source command exists.
         If one does and is encountered, then this func is called.
-    @type sourcing_command: callable
-    @raise BashParseError: thrown if invalid syntax is encountered.
-    @return: dict representing the resultant env if bash executed the source.
+    :type sourcing_command: callable
+    :raise BashParseError: thrown if invalid syntax is encountered.
+    :return: dict representing the resultant env if bash executed the source.
     """
 
     # quite possibly I'm missing something here, but the original
@@ -114,7 +132,7 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
 
 var_find = re.compile(r'\\?(\${\w+}|\$\w+)')
 backslash_find = re.compile(r'\\.')
-def nuke_backslash(s):
+def _nuke_backslash(s):
     s = s.group()
     if s == "\\\n":
         return "\n"
@@ -124,7 +142,25 @@ def nuke_backslash(s):
         return s[1]
 
 class bash_parser(shlex):
+
+    """Fixed up shlex version correcting corner cases in quote expansion,
+    and adding variable interpolation
+
+    While it's a fair bit slower than stdlib shlex, it parses a more complete
+    subset of bash syntax than stdlib shlex
+    """
+
     def __init__(self, source, sourcing_command=None, env=None):
+        """
+        instantiate the parser
+
+        :param source: file handle to read from
+        :param sourcing_command: token to treat as an include command
+        :type sourcing_command: either None, or a string; if None, no includes
+            are allowed in this parsing
+        :param env: initial environment to use for variable interpolation
+        :type env: must be a mapping; if None, an empty dict is used
+        """
         self.__dict__['state'] = ' '
         shlex.__init__(self, source, posix=True)
         self.wordchars += "@${}/.-+/:~^*"
@@ -198,11 +234,13 @@ class bash_parser(shlex):
             match = var_find.search(val, pos)
 
         # do \\ cleansing, collapsing val down also.
-        val = backslash_find.sub(nuke_backslash, ''.join(l) + val[prev:])
+        val = backslash_find.sub(_nuke_backslash, ''.join(l) + val[prev:])
         return val
 
 
 class BashParseError(Exception):
+
+    """Exception thrown when a handle being parsed isn't valid bash"""
 
     def __init__(self, filename, line, errmsg=None):
         if errmsg is not None:

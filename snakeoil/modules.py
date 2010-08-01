@@ -1,13 +1,18 @@
-# Copyright: 2005 Brian Harring <ferringb@gmail.com>
+# Copyright: 2005-2010 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
 """
 dynamic import functionality
 """
 
+__all__ = ("FailedImport", "load_module", "load_attribute", "load_any")
+
 import sys
 
 class FailedImport(ImportError):
+    """
+    Raised when a requested target cannot be imported
+    """
     def __init__(self, trg, e):
         ImportError.__init__(
             self, "Failed importing target '%s': '%s'" % (trg, e))
@@ -15,7 +20,12 @@ class FailedImport(ImportError):
 
 
 def load_module(name):
-    """load 'name' module, throwing a FailedImport if __import__ fails"""
+    """load a module
+
+    :param name: python dotted namespace path of the module to import
+    :raise: FailedImport if importing fails
+    :return: imported module
+    """
     if name in sys.modules:
         return sys.modules[name]
     try:
@@ -31,7 +41,15 @@ def load_module(name):
 
 
 def load_attribute(name):
-    """load a specific attribute, rather then a module"""
+    """load an attribute from a module
+
+    :param name: python dotted namespace path of the attribute to load from a
+        module for example, ``snakeoil.modules.load_module`` would return
+        :py:func:`load_module`
+    :raise: FailedImport if importing fails, or the requested attribute cannot
+        be found
+    :return: attribute resolved from `name`
+    """
     chunks = name.rsplit(".", 1)
     if len(chunks) == 1:
         raise FailedImport(name, "it isn't an attribute, it's a module")
@@ -44,7 +62,16 @@ def load_attribute(name):
 
 
 def load_any(name):
-    """Load a module or attribute."""
+    """load an attribute or a module from a namespace
+
+    :param name: python dotted namespace path of the object to load from a
+        module for example, ``snakeoil.modules.load_module`` would return
+        :py:func:`load_module`, and ``snakeoil.modules`` would return `modules`
+    :raise: FailedImport if importing fails, or the requested attribute cannot
+        be found
+    :return: object resolved from `name`
+    """
+
     try:
         return load_module(name)
     except FailedImport, fi:

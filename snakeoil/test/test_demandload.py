@@ -32,12 +32,12 @@ class PlaceholderTest(TestCase):
         self.assertEqual({}, scope)
         self.assertEqual(placeholder.__doc__, [].__doc__)
         self.assertEqual(scope['foo'], [])
-        orig = demandload.protection_enabled
+        orig = demandload._protection_enabled
         try:
-            demandload.protection_enabled = lambda:True
+            demandload._protection_enabled = lambda:True
             self.assertRaises(ValueError, getattr, placeholder, '__doc__')
         finally:
-            demandload.protection_enabled = orig
+            demandload._protection_enabled = orig
 
     def test__str__(self):
         scope = {}
@@ -65,12 +65,12 @@ class PlaceholderTest(TestCase):
         scope = {}
         placeholder = demandload.Placeholder(scope, 'foo', Struct)
         placeholder.val = 7
-        orig = demandload.protection_enabled
+        orig = demandload._protection_enabled
         try:
-            demandload.protection_enabled = lambda:True
+            demandload._protection_enabled = lambda:True
             self.assertRaises(ValueError, getattr, placeholder, 'val')
         finally:
-            demandload.protection_enabled = orig
+            demandload._protection_enabled = orig
         self.assertEqual(7, scope['foo'].val)
 
 

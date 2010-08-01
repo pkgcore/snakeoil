@@ -698,13 +698,13 @@ PyDoc_STRVAR(
 	PTF_write_doc,
 "Write something to the stream.\n\
 \n\
-Acceptable arguments are:\n\
-  - Strings are simply written to the stream.\n\
-  - C{None} is ignored.\n\
-  - Functions are called with the formatter as argument.\n\
-	Their return value is then used the same way as the other\n\
-	arguments.\n\
-  - Formatter subclasses might special-case certain objects.\n\
+Acceptable arguments are:\n\n\
+* Strings are simply written to the stream.\n\
+* None is ignored.\n\
+* Functions are called with the formatter as argument.\n\
+  Their return value is then used the same way as the other\n\
+  arguments.\n\
+* Formatter subclasses might special-case certain objects.\n\
 \n\
 Accepts wrap and autoline as keyword arguments. Effect is\n\
 the same as setting them before the write call and resetting\n\
@@ -721,8 +721,8 @@ Accepts first_prefix, later_prefix and prefix as keyword\n\
 argument. Effect is the same as setting first_prefixes,\n\
 later_prefixes or prefixes to a one-element tuple.\n\
 \n\
-The formatter has a couple of attributes that are useful as argument\n\
-to write.\n");
+The formatter has a couple of attributes that are useful as arguments\n\
+to write.");
 
 static PyMethodDef PTF_methods[] = {
 	{"write", (PyCFunction)PTF_write, METH_VARARGS | METH_KEYWORDS,

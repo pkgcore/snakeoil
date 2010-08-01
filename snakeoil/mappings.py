@@ -1,25 +1,43 @@
-# Copyright: 2005-2009 Brian Harring <ferringb@gmail.com>
+# Copyright: 2005-2010 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
 """
-miscellanious mapping/dict related classes
+Miscellanious mapping related classes and functionality
+
+
 """
+
+__all__ = ("autoconvert_py3k_methods_metaclass", "DictMixin", "LazyValDict",
+    "LazyFullValLoadDict", "ProtectedDict", "ImmutableDict", "IndeterminantDict",
+    "defaultdict", "defaultdictkey")
 
 import operator, sys
 from itertools import imap, chain, ifilterfalse, izip
-from snakeoil.klass import get, contains
+from snakeoil.klass import get, contains, steal_docs
 from collections import deque
 from snakeoil import compatibility
 cmp = compatibility.cmp
 
-if not compatibility.is_py3k:
-    autoconvert_py3k_methods_metaclass = type
-else:
+class autoconvert_py3k_methods_metaclass(type):
 
-    class autoconvert_py3k_methods_metaclass(type):
+    """
+    metaclass designed to transform a py2k target mapping into a py3k compliant mapping
+
+    Specifically, it'll drop the iter* prefix on relevant methods, and remove has_key
+
+    To use this, just `set __metaclass__ = autoconvert_py3k_methods_metaclass`.  At runtime,
+    the metaclass will rewrite the class if needed for py3k compatibility.
+
+    If you need to disable this behaviour, set `disable_py3k_rewriting=True` in the class
+    namespace- this is primarily useful if your derivative class handles the py2k/py3k difference
+    itself.
+    """
+    if compatibility.is_py3k:
+        # only do these modifications if we're running py3k.
 
         def __new__(cls, name, bases, d):
-            if not d.get("disable_py3k_rewriting", False):
+            d["__metaclass__"] = autoconvert_py3k_methods_metaclass
+            if not d.pop("disable_py3k_rewriting", False):
                 for var in ("keys", "values", "items", "has_key"):
                     d.pop(var, None)
                 for var in ("keys", "values", "items"):
@@ -27,52 +45,115 @@ else:
                     if itervar in d:
                         d[var] = d.pop(itervar)
                 # ensure that the __metaclass__ attribute hangs around for usage by introspection
-                d["__metaclass__"] = autoconvert_py3k_methods_metaclass
             return super(autoconvert_py3k_methods_metaclass, cls).__new__(cls, name, bases, d)
 
 
 class DictMixin(object):
     """
-    new style class replacement for L{UserDict.DictMixin}
+    new style class replacement for :py:func:`UserDict.DictMixin`
     designed around iter* methods rather then forcing lists as DictMixin does
+
+    To use this mixin, you need to define the following methods:
+
+    * __delitem__
+    * __setitem__
+    * __getitem__
+    * iterkeys
+
+    It's suggested for performance reasons, it might be worth defining an
+    `itervalues` and `iteritems` in addition.
+
+    Note that this class utilizes the metaclass :py:class:`autoconver_py3k_methods_metaclass`
+    to automatically at class creation time rewrite a py2k targeted class to a py3k
+    mapping class- this is done so that derivatives classes can just write their methods
+    as iterkeys, iteritems, etc, without worrying if they'll be running py2k or py3k-
+    if it's py3k, it'll force a rename of the methods to the py3k layout.
+
+    If for whatever reason, you do *not* want this renaming, set `disable_py3k_rewriting=True`
+    in a derivative class.
     """
 
     __slots__ = ()
     __externally_mutable__ = True
     __metaclass__ = autoconvert_py3k_methods_metaclass
 
+    disable_py3k_rewriting = True
+
     def __init__(self, iterable=None, **kwargs):
+        """
+        instantiate a new instance
+
+        :param iterables: optional, an iterable of (key, value) to initialize this
+            instance with
+        :param kwargs: optional, key=value form of specifying the keys value tuples to
+            store in this instance.
+        """
         if iterable is not None:
             self.update(iterable)
 
         if kwargs:
             self.update(kwargs.iteritems())
 
+    @steal_docs(dict)
     def __iter__(self):
         return self.iterkeys()
-
-    def keys(self):
-        return list(self.iterkeys())
-
-    def values(self):
-        return list(self.itervalues())
-
-    def items(self):
-        return list(self.iteritems())
-
-    def has_key(self, key):
-        return key in self
-
-    def iterkeys(self):
-        raise NotImplementedError(self, "iterkeys")
-
-    def itervalues(self):
-        return imap(self.__getitem__, self)
 
     def iteritems(self):
         for k in self:
             yield k, self[k]
 
+    # change our base method definitions dependant
+    # on if it's py2k or py3k; note that the
+    # autoconvert_py3k_methods_metaclass will move around
+    # methods as needed to match the py3k method layout,
+    # shifting iterkeys to keys for example
+    # note the only reason we do this if/else instead of
+    # relying on autoconvert_py3k_methods_metaclass is because
+    # for this base class, we need to steal the docs off of
+    # dictionary instances.
+
+    if not compatibility.is_py3k:
+        iteritems.__doc__ = dict.__doc__
+
+        @steal_docs(dict)
+        def keys(self):
+            return list(self.iterkeys())
+
+        @steal_docs(dict)
+        def values(self):
+            return list(self.itervalues())
+
+        @steal_docs(dict)
+        def items(self):
+            return list(self.iteritems())
+
+        @steal_docs(dict, True)
+        def has_key(self, key):
+            return key in self
+
+        @steal_docs(dict)
+        def iterkeys(self):
+            raise NotImplementedError(self, "iterkeys")
+
+        @steal_docs(dict)
+        def itervalues(self):
+            return imap(self.__getitem__, self)
+
+    else:
+        items = iteritems
+        items.__name__ = 'items'
+        items.__doc__ = dict.items.__doc__
+        del iteritems
+
+        @steal_docs(dict)
+        def keys(self):
+            raise NotImplementedError(self, "iterkeys")
+
+        @steal_docs(dict)
+        def values(self):
+            return imap(self.__getitem__, self)
+
+    @steal_docs(dict)
     def update(self, iterable):
         for k, v in iterable:
             self[k] = v
@@ -98,6 +179,7 @@ class DictMixin(object):
     def __ne__(self, other):
         return self.__cmp__(other) != 0
 
+    @steal_docs(dict)
     def pop(self, key, default=None):
         if not self.__externally_mutable__:
             raise AttributeError(self, "pop")
@@ -110,6 +192,7 @@ class DictMixin(object):
             raise
         return val
 
+    @steal_docs(dict)
     def setdefault(self, key, default=None):
         if not self.__externally_mutable__:
             raise AttributeError(self, "setdefault")
@@ -131,6 +214,7 @@ class DictMixin(object):
             raise AttributeError(self, "__delitem__")
         raise NotImplementedError(self, "__delitem__")
 
+    @steal_docs(dict)
     def clear(self):
         if not self.__externally_mutable__:
             raise AttributeError(self, "clear")
@@ -147,6 +231,12 @@ class DictMixin(object):
             c += 1
         return c
 
+    def __nonzero__(self):
+        for x in self:
+            return True
+        return False
+
+    @steal_docs(dict)
     def popitem(self):
         if not self.__externally_mutable__:
             raise AttributeError(self, "popitem")
@@ -170,8 +260,8 @@ class LazyValDict(DictMixin):
 
     def __init__(self, get_keys_func, get_val_func):
         """
-        @param get_keys_func: either a container, or func to call to get keys.
-        @param get_val_func: a callable that is JIT called
+        :param get_keys_func: either a container, or func to call to get keys.
+        :param get_val_func: a callable that is JIT called
             with the key requested.
         """
         if not callable(get_val_func):
@@ -231,6 +321,14 @@ class LazyValDict(DictMixin):
 
 class LazyFullValLoadDict(LazyValDict):
 
+    """
+    Lazily load all keys for this mapping in a single load
+
+    This is essentially the same thing as :py:class:`LazyValDict`, just that the
+    load function must return all keys in a single request.
+
+    The val function must still return values one by one per key.
+    """
     __slots__ = ()
 
     def __getitem__(self, key):
@@ -258,6 +356,9 @@ class ProtectedDict(DictMixin):
     __slots__ = ("orig", "new", "blacklist")
 
     def __init__(self, orig):
+        """
+        :param orig: original dictionary to wrap
+        """
         self.orig = orig
         self.new = {}
         self.blacklist = {}
@@ -299,7 +400,11 @@ class ProtectedDict(DictMixin):
 
 class ImmutableDict(dict):
 
-    """Immutable Dict, non changable after instantiating"""
+    """
+    Immutable Dict, non changable after instantiating
+
+    Because this is immutable, it's hashable.
+    """
 
     _hash_key_grabber = operator.itemgetter(0)
 
@@ -319,7 +424,12 @@ class ImmutableDict(dict):
 
 class IndeterminantDict(object):
 
-    """A wrapped dict with constant defaults, and a function for other keys."""
+    """
+    A wrapped dict with constant defaults, and a function for other keys.
+
+    The primary use for this class is to make a JIT loaded mapping- for instance, a
+    mapping representing the filesystem that loads keys/values as it goes.
+    """
 
     __slots__ = ("__initial", "__pull")
 
@@ -433,6 +543,17 @@ class OrderedDict(DictMixin):
 
 class ListBackedDict(DictMixin):
 
+    """
+    This is a mapping that does it's actual storage in a list.
+
+    This gives you OrderedDict semantics, and also is more space efficient- but also
+    has linear containment checks.
+
+    This is a special case mapping to use- generally speaking, you'll know when it's
+    right to use it since you'll be looking for it.
+
+    Likely candidate for deletion- it's use cases is very limited.
+    """
     __slots__ = ("_data",)
     _kls = list
     _key_grabber = operator.itemgetter(0)
@@ -480,7 +601,17 @@ class ListBackedDict(DictMixin):
     def __len__(self):
         return len(self._data)
 
+
 class TupleBackedDict(ListBackedDict):
+
+    """
+    Tuple backed version of :py:class;`ListBackedDict` for maximal
+    space efficiency, at the cost of all modifications requiring a tuple
+    to be created.
+
+    Likely candidate for deletion- it's use cases is very limited.
+    """
+
     __slots__ = ()
     _kls = tuple
 
@@ -606,32 +737,57 @@ if sys.version_info >= (2, 5):
     from collections import defaultdict
 else:
     class defaultdict(DictMixin):
+        """
+        fallback implementation of collections.defaultdict from >=python2.5
+
+        Essentially, if a key request is made but it's not within this mapping,
+        it'll invoke self.__missing__, which defaults to invoking self.default_factory()
+
+        This is a useful way to convert do away with `setdefault` usage.
+
+        For usage examples, check the web for :py:class:`collections.defaultdict`; this
+        implementation is purely for python2.4 compatibility.
+        """
+
         def __init__(self, default_factory):
+            """
+            :param default_factory: functor that takes no args, returning the default
+                value to assume if the key is missing
+            """
             self.default_factory = default_factory
             self._storage = {}
 
         def __missing__(self, key):
+            """
+            called by __getitem__ and friends when the key is missing.
+            """
             obj = self._storage[key] = self.default_factory()
             return obj
 
+        @steal_docs(dict)
         def __getitem__(self, key):
             try:
                 return self._storage[key]
             except KeyError:
                 return self.__missing__(key)
 
+        @steal_docs(dict)
         def __setitem__(self, key, value):
             self._storage[key] = value
 
+        @steal_docs(dict)
         def __delitem__(self, key):
             del self._storage[key]
 
+        @steal_docs(dict)
         def iterkeys(self):
             return iter(self._storage)
 
+        @steal_docs(dict)
         def clear(self):
             return self._storage.clear()
 
+        @steal_docs(dict)
         def __len__(self):
             return len(self._storage)
 
@@ -641,11 +797,18 @@ else:
 
 class defaultdictkey(defaultdict):
 
+    """
+    :py:class:`defaultdict` derivative that automatically stores any missing key/value pairs.
+
+    Specifically, if instance[missing_key] is accessed, the `__missing__` method automatically
+    store self[missing_key] = self.default_factory(key).
+    """
     def __init__(self, default_factory):
         # we have our own init to explicitly force via prototype
         # that a default_factory is required
         defaultdict.__init__(self, default_factory)
 
+    @steal_docs(defaultdict)
     def __missing__(self, key):
         obj = self[key] = self.default_factory(key)
         return obj

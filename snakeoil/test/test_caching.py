@@ -3,6 +3,8 @@
 
 from snakeoil.test import TestCase
 from snakeoil import caching
+import gc
+
 
 def gen_test(WeakInstMeta):
     class weak_slotted(object):
@@ -161,6 +163,19 @@ def gen_test(WeakInstMeta):
                 __slots__ = ()
 
             self.assertTrue(ExistingWeakrefSlot())
+
+        def test_weakref(self):
+            weak_inst.reset()
+            unique = object()
+            o = weak_inst(unique)
+            # make sure it's only strong reffed
+            self.assertEqual(weak_inst.counter, 1)
+            self.assertLen(gc.get_referrers(o), 1)
+            myid = id(o)
+            del o
+            o = weak_inst(unique)
+            self.assertEqual(weak_inst.counter, 2)
+            self.assertLen(gc.get_referrers(o), 1)
 
     # Hack to make it show up with a different name in trial's output
     TestWeakInstMeta.__name__ = WeakInstMeta.__name__ + 'Test'

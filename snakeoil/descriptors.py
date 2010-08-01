@@ -4,21 +4,30 @@
 
 """Classes implementing the descriptor protocol."""
 
+__all__ = ("classproperty",)
 
 class classproperty(object):
 
-    """Like the builtin C{property} but takes a single classmethod.
+    """Like the builtin :py:func:`property` but takes a single classmethod.
+
+    Essentially, it allows you to use a property on a class itself- not
+    just on it's instances.
 
     Used like this:
 
-    class Example(object):
-
-        @classproperty
-        def test(cls):
-            # Do stuff with cls here (it is Example or a subclass).
-
-    Now both C{Example.test} and C{Example().test} invoke the getter.
-    A "normal" property only works on instances.
+    >>> from snakeoil.descriptors import classproperty
+    >>> class foo(object):
+    ...
+    ...   @classproperty
+    ...   def test(cls):
+    ...     print "invoked"
+    ...     return True
+    >>> foo.test
+    invoked
+    True
+    >>> foo().test
+    invoked
+    True
     """
 
     def __init__(self, getter):

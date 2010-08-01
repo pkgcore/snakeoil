@@ -7,7 +7,7 @@
 import os
 import errno
 
-from snakeoil.klass import GetAttrProxy
+from snakeoil.klass import GetAttrProxy, steal_docs
 from snakeoil.demandload import demandload
 from snakeoil import compatibility
 from snakeoil.mappings import defaultdictkey
@@ -15,18 +15,19 @@ from snakeoil.currying import partial
 demandload(globals(), 'locale')
 
 
-__all__ = ("Formatter", "PlainTextFormatter", "get_formatter", "TermInfoColor",
+__all__ = ("Formatter", "PlainTextFormatter", "get_formatter",
     "decorate_forced_wrapping")
 
 
 class native_StreamClosed(KeyboardInterrupt):
-    """Raised by L{Formatter.write} if the stream it prints to was closed.
+    """Raised by :py:func:`Formatter.write` if the stream it prints to was closed.
 
-    This inherits from C{KeyboardInterrupt} because it should usually
+    This inherits from :py:class:`KeyboardInterrupt` because it should usually
     be handled the same way: a common way of triggering this exception
     is by closing a pager before the script finished outputting, which
     should be handled like control+c, not like an error.
     """
+    pass
 
 
 # "Invalid name" (for fg and bg methods, too short)
@@ -35,16 +36,17 @@ class native_StreamClosed(KeyboardInterrupt):
 
 class Formatter(object):
 
-    """Abstract formatter base class.
+    """
+    Abstract formatter base class.
 
     The types of most of the instance attributes is undefined (depends
     on the implementation of the particular Formatter subclass).
 
-    @ivar bold: object to pass to L{write} to switch to bold mode.
-    @ivar underline: object to pass to L{write} to switch to underlined mode.
-    @ivar reset: object to pass to L{write} to turn off bold and underline.
-    @ivar wrap: boolean indicating we auto-linewrap (defaults to off).
-    @ivar autoline: boolean indicating we are in auto-newline mode
+    :ivar bold: object to pass to :py:func:`write` to switch to bold mode.
+    :ivar underline: object to pass to :py:func:`write` to switch to underlined mode.
+    :ivar reset: object to pass to :py:func:`write` to turn off bold and underline.
+    :ivar wrap: boolean indicating we auto-linewrap (defaults to off).
+    :ivar autoline: boolean indicating we are in auto-newline mode
         (defaults to on).
     """
 
@@ -56,12 +58,13 @@ class Formatter(object):
         """Write something to the stream.
 
         Acceptable arguments are:
-          - Strings are simply written to the stream.
-          - C{None} is ignored.
-          - Functions are called with the formatter as argument.
-            Their return value is then used the same way as the other
-            arguments.
-          - Formatter subclasses might special-case certain objects.
+
+        * Strings are simply written to the stream.
+        * None is ignored.
+        * Functions are called with the formatter as argument.
+          Their return value is then used the same way as the other
+          arguments.
+        * Formatter subclasses might special-case certain objects.
 
         Accepts wrap and autoline as keyword arguments. Effect is
         the same as setting them before the write call and resetting
@@ -82,20 +85,23 @@ class Formatter(object):
         to write.
         """
 
+
     def fg(self, color=None):
         """Change foreground color.
 
-        @type  color: a string or C{None}.
-        @param color: color to change to. A default is used if omitted.
-                      C{None} resets to the default color.
+        :param color: color to change to. A default is used if omitted.
+            if passed None, resets to the default color.
+        :return: object representing changing the foreground to the requested color,
+            if possible for this formatter.
         """
 
     def bg(self, color=None):
         """Change background color.
 
-        @type  color: a string or C{None}.
-        @param color: color to change to. A default is used if omitted.
-                      C{None} resets to the default color.
+        :param color: color to change to. A default is used if omitted.
+            if passed None, resets to the default color.
+        :return: object representing changing the background to the requested color,
+            if possible for this formatter.
         """
 
     def error(self, message):
@@ -117,11 +123,11 @@ class native_PlainTextFormatter(Formatter):
 
     """Formatter writing plain text to a file-like object.
 
-    @ivar width: contains the current maximum line length.
-    @ivar encoding: the encoding unicode strings should be converted to.
-    @ivar first_prefix: prefixes to output at the beginning of every write.
-    @ivar later_prefix: prefixes to output on each line after the first of
-                        every write.
+    :ivar width: contains the current maximum line length.
+    :ivar encoding: the encoding unicode strings should be converted to.
+    :ivar first_prefix: prefixes to output at the beginning of every write.
+    :ivar later_prefix: prefixes to output on each line after the first of
+        every write.
     """
 
     bold = underline = reset = ''
@@ -129,10 +135,10 @@ class native_PlainTextFormatter(Formatter):
     def __init__(self, stream, width=79, encoding=None):
         """Initialize.
 
-        @type  stream: file-like object.
-        @param stream: stream to output to.
-        @param width: maximum line width (defaults to 79).
-        @param encoding: encoding unicode strings are converted to.
+        :type stream: file-like object.
+        :param stream: stream to output to.
+        :param width: maximum line width (defaults to 79).
+        :param encoding: encoding unicode strings are converted to.
         """
         Formatter.__init__(self)
         self.stream = stream
@@ -188,7 +194,7 @@ class native_PlainTextFormatter(Formatter):
             # but it is completely arbitrary.
             self._pos = self.width - 10
 
-
+    @steal_docs(Formatter)
     def write(self, *args, **kwargs):
         wrap = kwargs.get('wrap', self.wrap)
         autoline = kwargs.get('autoline', self.autoline)
@@ -297,9 +303,17 @@ class native_PlainTextFormatter(Formatter):
                 self.later_prefix = self.later_prefix[:-len(later_prefixes)]
 
     def fg(self, color=None):
+        """change fg color
+
+        This is a compatibility method- no coloring escapes are returned from it
+        """
         return ''
 
     def bg(self, color=None):
+        """change bg color
+
+        This is a compatibility method- no coloring escapes are returned from it
+        """
         return ''
 
 try:
@@ -307,15 +321,26 @@ try:
     class PlainTextFormatter(PlainTextFormatter, Formatter):
         __doc__ = native_PlainTextFormatter.__doc__
         __slots__ = ()
+
+        @steal_docs(native_PlainTextFormatter)
         def fg(self, color=None):
             return ''
-        bg = fg
+
+        @steal_docs(native_PlainTextFormatter)
+        def bg(self, color=None):
+            return ''
 
 except ImportError:
     PlainTextFormatter = native_PlainTextFormatter
     StreamClosed = native_StreamClosed
 
 class TerminfoDisabled(Exception):
+    """
+    Raised if Terminfo is disabled.
+
+    Only possible to see this is you're trying to generate a formatter directly
+    yourself
+    """
     pass
 
 class _BogusTerminfo(ValueError):
@@ -350,6 +375,12 @@ else:
         tigetstr = curses.tigetstr
 
     class TerminfoColor(object):
+        """
+        class encapsulating a specific terminfo entry for a color
+
+        This should not generally be invoked by hand, instead returned by
+        the formatter itself
+        """
 
         __slots__ = ("mode", "color", "__weakref__")
 
@@ -387,6 +418,12 @@ else:
 
 
     class TerminfoCode(object):
+        """
+        class encapsulating a specific terminfo entry command- reset for example
+
+        This should not generally be invoked by hand, instead returned by
+        the formatter itself
+        """
 
         __slots__ = ("value", "__weakref__")
 
@@ -402,6 +439,7 @@ else:
 
     class TerminfoMode(TerminfoCode):
 
+        __doc__ = TerminfoCode.__doc__
         __slots__ = ()
 
         def __call__(self, formatter):
@@ -410,6 +448,7 @@ else:
 
     class TerminfoReset(TerminfoCode):
 
+        __doc__ = TerminfoCode.__doc__
         __slots__ = ()
 
         def __call__(self, formatter):
@@ -442,12 +481,12 @@ else:
         def __init__(self, stream, term=None, forcetty=False, encoding=None):
             """Initialize.
 
-            @type  stream: file-like object.
-            @param stream: stream to output to, defaulting to C{sys.stdout}.
-            @type  term: string.
-            @param term: terminal type, pulled from the environment if omitted.
-            @type  forcetty: bool
-            @param forcetty: force output of colors even if the wrapped stream
+            :type stream: file-like object.
+            :param stream: stream to output to, defaulting to :py:class:`sys.stdout`.
+            :type term: string.
+            :param term: terminal type, pulled from the environment if omitted.
+            :type forcetty: bool
+            :param forcetty: force output of colors even if the wrapped stream
                              is not a tty.
             """
             PlainTextFormatter.__init__(self, stream, encoding=encoding)
@@ -494,12 +533,15 @@ else:
             self._fg_cache = defaultdictkey(partial(TerminfoColor, 0))
             self._bg_cache = defaultdictkey(partial(TerminfoColor, 1))
 
+        @steal_docs(Formatter)
         def fg(self, color=None):
             return self._fg_cache[color]
 
+        @steal_docs(Formatter)
         def bg(self, color=None):
             return self._bg_cache[color]
 
+        @steal_docs(Formatter)
         def write(self, *args, **kwargs):
             PlainTextFormatter.write(self, *args, **kwargs)
             try:
@@ -513,6 +555,7 @@ else:
                     raise StreamClosed(e)
                 raise
 
+        @steal_docs(Formatter)
         def title(self, string):
             # I want to use curses.tigetflag('hs') here but at least
             # the screen-s entry defines a tsl and fsl string but does
@@ -565,6 +608,9 @@ def get_formatter(stream):
 
 
 def decorate_forced_wrapping(setting=True):
+    """
+    Decorator to force a specific line wrapping state for the duration of invocation
+    """
     def wrapped_func(func):
         def f(out, *args, **kwds):
             oldwrap = out.wrap

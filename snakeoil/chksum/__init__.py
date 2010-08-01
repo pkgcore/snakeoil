@@ -1,4 +1,4 @@
-# Copyright: 2005-2007 Brian Harring <ferringb@gmail.com>
+# Copyright: 2005-2010 Brian Harring <ferringb@gmail.com>
 # License: GPL2/BSD
 
 """
@@ -22,8 +22,8 @@ def get_handler(requested):
     """
     get a chksum handler
 
-    @raise KeyError: if chksum type has no registered handler
-    @return: chksum handler (callable)
+    :raise KeyError: if chksum type has no registered handler
+    :return: chksum handler (callable)
     """
 
     if not __inited__:
@@ -36,12 +36,12 @@ def get_handler(requested):
 def get_handlers(requested=None):
 
     """
-    get chksum handlers
+    get multiple chksum handlers
 
-    @param requested: None (all handlers), or a sequence of the specific
+    :param requested: None (all handlers), or a sequence of the specific
         handlers desired.
-    @raise KeyError: if requested chksum type has no registered handler
-    @return: dict of chksum_type:chksum handler
+    :raise KeyError: if requested chksum type has no registered handler
+    :return: dict of chksum_type:chksum handler
     """
 
     if requested is None:
@@ -59,9 +59,9 @@ def init(additional_handlers=None):
     """
     init the chksum subsystem.
 
-    Scan the dir, find what handlers are available, etc.
+    Scan dirname(__file__), find what handlers are available, and load them.
 
-    @param additional_handlers: None, or pass in a dict of type:func
+    :param additional_handlers: None, or pass in a dict of type:func
     """
 
     global __inited__
@@ -107,6 +107,15 @@ def init(additional_handlers=None):
 def get_chksums(location, *chksums):
     """
     run multiple chksumers over a data_source/file path
+
+    Note that if you need multiple chksums for a file, you should invoke this with
+    all desired chksums- the implementation will do some internal efficiency tricks
+    (doing the IO once for example).
+
+    :param location: either a data_source, or a filepath to generate chksum data for
+    :param chksums: variable arg, the name of the chksums desired.  These need to
+        be valid chksums known in `chksum_types`
+    :return: a list of chksums, matching the order of requested chksums
     """
     handlers = get_handlers(chksums)
     # try to hand off to the per file handler, may be faster.

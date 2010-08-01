@@ -1,4 +1,4 @@
-# Copyright: 2006-2007 Brian Harring <ferringb@gmail.com>
+# Copyright: 2006-2010 Brian Harring <ferringb@gmail.com>
 # Copyright: 2006 Marien Zwart <marienz@gentoo.org>
 # License: BSD/GPL2
 
@@ -8,6 +8,7 @@
 import os, errno
 from stat import (S_IFDIR, S_IFREG, S_IFCHR, S_IFBLK, S_IFIFO, S_IFLNK, S_IFSOCK,
     S_IFMT, S_ISDIR, S_ISREG)
+from snakeoil.mappings import ProtectedDict
 
 listdir = os.listdir
 
@@ -24,6 +25,15 @@ def stat_swallow_enoent(path, check, default=False, stat=os.stat):
         raise
 
 def listdir_dirs(path, followSymlinks=True):
+    """
+    Return a list of all subdirectories within a directory
+
+    :param path: directory to scan
+    :param followSymlinks: this controls if symlinks are resolved.
+        If True and the symlink resolves to a directory, it is returned,
+        else if False it isn't returned.
+    :return: list of directories within `path`
+    """
     scheck = S_ISDIR
     pjf = pjoin
     lstat = os.lstat
@@ -35,6 +45,16 @@ def listdir_dirs(path, followSymlinks=True):
         scheck(lstat(pjf(path, x)).st_mode)]
 
 def listdir_files(path, followSymlinks=True):
+    """
+    Return a list of all files within a directory
+
+    :param path: directory to scan
+    :param followSymlinks: this controls if symlinks are resolved.
+        If True and the symlink resolves to a file, it is returned,
+        else if False it isn't returned.
+    :return: list of files within `path`
+    """
+
     scheck = S_ISREG
     pjf = pjoin
     if followSymlinks:
@@ -44,17 +64,30 @@ def listdir_files(path, followSymlinks=True):
     return [x for x in os.listdir(path) if
         scheck(lstat(pjf(path, x)).st_mode)]
 
+# we store this outside the function to ensure that
+# the strings used are reused, thus avoiding unneeded
+# allocations
+d_type_mapping = ProtectedDict({
+    S_IFREG: "file",
+    S_IFDIR: "directory",
+    S_IFLNK: "symlink",
+    S_IFCHR: "chardev",
+    S_IFBLK: "block",
+    S_IFSOCK: "socket",
+    S_IFIFO: "fifo",
+})
+
 def readdir(path):
+    """
+    Given a directory, return a list of (filename, filetype)
+
+    see :py:data:`d_type_mappings` for the translation used
+
+    :param path: path of a directory to scan
+    :return: list of (filename, filetype)
+    """
     pjf = pjoin
-    assocs = {
-        S_IFREG: "file",
-        S_IFDIR: "directory",
-        S_IFLNK: "symlink",
-        S_IFCHR: "chardev",
-        S_IFBLK: "block",
-        S_IFSOCK: "socket",
-        S_IFIFO: "fifo",
-    }
     things = listdir(path)
     lstat = os.lstat
-    return [(name, assocs[S_IFMT(lstat(pjf(path, name)).st_mode)]) for name in things]
+    dt = d_type_mapping
+    return [(name, dt[S_IFMT(lstat(pjf(path, name)).st_mode)]) for name in things]

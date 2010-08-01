@@ -2,6 +2,14 @@
 # Copyright: 2007 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
+"""
+script used for debugging imports required for a script
+
+use at your own peril, unmaintained.  Roughly, it'll intercept
+all imports and return a break down of how much time was taken
+per import cumulative.
+"""
+
 import __builtin__
 
 class intercept_import(object):

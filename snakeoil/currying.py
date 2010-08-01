@@ -1,34 +1,35 @@
-# Copyright: 2005 Brian Harring <ferringb@gmail.com>
+# Copyright: 2005-2010 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
 """
 Function currying, generating a functor with a set of args/defaults pre bound.
 
-L{pre_curry} and L{post_curry} return "normal" python functions.
-L{partial} returns a callable object. The difference between
-L{pre_curry} and L{partial} is this::
+:py:func:`pre_curry` and :py:func:`post_curry` return "normal" python functions.
+:py:func:`partial` returns a callable object. The difference between
+:py:func:`pre_curry` and :py:func:`partial` is this
 
-    >>> def func(arg=None, self=None):
-    ...     return arg, self
-    >>> curry = pre_curry(func, True)
-    >>> part = partial(func, True)
-    >>> class Test(object):
-    ...     curry = pre_curry(func, True)
-    ...     part = partial(func, True)
-    ...     def __repr__(self):
-    ...         return '<Test object>'
-    >>> curry()
-    (True, None)
-    >>> Test().curry()
-    (True, <Test object>)
-    >>> part()
-    (True, None)
-    >>> Test().part()
-    (True, None)
+>>> from snakeoil.currying import pre_curry, partial
+>>> def func(arg=None, self=None):
+...   return arg, self
+>>> curry = pre_curry(func, True)
+>>> part = partial(func, True)
+>>> class Test(object):
+...   curry = pre_curry(func, True)
+...   part = partial(func, True)
+...   def __repr__(self):
+...      return '<Test object>'
+>>> curry()
+(True, None)
+>>> Test().curry()
+(True, <Test object>)
+>>> part()
+(True, None)
+>>> Test().part()
+(True, None)
 
 If your curried function is not used as a class attribute the results
-should be identical. Because L{partial} has an implementation in c
-while L{pre_curry} is python you should use L{partial} if possible.
+should be identical. Because :py:func:`partial` has an implementation in c
+while :py:func:`pre_curry` is python you should use :py:func:`partial` if possible.
 """
 
 from operator import attrgetter
@@ -38,7 +39,10 @@ __all__ = ("pre_curry", "partial", "post_curry", "pretty_docs",
     "alias_class_method")
 
 def pre_curry(func, *args, **kwargs):
-    """passed in args are prefixed, with further args appended"""
+    """passed in args are prefixed, with further args appended
+
+    Unlike partial, this is usable as an instancemethod.
+    """
 
     if not kwargs:
         def callit(*moreargs, **morekwargs):
@@ -60,7 +64,7 @@ def pre_curry(func, *args, **kwargs):
 
 class native_partial(object):
 
-    """Like pre_curry, but does not get turned into an instance method."""
+    """Like pre_curry, but is a staticmethod by default."""
 
     def __init__(self, func, *args, **kwargs):
         self.func = func
@@ -163,6 +167,18 @@ def post_curry(func, *args, **kwargs):
     return callit
 
 def pretty_docs(wrapped, extradocs=None, name=None):
+    """
+    Modify wrapped, so that it 'looks' like what it's wrapping.
+
+    This is primarily useful for introspection reasons- doc generators, direct user
+    interaction with an object in the interpretter, etc.
+
+    :param wrapped: functor to modify
+    :param extradocs: ``__doc__`` override for wrapped; else it pulls from
+        wrapped's target functor
+    :param name: ``__name__`` override for wrapped; else it pulls from wrapped's
+        target functor for the name.
+    """
     wrapped.__module__ = wrapped.func.__module__
     doc = wrapped.func.__doc__
     if extradocs is None:
@@ -177,11 +193,22 @@ def pretty_docs(wrapped, extradocs=None, name=None):
 def alias_class_method(attr, name=None, doc=None):
     """at runtime, redirect to another method
 
-    attr is the desired attr name to lookup, and supply all later passed in
-    args/kws to
+    This is primarily useful for when compatibility, or a protocol requires
+    you to have the same functionality available at multiple spots- for example
+    :py:func:`dict.has_key` and :py:func:`dict.__contains__`.
 
-    Useful for when setting has_key to __contains__ for example, and
-    __contains__ may be overriden.
+    :param attr: attribute to redirect to
+    :param name: ``__name__`` to force for the new method if desired
+    :param doc: ``__doc__`` to force for the new method if desired
+
+    >>> from snakeoil.currying import alias_class_method
+    >>> class foon(object):
+    ...   def orig(self):
+    ...     return 1
+    ...   alias = alias_class_method("orig")
+    >>> obj = foon()
+    >>> assert obj.orig() == obj.alias()
+    >>> assert obj.alias() == 1
     """
     grab_attr = attrgetter(attr)
 

@@ -60,6 +60,9 @@ class TestDelayedInstantiation(TestCase):
         self.assertFalse(diff, msg="base delayed instantiation class "
             "should cover all of object, but %r was spotted" % (
                 ",".join(sorted(diff)),))
+        self.assertEqual(obj.DelayedInstantiation_kls(int, "1")
+            + 2, 3)
+
 
     def test_klass_choice_optimization(self):
         """ensure that BaseDelayedObject is used whenever possible"""

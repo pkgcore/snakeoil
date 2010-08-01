@@ -6,7 +6,7 @@
 """Our unittest extensions."""
 
 
-__all__ = ['scripts', 'SkipTest', 'TestCase']
+__all__ = ('SkipTest', 'TestCase')
 
 
 import sys
@@ -85,7 +85,7 @@ class TestCase(unittest.TestCase, object):
        specially.
      - Support "suppress" attributes on methods. They should be a sequence of
        (args, kwargs) tuples suitable for passing to
-       L{warnings.filterwarnings}. The method runs with those additions.
+       :py:func:`warnings.filterwarnings`. The method runs with those additions.
     """
 
     def __init__(self, methodName='runTest'):

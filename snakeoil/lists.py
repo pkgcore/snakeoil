@@ -1,17 +1,21 @@
-# Copyright: 2005 Brian Harring <ferringb@gmail.com>
+# Copyright: 2005-2010 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
 """
-sequence related operations
+sequence related operations and classes
 """
+
+__all__ = ("unstable_unique", "stable_unique", "iter_stable_unique",
+    "iflatten_instance", "iflatten_func", "ChainedLists", "predicate_split")
 
 from itertools import imap
 from snakeoil.iterables import expandable_chain
+from snakeoil.klass import steal_docs
 
 def unstable_unique(sequence):
     """
-    lifted from python cookbook, credit: Tim Peters
-    Return a list of the elements in s in arbitrary order, sans duplicates
+    Given a sequence, return a list of the unique items without preserving ordering
+
     """
 
     try:
@@ -51,13 +55,17 @@ def unstable_unique(sequence):
 
 def stable_unique(iterable):
     """
-    return unique list from iterable, preserving ordering
+    Given a sequence, return a list of the unique items while preserving ordering
+
+    For performance reasons, only use this if you really do need to preserve the ordering.
     """
     return list(iter_stable_unique(iterable))
 
 def iter_stable_unique(iterable):
     """
-    generator yielding unique elements from iterable, preserving ordering
+    Given a sequence, yield unique items while preserving ordering
+
+    For performance reasons, only use this if you really do need to preserve the ordering.
     """
     s = set()
     sadd = s.add
@@ -85,7 +93,9 @@ def native_iflatten_instance(l, skip_flattening=(basestring,)):
     """
     collapse [[1],2] into [1,2]
 
-    @param skip_flattening: list of classes to not descend through
+    :param skip_flattening: list of classes to not descend through
+    :return: this generator yields each item that cannot be flattend (or is
+        skipped due to being a instance of ``skip_flattening``)
     """
     if isinstance(l, skip_flattening):
         yield l
@@ -105,8 +115,10 @@ def native_iflatten_func(l, skip_func):
     """
     collapse [[1],2] into [1,2]
 
-    @param skip_func: a callable that returns True when iflatten_func should
+    :param skip_func: a callable that returns True when iflatten_func should
         descend no further
+    :return: this generator yields each item that cannot be flattend (or is
+        skipped due to a True result from skip_func)
     """
     if skip_func(l):
         yield l
@@ -137,7 +149,31 @@ except ImportError:
 
 class ChainedLists(object):
     """
-    sequences chained together, without collapsing into a list
+    Given a set of sequences, this will act as a proxy to them without collapsing them
+    into a single list.
+
+    This is primarily useful when you're dealing in large sets (or custom sequence objects),
+    and do not want to collapse them into one sequence- but you still want to be able to access
+    them as if they were one sequence.
+
+    Note that while you can add more lists onto this, you cannot directly change the underlying
+    lists through this class.
+
+    >>> from snakeoil.lists import ChainedLists
+    >>> l1, l2 = [0, 1, 2, 3], [4,5,6]
+    >>> cl = ChainedLists(l1, l2)
+    >>> print cl[3]
+    3
+    >>> print cl[4]
+    4
+    >>> print cl[0]
+    0
+    >>> assert 4 in cl
+    >>> print len(cl)
+    7
+    >>> cl[0] = 9
+    Traceback (most recent call last):
+    TypeError: not mutable
     """
     __slots__ = ("_lists", "__weakref__")
 
@@ -186,13 +222,33 @@ class ChainedLists(object):
     def __str__(self):
         return "[ %s ]" % ", ".join(str(l) for l in self._lists)
 
+    @steal_docs(list)
     def append(self, item):
         self._lists.append(item)
 
+    @steal_docs(list)
     def extend(self, items):
         self._lists.extend(items)
 
 def predicate_split(func, stream, key=None):
+    """
+    Given a stream and a function, split the stream into two sequences based on
+    the results of the func for that item
+
+    :param func: function to invoke with the item; function must return True or False
+    :param stream: iterable to split into two sequences
+    :param key: if set, a function to use to pull the attribute to inspect.  Basically
+        the same sort of trick as the key paramater for :py:func:`sorted`
+    :return: two lists, the first a list of everything that was False, the second a
+        list of everything that was True
+
+    Example Usage:
+
+    >>> from snakeoil.lists import predicate_split
+    >>> odd, even = predicate_split(lambda x:x % 2 == 0, range(10))
+    >>> assert odd == [1, 3, 5, 7, 9]
+    >>> assert even == [0, 2, 4, 6, 8]
+    """
     true_l, false_l = [], []
     tappend, fappend = true_l.append, false_l.append
     # needs to be fast... this this since a simple

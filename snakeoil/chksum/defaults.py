@@ -1,10 +1,15 @@
-# Copyright: 2006-2007 Brian Harring <ferringb@gmail.com>
+# Copyright: 2006-2010 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
 
 """
-default chksum handlers implementation- sha1, sha256, rmd160, and md5
+default chksum implementation- sha1, sha256, rmd160, and md5
+
+Specifically designed to provide maximal compatibility for >=python2.4
+for chksum implementations, while also preferring the fastest implementation
+available.
 """
+
 from snakeoil.data_source import base as base_data_source
 from snakeoil.currying import partial
 from snakeoil import modules

@@ -1,13 +1,20 @@
-# Copyright: 2006-2009 Brian Harring <ferringb@gmail.com>
+# Copyright: 2006-2010 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
 """
-tar file access
+fixed up Tarfile implementation
 
-monkey patching of stdlib tarfile to reduce mem usage (33% reduction).
+Specifically this grabs a copy of :py:mod:`tarfile` and applies a set of
+modifications- roughly a 33% memory reduction in usage
 
-note this is also racey; N threads trying an import, if they're after
-the *original* tarfile, they may inadvertantly get ours.
+Note that this modules initial setup semantics are technically racy- if the
+python implementation allows for the GIL to be swapped to a different thread
+during tarfile import (at literally the exact right moment) this version
+can bleed through.  Extremely unlikely chance (haven't managed to even trigger
+it once yet), but the potential seems to be there.
+
+In usage, instead of importing tarfile you should just import this module
+instead.  It's intended to be a drop in replacement.
 """
 
 import sys
@@ -22,6 +29,21 @@ del t
 
 class TarInfo(tarfile.TarInfo):
 
+    """
+    Customized TarInfo implementation.
+
+    Note that this implementation has a locked down set of __slots__.  The slotting
+    doesn't remove the underlying Dict being created (which we still pay memory for),
+    but via using __slots__ we no longer pay the overallocation cost of dicts per
+    TarInfo instance.
+
+    :ivar buf: deletion and setting are disallowed in this implementation.
+        This is done primarily to avoid having to have >512 bytes per TarInfo
+        object.
+    :ivar gname: same as TarInfo.gname, just interned via a property.
+    :ivar uname: same as TarInfo.uname, just interned via a property.
+    """
+
     if not hasattr(tarfile.TarInfo, '__slots__'):
         __slots__ = (
             "name", "mode", "uid", "gid", "size", "mtime", "chksum", "type",
@@ -34,9 +56,17 @@ class TarInfo(tarfile.TarInfo):
         return self.tobuf()
 
     def set_buf(self, val):
+        """
+        the ability to set the buffer is disabled in this
+        patched version
+        """
         pass
 
     def del_buf(self):
+        """
+        the ability to delete the buffer is disabled in this
+        patched version
+        """
         pass
 
     buf = property(get_buf, set_buf, del_buf)

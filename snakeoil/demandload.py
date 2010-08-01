@@ -1,10 +1,11 @@
-# Copyright: 2006 Vadim Gelfer <vadim.gelfer@gmail.com>
+# Copyright: 2006 Vadim Gelfer <vadim.gelfer@gmail.com>: GPL2
 # Copyright: 2007 Marien Zwart <marienz@gentoo.org>: GPL2/BSD
+# Copyright: 2009-2010 Brian Harring <ferringb@gmail.com>: GPL2/BSD
 # License: GPL2
 
 """Demand load things when used.
 
-This uses L{Placeholder} objects which create an actual object on
+This uses :py:func:`Placeholder` objects which create an actual object on
 first use and know how to replace themselves with that object, so
 there is no performance penalty after first use.
 
@@ -31,6 +32,8 @@ have to be careful with:
    work. You can normally avoid this by always demandloading the
    module, not something in it.
 """
+
+__all__ = ("demandload", "demand_compile_regexp")
 
 # TODO: the use of a curried func instead of subclassing needs more thought.
 
@@ -80,8 +83,8 @@ def parse_imports(imports):
     Notice 'foo.bar' is not a valid input. This simplifies the code,
     but if it is desired it can be added back.
 
-    @type  imports: sequence of C{str} objects.
-    @rtype: iterable of tuples of two C{str} objects.
+    :type imports: sequence of C{str} objects.
+    :rtype: iterable of tuples of two C{str} objects.
     """
     for s in imports:
         fromlist = s.split(':', 1)
@@ -122,11 +125,11 @@ def parse_imports(imports):
                 yield base + '.' + split[0], split[-1]
 
 
-def protection_enabled():
+def _protection_enabled():
     val = os.environ.get("SNAKEOIL_DEMANDLOAD_PROTECTION", "n").lower()
     return val in ("yes", "true", "1", "y")
 
-def noisy_protection():
+def _noisy_protection():
     val = os.environ.get("SNAKEOIL_DEMANDLOAD_WARN", "y").lower()
     return val in ("yes", "true", "1", "y")
 
@@ -140,10 +143,10 @@ class Placeholder(object):
     def __init__(self, scope, name, replace_func):
         """Initialize.
 
-        @param scope: the scope we live in, normally the result of
+        :param scope: the scope we live in, normally the result of
           C{globals()}.
-        @param name: the name we have in C{scope}.
-        @param replace_func: callable returning the object to replace us with.
+        :param name: the name we have in C{scope}.
+        :param replace_func: callable returning the object to replace us with.
         """
         object.__setattr__(self, '_scope', scope)
         object.__setattr__(self, '_name', name)
@@ -152,9 +155,9 @@ class Placeholder(object):
     def _already_replaced(self):
         name = object.__getattribute__(self, '_name')
         scope = object.__getattribute__(self, '_scope')
-        if protection_enabled():
+        if _protection_enabled():
             raise ValueError('Placeholder for %r was triggered twice' % (name,))
-        elif noisy_protection():
+        elif _noisy_protection():
             logging.warning('Placeholder for %r was triggered multiple times '
                 'in file %r' % (name, scope.get("__file__", "unknown")))
         return scope[name]
@@ -172,7 +175,7 @@ class Placeholder(object):
         object.__setattr__(self, '_replace_func', already_replaced)
 
         # Cleanup, possibly unnecessary.
-        if protection_enabled():
+        if _protection_enabled():
             object.__setattr__(self, '_scope', None)
 
         result = replace_func()
@@ -224,7 +227,7 @@ enabled_demandload = demandload
 
 
 def disabled_demandload(scope, *imports):
-    """Exactly like L{demandload} but does all imports immediately."""
+    """Exactly like :py:func:`demandload` but does all imports immediately."""
     for source, target in parse_imports(imports):
         scope[target] = load_any(source)
 
@@ -234,7 +237,7 @@ class RegexPlaceholder(Placeholder):
     Compiled Regex object that knows how to replace itself when first accessed.
 
     See the module docstring for common problems with its use; used by
-    L{demand_compile_regexp}.
+    :py:func:`demand_compile_regexp`.
     """
 
     def _replace(self):
@@ -246,16 +249,16 @@ class RegexPlaceholder(Placeholder):
 
 
 def demand_compile_regexp(scope, name, *args, **kwargs):
-    """Demandloaded version of L{re.compile}.
+    """Demandloaded version of :py:func:`re.compile`.
 
-    Extra arguments are passed unchanged to L{re.compile}.
+    Extra arguments are passed unchanged to :py:func:`re.compile`.
 
     This returns the placeholder, which you *must* bind to C{name} in
     the scope you pass as C{scope}. It is done this way to prevent
     confusing code analysis tools like pylint.
 
-    @param scope: the scope, just like for L{demandload}.
-    @param name: the name of the compiled re object in that scope.
+    :param scope: the scope, just like for :py:func:`demandload`.
+    :param name: the name of the compiled re object in that scope.
     @returns: the placeholder object.
     """
     return RegexPlaceholder(scope, name, (args, kwargs))

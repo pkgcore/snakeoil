@@ -3,31 +3,47 @@
 
 """
 file related operations, mainly reading
+
+Note that this originally held bash parsing functiona- for compatibility
+till 0.5 of snakeoil, compatibility imports from :py:mod:`snakeoil.bash` will
+be left in place here.
 """
+
+__all__ = ("AtomicWriteFile", "read_dict", "ParseError")
 
 import os
 from snakeoil import compatibility
 from snakeoil.weakrefs import WeakRefFinalizer
 from snakeoil.bash import *
 
-__all__ = ("AtomicWriteFile", "read_dict", "ParseError")
-
 class AtomicWriteFile_mixin(object):
 
     """File class that stores the changes in a tempfile.
 
-    Upon close call, uses rename to replace the destination.
+    Upon invocation of the close method, this class will use
+    :py:func:`os.rename` to atomically replace the destination.
 
-    Similar to file protocol behaviour, except for the C{__init__}, and
-    that close *must* be called for the changes to be made live,
+    Similar to file protocol behaviour, except that close *must*
+    be called for the changes to be made live,
 
-    if C{__del__} is triggered it's assumed that an exception occured,
-    thus the changes shouldn't be made live.
+    If along the way it's decided that these changes should be discarded,
+    invoke :py:func:`AtomicWriteFile.discard`; this will close the file
+    without updating the target.
+
+    If this object falls out of memory without ever being discarded nor
+    closed, the contents are discarded and a warning is issued.
     """
 
     __metaclass__ = WeakRefFinalizer
 
-    def __init__(self,fp, binary=False, perms=None, uid=-1, gid=-1):
+    def __init__(self, fp, binary=False, perms=None, uid=-1, gid=-1):
+        """
+        :param fp: filepath to write to upon close
+        :param binary: should we open the file in binary mode?
+        :param perms: if specified, permissions we should force for the file.
+        :param uid: if specified, the uid to force for the file.
+        :param gid: if specified, the uid to force for the file.
+        """
         self._is_finalized = True
         if binary:
            file_mode = "wb"
@@ -54,12 +70,18 @@ class AtomicWriteFile_mixin(object):
             os.chown(self._temp_fp, uid, gid)
 
     def discard(self):
+        """If we've not already flushed our changes to the target, discard them
+        and close this file handle."""
         if not self._is_finalized:
             self._real_close()
             os.unlink(self._temp_fp)
             self._is_finalized = True
 
     def close(self):
+        """Close this file handle, atomically updating the target in the process.
+
+        Note that if we're already closed, this method does nothing
+        """
         if not self._is_finalized:
             self._real_close()
             os.rename(self._temp_fp, self._original_fp)
@@ -72,6 +94,8 @@ if not compatibility.is_py3k:
 
     class AtomicWriteFile(AtomicWriteFile_mixin, file):
 
+        __doc__ = AtomicWriteFile_mixin.__doc__
+
         def _actual_init(self):
             file.__init__(self, self._temp_fp,
                 mode=self._computed_mode)
@@ -81,6 +105,8 @@ if not compatibility.is_py3k:
 else:
     import io
     class AtomicWriteFile(AtomicWriteFile_mixin):
+
+        __doc__ = AtomicWriteFile_mixin.__doc__
 
         def _actual_init(self):
             self.raw = io.open(self._temp_fp, mode=self._computed_mode)
@@ -101,14 +127,15 @@ else:
 def read_dict(bash_source, splitter="=", source_isiter=False,
     allow_inline_comments=True):
     """
-    read key value pairs, ignoring bash-style comments.
+    read key value pairs from a file, ignoring bash-style comments.
 
-    @param splitter: the string to split on.  Can be None to
+    :param splitter: the string to split on.  Can be None to
         default to str.split's default
-    @param bash_source: either a file to read from,
+    :param bash_source: either a file to read from,
         or a string holding the filename to open.
-    @param allow_inline_comments: whether or not to prune characters
+    :param allow_inline_comments: whether or not to prune characters
         after a # that isn't at the start of a line.
+    :raise: :py:class:`ParseError` if there are parse errors found.
     """
     d = {}
     if not source_isiter:
@@ -138,6 +165,10 @@ def read_dict(bash_source, splitter="=", source_isiter=False,
 
 
 class ParseError(Exception):
+
+    """
+    Exception thrown if there is a parsing error in reading a key/value dict file
+    """
 
     def __init__(self, filename, line, errmsg=None):
         if errmsg is not None:

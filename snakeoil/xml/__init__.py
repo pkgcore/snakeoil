@@ -2,7 +2,14 @@
 # License: BSD/GPL2
 
 """
-indirection to load ElementTree
+compatibility module with a fallback ElementTree if running python2.4
+
+This is primarily of use only if you're targeting python 2.4; for python2.5
+and up, ElementTree is bundled in stdlib as xml.
+
+Generally speaking, if you're not supporting python2.4, import from stdlib
+directly instead.
+
 """
 # essentially... prefer cElementTree, then 2.5 bundled, then
 # elementtree, then 2.5 bundled, then our own bundled

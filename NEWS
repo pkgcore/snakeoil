@@ -2,6 +2,9 @@ Snakeoil Release Notes
 ======================
 
 
+* Massive amount of docstring work.  Yes, snakeoil is now documented and has
+  examples.
+
 * correct an off by one in caching_iter.
 
 * snakeoil.dependant_methods.ForcedDepends grew two new methods;

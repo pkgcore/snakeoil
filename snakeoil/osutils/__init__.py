@@ -1,15 +1,41 @@
-# Copyright 2004-2007 Brian Harring <ferringb@gmail.com>
+# Copyright 2004-2010 Brian Harring <ferringb@gmail.com>
 # Copyright 2006 Marien Zwart <marienz@gentoo.org>
 # License: BSD/GPL2
 
 """
-os specific utilities, FS access mainly
+OS related functionality
 
+This module is primarily optimized implementations of various filesystem operations,
+written for posix specifically.  If this is a non-posix system (or extensions were
+disabled) it falls back to native python implementations that yield no real speed gains.
+
+A rough example of the performance benefits, collected from a core2 2.4GHz running
+python 2.6.5, w/ an EXT4 FS on a 160GB x25-M for the FS related invocations (it's worth
+noting the IO is pretty fast in this setup- for slow IO like nfs, the speedup for extension
+vs native for listdir* functionality is a fair bit larger).
+
+Rough stats:
+
+========================================================  =========   ===============
+python -m timeit code snippet                             native      extension time
+========================================================  =========   ===============
+join("/usr/portage", "dev-util", "bsdiff", "ChangeLog")   2.8 usec    0.36 usec
+normpath("/usr/portage/foon/blah/dar")                    5.52 usec   0.15 usec
+normpath("/usr/portage//foon/blah//dar")                  5.66 usec   0.15 usec
+normpath("/usr/portage/./foon/../blah/")                  5.92 usec   0.15 usec
+listdir_files("/usr/lib64") # 2338 entries, 990 syms      18.6 msec   4.17 msec
+listdir_files("/usr/lib64", False) # same dir content     16.9 msec   1.48 msec
+readfile("/etc/passwd") # 1899 bytes                      20.4 usec   4.05 usec
+readfile("tmp-file") # 1MB                                300 usec    259 usec
+list(readlines("/etc/passwd")) # 1899 bytes, 34 lines     37.3 usec   12.8 usec
+list(readlines("/etc/passwd", False)) # leave whitespace  26.7 usec   12.8 usec
+========================================================  =========   ===============
+
+If you're just invoking join or normpath, or reading a file or two a couple of times,
+these optimizations are probably overkill.  If you're doing lots of path manipulation,
+reading files, scanning directories, etc, these optimizations start adding up
+pretty quickly.
 """
-
-import os, stat
-import fcntl
-import errno
 
 __all__ = ['abspath', 'abssymlink', 'ensure_dirs', 'join', 'pjoin',
     'listdir_files', 'listdir_dirs', 'listdir',
@@ -19,6 +45,12 @@ __all__.extend("%s%s" % ('readfile', mode) for mode in
         ['', '_ascii', '_ascii_strict', '_bytes', '_utf8'])
 __all__.extend("%s%s" % ('readlines', mode) for mode in
         ['', '_ascii', '_ascii_strict', '_bytes', '_utf8', '_utf8_strict'])
+
+__all__ = tuple(__all__)
+
+import os, stat
+import fcntl
+import errno
 
 # No name '_readdir' in module osutils
 # pylint: disable-msg=E0611
@@ -48,8 +80,10 @@ def _safe_mkdir(path, mode):
         os.mkdir(path, mode)
     except OSError, e:
         # if it exists already and is a dir, non issue.
-        return e.errno == errno.EEXIST and stat.S_ISDIR(os.stat(path).st_mode)
-        os.chmod(path, mode)
+        if e.errno != errno.EEXIST:
+            return False
+        if not stat.S_ISDIR(os.stat(path).st_mode):
+            return False
     return True
 
 def ensure_dirs(path, gid=-1, uid=-1, mode=0777, minimal=True):
@@ -58,6 +92,17 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0777, minimal=True):
 
     be forewarned- if mode is specified to a mode that blocks the euid
     from accessing the dir, this code *will* try to create the dir.
+
+    :param path: directory to ensure exists on disk
+    :param gid: a valid GID to set any created directories to
+    :param uid: a valid UID to set any created directories to
+    :param mode: permissions to set any created directories to
+    :param minimal: boolean controlling whether or not the specified mode
+        must be enforced, or is the minimal permissions necessary.  For example,
+        if mode=0755, minimal=True, and a directory exists with mode 0707,
+        this will restore the missing group perms resulting in 757.
+    :return: True if the directory could be created/ensured to have those
+        permissions, False if not.
     """
 
     try:
@@ -132,44 +177,49 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0777, minimal=True):
     return True
 
 
-def abssymlink(symlink):
+def abssymlink(path):
     """
-    Read a symlink, resolving if it is relative, returning the absolute.
-    If the path doesn't exist, OSError is thrown.
+    Return the absolute path of a symlink
 
-    @param symlink: filepath to resolve
-    @return: resolve path.
+    :param path: filepath to resolve
+    :return: resolved path
+    :raise: EnvironmentError, errno=ENINVAL if the requested path isn't
+        a symlink
     """
-    mylink = os.readlink(symlink)
+    mylink = os.readlink(path)
     if mylink[0] != '/':
-        mydir = os.path.dirname(symlink)
+        mydir = os.path.dirname(path)
         mylink = mydir+"/"+mylink
-    return os.path.normpath(mylink)
+    return normpath(mylink)
 
 
 def abspath(path):
     """
     resolve a path absolutely, including symlink resolving.
-    Throws OSError if the path doesn't exist
 
     Note that if it's a symlink and the target doesn't exist, it'll still
     return the target.
 
-    @param path: filepath to resolve.
-    @return: resolve path
+    :param path: filepath to resolve.
+    :raise: EnvironmentError some errno other than an ENOENT or EINVAL
+        is encountered
+    :return: the absolute path calculated against the filesystem
     """
     path = os.path.abspath(path)
     try:
         return abssymlink(path)
-    except OSError, e:
-        if e.errno == errno.EINVAL:
-            return path
-        raise
+    except EnvironmentError, e:
+        if e.errno not in (errno.ENOENT, errno.EINVAL):
+            raise
+        return path
 
 
 def native_normpath(mypath):
     """
-    normalize path- //usr/bin becomes /usr/bin
+    normalize path- //usr/bin becomes /usr/bin, /usr/../bin becomes /bin
+
+    see :py:func:`os.path.normpath` for details- this function differs from
+    `os.path.normpath` only in that it'll convert leading '//' into '/'
     """
     newpath = os.path.normpath(mypath)
     if newpath.startswith('//'):
@@ -183,8 +233,8 @@ def _internal_native_readfile(mode, mypath, none_on_missing=False, encoding=None
     """
     read a file, returning the contents
 
-    @param mypath: fs path for the file to read
-    @param none_on_missing: whether to return None if the file is missing,
+    :param mypath: fs path for the file to read
+    :param none_on_missing: whether to return None if the file is missing,
         else through the exception
     """
     try:
@@ -246,10 +296,10 @@ def native_readlines(mode, mypath, strip_whitespace=True, swallow_missing=False,
     """
     read a file, yielding each line
 
-    @param mypath: fs path for the file to read
-    @param strip_whitespace: strip any leading or trailing whitespace including newline?
-    @param swallow_missing: throw an IOError if missing, or swallow it?
-    @param none_on_missing: if the file is missing, return None, else
+    :param mypath: fs path for the file to read
+    :param strip_whitespace: strip any leading or trailing whitespace including newline?
+    :param swallow_missing: throw an IOError if missing, or swallow it?
+    :param none_on_missing: if the file is missing, return None, else
         if the file is missing return an empty iterable
     """
     handle = iterable = None
@@ -320,8 +370,10 @@ class LockException(Exception):
 
 class NonExistant(LockException):
     """Missing file/dir exception"""
+
     def __init__(self, path, reason=None):
         LockException.__init__(self, path, reason)
+
     def __str__(self):
         return (
             "Lock action for '%s' failed due to not being a valid dir/file %s"
@@ -344,7 +396,7 @@ class GenericFailed(LockException):
 class FsLock(object):
 
     """
-    fnctl based locks
+    fnctl based filesystem lock
     """
 
     __metaclass__ = WeakRefFinalizer
@@ -352,13 +404,13 @@ class FsLock(object):
 
     def __init__(self, path, create=False):
         """
-        @param path: fs path for the lock
-        @param create: controls whether the file will be created
+        :param path: fs path for the lock
+        :param create: controls whether the file will be created
             if the file doesn't exist.
             If true, the base dir must exist, and it will create a file.
             If you want to lock via a dir, you have to ensure it exists
             (create doesn't suffice).
-        @raise NonExistant: if no file/dir exists for that path,
+        :raise NonExistant: if no file/dir exists for that path,
             and cannot be created
         """
         self.path = path
@@ -401,8 +453,8 @@ class FsLock(object):
 
         Note if you have a read lock, it implicitly upgrades atomically
 
-        @param blocking: if enabled, don't return until we have the lock
-        @return: True if lock is acquired, False if not.
+        :param blocking: if enabled, don't return until we have the lock
+        :return: True if lock is acquired, False if not.
         """
         return self._enact_change(fcntl.LOCK_EX, blocking)
 
@@ -412,8 +464,8 @@ class FsLock(object):
 
         Note if you have a write lock, it implicitly downgrades atomically
 
-        @param blocking: if enabled, don't return until we have the lock
-        @return: True if lock is acquired, False if not.
+        :param blocking: if enabled, don't return until we have the lock
+        :return: True if lock is acquired, False if not.
         """
         return self._enact_change(fcntl.LOCK_SH, blocking)
 

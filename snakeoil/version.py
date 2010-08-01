@@ -11,7 +11,7 @@ __version__ = '0.3.7'
 _ver = None
 
 def get_version():
-    """@returns: a string describing the snakeoil version."""
+    """:return: a string describing the snakeoil version."""
     global _ver
     if _ver is not None:
         return _ver

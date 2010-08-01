@@ -1,6 +1,11 @@
 #!/usr/bin/python3
-# Copyright: 2009 Brian Harring <ferringb@gmail.com>
+# Copyright: 2009-2010 Brian Harring <ferringb@gmail.com>
 # License: PSF-2.2/GPL2/BSD
+
+"""
+python 2to3 with caching support
+
+"""
 
 import lib2to3.main
 import lib2to3.refactor
@@ -11,7 +16,22 @@ def md5_hash_data(data):
     chf.update(data)
     return chf.hexdigest()
 
+
 class caching_mixin(object):
+
+    """
+    core caching logic
+
+    Roughly, this works by intercepting 2to3 converter methods and checking
+    a cache directory (defined by environment variable PY2TO3_CACHEDIR) for
+    previous conversion attempts for this file.
+
+    If the md5sum for the source matches the original conversion attempt, the
+    original results are returned greatly speeding up repeated 2to3 conversions.
+
+    If the md5sum doesn't match, it does the 2to3 conversion and than stashes a copy
+    of the results into the cache dir for future usage.
+    """
 
     base_cls = None
 
