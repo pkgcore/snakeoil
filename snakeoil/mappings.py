@@ -625,7 +625,7 @@ class PreservingFoldingDict(DictMixin):
     """dict that uses a 'folder' function when looking up keys.
 
     The most common use for this is to implement a dict with
-    case-insensitive key values (by using C{str.lower} as folder
+    case-insensitive key values (by using ``str.lower`` as folder
     function).
 
     This version returns the original 'unfolded' key.
@@ -644,7 +644,7 @@ class PreservingFoldingDict(DictMixin):
     def refold(self, folder=None):
         """Use the remembered original keys to update to a new folder.
 
-        If folder is C{None}, keep the current folding function (this
+        If folder is None, keep the current folding function (this
         is useful if the folding function uses external data and that
         data changed).
         """
@@ -690,7 +690,7 @@ class NonPreservingFoldingDict(DictMixin):
     """dict that uses a 'folder' function when looking up keys.
 
     The most common use for this is to implement a dict with
-    case-insensitive key values (by using C{str.lower} as folder
+    case-insensitive key values (by using ``str.lower`` as folder
     function).
 
     This version returns the 'folded' key.

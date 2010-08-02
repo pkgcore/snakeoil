@@ -1,6 +1,6 @@
 #!/usr/bin/python
 from snakeoil.modules import load_module
-import inspect, exceptions, sys
+import inspect, exceptions, sys, os, errno
 
 def gen_segment(name, targets):
     l = ["    .. rubric:: %s" % (name,)]
@@ -11,8 +11,9 @@ def gen_segment(name, targets):
     l.append("")
     return "\n".join(l)
 
-def generate_rst(modpath):
-    module = load_module(modpath)
+def generate_rst(modpath, module, handle=None):
+    if handle is None:
+        handle = sys.stdout
     target_names = [x for x in dir(module) if not (x.startswith("_")
         or inspect.ismodule(getattr(module, x)))]
     target_names = getattr(module, '__all__', target_names)
@@ -38,22 +39,42 @@ def generate_rst(modpath):
         else:
             others.append(target)
 
-    print modpath
-    print '-' * len(modpath)
-    print
-    print ".. automodule:: %s" % (modpath,)
-    print
+    handle.write("%s\n" % modpath)
+    handle.write('-' * len(modpath))
+    handle.write("\n\n.. automodule:: %s\n\n" % (modpath,))
     if funcs:
-        print gen_segment("Functions", funcs)
+        handle.write(gen_segment("Functions", funcs))
+        handle.write("\n")
     if klasses:
-        print gen_segment("Classes", klasses)
+        handle.write(gen_segment("Classes", klasses))
+        handle.write("\n")
     if exceptions:
-        print gen_segment("Exceptions", exceptions)
+        handle.write(gen_segment("Exceptions", exceptions))
     if modules:
-        print gen_segment("Submodules", modules)
+        handle.write(gen_segment("Submodules", modules))
+        handle.write("\n")
     if others:
-        print gen_segment("Data", others)
+        handle.write(gen_segment("Data", others))
+        handle.write("\n")
+
+def regen_if_needed(src, out_path):
+    module = load_module(src)
+    cur_time = int(os.stat(module.__file__).st_mtime)
+    try:
+        trg_time = int(os.stat(out_path).st_mtime)
+    except EnvironmentError, e:
+        if e.errno != errno.ENOENT:
+            raise
+        trg_time = -1
+
+    if cur_time != trg_time:
+        sys.stdout.write("regenerating rst for %s\n" % (src,))
+        generate_rst(src, module, open(out_path, "w"))
+    os.chmod(out_path, 0644)
+    os.utime(out_path, (cur_time, cur_time))
+
 
 if __name__ == '__main__':
     import sys
-    generate_rst(sys.argv[1])
+    for x in sys.stdin:
+        regen_if_needed(*x.rstrip("\n").split(" ", 1))

@@ -43,10 +43,10 @@ generated: api
 
 api:
 	@echo "autogenerating api rsts..."
-	@mkdir api
+	@mkdir api -p
 	@for fn in `cat public_modules.txt`; \
-		do ./generate_api_rsts.py $$fn > api/$${fn}.rst; \
-	done
+		do echo $${fn} api/$${fn}.rst; \
+	done | ./generate_api_rsts.py
 
 html: generated
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
