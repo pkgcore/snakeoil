@@ -49,7 +49,6 @@ if compatibility.is_py3k:
 
 class PythonNamespaceWalker(object):
 
-    target_namespace = None
     ignore_all_import_failures = False
 
     valid_inits = frozenset("__init__.%s" % x for x in ("py", "pyc", "pyo", "so"))
@@ -89,17 +88,6 @@ class PythonNamespaceWalker(object):
             except ImportError:
                 if not ignore_failed_imports:
                     raise
-
-    def check_space(self, mod):
-        for attr in dir(mod):
-            try:
-                obj = getattr(mod, attr)
-                # force __getattribute__ to fire
-                getattr(obj, "__class__", None)
-            except ImportError, ie:
-                # hit one.
-                self.fail("failed 'touching' demandloaded %s.%s: error %s" %
-                    (mod.__name__, attr, ie))
 
     def recurse(self, location, valid_namespace=True):
         l = os.listdir(location)

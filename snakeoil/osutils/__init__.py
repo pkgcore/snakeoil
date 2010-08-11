@@ -39,7 +39,7 @@ pretty quickly.
 
 __all__ = ['abspath', 'abssymlink', 'ensure_dirs', 'join', 'pjoin',
     'listdir_files', 'listdir_dirs', 'listdir',
-    'readdir', 'normpath', 'unlink_if_exsts',
+    'readdir', 'normpath', 'unlink_if_exists',
     'FsLock', 'GenericFailed',
     'LockException', 'NonExistant']
 __all__.extend("%s%s" % ('readfile', mode) for mode in
