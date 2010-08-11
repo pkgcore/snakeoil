@@ -2,6 +2,8 @@ Snakeoil Release Notes
 ======================
 
 
+* initial work towards jython2.5 support.
+
 * Massive amount of docstring work.  Yes, snakeoil is now documented and has
   examples.
 

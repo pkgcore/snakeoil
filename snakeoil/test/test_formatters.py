@@ -8,6 +8,7 @@
 # aside from that, tests need heavy expansion
 
 import os
+import sys
 import pty
 import StringIO
 import tempfile
@@ -22,6 +23,13 @@ if compatibility.is_py3k:
 
 else:
     mk_tempfile = tempfile.TemporaryFile
+
+if sys.version_info[:3] >= (3,2,0):
+    def issue7567(functor):
+        functor.skip = "issue 7567 patch breaks multiple term invocations, disabled till it's sorted"
+        return functor
+else:
+    issue7567 = lambda x:x
 
 
 class native_PlainTextFormatterTest(TestCase):
@@ -178,6 +186,7 @@ class TerminfoFormatterTest(TestCase):
         self.assertEqual(''.join(output), result,
             msg="given(%r), expected(%r), got(%r)" % (inputs, output, result))
 
+    @issue7567
     def test_terminfo(self):
         esc = '\x1b['
         stream = mk_tempfile()
@@ -232,21 +241,25 @@ def _get_pty_pair(encoding='ascii'):
 
 class GetFormatterTest(TestCase):
 
+    @issue7567
     def test_dumb_terminal(self):
         master, out = _get_pty_pair()
         formatter = _with_term('dumb', formatters.get_formatter, master)
         self.failUnless(isinstance(formatter, formatters.PlainTextFormatter))
 
+    @issue7567
     def test_smart_terminal(self):
         master, out = _get_pty_pair()
         formatter = _with_term('xterm', formatters.get_formatter, master)
         self.failUnless(isinstance(formatter, formatters.TerminfoFormatter))
 
+    @issue7567
     def test_not_a_tty(self):
         stream = mk_tempfile()
         formatter = _with_term('xterm', formatters.get_formatter, stream)
         self.failUnless(isinstance(formatter, formatters.PlainTextFormatter))
 
+    @issue7567
     def test_no_fd(self):
         stream = StringIO.StringIO()
         formatter = _with_term('xterm', formatters.get_formatter, stream)

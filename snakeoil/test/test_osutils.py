@@ -97,7 +97,7 @@ class CPyReaddirTest(NativeReaddirTest):
         skip = "cpython extension isn't available"
 
 
-class EnsureDirsTest(TempDirMixin, TestCase):
+class EnsureDirsTest(TempDirMixin):
 
     def check_dir(self, path, uid, gid, mode):
         self.assertTrue(os.path.isdir(path))
@@ -162,7 +162,7 @@ class EnsureDirsTest(TempDirMixin, TestCase):
         self.check_dir(path, os.geteuid(), os.getegid(), 0777)
 
 
-class SymlinkTest(TempDirMixin, TestCase):
+class SymlinkTest(TempDirMixin):
 
     def test_abssymlink(self):
         target = pjoin(self.dir, 'target')
@@ -234,7 +234,7 @@ class Cpy_JoinTest(TestCase):
 
 
 # TODO: more error condition testing
-class FsLockTest(TempDirMixin, TestCase):
+class FsLockTest(TempDirMixin):
 
     def test_nonexistant(self):
         self.assertRaises(osutils.NonExistant, osutils.FsLock,
@@ -287,7 +287,7 @@ def cpy_setup_class(scope, func_name):
         scope['func'] = staticmethod(getattr(osutils, func_name))
 
 
-class native_readfile_Test(TempDirMixin, TestCase):
+class native_readfile_Test(TempDirMixin):
     func = staticmethod(osutils.native_readfile)
 
     test_cases = ['asdf\nfdasswer\1923',
@@ -490,3 +490,18 @@ class TestAccess(TempDirMixin):
         self.assertTrue(self.func(fp, os.R_OK))
         self.assertTrue(self.func(fp, os.W_OK|os.R_OK))
         self.assertFalse(self.func(fp, os.W_OK|os.R_OK|os.X_OK))
+
+
+class Test_unlink_if_exists(TempDirMixin):
+
+    func = staticmethod(osutils.unlink_if_exists)
+
+    def test_it(self):
+        f = self.func
+        path = pjoin(self.dir, 'target')
+        f(path)
+        open(path, 'w')
+        f(path)
+        self.assertFalse(os.path.exists(path))
+        # and once more for good measure...
+        f(path)

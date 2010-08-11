@@ -39,7 +39,8 @@ pretty quickly.
 
 __all__ = ['abspath', 'abssymlink', 'ensure_dirs', 'join', 'pjoin',
     'listdir_files', 'listdir_dirs', 'listdir',
-    'readdir', 'normpath', 'FsLock', 'GenericFailed',
+    'readdir', 'normpath', 'unlink_if_exsts',
+    'FsLock', 'GenericFailed',
     'LockException', 'NonExistant']
 __all__.extend("%s%s" % ('readfile', mode) for mode in
         ['', '_ascii', '_ascii_strict', '_bytes', '_utf8'])
@@ -533,3 +534,16 @@ if 'sunos' == os.uname()[0].lower():
     access.__name__ = 'access'
 else:
     access = os.access
+
+def unlink_if_exists(path):
+    """
+    wrap os.unlink, ignoring if the file doesn't exist
+
+    :param path: a non directory target to ensure doesn't exist
+    """
+
+    try:
+        os.unlink(path)
+    except EnvironmentError, e:
+        if e.errno != errno.ENOENT:
+            raise

@@ -390,10 +390,11 @@ class test(core.Command):
 
     user_options = [("inplace", "i", "do building/testing in place"),
         ("skip-rebuilding", "s", "skip rebuilds. primarily for development"),
-        ("disable-fork", None, "disable forking of the testloader; primarily for debugging"),
+        ("disable-fork", None, "disable forking of the testloader; primarily for debugging.  "
+            "Automatically set in jython, disabled for cpython/unladen-swallow."),
         ("namespaces=", "t", "run only tests matching these namespaces.  "
             "comma delimited"),
-        ("pure-python", None, "disable building of extensions"),
+        ("pure-python", None, "disable building of extensions.  Enabled for jython, disabled elsewhere"),
         ("force", "f", "force build_py/build_ext as needed"),
         ("include-dirs=", "I", "include dirs for build_ext if needed"),
         ]
@@ -402,9 +403,9 @@ class test(core.Command):
 
     def initialize_options(self):
         self.inplace = False
-        self.disable_fork = False
+        self.disable_fork = is_jython
         self.namespaces = ''
-        self.pure_python = False
+        self.pure_python = is_jython
         self.force = False
         self.include_dirs = None
 
@@ -457,10 +458,11 @@ class test(core.Command):
                 for mod in mods_to_wipe:
                     sys.modules.pop(mod, None)
 
-            # thank you for binding freaking sys.stderr into your prototype
-            # unittest...
-            sys.stderr.flush()
-            os.dup2(sys.stdout.fileno(), sys.stderr.fileno())
+            if not self.disable_fork:
+                # thank you for binding freaking sys.stderr into your prototype
+                # unittest...
+                sys.stderr.flush()
+                os.dup2(sys.stdout.fileno(), sys.stderr.fileno())
             args = ['setup.py', '-v']
             if self.namespaces:
                 args.extend(self.namespaces)
@@ -476,7 +478,11 @@ class test(core.Command):
         if retval:
             raise errors.DistutilsExecError("tests failed; return %i" % (retval,))
 
+# yes these are in snakeoil.compatibility; we can't rely on that module however
+# since snakeoil source is in 2k form, but this module is 2k/3k compatible.
+# in other words, it could be invoked by py3k to translate snakeoil to py3k
 is_py3k = sys.version_info >= (3,0)
+is_jython = 'java' in getattr(sys, 'getPlatform', lambda:'')().lower()
 
 def get_number_of_processors():
     try:

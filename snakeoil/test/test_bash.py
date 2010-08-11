@@ -14,7 +14,6 @@ pjoin = os.path.join
 from snakeoil.bash import (
     iter_read_bash, read_bash, read_bash_dict,
     BashParseError)
-from snakeoil.test.mixins import TempDirMixin
 
 
 class TestBashCommentStripping(TestCase):

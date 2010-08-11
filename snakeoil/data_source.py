@@ -42,10 +42,10 @@ we caught the exception.
 """
 
 __all__ = ("base", "data_source", "local_source", "text_data_source",
-    "bytes_data_source")
+    "bytes_data_source", "invokable_data_source")
 
 from snakeoil.currying import (pre_curry, alias_class_method, post_curry,
-    pretty_docs, alias_class_method)
+    pretty_docs, alias_class_method, partial)
 from snakeoil import compatibility, demandload, stringio, klass
 demandload.demandload(globals(), 'codecs')
 
@@ -347,6 +347,70 @@ else:
                 return self.data
             return self.data.decode()
 
+
+class invokable_data_source(data_source):
+
+    """
+    data source that takes a callable instead of the actual data item
+
+    The callable takes a single argument- a boolean, True if a text fileobj
+    is requested, False if None
+
+    Note that this instance is explicitly readonly.
+    """
+    __slots__ = ()
+
+    def __init__(self, data):
+        """
+        :param data: callable that accepts one arguement- True if a text
+          file obj was requested, False if a bytes file obj is requested.
+        """
+        data_source.__init__(self, data, mutable=False)
+
+    @klass.steal_docs(data_source)
+    def text_fileobj(self, writable=False):
+        if writable:
+            raise TypeError("data source %s data is immutable" % (self,))
+        return self.data(True)
+
+    @klass.steal_docs(data_source)
+    def bytes_fileobj(self, writable=False):
+        if writable:
+            raise TypeError("data source %s data is immutable" % (self,))
+        return self.data(False)
+
+    @classmethod
+    def wrap_function(cls, invokable, returns_text=True, encoding_hint=None):
+        """
+        Helper function to automatically convert a function that returns text or bytes into appropriate
+        callable
+
+        :param invokable: a callable that returns either text, or bytes, taking no args
+        :param returns_text: True if it returns text/basestring, False if Not
+        :param encoding_hint: the preferred encoding to use for encoding
+        :return: invokable_data_source instance
+        """
+        return cls(partial(cls._simple_wrapper, invokable, encoding_hint, returns_text))
+
+    @staticmethod
+    def _simple_wrapper(invokable, encoding_hint, returns_text, text_wanted):
+        data = invokable()
+        if returns_text != text_wanted:
+            if text_wanted:
+                if encoding_hint:
+                    # we have an encoding, it's bytes data, and text is wanted
+                    data = data.decode(encoding_hint)
+                else:
+                    data = data.decode()
+            elif encoding_hint:
+                # bytes were wanted.. and we have a hint
+                data = data.encode(encoding_hint)
+            else:
+                # fallback to utf-8
+                data = data.encode("utf8")
+        if text_wanted:
+            return text_ro_StringIO(data)
+        return bytes_ro_StringIO(data)
 
 def transfer_data(read_fsobj, write_fsobj, bufsize=(4096 * 16)):
     """

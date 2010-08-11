@@ -5,10 +5,12 @@ import os
 from snakeoil import data_source
 from snakeoil.test import TestCase, mixins
 from snakeoil import compatibility
-from snakeoil import stringio
+from snakeoil import stringio, currying
 
 
 class TestDataSource(TestCase):
+
+    supports_mutable = False
 
     def get_obj(self, mutable=False):
         return data_source.data_source("foonani", mutable=mutable)
@@ -17,7 +19,7 @@ class TestDataSource(TestCase):
         obj = self.get_obj()
         self.assertIdentical(obj.get_path, None)
 
-    def _test_fileobj(self, attr, converter=str):
+    def _test_fileobj_ro(self, attr, converter=str):
         obj = self.get_obj()
         # ensure that requesting mutable from an immutable isn't allowed
         self.assertRaises(TypeError, getattr(obj, attr), True)
@@ -25,6 +27,8 @@ class TestDataSource(TestCase):
         self.assertEqual(handle.read(), converter("foonani"))
         self.assertRaises(handle.exceptions, handle.write,
             converter("monkey"))
+
+    def _test_fileobj_wr(self, attr, converter=str):
 
         obj = self.get_obj(True)
         handle_f = getattr(obj, attr)
@@ -37,11 +41,16 @@ class TestDataSource(TestCase):
             converter("darnani"))
 
     def test_text_fileobj(self):
-        self._test_fileobj("text_fileobj", str)
+        self._test_fileobj_ro("text_fileobj", str)
+        if self.supports_mutable:
+            self._test_fileobj_wr("text_fileobj", str)
 
     def test_bytes_fileobj(self):
-        self._test_fileobj("bytes_fileobj",
+        self._test_fileobj_ro("bytes_fileobj",
             compatibility.force_bytes)
+        if self.supports_mutable:
+            self._test_fileobj_wr("bytes_fileobj",
+                compatibility.force_bytes)
 
     def test_get_textfileobj(self):
         # just validate we get back an obj...
@@ -77,6 +86,48 @@ class TestLocalSource(mixins.TempDirMixin, TestDataSource):
         obj = self.get_obj(data=data)
         # this will blow up if tries to ascii decode it.
         self.assertEqual(obj.get_bytes_fileobj().read(), data)
+
+
+class Test_invokable_data_source(TestDataSource):
+
+    supports_mutable = False
+
+    def get_obj(self, mutable=False, data="foonani"):
+        if isinstance(data, basestring):
+            data = data.encode("utf8")
+        return data_source.invokable_data_source(
+            currying.partial(self._get_data, data))
+
+    @staticmethod
+    def _get_data(data, is_text=False):
+        if is_text:
+            data = data.decode("utf8")
+            return data_source.text_ro_StringIO(data)
+        return data_source.bytes_ro_StringIO(data)
+
+
+class Test_invokable_data_source_wrapper_text(Test_invokable_data_source):
+
+    supports_mutable = False
+    text_mode = True
+
+    def get_obj(self, mutable=False, data="foonani"):
+        return data_source.invokable_data_source.wrap_function(
+            currying.partial(self._get_data, data),
+            self.text_mode)
+
+    def _get_data(self, data='foonani'):
+        if isinstance(data, basestring):
+            if not self.text_mode:
+                return data.encode("utf8")
+        elif self.text_mode:
+            return data.encode("utf8")
+        return data
+
+
+class Test_invokable_data_source_wrapper_bytes(Test_invokable_data_source_wrapper_text):
+
+    text_mode = False
 
 
 class Test_transfer_data(TestDataSource):

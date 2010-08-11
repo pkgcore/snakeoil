@@ -66,6 +66,12 @@ def native_all(iterable):
             return False
     return True
 
+# figure out if we're jython or not...
+is_jython = False
+if hasattr(sys, 'getPlatform'):
+    is_jython = 'java' in sys.getPlatform().lower()
+
+
 # using variable before assignment
 # pylint: disable-msg=E0601
 

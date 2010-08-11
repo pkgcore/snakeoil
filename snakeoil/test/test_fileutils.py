@@ -41,7 +41,7 @@ class TestReadBashConfig(TestCase):
             {}.fromkeys(('foo', 'foo2', 'foo3'), 'bar'))
 
 
-class TestAtomicWriteFile(TempDirMixin, TestCase):
+class TestAtomicWriteFile(TempDirMixin):
 
     kls = AtomicWriteFile
 
