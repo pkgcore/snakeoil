@@ -380,34 +380,44 @@ class invokable_data_source(data_source):
         return self.data(False)
 
     @classmethod
-    def wrap_function(cls, invokable, returns_text=True, encoding_hint=None):
+    def wrap_function(cls, invokable, returns_text=True, returns_handle=False, encoding_hint=None):
         """
         Helper function to automatically convert a function that returns text or bytes into appropriate
         callable
 
         :param invokable: a callable that returns either text, or bytes, taking no args
-        :param returns_text: True if it returns text/basestring, False if Not
+        :param returns_text: True if the data returned is text/basestring, False if Not
+        :param returns_handle: True if the object returned is a handle, False if not.  Note that returns_text
+            still has meaning here- returns_text indicates what sort of data the handle returns from read
+            invocations.
         :param encoding_hint: the preferred encoding to use for encoding
         :return: invokable_data_source instance
         """
-        return cls(partial(cls._simple_wrapper, invokable, encoding_hint, returns_text))
+        return cls(partial(cls._simple_wrapper, invokable, encoding_hint, returns_text, returns_handle))
 
     @staticmethod
-    def _simple_wrapper(invokable, encoding_hint, returns_text, text_wanted):
+    def _simple_wrapper(invokable, encoding_hint, returns_text, returns_handle, text_wanted):
         data = invokable()
         if returns_text != text_wanted:
             if text_wanted:
+                if returns_handle:
+                    data = data.read()
                 if encoding_hint:
                     # we have an encoding, it's bytes data, and text is wanted
                     data = data.decode(encoding_hint)
                 else:
                     data = data.decode()
-            elif encoding_hint:
-                # bytes were wanted.. and we have a hint
-                data = data.encode(encoding_hint)
             else:
-                # fallback to utf-8
-                data = data.encode("utf8")
+                # bytes were wanted...
+                if returns_handle:
+                    # pull in the data...
+                    data = data.read()
+                if encoding_hint is None:
+                    # fallback to utf8
+                    encoding_hint = 'utf8'
+                data = data.encode(encoding_hint)
+        elif returns_handle:
+            return data
         if text_wanted:
             return text_ro_StringIO(data)
         return bytes_ro_StringIO(data)

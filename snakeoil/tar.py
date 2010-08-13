@@ -94,6 +94,12 @@ class TarInfo(tarfile.TarInfo):
 
     uname = property(get_uname, set_uname)
 
+# add in a tweaked ExFileObject that is usable by snakeoil.data_source
+class ExFileObject(tarfile.ExFileObject):
+
+    exceptions = (EnvironmentError,)
+
+tarfile.fileobject = ExFileObject
 
 tarfile.TarInfo = TarInfo
 # python 2.6
