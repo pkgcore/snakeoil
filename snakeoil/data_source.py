@@ -398,6 +398,11 @@ class invokable_data_source(data_source):
     @staticmethod
     def _simple_wrapper(invokable, encoding_hint, returns_text, returns_handle, text_wanted):
         data = invokable()
+        if not compatibility.is_py3k:
+            # there is no bytes/text under py2k, just str, so use raw handles
+            if not returns_handle:
+                data = text_ro_StringIO(data)
+            return data
         if returns_text != text_wanted:
             if text_wanted:
                 if returns_handle:
