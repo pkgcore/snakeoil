@@ -1,0 +1,5 @@
+build
+*.pyo
+*.pyc
+snakeoil/*.so
+snakeoil/osutils/*.so
