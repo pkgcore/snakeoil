@@ -36,35 +36,6 @@ else:
     bzrbin = "bzr"
 
 
-def write_bzr_verinfo(destination):
-    log.info('generating bzr_verinfo')
-    f = open(destination, 'w')
-    try:
-        if subprocess.call(['bzr', 'version-info', '--format=python'],
-                           stdout=f):
-            raise errors.DistutilsExecError('bzr version-info failed')
-        # HACK: insert the current tag, if possible.
-        try:
-            from bzrlib import branch, errors as ebzr
-        except ImportError:
-            log.warn('cannot import bzrlib trying to determine tag')
-            return
-
-        try:
-            b = branch.Branch.open_containing(__file__)[0]
-        except ebzr.NotBranchError:
-            log.warn('not a branch (%s) trying to determine tag' % (__file__,))
-            return
-
-        if b.supports_tags():
-            tags = b.tags.get_reverse_tag_dict().get(b.last_revision())
-            if tags:
-                f.write("version_info['tags'] = %r\n" % (tags,))
-
-    finally:
-        f.close()
-
-
 class sdist(dst_sdist.sdist):
 
     """sdist command specifying the right files and generating ChangeLog."""
