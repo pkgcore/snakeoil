@@ -234,11 +234,8 @@ class build_py(dst_build_py.build_py):
 
         assert proc_count >= 1
 
-        if proc_count > 1:
-            try:
-                import multiprocessing
-            except ImportError:
-                proc_count == 1
+        if proc_count > 1 and not caching_2to3.multiprocessing_available:
+            proc_count = 1
 
         refactor_kls = caching_2to3.MultiprocessRefactoringTool
 

@@ -88,8 +88,17 @@ class caching_mixin(object):
 class RefactoringTool(caching_mixin, lib2to3.refactor.RefactoringTool):
     pass
 
-class MultiprocessRefactoringTool(caching_mixin, lib2to3.refactor.MultiprocessRefactoringTool):
-    pass
+multiprocessing_available = False
+try:
+    import multiprocessing
+    # this is to detect python upstream bug 3770
+    from _multiprocessing import SemLock
+    multiprocessing_available = True
+except ImportError:
+    MultiprocessRefactoringTool = RefactoringTool
+else:
+    class MultiprocessRefactoringTool(caching_mixin, lib2to3.refactor.MultiprocessRefactoringTool):
+        pass
 
 
 def StdoutRefactoringTool(*args):

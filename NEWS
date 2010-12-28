@@ -58,6 +58,10 @@ Snakeoil Release Notes
   other sequence where it evaluates false.
 
 
+* detect python bug 3770 (gentoo bug 330511), and disable multiprocessing
+  for 2to3 conversion if it's found.
+
+
 snakeoil 0.3.7: June 26th, 2010
 
 * detect python bug 4660, and disable parallelization in 2to3 conversion if
@@ -70,6 +74,7 @@ snakeoil 0.3.7: June 26th, 2010
 * snakeoil.mappings.defaultdict; compatibility implementation, defaults to
   collections.defaultdict for >=python-2.5, a native python implementation
   for 2.4
+
 
 
 snakeoil 0.3.6.5: May 21st, 2010
