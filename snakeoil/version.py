@@ -9,14 +9,17 @@ __version__ = '0.3.7'
 
 _ver = None
 
-def get_git_version():
+def get_git_version(cwd=__file__):
     """:return: git sha1 rev"""
     import subprocess, os
 
     env = dict(os.environ)
     env["LC_CTYPE"] = "C"
-    
-    r = subprocess.Popen(["git", "log", "HEAD^..HEAD"], stdout=subprocess.PIPE, env=env)
+
+    r = subprocess.Popen(["git", "log", "HEAD^..HEAD"], stdout=subprocess.PIPE,
+        stderr=None,
+        env=env,
+        cwd=os.path.dirname(os.path.abspath(cwd)))
     if r.wait() != 0:
         return "unknown (couldn't identify from git)"
     data = r.stdout.read().split("\n")
