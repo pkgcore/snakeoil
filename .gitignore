@@ -1,5 +1,7 @@
 build
+dist
 *.pyo
 *.pyc
 snakeoil/*.so
 snakeoil/osutils/*.so
+_trial_temp
