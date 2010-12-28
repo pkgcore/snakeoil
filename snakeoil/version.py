@@ -4,11 +4,25 @@
 
 """Version information (tied to bzr)."""
 
-import os
 
 __version__ = '0.3.7'
 
 _ver = None
+
+def get_git_version():
+    """:return: git sha1 rev"""
+    import subprocess, os
+
+    env = dict(os.environ)
+    env["LC_CTYPE"] = "C"
+    
+    r = subprocess.Popen(["git", "log", "HEAD^..HEAD"], stdout=subprocess.PIPE, env=env)
+    if r.wait() != 0:
+        return "unknown (couldn't identify from git)"
+    data = r.stdout.read().split("\n")
+    commit = [x.split()[-1] for x in data if x.startswith("commit")][0]
+    date = [x.split(":", 1)[-1].lstrip() for x in data if x.lower().startswith("date")][0]
+    return "git rev %s, date %s" % (commit, date)
 
 def get_version():
     """:return: a string describing the snakeoil version."""
@@ -17,23 +31,10 @@ def get_version():
         return _ver
 
     try:
-        from snakeoil.bzr_verinfo import version_info
+        from snakeoil._verinfo import version_info
     except ImportError:
-        try:
-            from bzrlib import branch, errors
-        except ImportError:
-            ver = 'unknown (not from an sdist tarball, bzr unavailable)'
-        else:
-            try:
-                # Returns a (branch, relpath) tuple, ignore relpath.
-                b = branch.Branch.open_containing(os.path.realpath(__file__))[0]
-            except errors.NotBranchError:
-                ver = 'unknown (not from an sdist tarball, not a bzr branch)'
-            else:
-                ver = '%s:%s %s' % (b.nick, b.revno(), b.last_revision())
-    else:
-        ver = '%(branch_nick)s:%(revno)s %(revision_id)s' % version_info
+        version_info = get_git_version()
 
-    _ver = 'snakeoil %s\n(bzr rev %s)' % (__version__, ver)
+    _ver = 'snakeoil %s\n(%s)' % (__version__, version_info)
 
     return _ver
