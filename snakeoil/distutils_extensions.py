@@ -89,7 +89,7 @@ class sdist(dst_sdist.sdist):
 
     def initialize_options(self):
         dst_sdist.sdist.initialize_options(self)
-        self.changelog = True
+        self.changelog = False
         self.changelog_start = None
 
     def get_file_list(self):
@@ -153,12 +153,11 @@ class sdist(dst_sdist.sdist):
         return 'tag:%s' % (tags[0][1],)
 
     def generate_bzr_verinfo(self, base_dir):
-        log.info('generating bzr_verinfo')
-        if subprocess.call(
-            [bzrbin, 'version-info', '--format=python'],
-            stdout=open(os.path.join(
-                    base_dir, self.package_namespace, 'bzr_verinfo.py'), 'w')):
-            raise errors.DistutilsExecError('bzr version-info failed')
+        log.info('generating _verinfo')
+        from snakeoil.version import get_git_version
+        val = get_git_version(base_dir)
+        open(os.path.join(base_dir, self.package_namespace, '_verinfo.py'), 'w').write(
+            'version_info="""%s"""\n' % (val.strip(),))
 
     def make_release_tree(self, base_dir, files):
         """Create and populate the directory tree that is put in source tars.
