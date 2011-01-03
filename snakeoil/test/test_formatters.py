@@ -24,13 +24,13 @@ if compatibility.is_py3k:
 else:
     mk_tempfile = tempfile.TemporaryFile
 
-if sys.version_info[:3] >= (3,2,0):
+sys_ver = sys.version_info[:3]
+if (sys_ver >= (2,6,6) and sys_ver < (2,7)) or sys_ver >= (3,2,0):
     def issue7567(functor):
         functor.skip = "issue 7567 patch breaks multiple term invocations, disabled till it's sorted"
         return functor
 else:
     issue7567 = lambda x:x
-
 
 class native_PlainTextFormatterTest(TestCase):
 
@@ -214,6 +214,9 @@ class TerminfoFormatterTest(TestCase):
         self.assertRaises(
             formatters.TerminfoHatesOurTerminal,
             formatters.TerminfoFormatter, stream, term='dumb')
+
+    if sys_ver >= (2,6,6) and sys_ver < (2,7):
+        test_terminfo_hates_term.skip = "issue doesn't exist for 2.6.6 till 2.7"
 
 
 def _with_term(term, func, *args, **kwargs):
