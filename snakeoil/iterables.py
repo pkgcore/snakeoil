@@ -8,7 +8,16 @@ Collection of functionality to make using iterators transparently easier
 __all__ = ("expandable_chain", "caching_iter", "iter_sort")
 
 from collections import deque
-from itertools import islice
+from itertools import islice, chain
+
+# py2.4/py2.5 comptatibility
+def chain_from_iterable(iterable):
+    for subiterable in iterable:
+        for item in subiterable:
+            yield item
+
+chain_from_iterable = getattr(chain, 'from_iterable', chain_from_iterable)
+
 
 class expandable_chain(object):
     """

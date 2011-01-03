@@ -1,10 +1,11 @@
 # Copyright: 2006 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
-import operator
+import operator, sys, itertools
 
 from snakeoil.test import TestCase
-from snakeoil.iterables import expandable_chain, caching_iter, iter_sort
+from snakeoil.iterables import (expandable_chain, caching_iter, iter_sort,
+    chain_from_iterable)
 from snakeoil import compatibility
 
 class ExpandableChainTest(TestCase):
@@ -142,3 +143,22 @@ class iter_sortTest(TestCase):
             list(iter_sort(
                     f, *[iter(xrange(x, x+10)) for x in (30, 20, 0, 10)])),
             list(xrange(40)))
+
+
+class Test_chain_from_iterables(TestCase):
+
+    func = staticmethod(chain_from_iterable)
+    def test_compat(self):
+        self.assertEqual(self.func, itertools.chain.from_iterable)
+
+    def test_functionality(self):
+        self.assertEqual(
+            list(self.func(iter(x) for x in
+                [[0], [1,2,3], [4,5,6], [7,8,9]]
+            )),
+            list(xrange(10)))
+
+    if float(sys.version[:3]) < 2.6:
+        test_compat.skip = "chain.from_iterable doesn't exist in <2.6"
+    else:
+        test_functionality.skip = "in py >=2.6, chain.from_iterable is used"

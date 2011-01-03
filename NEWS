@@ -2,6 +2,9 @@ Snakeoil Release Notes
 ======================
 
 
+* added snakeoil.iterables.chain_from_iterable; this is compatibility for
+  py2.4/py2.5, in >=py2.6 it just uses itertools.chain.from.iterable .
+
 * initial work towards jython2.5 support.
 
 * Massive amount of docstring work.  Yes, snakeoil is now documented and has
