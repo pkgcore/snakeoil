@@ -123,7 +123,7 @@ class sdist(dst_sdist.sdist):
         tags = tags[max(len(tags) - last_n_tags, 0):]
         return 'tag:%s' % (tags[0][1],)
 
-    def generate_bzr_verinfo(self, base_dir):
+    def generate_verinfo(self, base_dir):
         log.info('generating _verinfo')
         from snakeoil.version import get_git_version
         val = get_git_version(base_dir)
@@ -153,7 +153,7 @@ class sdist(dst_sdist.sdist):
                 [bzrbin, 'log', '--verbose'] + args,
                 stdout=open(os.path.join(base_dir, 'ChangeLog'), 'w')):
                 raise errors.DistutilsExecError('bzr log failed')
-        self.generate_bzr_verinfo(base_dir)
+        self.generate_verinfo(base_dir)
         self.cleanup_post_release_tree(base_dir)
 
     def cleanup_post_release_tree(self, base_dir):
