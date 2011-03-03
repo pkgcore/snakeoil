@@ -4,6 +4,7 @@
 
 from snakeoil.test import TestCase
 from snakeoil import demandload
+import sre_constants
 
 
 class ParserTest(TestCase):
@@ -94,7 +95,14 @@ class DemandCompileRegexpTest(TestCase):
 
     def test_demand_compile_regexp(self):
         scope = {}
-        placeholder = demandload.demand_compile_regexp(scope, 'foo', 'frob')
-        self.assertEqual({}, scope)
-        self.assertEqual('frob', placeholder.pattern)
+        demandload.demand_compile_regexp(scope, 'foo', 'frob')
+        self.assertEqual(scope.keys(), ['foo'])
         self.assertEqual('frob', scope['foo'].pattern)
+        self.assertEqual('frob', scope['foo'].pattern)
+
+        # verify it's delayed via a bad regex.
+        demandload.demand_compile_regexp(scope, 'foo', 'f(')
+        self.assertEqual(scope.keys(), ['foo'])
+        # should blow up on accessing an attribute.
+        obj = scope['foo']
+        self.assertRaises(sre_constants.error, getattr, obj, 'pattern')

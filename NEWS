@@ -2,6 +2,10 @@ Snakeoil Release Notes
 ======================
 
 
+* demandload.demand_compile_regexp no longer returns the placeholder- instead
+  it injects the placeholder directly into the scope, just like demandload
+  does.
+
 * added snakeoil.iterables.chain_from_iterable; this is compatibility for
   py2.4/py2.5, in >=py2.6 it just uses itertools.chain.from.iterable .
 
