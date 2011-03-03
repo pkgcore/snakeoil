@@ -139,11 +139,10 @@ class LimitedChangeSet(SetMixin):
         self._new = set(initial_keys)
         self._validater = key_validator
         if unchangable_keys is None:
-            self._blacklist = []
-        else:
-            if isinstance(unchangable_keys, (list, tuple)):
-                unchangable_keys = set(unchangable_keys)
-            self._blacklist = unchangable_keys
+            unchangable_keys = frozenset()
+        elif isinstance(unchangable_keys, (list, tuple)):
+            unchangable_keys = frozenset(unchangable_keys)
+        self._blacklist = unchangable_keys
         self._changed = set()
         self._change_order = []
         self._orig = frozenset(self._new)
