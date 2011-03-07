@@ -270,10 +270,17 @@ def mk_cpy_loadable_testcase(extension_namespace, trg_namespace=None,
                 return
 
             target_scope = modules.load_module(self.namespace)
-            obj = extension
+            ext_obj = extension
+            ext_full_name = self.ext_namespace
             if self.src_attribute is not None:
-                obj = getattr(obj, self.src_attribute)
+                ext_obj = getattr(ext_obj, self.src_attribute)
+                ext_full_name += '.%s' % (self.src_attribute,)
 
-            self.assertIdentical(obj, getattr(target_scope, self.trg_attribute))
+            trg_obj = getattr(target_scope, self.trg_attribute)
+            self.assertIdentical(ext_obj, trg_obj,
+                "expected to find object from %r at '%s.%s', but what's there "
+                    "isn't from the extension" % 
+                    (ext_full_name, self.namespace, self.trg_attribute)
+                )
 
     return TestCPY_Loaded
