@@ -12,7 +12,9 @@ __all__ = ('SkipTest', 'TestCase')
 import sys
 import warnings
 import unittest
+import os
 from snakeoil.compatibility import is_py3k_like
+from snakeoil import modules
 
 def _tryResultCall(result, methodname, *args):
     method = getattr(result, methodname, None)
@@ -244,3 +246,19 @@ class TestCase(unittest.TestCase, object):
 
         finally:
             result.stopTest(self)
+
+
+def mk_cpy_loadable_testcase(target_namespace):
+    class TestCPY_Loaded(TestCase):
+        namespace = target_namespace
+
+        def test_it(self):
+            dname, bname = self.namespace.rsplit(".", 1)
+            dir_mod = modules.load_module(dname)
+            fp = os.path.join(os.path.dirname(dir_mod.__file__), '%s.so' % (bname,))
+            if not os.path.exists(fp):
+                raise SkipTest("for extension %r, path %r doesn't exist" %
+                    (self.namespace, fp))
+            extension = modules.load_module(self.namespace)
+
+    return TestCPY_Loaded
