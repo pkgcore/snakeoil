@@ -478,3 +478,36 @@ class defaultdictkeyTest(TestCase):
         self.assertEqual(d.items(), [(0, [0])])
         self.assertEqual(d[0], [0])
         self.assertIdentical(d[0], val)
+
+
+class Test_attr_to_item_mapping(TestCase):
+
+    kls = mappings.AttrAccessible
+    inject = staticmethod(mappings.inject_getitem_as_getattr)
+
+    def assertBoth(self, instance, key, value):
+        self.assertEqual(getattr(instance, key), value)
+        self.assertEqual(instance[key], value)
+
+    def test_AttrAccessible(self, kls=None):
+        if kls is None:
+            kls = self.kls
+        o = kls(f=2, g=3)
+        self.assertEqual(['f', 'g'], sorted(o))
+        self.assertBoth(o, 'g', 3)
+        o.g = 4
+        self.assertBoth(o, 'g', 4)
+        del o.g
+        self.assertRaises(KeyError, operator.__getitem__,
+            o, 'g')
+        self.assertRaises(AttributeError, getattr, o, 'g')
+        del o['f']
+        self.assertRaises(KeyError, operator.__getitem__,
+            o, 'f')
+        self.assertRaises(AttributeError, getattr, o, 'f')
+
+    def test_inject(self):
+        class foon(dict):
+            self.inject(locals())
+
+        self.test_AttrAccessible(foon)

@@ -2,6 +2,11 @@ Snakeoil Release Notes
 ======================
 
 
+* mappings.inject_getitem_as_getattr, and AttrAccessible were added.  The
+  former is for modifying a class so that attribute access is proxied to
+  item access (including rewriting KeyError to AttributeError); the latter
+  is a general usable class for this.
+
 * mappings.ListBackedDict and mappings.TupleBackedDict have been removed.
 
 * demandload.demand_compile_regexp no longer returns the placeholder- instead

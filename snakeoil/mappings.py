@@ -9,7 +9,7 @@ Miscellanious mapping related classes and functionality
 
 __all__ = ("autoconvert_py3k_methods_metaclass", "DictMixin", "LazyValDict",
     "LazyFullValLoadDict", "ProtectedDict", "ImmutableDict", "IndeterminantDict",
-    "defaultdict", "defaultdictkey")
+    "defaultdict", "defaultdictkey", "AttrAccessible")
 
 import operator, sys
 from itertools import imap, chain, ifilterfalse, izip
@@ -733,3 +733,57 @@ class defaultdictkey(defaultdict):
     def __missing__(self, key):
         obj = self[key] = self.default_factory(key)
         return obj
+
+
+def _KeyError_to_Attr(functor):
+    def inner(self, *args):
+        try:
+            return functor(self, *args)
+        except KeyError:
+            raise AttributeError(args[0])
+    inner.__name__ = functor.__name__
+    inner.__doc__ = functor.__doc__
+    return inner
+
+
+def inject_getitem_as_getattr(scope):
+    """modify a given class scope proxying attr access to dict access
+
+    If the given scope already has __getattr__, __setattr__, or __delattr__,
+    the pre-existing method will not be overriden.
+
+    Example usage:
+
+    >>> class my_options(dict):
+    ...    inject_getitem_as_getattr(locals())
+    >>>
+    >>> d = my_options(asdf=1)
+    >>> print d.asdf
+    1
+    >>> d.asdf = 2
+    >>> print d.asdf
+    2
+    >>> del d.asdf
+    >>> print 'asdf' in d
+    False
+    >>> print hasattr(d, 'asdf')
+    False
+
+    :param scope: the scope of a class to modify, adding methods as needed
+    """
+
+    scope.setdefault('__getattr__',
+        _KeyError_to_Attr(operator.__getitem__))
+    scope.setdefault('__delattr__',
+        _KeyError_to_Attr(operator.__delitem__))
+    scope.setdefault('__setattr__',
+        _KeyError_to_Attr(operator.__setitem__))
+
+
+class AttrAccessible(dict):
+
+    """simple dict class allowing instance.x and instance['x'] access"""
+
+    __slots__ = ()
+
+    inject_getitem_as_getattr(locals())
