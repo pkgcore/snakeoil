@@ -194,4 +194,5 @@ else:
     CPY_TestWeakInstMeta = gen_test(type)
     CPY_TestWeakInstMeta.skip = "cpython extension isn't available"
 
-cpy_loaded_Test = mk_cpy_loadable_testcase("snakeoil._caching")
+cpy_loaded_Test = mk_cpy_loadable_testcase("snakeoil._caching",
+    "snakeoil.caching", "WeakInstMeta", "WeakInstMeta")

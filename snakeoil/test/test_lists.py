@@ -186,4 +186,5 @@ class predicate_split_Test(TestCase):
         self.assertEqual(false_l, [[0, x] for x in xrange(1, 100, 2)])
         self.assertEqual(true_l, [[0, x] for x in range(0, 100, 2)])
 
-cpy_loaded_Test = mk_cpy_loadable_testcase("snakeoil._lists")
+cpy_loaded_Test = mk_cpy_loadable_testcase("snakeoil._lists",
+    "snakeoil.lists", "iflatten_func", "iflatten_func")

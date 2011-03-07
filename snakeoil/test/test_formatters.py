@@ -268,4 +268,5 @@ class GetFormatterTest(TestCase):
         formatter = _with_term('xterm', formatters.get_formatter, stream)
         self.failUnless(isinstance(formatter, formatters.PlainTextFormatter))
 
-cpy_loaded_Test = mk_cpy_loadable_testcase("snakeoil._formatters")
+cpy_loaded_Test = mk_cpy_loadable_testcase("snakeoil._formatters",
+    "snakeoil.formatters", "StreamClosed", "StreamClosed")

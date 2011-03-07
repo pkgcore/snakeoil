@@ -279,7 +279,7 @@ def mk_cpy_loadable_testcase(extension_namespace, trg_namespace=None,
             trg_obj = getattr(target_scope, self.trg_attribute)
             self.assertIdentical(ext_obj, trg_obj,
                 "expected to find object from %r at '%s.%s', but what's there "
-                    "isn't from the extension" % 
+                    "isn't from the extension" %
                     (ext_full_name, self.namespace, self.trg_attribute)
                 )
 

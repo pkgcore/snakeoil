@@ -524,4 +524,5 @@ class test_cpy_reflective_hash(test_native_reflective_hash):
     if klass.reflective_hash is klass.native_reflective_hash:
         skip = "cpython extension isn't available"
 
-cpy_loaded_Test = mk_cpy_loadable_testcase("snakeoil._klass")
+cpy_loaded_Test = mk_cpy_loadable_testcase("snakeoil._klass",
+    "snakeoil.klass", "reflective_hash", "reflective_hash")
