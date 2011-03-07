@@ -506,5 +506,6 @@ class Test_unlink_if_exists(TempDirMixin):
         # and once more for good measure...
         f(path)
 
-cpy_readdir_loaded_Test = mk_cpy_loadable_testcase("snakeoil.osutils._readdir")
+cpy_readdir_loaded_Test = mk_cpy_loadable_testcase("snakeoil.osutils._readdir",
+    "snakeoil.osutils", "listdir", "listdir")
 cpy_posix_loaded_Test = mk_cpy_loadable_testcase("snakeoil.osutils._posix")
