@@ -1,7 +1,7 @@
 # Copyright: 2006 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
-from snakeoil.test import TestCase
+from snakeoil.test import TestCase, mk_cpy_loadable_testcase
 from snakeoil import caching
 import gc
 
@@ -194,3 +194,4 @@ else:
     CPY_TestWeakInstMeta = gen_test(type)
     CPY_TestWeakInstMeta.skip = "cpython extension isn't available"
 
+cpy_loaded_Test = mk_cpy_loadable_testcase("snakeoil._caching")

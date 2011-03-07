@@ -9,7 +9,7 @@ import stat
 import fcntl
 import codecs
 
-from snakeoil.test import TestCase, SkipTest
+from snakeoil.test import TestCase, SkipTest, mk_cpy_loadable_testcase
 from snakeoil import osutils, compatibility, currying
 from snakeoil.osutils import native_readdir
 from snakeoil.test.mixins import TempDirMixin
@@ -505,3 +505,6 @@ class Test_unlink_if_exists(TempDirMixin):
         self.assertFalse(os.path.exists(path))
         # and once more for good measure...
         f(path)
+
+cpy_readdir_loaded_Test = mk_cpy_loadable_testcase("snakeoil.osutils._readdir")
+cpy_posix_loaded_Test = mk_cpy_loadable_testcase("snakeoil.osutils._posix")

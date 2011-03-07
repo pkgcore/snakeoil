@@ -13,7 +13,7 @@ import pty
 import StringIO
 import tempfile
 
-from snakeoil.test import TestCase
+from snakeoil.test import TestCase, mk_cpy_loadable_testcase
 from snakeoil import formatters, compatibility
 
 if compatibility.is_py3k:
@@ -267,3 +267,5 @@ class GetFormatterTest(TestCase):
         stream = StringIO.StringIO()
         formatter = _with_term('xterm', formatters.get_formatter, stream)
         self.failUnless(isinstance(formatter, formatters.PlainTextFormatter))
+
+cpy_loaded_Test = mk_cpy_loadable_testcase("snakeoil._formatters")

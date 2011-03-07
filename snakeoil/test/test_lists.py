@@ -2,7 +2,7 @@
 # License: BSD/GPL2
 
 
-from snakeoil.test import TestCase
+from snakeoil.test import TestCase, mk_cpy_loadable_testcase
 from snakeoil import lists
 from snakeoil.mappings import OrderedDict
 from operator import itemgetter
@@ -185,3 +185,5 @@ class predicate_split_Test(TestCase):
             ([0, x] for x in xrange(100)), key=itemgetter(1))
         self.assertEqual(false_l, [[0, x] for x in xrange(1, 100, 2)])
         self.assertEqual(true_l, [[0, x] for x in range(0, 100, 2)])
+
+cpy_loaded_Test = mk_cpy_loadable_testcase("snakeoil._lists")

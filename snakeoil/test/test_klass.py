@@ -1,7 +1,7 @@
 # Copyright: 2006-2007 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
-from snakeoil.test import TestCase
+from snakeoil.test import TestCase, mk_cpy_loadable_testcase
 from snakeoil import klass, currying
 from snakeoil.compatibility import cmp, is_py3k
 from time import time
@@ -523,3 +523,5 @@ class test_cpy_reflective_hash(test_native_reflective_hash):
     kls = staticmethod(klass.reflective_hash)
     if klass.reflective_hash is klass.native_reflective_hash:
         skip = "cpython extension isn't available"
+
+cpy_loaded_Test = mk_cpy_loadable_testcase("snakeoil._klass")
