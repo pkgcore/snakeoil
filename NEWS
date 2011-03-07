@@ -2,6 +2,8 @@ Snakeoil Release Notes
 ======================
 
 
+* mappings.ListBackedDict and mappings.TupleBackedDict have been removed.
+
 * demandload.demand_compile_regexp no longer returns the placeholder- instead
   it injects the placeholder directly into the scope, just like demandload
   does.
