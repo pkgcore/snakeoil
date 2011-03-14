@@ -1,5 +1,5 @@
 /*
- * Copyright: 2006-2007 Brian Harring <ferringb@gmail.com>
+ * Copyright: 2006-2011 Brian Harring <ferringb@gmail.com>
  * License: GPL2/BSD
  *
  * C version of some of snakeoil (for extra speed).
@@ -686,18 +686,7 @@ PyDoc_STRVAR(
 PyMODINIT_FUNC
 init_posix(void)
 {
-	PyObject *s = PyString_FromString("os");
-	if(!s)
-		return;
-
-	PyObject *mos = PyImport_Import(s);
-	Py_DECREF(s);
-	if(!mos)
-		return;
-	snakeoil_stat_float_times = PyObject_GetAttrString(mos, "stat_float_times");
-	Py_DECREF(mos);
-	if(!snakeoil_stat_float_times)
-		return;
+	snakeoil_LOAD_SINGLE_ATTR(snakeoil_stat_float_times, "os", "stat_float_times");
 
 	snakeoil_empty_tuple = PyTuple_New(0);
 	if(!snakeoil_empty_tuple)
