@@ -1,6 +1,6 @@
 /*
- * Copyright: 2006 Brian Harring <ferringb@gmail.com>
- * License: GPL2
+ * Copyright: 2006-2011 Brian Harring <ferringb@gmail.com>
+ * License: BSD 3 clause
  *
  * common macros.
  */
@@ -127,5 +127,47 @@ func##_get_descr(PyObject *self, PyObject *obj, PyObject *type)		 \
 																		\
 _snakeoil_FUNC_DESC(meth_name, class_name, func, methargs,			   \
 	func##_get_descr)
+
+
+#define snakeoil_LOAD_MODULE2(module, namespace, failure_code) 	\
+Py_CLEAR((module));												\
+if (! ((module) = PyImport_ImportModule(namespace))) {			\
+	failure_code;												\
+}
+
+#define snakeoil_LOAD_MODULE(module, namespace)					\
+snakeoil_LOAD_MODULE2((module), (namespace), return)
+
+#define snakeoil_LOAD_ATTR2(target, module, attr, failure_code)	\
+Py_XDECREF((target));											\
+if (! ((target) = PyObject_GetAttrString((module), (attr))) ) {	\
+	Py_XDECREF((module));										\
+	failure_code;												\
+}																\
+
+#define snakeoil_LOAD_ATTR(target, module, attr)				\
+snakeoil_LOAD_ATTR2((target), (module), (attr), return)
+
+#define snakeoil_LOAD_SINGLE_ATTR2(target, namespace, attr,		\
+	failure_code)												\
+{																\
+	PyObject *_m = NULL;										\
+	snakeoil_LOAD_MODULE2(_m, (namespace), failure_code);		\
+	snakeoil_LOAD_ATTR2((target), _m, (attr), failure_code);	\
+	Py_DECREF(_m);												\
+}
+
+#define snakeoil_LOAD_SINGLE_ATTR(target, namespace, attr)		\
+snakeoil_LOAD_SINGLE_ATTR2((target), (namespace), (attr), return)
+
+#define snakeoil_LOAD_STRING2(target, char_p, failure_code)		\
+if (!(target)) {												\
+	if (! ((target) = PyString_FromString((char_p)))) {			\
+		failure_code;											\
+	}															\
+}
+
+#define snakeoil_LOAD_STRING(target, char_p)					\
+snakeoil_LOAD_STRING2((target), (char_p), return)
 
 #endif
