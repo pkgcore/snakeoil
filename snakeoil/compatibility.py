@@ -54,6 +54,7 @@ __all__ = ("all", "any", "is_py3k", "is_py3k_like", "next",
 
 import sys
 
+
 def native_any(iterable):
     for x in iterable:
         if x:
@@ -151,3 +152,13 @@ else:
         return list_inst.sort(cmp=func, key=key, reverse=reverse)
 
     force_bytes = str
+
+def native_is_disjoint(src_set, sequence):
+    return not src_set.intersection(sequence)
+
+if hasattr(set(), 'isdisjoint'):
+    # python2.6 and up.
+    from snakeoil.currying import alias_class_method
+    is_disjoint = alias_class_method("isdisjoint")
+else:
+    is_disjoint = native_is_disjoint
