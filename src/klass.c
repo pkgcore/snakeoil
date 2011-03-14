@@ -1,5 +1,5 @@
 /*
- * Copyright: 2006-2007 Brian Harring <ferringb@gmail.com>
+ * Copyright: 2006-2011 Brian Harring <ferringb@gmail.com>
  * License: GPL2/BSD
  *
  * C version of some of snakeoil (for extra speed).
@@ -1281,23 +1281,9 @@ init_klass(void)
 	if (PyType_Ready(&snakeoil_generic_equality_ne_type) < 0)
 		return;
 
-	if(!snakeoil_equality_attr) {
-		if(!(snakeoil_equality_attr = PyString_FromString(
-			"__attr_comparison__")))
-			return;
-	}
-
-	if(!snakeoil__orig_attr) {
-		if(!(snakeoil__orig_attr = PyString_FromString(
-			"_orig")))
-			return;
-	}
-
-	if(!snakeoil__new_attr) {
-		if(!(snakeoil__new_attr = PyString_FromString(
-			"_new")))
-			return;
-	}
+	snakeoil_LOAD_STRING(snakeoil_equality_attr, "__attr_comparison__");
+	snakeoil_LOAD_STRING(snakeoil__orig_attr, "_orig");
+	snakeoil_LOAD_STRING(snakeoil__new_attr, "_new");
 
 
 #define ADD_TYPE_INSTANCE(type_ptr, name)				   \
