@@ -1,5 +1,5 @@
 /*
- * Copyright: 2006-2007 Brian Harring <ferringb@gmail.com>
+ * Copyright: 2006-2011 Brian Harring <ferringb@gmail.com>
  * Copyright: 2006 Marien Zwart <marienz@gentoo.org>
  * License: GPL2/BSD
  *
@@ -13,8 +13,7 @@
 
 #define PY_SSIZE_T_CLEAN
 
-#include <Python.h>
-#include "snakeoil/py24-compatibility.h"
+#include "snakeoil/common.h"
 
 static PyObject *snakeoil_caching_disable_str = NULL;
 
@@ -671,15 +670,7 @@ init_caching(void)
 	if (PyType_Ready(&snakeoil_WeakValFinalizerType) < 0)
 		return;
 
-	if (!snakeoil_caching_disable_str) {
-		if (!(snakeoil_caching_disable_str =
-			PyString_FromString("disable_inst_caching")))
-			/* We can just return here, since the only way to get at
-			 * this is through snakeoil_WeakInstMeta_call and that
-			 * cannot be accessed yet.
-			 */
-			return;
-	}
+	snakeoil_LOAD_STRING(snakeoil_caching_disable_str, "disable_inst_caching");
 
 	Py_INCREF(&snakeoil_WeakInstMetaType);
 	if (PyModule_AddObject(
