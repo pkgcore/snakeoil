@@ -3,7 +3,7 @@ Snakeoil Release Notes
 
 
 * for any consumers of snakeoil's common header, for py2.4/py2.5 we've added
-  suppression of the segfault potential for Py_CLEAR(tmp); see 
+  suppression of the segfault potential for Py_CLEAR(tmp); see
   http://mail.python.org/pipermail/python-bugs-list/2008-July/055285.html
   for the sordid details.
 
