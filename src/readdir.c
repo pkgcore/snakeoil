@@ -1,5 +1,5 @@
 /*
- * Copyright: 2006 Brian Harring <ferringb@gmail.com>
+ * Copyright: 2006-2011 Brian Harring <ferringb@gmail.com>
  * Copyright: 2006-2007 Marien Zwart <marienz@gentoo.org>
  * License: GPL2/BSD
  *
@@ -13,7 +13,7 @@
 
 #define PY_SSIZE_T_CLEAN
 
-#include "Python.h"
+#include "snakeoil/common.h"
 
 /* Compatibility with python < 2.5 */
 
@@ -367,25 +367,14 @@ init_readdir(void)
 	/* XXX we have to initialize these before we call InitModule3 because
 	 * the snakeoil_readdir_methods use them, which screws up error handling.
 	 */
-	snakeoil_DIRSTR = PyString_FromString("directory");
-	snakeoil_CHRSTR = PyString_FromString("chardev");
-	snakeoil_BLKSTR = PyString_FromString("block");
-	snakeoil_REGSTR = PyString_FromString("file");
-	snakeoil_FIFOSTR = PyString_FromString("fifo");
-	snakeoil_LNKSTR = PyString_FromString("symlink");
-	snakeoil_SOCKSTR = PyString_FromString("socket");
-	snakeoil_UNKNOWNSTR = PyString_FromString("unknown");
-
-	if (!(snakeoil_DIRSTR &&
-		  snakeoil_CHRSTR &&
-		  snakeoil_BLKSTR &&
-		  snakeoil_REGSTR &&
-		  snakeoil_FIFOSTR &&
-		  snakeoil_LNKSTR &&
-		  snakeoil_SOCKSTR &&
-		  snakeoil_UNKNOWNSTR)) {
-		Py_FatalError("Can't initialize module _readdir (strings)");
-	}
+	snakeoil_LOAD_STRING(snakeoil_DIRSTR, "directory");
+	snakeoil_LOAD_STRING(snakeoil_CHRSTR, "chardev");
+	snakeoil_LOAD_STRING(snakeoil_BLKSTR, "block");
+	snakeoil_LOAD_STRING(snakeoil_REGSTR, "file");
+	snakeoil_LOAD_STRING(snakeoil_FIFOSTR, "fifo");
+	snakeoil_LOAD_STRING(snakeoil_LNKSTR, "symlink");
+	snakeoil_LOAD_STRING(snakeoil_SOCKSTR, "socket");
+	snakeoil_LOAD_STRING(snakeoil_UNKNOWNSTR, "unknown");
 
 	/* Create the module and add the functions */
 	m = Py_InitModule3("_readdir", snakeoil_readdir_methods,
