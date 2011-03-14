@@ -1,5 +1,6 @@
 /*
  * Copyright: 2006 Marien Zwart <marienz@gentoo.org>
+ * Copyright: 2010-2011 Brian Harring <ferringb@gmail.com>
  * License: GPL2/BSD
  *
  * C version of some of snakeoil (for extra speed).
@@ -11,9 +12,7 @@
  */
 
 #define PY_SSIZE_T_CLEAN
-
-#include "Python.h"
-#include "snakeoil/py24-compatibility.h"
+#include "snakeoil/common.h"
 
 
 /* Helper functions */
