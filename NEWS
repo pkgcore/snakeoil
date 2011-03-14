@@ -2,6 +2,11 @@ Snakeoil Release Notes
 ======================
 
 
+* for any consumers of snakeoil's common header, for py2.4/py2.5 we've added
+  suppression of the segfault potential for Py_CLEAR(tmp); see 
+  http://mail.python.org/pipermail/python-bugs-list/2008-July/055285.html
+  for the sordid details.
+
 * mappings.inject_getitem_as_getattr, and AttrAccessible were added.  The
   former is for modifying a class so that attribute access is proxied to
   item access (including rewriting KeyError to AttributeError); the latter
