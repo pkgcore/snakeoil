@@ -18,6 +18,7 @@
  * it's horrible, but it seems best for this case.
  */
 
+#undef Py_CLEAR
 #define Py_CLEAR(op)                            \
 do {                                        \
 	if (op) {                               \
