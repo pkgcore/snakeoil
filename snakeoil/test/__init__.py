@@ -151,7 +151,9 @@ class TestCase(unittest.TestCase, object):
     def assertRaises(self, excClass, callableObj, *args, **kwargs):
         try:
             callableObj(*args, **kwargs)
-        except (RuntimeError, SystemExit, KeyboardInterrupt):
+        except (RuntimeError, SystemExit, KeyboardInterrupt), e:
+            if isinstance(e, excClass):
+                return
             raise
         except excClass:
             return
