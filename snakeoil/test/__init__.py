@@ -159,7 +159,7 @@ class TestCase(unittest.TestCase, object):
             tb = traceback.format_exc()
 
             new_exc = AssertionError("expected an exception of %r type from invocation of-\n"
-                "%s(*%r, **%r)\n\ngot %s" % (excClass, callableObj, args,
+                "%s(*%r, **%r)\n\ninstead, got the following traceback:\n%s" % (excClass, callableObj, args,
                 kwargs, tb))
             new_exc.__cause__ = e
             new_exc.__traceback__ = tb
