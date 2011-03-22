@@ -12,6 +12,7 @@ __all__ = ('SkipTest', 'TestCase')
 import sys
 import warnings
 import unittest
+import traceback
 import os
 from snakeoil.compatibility import is_py3k_like
 from snakeoil import modules
@@ -146,6 +147,23 @@ class TestCase(unittest.TestCase, object):
         if reflective:
             self.assertTrue(not (obj1 == obj2),
                 msg or 'not (%r == %r)' % (obj1, obj2))
+
+    def assertRaises(self, excClass, callableObj, *args, **kwargs):
+        try:
+            callableObj(*args, **kwargs)
+        except (RuntimeError, SystemExit, KeyboardInterrupt):
+            raise
+        except excClass:
+            return
+        except Exception, e:
+            tb = traceback.format_exc()
+
+            new_exc = AssertionError("expected an exception of %r type from invocation of-\n"
+                "%s(*%r, **%r)\n\ngot %s" % (excClass, callableObj, args,
+                kwargs, tb))
+            new_exc.__cause__ = e
+            new_exc.__traceback__ = tb
+            raise new_exc
 
     def assertRaisesMsg(self, msg, excClass, callableObj, *args, **kwargs):
         """Fail unless an exception of class excClass is thrown
