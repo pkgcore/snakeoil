@@ -13,7 +13,7 @@ involved in writing classes.
 __all__ = ("generic_equality", "reflective_hash", "inject_richcmp_methods_from_cmp",
     "static_attrgetter", "instance_attrgetter", "jit_attr", "jit_attr_none",
     "jit_attr_named", "jit_attr_ext_method", "alias_attr", "cached_hash",
-    "steal_docs")
+    "steal_docs", "immutable_instance", "inject_immutable_instance")
 
 from operator import attrgetter
 from snakeoil.caching import WeakInstMeta
@@ -478,3 +478,27 @@ def steal_docs(target_class, ignore_missing=False):
                 raise
         return functor
     return inner
+
+def _immutable_setattr(self, attr, value):
+    raise AttributeError(self, attr)
+
+def _immutable_delattr(self, attr):
+    raise AttributeError(self, attr)
+
+def immutable_instance(name, bases, scope, real_type=type):
+    """metaclass that makes instances of this class effectively immutable
+
+    It still is possible to do object.__setattr__ to get around it during
+    initialization, but usage of this class effectively prevents accidental
+    modification, instead requiring explicit modification."""
+    inject_immutable_instance(scope)
+    return real_type(name, bases, scope)
+
+def inject_immutable_instance(scope):
+    """inject immutable __setattr__ and __delattr__ implementations
+
+    see immutable_instance for further details
+    :param scope: mapping to modify, inserting __setattr__ and __delattr__
+        methods if they're not yet defined"""
+    scope.setdefault("__setattr__", _immutable_setattr)
+    scope.setdefault("__delattr__", _immutable_delattr)

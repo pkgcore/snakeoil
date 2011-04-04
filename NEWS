@@ -2,6 +2,11 @@ Snakeoil Release Notes
 ======================
 
 
+* added snakeoil.klass.immutable_instance metaclass and an equivalent inject
+  function for modifying the scope.  These are used to avoid classes adhoc'ing
+  the same sort of functionality, rarely throwing appropriate/standardized
+  exceptions.
+
 * for any consumers of snakeoil's common header, for py2.4/py2.5 we've added
   suppression of the segfault potential for Py_CLEAR(tmp); see
   http://mail.python.org/pipermail/python-bugs-list/2008-July/055285.html

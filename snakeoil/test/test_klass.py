@@ -524,5 +524,46 @@ class test_cpy_reflective_hash(test_native_reflective_hash):
     if klass.reflective_hash is klass.native_reflective_hash:
         skip = "cpython extension isn't available"
 
+
 cpy_loaded_Test = mk_cpy_loadable_testcase("snakeoil._klass",
     "snakeoil.klass", "reflective_hash", "reflective_hash")
+
+
+class TestImmutableInstance(TestCase):
+
+    def test_metaclass(self):
+        def f(scope):
+            scope["__metaclass__"] = klass.immutable_instance
+
+        self.common_test(f)
+
+    def test_injection(self):
+
+        def f(scope):
+            klass.inject_immutable_instance(scope)
+
+        self.common_test(f)
+
+
+    def common_test(self, modify_kls):
+        class kls(object):
+            modify_kls(locals())
+
+        o = kls()
+        self.assertRaises(AttributeError, setattr, o, "dar", "foon")
+        self.assertRaises(AttributeError, delattr, o, "dar")
+
+        object.__setattr__(o, 'dar', 'foon')
+        self.assertRaises(AttributeError, delattr, o, "dar")
+
+        # ensure it only sets it if nothing is in place already.
+
+        class kls(object):
+            def __setattr__(self, attr, value):
+                raise TypeError(self)
+
+            modify_kls(locals())
+
+        o = kls()
+        self.assertRaises(TypeError, setattr, o, "dar", "foon")
+        self.assertRaises(AttributeError, delattr, o, "dar")
