@@ -1,11 +1,11 @@
-# Copyright: 2010 Brian Harring <ferringb@gmail.com>
+# Copyright: 2011 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
 
 """Version information (tied to git)."""
 
 
-__version__ = '0.3.7'
+__version__ = '0.4'
 
 _ver = None
 
