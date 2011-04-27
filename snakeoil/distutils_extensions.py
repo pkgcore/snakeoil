@@ -243,7 +243,8 @@ class build_py(dst_build_py.build_py):
         f = refactor_kls(fixer_names, options=options).refactor
 
         def f2(*args, **kwds):
-            kwds['num_processes'] = proc_count
+            if caching_2to3.multiprocessing_available:
+                kwds['num_processes'] = proc_count
             return f(*args, **kwds)
 
         return f2

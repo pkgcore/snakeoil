@@ -1,6 +1,10 @@
 Snakeoil Release Notes
 ======================
 
+
+* handle differing lib2to3 dependant on multiprocessing existance.
+
+
 snakeoil 0.4: April 24th, 2011
 
 * added snakeoil.klass.immutable_instance metaclass and an equivalent inject
