@@ -502,3 +502,20 @@ def inject_immutable_instance(scope):
         methods if they're not yet defined"""
     scope.setdefault("__setattr__", _immutable_setattr)
     scope.setdefault("__delattr__", _immutable_delattr)
+
+def alias_method(name):
+    """alias a method
+
+    This is both useful for maintaining api, and for exposing a method
+    on an attribute through it's parent.  For example:
+
+    >>> from snakeoil.klass import alias_method
+    >>> class foon(object):
+    ...   def __init__(self, value):
+    ...     self.value = value
+    ...   __len__ = alias_method("value.__len__")
+    >>>
+    >>> assert len("asdf") == len(foon("asdf"))
+    """
+    return property(instance_attrgetter(name),
+        doc="method alias for %s" % (name,))
