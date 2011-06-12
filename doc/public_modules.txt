@@ -23,6 +23,7 @@ snakeoil.stringio
 snakeoil.struct_compat
 snakeoil.tar
 snakeoil.test
+snakeoil.test.mixins
 snakeoil.version
 snakeoil.weakrefs
 snakeoil.xml
