@@ -411,7 +411,8 @@ def alias_attr(target_attr):
     >>> print o.recursive == foo.seq.__hash__
     True
     """
-    return property(instance_attrgetter(target_attr))
+    return property(instance_attrgetter(target_attr),
+        doc="alias to %s" % (target_attr,))
 
 def cached_hash(func):
     """
