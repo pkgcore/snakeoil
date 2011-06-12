@@ -44,8 +44,7 @@ we caught the exception.
 __all__ = ("base", "data_source", "local_source", "text_data_source",
     "bytes_data_source", "invokable_data_source")
 
-from snakeoil.currying import (pre_curry, alias_class_method, post_curry,
-    pretty_docs, alias_class_method, partial)
+from snakeoil.currying import pre_curry, post_curry, pretty_docs, partial
 from snakeoil import compatibility, demandload, stringio, klass
 demandload.demandload(globals(), 'codecs')
 
@@ -168,12 +167,12 @@ class base(object):
         """
         raise NotImplementedError(self, "bytes_fileobj")
 
-    get_fileobj = alias_class_method("text_fileobj", "get_fileobj",
+    get_fileobj = klass.alias_method("text_fileobj", "get_fileobj",
         "deprecated; use get_text_fileobj instead")
 
-    get_text_fileobj = alias_class_method("text_fileobj",
+    get_text_fileobj = klass.alias_method("text_fileobj",
         doc="deprecated; use text_fileobj directly")
-    get_bytes_fileobj = alias_class_method("bytes_fileobj",
+    get_bytes_fileobj = klass.alias_method("bytes_fileobj",
         doc="deprecated; use bytes_fileobj directed")
 
 

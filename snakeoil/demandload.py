@@ -54,7 +54,7 @@ __all__ = ("demandload", "demand_compile_regexp")
 import os
 from snakeoil.modules import load_any
 from snakeoil.currying import partial
-from snakeoil.compatibility import is_py3k
+from snakeoil import compatibility
 
 # There are some demandloaded imports below the definition of demandload.
 
@@ -100,7 +100,7 @@ def parse_imports(imports):
                 yield tuple(split)
             else:
                 split = split[0]
-                if is_py3k:
+                if compatibility.is_py3k:
                     if isinstance(py3k_translate.get(split, None), str):
                         yield py3k_translate[split], split
                     else:
@@ -112,7 +112,7 @@ def parse_imports(imports):
             base, targets = fromlist
             if not base.translate(_allowed_chars).isspace():
                 raise ValueError("bad target: %s" % base)
-            if is_py3k:
+            if compatibility.is_py3k:
                 if isinstance(py3k_translate.get(base, None), str):
                     base = py3k_translate[base]
             for target in targets.split(','):
@@ -120,7 +120,7 @@ def parse_imports(imports):
                 for s in split:
                     if not s.translate(_allowed_chars).isspace():
                         raise ValueError("bad target: %s" % s)
-                if is_py3k:
+                if compatibility.is_py3k:
                     split[0] = py3k_translate.get(base, {}).get(split[0], split[0])
                 yield base + '.' + split[0], split[-1]
 

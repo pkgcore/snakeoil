@@ -1,4 +1,4 @@
-# Copyright: 2006-2010 Brian Harring <ferringb@gmail.com>
+# Copyright: 2006-2011 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
 """
@@ -13,12 +13,12 @@ involved in writing classes.
 __all__ = ("generic_equality", "reflective_hash", "inject_richcmp_methods_from_cmp",
     "static_attrgetter", "instance_attrgetter", "jit_attr", "jit_attr_none",
     "jit_attr_named", "jit_attr_ext_method", "alias_attr", "cached_hash",
-    "steal_docs", "immutable_instance", "inject_immutable_instance")
+    "steal_docs", "immutable_instance", "inject_immutable_instance",
+    "alias_method")
 
 from operator import attrgetter
-from snakeoil.caching import WeakInstMeta
-from snakeoil.compatibility import is_py3k
-from snakeoil.currying import partial, alias_class_method, post_curry
+from snakeoil import caching, compatibility
+from snakeoil.currying import partial, post_curry
 from collections import deque
 import sys
 
@@ -243,7 +243,7 @@ def inject_richcmp_methods_from_cmp(scope, inject_always=False):
     >>> assert foo(1, 1).__eq__(foo(1, 1))
     """
 
-    if not (inject_always or is_py3k):
+    if not (inject_always or compatibility.is_py3k):
         return
     for key, func in (("__lt__", generic_lt), ("__le__", generic_le),
         ("__eq__", generic_eq), ("__ne__", generic_ne),
@@ -294,7 +294,7 @@ class chained_getter(object):
     __fifo_cache__ = deque()
     __inst_caching__ = True
     __attr_comparison__ = ("namespace",)
-    __metaclass__ = partial(generic_equality, real_type=WeakInstMeta)
+    __metaclass__ = partial(generic_equality, real_type=caching.WeakInstMeta)
 
     def __init__(self, namespace):
         """
@@ -381,7 +381,7 @@ def jit_attr_ext_method(func_name, stored_attr_name,
     Generally speaking, you only need this when you are doing something rather *special*.
     """
 
-    return kls(alias_class_method(func_name), stored_attr_name,
+    return kls(alias_method(func_name), stored_attr_name,
         uncached_val, use_cls_setattr)
 
 def alias_attr(target_attr):
@@ -504,19 +504,33 @@ def inject_immutable_instance(scope):
     scope.setdefault("__setattr__", _immutable_setattr)
     scope.setdefault("__delattr__", _immutable_delattr)
 
-def alias_method(name):
-    """alias a method
+def alias_method(attr, name=None, doc=None):
+    """at runtime, redirect to another method
 
-    This is both useful for maintaining api, and for exposing a method
-    on an attribute through it's parent.  For example:
+    This is primarily useful for when compatibility, or a protocol requires
+    you to have the same functionality available at multiple spots- for example
+    :py:func:`dict.has_key` and :py:func:`dict.__contains__`.
+
+    :param attr: attribute to redirect to
+    :param name: ``__name__`` to force for the new method if desired
+    :param doc: ``__doc__`` to force for the new method if desired
 
     >>> from snakeoil.klass import alias_method
     >>> class foon(object):
-    ...   def __init__(self, value):
-    ...     self.value = value
-    ...   __len__ = alias_method("value.__len__")
-    >>>
-    >>> assert len("asdf") == len(foon("asdf"))
+    ...   def orig(self):
+    ...     return 1
+    ...   alias = alias_method("orig")
+    >>> obj = foon()
+    >>> assert obj.orig() == obj.alias()
+    >>> assert obj.alias() == 1
     """
-    return property(instance_attrgetter(name),
-        doc="method alias for %s" % (name,))
+    grab_attr = static_attrgetter(attr)
+
+    def _asecond_level_call(self, *a, **kw):
+        return grab_attr(self)(*a, **kw)
+
+    if doc:
+        _asecond_level_call.__doc__ = doc
+    if name:
+        _asecond_level_call.__name__ = name
+    return _asecond_level_call

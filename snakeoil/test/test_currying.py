@@ -149,11 +149,15 @@ class PostCurryTest(TestCase):
         test = Test()
         self.assertEqual(((test, 'test'), {}), test.method())
 
-class TestAliasClassAttr(TestCase):
+
+class TestAliasClassMethod(TestCase):
+
+    func = staticmethod(currying.alias_class_method)
+
     def test_alias_class_method(self):
         class kls(object):
             __len__ = lambda s: 3
-            lfunc = currying.alias_class_method("__len__")
+            lfunc = self.func("__len__")
 
         c = kls()
         self.assertEqual(c.__len__(), c.lfunc())

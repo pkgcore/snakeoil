@@ -193,22 +193,7 @@ def pretty_docs(wrapped, extradocs=None, name=None):
 def alias_class_method(attr, name=None, doc=None):
     """at runtime, redirect to another method
 
-    This is primarily useful for when compatibility, or a protocol requires
-    you to have the same functionality available at multiple spots- for example
-    :py:func:`dict.has_key` and :py:func:`dict.__contains__`.
-
-    :param attr: attribute to redirect to
-    :param name: ``__name__`` to force for the new method if desired
-    :param doc: ``__doc__`` to force for the new method if desired
-
-    >>> from snakeoil.currying import alias_class_method
-    >>> class foon(object):
-    ...   def orig(self):
-    ...     return 1
-    ...   alias = alias_class_method("orig")
-    >>> obj = foon()
-    >>> assert obj.orig() == obj.alias()
-    >>> assert obj.alias() == 1
+    Deprecated.  Use snakeoil.klass.alias_method instead.
     """
     grab_attr = attrgetter(attr)
 

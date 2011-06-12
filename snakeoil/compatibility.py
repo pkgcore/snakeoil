@@ -1,4 +1,4 @@
-# Copyright: 2006-2010 Brian Harring <ferringb@gmail.com>
+# Copyright: 2006-2011 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
 """
@@ -158,7 +158,7 @@ def native_is_disjoint(src_set, sequence):
 
 if hasattr(set(), 'isdisjoint'):
     # python2.6 and up.
-    from snakeoil.currying import alias_class_method
-    is_disjoint = alias_class_method("isdisjoint")
+    def is_disjoint(instance, *args):
+        return instance.isdisjoint(*args)
 else:
     is_disjoint = native_is_disjoint
