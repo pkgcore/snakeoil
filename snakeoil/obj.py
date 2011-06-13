@@ -82,10 +82,8 @@ __all__ = ("DelayedInstantiation", "DelayedInstantiation_kls", "make_SlottedDict
 from operator import attrgetter
 from snakeoil.currying import pre_curry, pretty_docs
 from snakeoil.mappings import DictMixin
-from snakeoil import compatibility
+from snakeoil import compatibility, klass
 
-def _alias_method(getter, self, *a, **kwd):
-    return getter(self.__obj__)(*a, **kwd)
 
 # for our proxy, we have two sets of descriptors-
 # common, "always there" descriptors that come from
@@ -146,7 +144,7 @@ class BaseDelayedObject(object):
             obj = object.__getattribute__(self, '__instantiate_proxy_instance__')()
 
         if attr == "__obj__":
-            # special casing for _alias_method
+            # special casing for klass.alias_method
             return obj
         return getattr(obj, attr)
 
@@ -159,8 +157,8 @@ class BaseDelayedObject(object):
 
     # special case the normal descriptors
     for x in base_kls_descriptors:
-        locals()[x] = pretty_docs(pre_curry(_alias_method, attrgetter(x)),
-            getattr(getattr(object, x), '__doc__', None), x)
+        locals()[x] = klass.alias_method("__obj__.%s" % (x,),
+            doc=getattr(getattr(object, x), '__doc__', None))
     del x
 
 
@@ -199,7 +197,7 @@ kls_descriptors = frozenset([
 if base_kls_descriptors_compat:
     kls_descriptors = kls_descriptors.difference(base_kls_descriptors_compat)
 
-descriptor_overrides = dict((k, pre_curry(_alias_method, attrgetter(k)))
+descriptor_overrides = dict((k, klass.alias_method("__obj__.%s" % (k,)))
     for k in kls_descriptors)
 
 _method_cache = {}
