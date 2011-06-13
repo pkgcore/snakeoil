@@ -26,8 +26,8 @@ sha256_size = 64
 
 def loop_over_file(filename, *objs):
     if isinstance(filename, base_data_source):
-        if filename.get_path is not None:
-            filename = filename.get_path()
+        if filename.path is not None:
+            filename = filename.path
         else:
             filename = filename.get_bytes_fileobj()
     wipeit = False
@@ -226,8 +226,8 @@ if 'md5' not in chksum_types:
 
             def __call__(self, filename):
                 if isinstance(filename, base_data_source):
-                    if filename.get_path is not None:
-                        filename = filename.get_path()
+                    if filename.path is not None:
+                        filename = filename.path
                 if isinstance(filename, basestring) and fchksum is not None:
                     return long(fchksum.fmd5t(filename)[0], 16)
                 return loop_over_file(filename, md5.new)[0]
@@ -292,8 +292,8 @@ class SizeChksummer(Chksummer):
 
     def __call__(self, file_obj):
         if isinstance(file_obj, base_data_source):
-            if file_obj.get_path is not None:
-                file_obj = file_obj.get_path()
+            if file_obj.path is not None:
+                file_obj = file_obj.path
             else:
                 file_obj = file_obj.get_fileobj()
         if isinstance(file_obj, basestring):
