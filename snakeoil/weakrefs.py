@@ -38,6 +38,7 @@ class WeakRefProxy(BaseDelayedObject):
         obj.__enable_finalization__(weakref)
         return obj
 
+
 def __enable_finalization__(self, weakref):
     # note we directly access the class, to ensure the instance hasn't overshadowed.
     self.__class__.__finalizer_weakrefs__[id(self)] = weakref

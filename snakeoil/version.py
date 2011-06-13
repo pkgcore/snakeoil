@@ -27,6 +27,7 @@ def get_git_version(cwd=__file__):
     date = [x.split(":", 1)[-1].lstrip() for x in data if x.lower().startswith("date")][0]
     return "git rev %s, date %s" % (commit, date)
 
+
 def get_version():
     """:return: a string describing the snakeoil version."""
     global _ver

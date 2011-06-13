@@ -343,8 +343,10 @@ class TerminfoDisabled(Exception):
     """
     pass
 
+
 class _BogusTerminfo(ValueError):
     """Used internally."""
+
 
 class TerminfoHatesOurTerminal(Exception):
 

@@ -194,11 +194,13 @@ kls_descriptors = frozenset([
         # remaining...
         '__call__'])
 
+
 if base_kls_descriptors_compat:
     kls_descriptors = kls_descriptors.difference(base_kls_descriptors_compat)
 
 descriptor_overrides = dict((k, klass.alias_method("__obj__.%s" % (k,)))
     for k in kls_descriptors)
+
 
 _method_cache = {}
 def make_kls(kls, proxy_base=BaseDelayedObject):
@@ -218,6 +220,7 @@ def make_kls(kls, proxy_base=BaseDelayedObject):
         _method_cache[key] = o
     return o
 
+
 def DelayedInstantiation_kls(kls, *a, **kwd):
     """
     wrapper for DelayedInstantiation
@@ -227,6 +230,7 @@ def DelayedInstantiation_kls(kls, *a, **kwd):
     See :py:func:`DelayedInstantiation` for arguement specifics.
     """
     return DelayedInstantiation(kls, kls, *a, **kwd)
+
 
 _class_cache = {}
 def DelayedInstantiation(resultant_kls, func, *a, **kwd):
@@ -303,6 +307,7 @@ except ImportError:
     attr_contains = native_attr_contains
     attr_pop = native_attr_pop
     attr_get = native_attr_get
+
 
 slotted_dict_cache = {}
 def make_SlottedDict_kls(keys):

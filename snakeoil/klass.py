@@ -22,10 +22,12 @@ from snakeoil.currying import partial, post_curry
 from collections import deque
 import sys
 
+
 def native_GetAttrProxy(target):
     def reflected_getattr(self, attr):
         return getattr(getattr(self, target), attr)
     return reflected_getattr
+
 
 def native_contains(self, key):
     """
@@ -36,6 +38,7 @@ def native_contains(self, key):
         return True
     except KeyError:
         return False
+
 
 def native_get(self, key, default=None):
     """
@@ -62,6 +65,7 @@ def native_generic_attr_eq(inst1, inst2, sentinel=object()):
             return False
     return True
 
+
 def native_generic_attr_ne(inst1, inst2, sentinel=object()):
     """
     compare inst1 to inst2, returning True if different, False if equal.
@@ -76,6 +80,7 @@ def native_generic_attr_ne(inst1, inst2, sentinel=object()):
             return True
     return False
 
+
 def native_reflective_hash(attr):
     """
     default __hash__ implementation that returns a pregenerated hash attribute
@@ -86,6 +91,7 @@ def native_reflective_hash(attr):
     def __hash__(self):
         return getattr(self, attr)
     return __hash__
+
 
 class _native_internal_jit_attr(object):
 
@@ -178,6 +184,7 @@ def generic_equality(name, bases, scope, real_type=type,
     scope.setdefault("__ne__", ne)
     return real_type(name, bases, scope)
 
+
 def generic_lt(self, other):
     """generic implementation of __lt__ that uses __cmp__"""
     return self.__cmp__(other) < 0
@@ -201,6 +208,7 @@ def generic_ge(self, other):
 def generic_gt(self, other):
     """reflective implementation of __gt__ that uses __cmp__"""
     return self.__cmp__(other) > 0
+
 
 def inject_richcmp_methods_from_cmp(scope, inject_always=False):
     """
@@ -330,6 +338,7 @@ static_attrgetter = instance_attrgetter = chained_getter
 if sys.version_info >= (2,6):
     static_attrgetter = attrgetter
 
+
 _uncached_singleton = object()
 
 def jit_attr(func, kls=_internal_jit_attr, uncached_val=_uncached_singleton):
@@ -384,6 +393,7 @@ def jit_attr_ext_method(func_name, stored_attr_name,
     return kls(alias_method(func_name), stored_attr_name,
         uncached_val, use_cls_setattr)
 
+
 def alias_attr(target_attr):
     """
     return a property that will alias access to target_attr
@@ -413,6 +423,7 @@ def alias_attr(target_attr):
     """
     return property(instance_attrgetter(target_attr),
         doc="alias to %s" % (target_attr,))
+
 
 def cached_hash(func):
     """
@@ -445,6 +456,7 @@ def cached_hash(func):
             object.__setattr__(self, '_hash', val)
         return val
     return __hash__
+
 
 def steal_docs(target_class, ignore_missing=False):
     """
@@ -480,6 +492,7 @@ def steal_docs(target_class, ignore_missing=False):
         return functor
     return inner
 
+
 def _immutable_setattr(self, attr, value):
     raise AttributeError(self, attr)
 
@@ -503,6 +516,7 @@ def inject_immutable_instance(scope):
         methods if they're not yet defined"""
     scope.setdefault("__setattr__", _immutable_setattr)
     scope.setdefault("__delattr__", _immutable_delattr)
+
 
 def alias_method(attr, name=None, doc=None):
     """at runtime, redirect to another method

@@ -16,6 +16,7 @@ from snakeoil import compatibility
 from snakeoil.weakrefs import WeakRefFinalizer
 from snakeoil.bash import *
 
+
 class AtomicWriteFile_mixin(object):
 
     """File class that stores the changes in a tempfile.
@@ -90,6 +91,7 @@ class AtomicWriteFile_mixin(object):
     def __del__(self):
         self.discard()
 
+
 if not compatibility.is_py3k:
 
     class AtomicWriteFile(AtomicWriteFile_mixin, file):
@@ -123,6 +125,7 @@ else:
             # use object.__getattribute__ to ensure we don't go recursive
             # here if initialization failed during init
             return getattr(object.__getattribute__(self, 'raw'), attr)
+
 
 def read_dict(bash_source, splitter="=", source_isiter=False,
     allow_inline_comments=True):

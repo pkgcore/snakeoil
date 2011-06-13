@@ -15,10 +15,12 @@ import errno
 import subprocess
 import unittest
 
+
 from distutils import core, ccompiler, log, errors
 from distutils.command import (
     sdist as dst_sdist, build_ext as dst_build_ext, build_py as dst_build_py,
     build as dst_build)
+
 
 class OptionalExtension(core.Extension):
     """python extension that is optional to build.
@@ -29,6 +31,7 @@ class OptionalExtension(core.Extension):
     be built vs what would be nice to have built.
     """
     pass
+
 
 if os.name == "nt":
     bzrbin = "bzr.bat"

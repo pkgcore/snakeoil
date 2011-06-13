@@ -38,6 +38,7 @@ import sys
 __all__ = ("pre_curry", "partial", "post_curry", "pretty_docs",
     "alias_class_method")
 
+
 def pre_curry(func, *args, **kwargs):
     """passed in args are prefixed, with further args appended
 
@@ -142,9 +143,11 @@ def force_epydoc_partial_awareness(only_if_loaded=True):
             mod.register_introspecter(_epydoc_isroutine_override,
                 mod.introspect_routine, priority=26)
 
+
 force_inspect_partial_awareness()
 force_pydoc_partial_awareness()
 force_epydoc_partial_awareness()
+
 
 def post_curry(func, *args, **kwargs):
     """passed in args are appended to any further args supplied"""

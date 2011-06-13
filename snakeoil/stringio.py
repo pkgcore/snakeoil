@@ -33,8 +33,10 @@ __all__ = ('text_readonly', 'text_writable', 'bytes_readonly', 'bytes_writable')
 
 from snakeoil import compatibility, currying
 
+
 def _generic_immutable_method(attr, self, *a, **kwds):
     raise TypeError("%s isn't opened for writing" % (self,))
+
 
 def _make_ro_cls(base_cls, name):
     class kls(base_cls):

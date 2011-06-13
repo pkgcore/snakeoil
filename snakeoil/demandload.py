@@ -133,6 +133,7 @@ def _noisy_protection():
     val = os.environ.get("SNAKEOIL_DEMANDLOAD_WARN", "y").lower()
     return val in ("yes", "true", "1", "y")
 
+
 class Placeholder(object):
 
     """Object that knows how to replace itself when first accessed.

@@ -53,6 +53,7 @@ from snakeoil.currying import pre_curry
 
 __all__ = ("ForcedDepends",)
 
+
 def _ensure_deps(cls_id, name, func, self, *a, **kw):
     ignore_deps = kw.pop("ignore_deps", False)
     if id(self.__class__) != cls_id:
@@ -128,6 +129,7 @@ def __unwrap_stage_dependencies__(cls):
         f2 = getattr(f, 'sd_raw_func', x)
         setattr(cls, x, getattr(f, 'sd_raw_func', f))
 
+
 def __set_stage_state__(self, state):
     """set the completed stages to this sequence
 
@@ -138,6 +140,7 @@ def __set_stage_state__(self, state):
       this should be used only when you know what you're doing
     """
     self._stage_state = set(state)
+
 
 def __stage_step_callback__(self, stage):
     """callback invoked whenever a stage is completed with the completed stage name"""

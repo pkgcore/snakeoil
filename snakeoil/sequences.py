@@ -4,6 +4,7 @@
 from snakeoil.lists import *
 from operator import itemgetter
 
+
 class base_namedtuple(tuple):
 
     __slots__ = ()
@@ -11,6 +12,7 @@ class base_namedtuple(tuple):
 
     def __new__(cls, *values):
         return super(base_namedtuple, cls).__new__(cls, values)
+
 
 def namedtuple(typename, field_names):
     """Returns a new subclass of tuple with named fields.

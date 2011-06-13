@@ -22,6 +22,7 @@ def chain_from_iterable(iterable):
         for item in subiterable:
             yield item
 
+
 chain_from_iterable = getattr(chain, 'from_iterable', chain_from_iterable)
 
 
@@ -212,6 +213,7 @@ class caching_iter(object):
     def __str__(self):
         return "iterable(%s), cached: %s" % (
             self.iterable, str(self.cached_list))
+
 
 def iter_sort(sorter, *iterables):
     """Merge a number of sorted iterables into a single sorted iterable.

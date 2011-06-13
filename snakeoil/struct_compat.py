@@ -10,6 +10,8 @@ It's designed to be a drop in replacement.
 
 __all__ = ("Struct", "error", "pack", "pack", "calcsize")
 
+# since we're trying to be usable in struct's place, we do a start import;
+# sucks, but is what it is.
 from struct import *
 
 class fake_struct(object):
@@ -44,6 +46,7 @@ class fake_struct(object):
 # note the struct import above; this just swaps our fake_struct in if
 # we're running <python2.5
 base_struct = locals().get('Struct', fake_struct)
+
 
 class Struct(base_struct):
 

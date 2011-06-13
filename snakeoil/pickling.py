@@ -17,6 +17,7 @@ try:
 except ImportError:
     from pickle import *
 
+
 def iter_stream(stream):
     """
     given a filehandle to consume from, yield pickled objects from it.
@@ -32,6 +33,7 @@ def iter_stream(stream):
             yield load(stream)
     except EOFError:
         pass
+
 
 def dump_stream(handle, stream):
     """

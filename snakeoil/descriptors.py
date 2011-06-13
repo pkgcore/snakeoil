@@ -6,6 +6,7 @@
 
 __all__ = ("classproperty",)
 
+
 class classproperty(object):
 
     """Like the builtin :py:func:`property` but takes a single classmethod.

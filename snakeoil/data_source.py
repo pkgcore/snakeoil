@@ -48,6 +48,7 @@ from snakeoil.currying import pre_curry, post_curry, pretty_docs, partial
 from snakeoil import compatibility, demandload, stringio, klass
 demandload.demandload(globals(), 'codecs')
 
+
 def _mk_writable_cls(base, name):
     """
     inline mixin of writable overrides
@@ -425,6 +426,7 @@ class invokable_data_source(data_source):
         if text_wanted:
             return text_ro_StringIO(data)
         return bytes_ro_StringIO(data)
+
 
 def transfer_data(read_fsobj, write_fsobj, bufsize=(4096 * 16)):
     """

@@ -654,6 +654,7 @@ class NonPreservingFoldingDict(DictMixin):
     def clear(self):
         self._dict = {}
 
+
 if sys.version_info >= (2, 5):
     from collections import defaultdict
 else:

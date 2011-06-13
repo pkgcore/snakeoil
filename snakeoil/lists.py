@@ -12,6 +12,7 @@ from itertools import imap
 from snakeoil.iterables import expandable_chain
 from snakeoil.klass import steal_docs
 
+
 def unstable_unique(sequence):
     """
     Given a sequence, return a list of the unique items without preserving ordering
@@ -53,6 +54,7 @@ def unstable_unique(sequence):
             u.append(x)
     return u
 
+
 def stable_unique(iterable):
     """
     Given a sequence, return a list of the unique items while preserving ordering
@@ -60,6 +62,7 @@ def stable_unique(iterable):
     For performance reasons, only use this if you really do need to preserve the ordering.
     """
     return list(iter_stable_unique(iterable))
+
 
 def iter_stable_unique(iterable):
     """
@@ -89,6 +92,7 @@ def iter_stable_unique(iterable):
             continue
         break
 
+
 def native_iflatten_instance(l, skip_flattening=(basestring,)):
     """
     collapse [[1],2] into [1,2]
@@ -110,6 +114,7 @@ def native_iflatten_instance(l, skip_flattening=(basestring,)):
                 yield x
     except StopIteration:
         pass
+
 
 def native_iflatten_func(l, skip_func):
     """
@@ -229,6 +234,7 @@ class ChainedLists(object):
     @steal_docs(list)
     def extend(self, items):
         self._lists.extend(items)
+
 
 def predicate_split(func, stream, key=None):
     """
