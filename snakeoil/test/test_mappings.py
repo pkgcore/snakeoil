@@ -511,3 +511,14 @@ class Test_attr_to_item_mapping(TestCase):
             self.inject(locals())
 
         self.test_AttrAccessible(foon)
+
+
+class SlottedDictTest(TestCase):
+
+    kls = staticmethod(mappings.make_SlottedDict_kls)
+
+    def test_exceptions(self):
+        d = self.kls(['spork'])()
+        for op in (operator.getitem, operator.delitem):
+            self.assertRaises(KeyError, op, d, 'spork')
+            self.assertRaises(KeyError, op, d, 'foon')

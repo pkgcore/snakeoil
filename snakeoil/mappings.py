@@ -788,3 +788,153 @@ class AttrAccessible(dict):
     __slots__ = ()
 
     inject_getitem_as_getattr(locals())
+
+
+def native_attr_getitem(self, key):
+    try:
+        return getattr(self, key)
+    except AttributeError:
+        raise KeyError(key)
+
+def native_attr_update(self, iterable):
+    for k, v in iterable:
+        setattr(self, k, v)
+
+def native_attr_contains(self, key):
+     return hasattr(self, key)
+
+def native_attr_delitem(self, key):
+     # Python does not raise anything if you delattr an
+     # unset slot (works ok if __slots__ is not involved).
+     try:
+         getattr(self, key)
+     except AttributeError:
+         raise KeyError(key)
+     delattr(self, key)
+
+def native_attr_pop(self, key, *a):
+    # faster then the exception form...
+    l = len(a)
+    if l > 1:
+        raise TypeError("pop accepts 1 or 2 args only")
+    if hasattr(self, key):
+        o = getattr(self, key)
+        object.__delattr__(self, key)
+    elif l:
+        o = a[0]
+    else:
+        raise KeyError(key)
+    return o
+
+def native_attr_get(self, key, default=None):
+    return getattr(self, key, default)
+
+try:
+    from snakeoil._klass import (attr_getitem, attr_setitem, attr_delitem,
+        attr_update, attr_contains, attr_pop, attr_get)
+except ImportError:
+    attr_getitem = native_attr_getitem
+    attr_setitem = object.__setattr__
+    attr_delitem = native_attr_delitem
+    attr_update = native_attr_update
+    attr_contains = native_attr_contains
+    attr_pop = native_attr_pop
+    attr_get = native_attr_get
+
+
+slotted_dict_cache = {}
+def make_SlottedDict_kls(keys):
+    """
+    Create a space efficient mapping class with a limited set of keys
+
+    Specifically, this function returns a class with it's __slots__ locked
+    to the passed in keys- this eliminates the allocation of a dict for the
+    instance thus avoiding the wasted memory common to dictionary overallocation-
+    for small mappings that waste is roughly 75%, for 100 item mappings it's roughly
+    95%, and for 1000 items it's roughly 84%.  Point is, it's sizable, consistantly so.
+
+    The constraint of this is that the resultant mapping has a locked set of
+    keys- you cannot add a key that wasn't allowed up front.
+
+    This functionality is primarily useful when you'll be generating many
+    dict instances, all with a common set of allowed keys.
+
+    :param keys: iterable/sequence of keys to allow in the resultant mapping
+
+    Example usage:
+
+    >>> from snakeoil.obj import make_SlottedDict_kls
+    >>> import sys
+    >>> my_kls = make_SlottedDict_kls(["key1", "key2", "key3"])
+    >>> items = (("key1", 1), ("key2", 2), ("key3",3))
+    >>> inst = dict(items)
+    >>> slotted_inst = my_kls(items)
+    >>> print sys.getsizeof(inst) # note this is python2.6 functionality
+    280
+    >>> print sys.getsizeof(slotted_inst)
+    72
+    >>> # and now for an extreme example:
+    >>> raw = dict(("attribute%i" % (x,), x) for x in xrange(1000))
+    >>> skls = make_SlottedDict_kls(raw.keys())
+    >>> print sys.getsizeof(raw)
+    49432
+    >>> sraw = skls(raw.iteritems())
+    >>> print sys.getsizeof(sraw)
+    8048
+    >>> print sraw["attribute2"], sraw["attribute3"]
+    2 3
+
+    Note that those stats are for a 64bit python 2.6.5 VM.  The stats may
+    differ for other python implementations or versions, although for cpython
+    the stats above should hold +/- a couple of bites.
+
+    Finally, it's worth noting that the stats above are the minimal savings-
+    via a side affect of the __slots__ the keys are automatically interned.
+
+    This means that if you have 100 instances floating around, for dict's
+    that costs you sizeof(key) * 100, for slotted dict instances you pay
+    sizeof(key) due to the interning.
+    """
+
+    new_keys = tuple(sorted(keys))
+    o = slotted_dict_cache.get(new_keys, None)
+    if o is None:
+        class SlottedDict(DictMixin):
+            __slots__ = new_keys
+            __externally_mutable__ = True
+
+            def __init__(self, iterables=()):
+                if iterables:
+                    self.update(iterables)
+
+            __setitem__ = attr_setitem
+            __getitem__ = attr_getitem
+            __delitem__ = attr_delitem
+            __contains__ = attr_contains
+            update = attr_update
+            pop = attr_pop
+            get = attr_get
+
+            def __iter__(self):
+                for k in self.__slots__:
+                    if hasattr(self, k):
+                        yield k
+
+            def iterkeys(self):
+                return iter(self)
+
+            def itervalues(self):
+                for k in self:
+                    yield self[k]
+
+            def clear(self):
+                for k in self:
+                    del self[k]
+
+            def __len__(self):
+                return len(self.keys())
+
+
+        o = SlottedDict
+        slotted_dict_cache[new_keys] = o
+    return o

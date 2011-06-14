@@ -2,6 +2,9 @@ Snakeoil Release Notes
 ======================
 
 
+* snakeoil.obj.make_SlottedDict_kls moved to mappings; it'll be removed from
+  snakeoil.obj in 0.5.
+
 * currying.alias_class_method is now deprecated; use klass.alias_method
   instead.
 

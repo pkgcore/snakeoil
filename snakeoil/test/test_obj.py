@@ -112,15 +112,3 @@ class TestDelayedInstantiation(TestCase):
         self.assertFalse(l, "in accessing __doc__, the instance"
             " was generated- this is a class level attribute, thus"
             " shouldn't trigger instantiation")
-
-
-SporkDict = obj.make_SlottedDict_kls(['spork'])
-
-
-class SlottedDictTest(TestCase):
-
-    def test_exceptions(self):
-        d = SporkDict()
-        for op in (operator.getitem, operator.delitem):
-            self.assertRaises(KeyError, op, d, 'spork')
-            self.assertRaises(KeyError, op, d, 'foon')
