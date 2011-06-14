@@ -184,7 +184,7 @@ class TerminfoFormatterTest(TestCase):
         stream.seek(0)
         result = stream.read()
         self.assertEqual(''.join(output), result,
-            msg="given(%r), expected(%r), got(%r)" % (inputs, output, result))
+            msg="given(%r), expected(%r), got(%r)" % (inputs, ''.join(output), result))
 
     @issue7567
     def test_terminfo(self):
