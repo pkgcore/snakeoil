@@ -13,7 +13,7 @@ import pty
 import StringIO
 import tempfile
 
-from snakeoil.test import TestCase, mk_cpy_loadable_testcase
+from snakeoil.test import TestCase, mk_cpy_loadable_testcase, protect_process
 from snakeoil import formatters, compatibility
 
 if compatibility.is_py3k:
@@ -24,13 +24,8 @@ if compatibility.is_py3k:
 else:
     mk_tempfile = tempfile.TemporaryFile
 
-sys_ver = sys.version_info[:3]
-if (sys_ver >= (2,6,6) and (sys_ver < (2,7) or sys_ver >= (2,7,1))) or sys_ver >= (3,2,0):
-    def issue7567(functor):
-        functor.skip = "issue 7567 patch breaks multiple term invocations, disabled till it's sorted"
-        return functor
-else:
-    issue7567 = lambda x:x
+# protect against python issu 7567 for the curses module.
+issue7567 = protect_process
 
 class native_PlainTextFormatterTest(TestCase):
 
@@ -214,9 +209,6 @@ class TerminfoFormatterTest(TestCase):
         self.assertRaises(
             formatters.TerminfoHatesOurTerminal,
             formatters.TerminfoFormatter, stream, term='dumb')
-
-    if sys_ver >= (2,6,6) and sys_ver < (2,7):
-        test_terminfo_hates_term.skip = "issue doesn't exist for 2.6.6 till 2.7"
 
 
 def _with_term(term, func, *args, **kwargs):
