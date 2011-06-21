@@ -12,8 +12,10 @@ __all__ = ('SkipTest', 'TestCase')
 import sys
 import warnings
 import unittest
+from snakeoil import unittest_extensions
 import traceback
 import os
+import subprocess
 from snakeoil.compatibility import is_py3k_like
 from snakeoil import modules
 
@@ -304,3 +306,42 @@ def mk_cpy_loadable_testcase(extension_namespace, trg_namespace=None,
                 )
 
     return TestCPY_Loaded
+
+_PROTECT_ENV_VAR = "SNAKEOIL_UNITTEST_PROTECT_PROCESS"
+
+def protect_process(functor, name=None):
+    def _inner_run(self, name=name):
+        if os.environ.get(_PROTECT_ENV_VAR, False):
+            return functor(self)
+        if name is None:
+            name = "%s.%s.%s" % (self.__class__.__module__, self.__class__.__name__, method_name)
+        runner_path = unittest_extensions.__file__
+        if runner_path.endswith(".pyc") or runner_path.endswith(".pyo"):
+            runner_path = '%s.py' % (runner_path.rsplit(".")[0],)
+        wipe = _PROTECT_ENV_VAR not in os.environ
+        try:
+            os.environ[_PROTECT_ENV_VAR] = "yes"
+            args = [sys.executable, unittest_extensions.__file__, name]
+            p = subprocess.Popen(args, shell=False, env=os.environ.copy(), stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT)
+            stdout, stderr = p.communicate()
+            ret = p.wait()
+            self.assertEqual(0, ret,
+                msg="subprocess run: %r\nnon zero exit: %s\nstdout:%s\n" % (args, ret, stdout))
+        finally:
+            if wipe:
+                os.environ.pop(_PROTECT_ENV_VAR, None)
+
+    for x in "skip todo __doc__ __name__".split():
+        if hasattr(functor, x):
+            setattr(_inner_run, x, getattr(functor, x))
+    method_name = getattr(functor, '__name__', None)
+    return _inner_run
+
+def protect_process2(test_name):
+    def f(functor):
+        return protect_process(functor, test_name)
+    for x in "skip todo __doc__ __name__".split():
+        if hasattr(functor, x):
+            setattr(f, x, getattr(functor, x))
+    return f
