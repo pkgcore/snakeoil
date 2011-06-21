@@ -1,4 +1,4 @@
-# Copyright: 2008 Brian Harring <ferringb@gmail.com>
+# Copyright: 2008-2011 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
 """
@@ -13,13 +13,13 @@ import os
 import sys
 import errno
 import subprocess
-import unittest
 
 
 from distutils import core, ccompiler, log, errors
 from distutils.command import (
     sdist as dst_sdist, build_ext as dst_build_ext, build_py as dst_build_py,
     build as dst_build)
+from snakeoil import unittest_extensions
 
 
 class OptionalExtension(core.Extension):
@@ -314,42 +314,6 @@ class build_ext(dst_build_ext.build_ext):
         return dst_build_ext.build_ext.build_extensions(self)
 
 
-class TestLoader(unittest.TestLoader):
-
-    """Test loader that knows how to recurse packages."""
-
-    def __init__(self, blacklist):
-        self.blacklist = blacklist
-        unittest.TestLoader.__init__(self)
-
-    def loadTestsFromModule(self, module):
-        """Recurses if module is actually a package."""
-        paths = getattr(module, '__path__', None)
-        tests = [unittest.TestLoader.loadTestsFromModule(self, module)]
-        if paths is None:
-            # Not a package.
-            return tests[0]
-        if module.__name__ in self.blacklist:
-            return tests[0]
-        for path in paths:
-            for child in os.listdir(path):
-                if (child != '__init__.py' and child.endswith('.py') and
-                    child.startswith('test')):
-                    # Child module.
-                    childname = '%s.%s' % (module.__name__, child[:-3])
-                else:
-                    childpath = os.path.join(path, child)
-                    if not os.path.isdir(childpath):
-                        continue
-                    if not os.path.exists(os.path.join(childpath,
-                                                       '__init__.py')):
-                        continue
-                    # Subpackage.
-                    childname = '%s.%s' % (module.__name__, child)
-                tests.append(self.loadTestsFromName(childname))
-        return self.suiteClass(tests)
-
-
 class test(core.Command):
 
     """Run our unit tests in a built copy.
@@ -406,46 +370,24 @@ class test(core.Command):
         if not self.inplace:
             self.run_command('build_py')
 
+        syspath = sys.path[:]
+        mods_to_wipe = ()
         if not self.inplace:
-            raw_syspath = sys.path[:]
             cwd = os.getcwd()
-            my_syspath = [x for x in sys.path if x != cwd]
+            syspath = [x for x in sys.path if x != cwd]
             test_path = os.path.abspath(build_py.build_lib)
-            my_syspath.insert(0, test_path)
+            syspath.insert(0, test_path)
             mods = build_py.find_all_modules()
             mods_to_wipe = set(x[0] for x in mods)
             mods_to_wipe.update('.'.join(x[:2]) for x in mods)
 
-        if self.disable_fork:
-            pid = 0
-        else:
-            sys.stderr.flush()
-            sys.stdout.flush()
-            pid = os.fork()
-        if not pid:
-            if not self.inplace:
-                os.environ["PYTHONPATH"] = ':'.join(my_syspath)
-                sys.path = my_syspath
-                for mod in mods_to_wipe:
-                    sys.modules.pop(mod, None)
+        namespace = self.namespaces
+        if not self.namespaces:
+            namespaces = [self.default_test_namespace]
 
-            if not self.disable_fork:
-                # thank you for binding freaking sys.stderr into your prototype
-                # unittest...
-                sys.stderr.flush()
-                os.dup2(sys.stdout.fileno(), sys.stderr.fileno())
-            args = ['setup.py', '-v']
-            if self.namespaces:
-                args.extend(self.namespaces)
-                default_mod = None
-            else:
-                default_mod = self.default_test_namespace
-            unittest.main(default_mod, argv=args,
-                testLoader=TestLoader(self.blacklist))
-            if not self.disable_fork:
-                os._exit(1)
-            return
-        retval = os.waitpid(pid, 0)[1]
+        retval = unittest_extensions.run_tests(namespaces,
+            disable_fork=self.disable_fork, blacklist=self.blacklist,
+            pythonpath=syspath, modules_to_wipe=mods_to_wipe)
         if retval:
             raise errors.DistutilsExecError("tests failed; return %i" % (retval,))
 
