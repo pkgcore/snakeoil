@@ -109,3 +109,7 @@ def run_tests(namespaces, disable_fork=False, pythonpath=None,
         return retval >> 8
     return retval & 0xff
 
+if __name__ == '__main__':
+    args = [x for x in sys.argv[1:] if x != '--disable-fork']
+    disable_fork = (len(args) != len(sys.argv) - 1)
+    run_tests(args, disable_fork=disable_fork)
