@@ -25,7 +25,7 @@ else:
     mk_tempfile = tempfile.TemporaryFile
 
 sys_ver = sys.version_info[:3]
-if (sys_ver >= (2,6,6) and sys_ver < (2,7)) or sys_ver >= (3,2,0):
+if (sys_ver >= (2,6,6) and (sys_ver < (2,7) or sys_ver >= (2,7,1))) or sys_ver >= (3,2,0):
     def issue7567(functor):
         functor.skip = "issue 7567 patch breaks multiple term invocations, disabled till it's sorted"
         return functor
