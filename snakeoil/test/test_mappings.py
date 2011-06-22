@@ -1,5 +1,5 @@
 # Copyright: 2005-2006 Marien Zwart <marienz@gentoo.org>
-# Copyright: 2006 Brian Harring <ferringb@gmail.com>
+# Copyright: 2006-2011 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
 import operator
