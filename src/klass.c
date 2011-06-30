@@ -1006,7 +1006,7 @@ static PyObject *
 snakeoil_mapping_slot_get(PyObject *self, PyObject *args)
 {
 	PyObject *key = NULL, *default_val = NULL;
-	if(!PyArg_UnpackTuple(args, "snakeoil_attr_pop", 1, 2, &key, &default_val)) {
+	if(!PyArg_UnpackTuple(args, "snakeoil_attr_get", 1, 2, &key, &default_val)) {
 		// should be impossible, but better safe then sorry.
 		return NULL;
 	}
