@@ -840,13 +840,14 @@ else:
 # cleanup the test class.
 del foo
 
+_sentinel = object()
 def native_attr_pop(self, key, *a):
     # faster then the exception form...
     l = len(a)
     if l > 1:
         raise TypeError("pop accepts 1 or 2 args only")
-    if hasattr(self, key):
-        o = getattr(self, key)
+    o = getattr(self, key, _sentinel)
+    if o is not _sentinel:
         object.__delattr__(self, key)
     elif l:
         o = a[0]
