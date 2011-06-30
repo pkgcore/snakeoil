@@ -740,7 +740,7 @@ static PyTypeObject snakeoil_AttrSetItemType = {
 };
 
 static PyObject *
-snakeoil_mapping_slot_delitem(PyObject *self, PyObject *key)
+snakeoil_mapping_slot_delitem_slow(PyObject *self, PyObject *key)
 {
 
 	// because pythons __slots__ is retarded (see python issue 7604),
@@ -760,19 +760,19 @@ snakeoil_mapping_slot_delitem(PyObject *self, PyObject *key)
 	return NULL;
 }
 
-static PyMethodDef snakeoil_mapping_slot_delitem_def = {
-	"delitem", snakeoil_mapping_slot_delitem, METH_O|METH_COEXIST, NULL};
+static PyMethodDef snakeoil_mapping_slot_delitem_slow_def = {
+	"delitem", snakeoil_mapping_slot_delitem_slow, METH_O|METH_COEXIST, NULL};
 
 static PyObject *
-snakeoil_mapping_slot_delitem_descr(PyObject *self, PyObject *obj, PyObject *type)
+snakeoil_mapping_slot_delitem_slow_descr(PyObject *self, PyObject *obj, PyObject *type)
 {
-	return PyCFunction_New(&snakeoil_mapping_slot_delitem_def, obj);
+	return PyCFunction_New(&snakeoil_mapping_slot_delitem_slow_def, obj);
 }
 
-static PyTypeObject snakeoil_AttrDelItemType = {
+static PyTypeObject snakeoil_AttrDelItemSlowType = {
 	PyObject_HEAD_INIT(NULL)
 	0,											   /* ob_size */
-	"snakeoil_attr_delitem_type",					/* tp_name */
+	"snakeoil_attr_delitem_slow_type",				/* tp_name */
 	sizeof(PyObject),								/* tp_basicsize */
 	0,											   /* tp_itemsize */
 	0,											   /* tp_dealloc */
@@ -803,7 +803,71 @@ static PyTypeObject snakeoil_AttrDelItemType = {
 	0,											   /* tp_getset */
 	0,											   /* tp_base */
 	0,											   /* tp_dict */
-	snakeoil_mapping_slot_delitem_descr,			 /* tp_descr_get */
+	snakeoil_mapping_slot_delitem_slow_descr,	   /* tp_descr_get */
+	0,											   /* tp_descr_set */
+};
+
+static PyObject *
+snakeoil_mapping_slot_delitem_fast(PyObject *self, PyObject *key)
+{
+	// for use in python versions that don't have to do the double lookup.
+	// because pythons __slots__ is retarded (see python issue 7604),
+	// do a hasattr first.
+	if(0 == PyObject_DelAttr(self, key)) {
+		Py_RETURN_NONE;
+	}
+	// convert AttributeError into KeyError... let the rest
+	// pass thru
+	if(PyErr_ExceptionMatches(PyExc_AttributeError)) {
+		PyErr_SetObject(PyExc_KeyError, key);
+	}
+	return NULL;
+}
+
+static PyMethodDef snakeoil_mapping_slot_delitem_fast_def = {
+	"delitem", snakeoil_mapping_slot_delitem_fast, METH_O|METH_COEXIST, NULL};
+
+static PyObject *
+snakeoil_mapping_slot_delitem_fast_descr(PyObject *self, PyObject *obj, PyObject *type)
+{
+	return PyCFunction_New(&snakeoil_mapping_slot_delitem_fast_def, obj);
+}
+
+static PyTypeObject snakeoil_AttrDelItemFastType = {
+	PyObject_HEAD_INIT(NULL)
+	0,											   /* ob_size */
+	"snakeoil_attr_delitem_fast_type",				/* tp_name */
+	sizeof(PyObject),								/* tp_basicsize */
+	0,											   /* tp_itemsize */
+	0,											   /* tp_dealloc */
+	0,											   /* tp_print */
+	0,											   /* tp_getattr */
+	0,											   /* tp_setattr */
+	0,											   /* tp_compare */
+	0,											   /* tp_repr */
+	0,											   /* tp_as_number */
+	0,											   /* tp_as_sequence */
+	0,											   /* tp_as_mapping */
+	0,											   /* tp_hash  */
+	0,											   /* tp_call */
+	0,											   /* tp_str */
+	0,											   /* tp_getattro */
+	0,											   /* tp_setattro */
+	0,											   /* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT,							  /* tp_flags */
+	"type of the delitem proxy",					 /* tp_doc */
+	0,											   /* tp_traverse */
+	0,											   /* tp_clear */
+	0,											   /* tp_richcompare */
+	0,											   /* tp_weaklistoffset */
+	0,											   /* tp_iter */
+	0,											   /* tp_iternext */
+	0,											   /* tp_methods */
+	0,											   /* tp_members */
+	0,											   /* tp_getset */
+	0,											   /* tp_base */
+	0,											   /* tp_dict */
+	snakeoil_mapping_slot_delitem_fast_descr,	   /* tp_descr_get */
 	0,											   /* tp_descr_set */
 };
 
@@ -1257,7 +1321,10 @@ init_klass(void)
 	if (PyType_Ready(&snakeoil_AttrSetItemType) < 0)
 		return;
 
-	if (PyType_Ready(&snakeoil_AttrDelItemType) < 0)
+	if (PyType_Ready(&snakeoil_AttrDelItemSlowType) < 0)
+		return;
+
+	if (PyType_Ready(&snakeoil_AttrDelItemFastType) < 0)
 		return;
 
 	if (PyType_Ready(&snakeoil_AttrContainsType) < 0)
@@ -1299,7 +1366,8 @@ init_klass(void)
 	ADD_TYPE_INSTANCE(&snakeoil_ContainsType, "contains");
 	ADD_TYPE_INSTANCE(&snakeoil_AttrGetItemType, "attr_getitem");
 	ADD_TYPE_INSTANCE(&snakeoil_AttrSetItemType, "attr_setitem");
-	ADD_TYPE_INSTANCE(&snakeoil_AttrDelItemType, "attr_delitem");
+	ADD_TYPE_INSTANCE(&snakeoil_AttrDelItemSlowType, "attr_delitem_slow");
+	ADD_TYPE_INSTANCE(&snakeoil_AttrDelItemFastType, "attr_delitem_fast");
 	ADD_TYPE_INSTANCE(&snakeoil_AttrContainsType, "attr_contains");
 	ADD_TYPE_INSTANCE(&snakeoil_AttrPopType, "attr_pop");
 	ADD_TYPE_INSTANCE(&snakeoil_AttrGetType, "attr_get");

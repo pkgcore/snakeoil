@@ -1,6 +1,12 @@
 Snakeoil Release Notes
 ======================
 
+
+* if the invoking python has issue 7604 fixed, then use a fast single lookup
+  version of delitem for slotted instances; else use the normal double lookup
+  workaround.
+
+
 snakeoil 0.4.1: Jun 22nd, 2011
 
 * issue 7567; python2.7.1 reintroduces it (2.7 lacked it).  Gentoo bug 350215.

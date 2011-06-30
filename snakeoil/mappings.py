@@ -803,14 +803,42 @@ def native_attr_update(self, iterable):
 def native_attr_contains(self, key):
      return hasattr(self, key)
 
-def native_attr_delitem(self, key):
-     # Python does not raise anything if you delattr an
-     # unset slot (works ok if __slots__ is not involved).
-     try:
-         getattr(self, key)
-     except AttributeError:
-         raise KeyError(key)
-     delattr(self, key)
+# python issue 7604; depending on the python version, delattr'ing an empty slot
+# doesn't throw AttributeError; we vary our implementation for efficiency
+# dependant on a onetime runtime test of that.
+
+class foo(object):
+    __slots__ = ("slot",)
+
+# track which is required since if we can use extensions, we'll have
+# to chose which to import; cpy side exports both, leaving it to us
+# to decide which to use (via runtime check, it means we don't have to
+# be recompiled for minor bumps when the fix is in place- it just switches
+# on).
+_use_slow_delitem = True
+try:
+    del foo().slot
+except AttributeError:
+    # properly throws an exception; thus we do a single lookup.
+    _use_slow_delitem = False
+    def native_attr_delitem(self, key):
+        try:
+            delattr(self, key)
+        except AttributeError:
+            raise KeyError(key)
+else:
+    # doesn't throw the exception; double lookup, getattr, than delattr.
+    def native_attr_delitem(self, key):
+         # Python does not raise anything if you delattr an
+         # unset slot (works ok if __slots__ is not involved).
+         try:
+             getattr(self, key)
+         except AttributeError:
+             raise KeyError(key)
+         delattr(self, key)
+
+# cleanup the test class.
+del foo
 
 def native_attr_pop(self, key, *a):
     # faster then the exception form...
@@ -830,8 +858,12 @@ def native_attr_get(self, key, default=None):
     return getattr(self, key, default)
 
 try:
-    from snakeoil._klass import (attr_getitem, attr_setitem, attr_delitem,
+    from snakeoil._klass import (attr_getitem, attr_setitem,
         attr_update, attr_contains, attr_pop, attr_get)
+    if _use_slow_delitem:
+        from snakeoil._klass import attr_delitem_slow as attr_delitem
+    else:
+        from snakeoil._klass import attr_delitem_fast as attr_delitem
 except ImportError:
     attr_getitem = native_attr_getitem
     attr_setitem = object.__setattr__
