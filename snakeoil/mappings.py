@@ -9,7 +9,8 @@ Miscellanious mapping related classes and functionality
 
 __all__ = ("autoconvert_py3k_methods_metaclass", "DictMixin", "LazyValDict",
     "LazyFullValLoadDict", "ProtectedDict", "ImmutableDict", "IndeterminantDict",
-    "defaultdict", "defaultdictkey", "AttrAccessible", "StackedDict")
+    "OrderedDict", "defaultdict", "defaultdictkey", "AttrAccessible", "StackedDict",
+    "make_SlottedDict_kls")
 
 import operator, sys
 from itertools import imap, chain, ifilterfalse, izip
