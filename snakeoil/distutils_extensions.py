@@ -87,15 +87,8 @@ class sdist(dst_sdist.sdist):
 
         self.filelist.include_pattern('.[ch]', prefix='src')
 
-        for prefix in ['doc', 'dev-notes']:
-            self.filelist.include_pattern('.rst', prefix=prefix)
-            self.filelist.exclude_pattern(os.path.sep + 'index.rst',
-                                          prefix=prefix)
-        self.filelist.append('build_docs.py')
-        self.filelist.append('build_api_docs.sh')
-        self.filelist.include_pattern('*', prefix='examples')
-        self.filelist.include_pattern('*', prefix='bin')
-
+        self.filelist.exclude_pattern('build')
+        self.filelist.exclude_pattern('dist')
         self._add_to_file_list()
 
         if self.prune:

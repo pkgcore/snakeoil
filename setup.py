@@ -20,6 +20,7 @@ class mysdist(snk_distutils.sdist):
 
     def _add_to_file_list(self):
         self.filelist.include_pattern('.h', prefix='include/snakeoil')
+        self.filelist.include_pattern('doc/*')
 
 
 class snakeoil_build_py(snk_distutils.build_py):
