@@ -405,3 +405,40 @@ def get_number_of_processors():
         return val
     except EnvironmentError:
         return 1
+
+
+class build_docs_mixin(object):
+
+    _kls = None
+
+    def initialize_options(self):
+        self._kls.initialize_options(self)
+        self.generate = True
+
+    def generate_docs(self):
+        if subprocess.call(['make', 'generated'], cwd=self.source_dir):
+            raise errors.DistutilsExecError("doc generation failed")
+
+    def run(self):
+        if self.generate:
+            self.generate_docs()
+        return self._kls.run(self)
+
+    @classmethod
+    def setup_kls(cls):
+        try:
+            from sphinx.setup_command import BuildDoc as _BuildDoc
+        except ImportError:
+            return None
+        class BuildDoc(_BuildDoc, cls):
+            _kls = _BuildDoc
+            user_options = list(_BuildDoc.user_options) \
+                + [('generate', None, 'force autogeneration of intermediate docs')]
+            # annoying.
+            for x in "initialize_options run".split():
+                locals()[x] = getattr(cls, x)
+
+        return BuildDoc
+
+def sphinx_build_docs():
+    return build_docs_mixin.setup_kls()
