@@ -14,6 +14,8 @@ import sys
 import errno
 import subprocess
 
+os.environ["SNAKEOIL_DEMANDLOAD_PROTECTION"] = 'n'
+os.environ["SNAKEOIL_DEMANDLOAD_WARN"] = 'n'
 
 from distutils import core, ccompiler, log, errors
 from distutils.command import (
