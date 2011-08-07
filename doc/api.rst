@@ -9,6 +9,7 @@ Modules
 
     snakeoil.bash
     snakeoil.caching
+    snakeoil.caching_2to3
     snakeoil.chksum
     snakeoil.compatibility
     snakeoil.containers
@@ -32,6 +33,8 @@ Modules
     snakeoil.struct_compat
     snakeoil.tar
     snakeoil.test
+    snakeoil.test.mixins
+    snakeoil.unittest_extensions
     snakeoil.version
     snakeoil.weakrefs
     snakeoil.xml
