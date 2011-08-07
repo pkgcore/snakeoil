@@ -90,6 +90,8 @@ class RefactoringTool(caching_mixin, lib2to3.refactor.RefactoringTool):
 
 multiprocessing_available = False
 try:
+    if not hasattr(lib2to3.refactor, 'MultiprocessRefactoringTool'):
+        raise ImportError()
     import multiprocessing
     # this is to detect python upstream bug 3770
     from _multiprocessing import SemLock
