@@ -43,8 +43,7 @@ cannot find its extensions to use.
 Community
 ---------
 
-We run a rather crappy trac instance at |trac_url|; bugs, wiki, etc, are available there.
-We also have a very low volume mailing list via googlegroups at http://groups.google.com/group/python-snakeoil .
+Snakeoil now lives in full at :homepage:; issue tracking, wiki, groups, source, are all available from there.
 
 For IRC, the core developers are generally accessible for bugs/questions via `the freenode network in the #pkgcore channel <irc://freenode.net/#pkgcore>`_.
 
