@@ -227,13 +227,7 @@ intersphinx_mapping = {'http://docs.python.org/': None}
 autodoc_default_flags = ['members', 'show-inheritance', 'inherited-members'] # + ['undoc-members']
 autosummary_generate = False
 
-extlinks = {"homepage":("http://snakeoil.googlecode.com",''),
-    }
-
 rst_epilog = """
-.. |home_url| replace:: http://pkgcore.org/snakeoil/
-.. |trac_url| replace:: http://pkgcore.org/trac/snakeoil/
-.. |latest_url| replace:: http://pkgcore.org/releases/snakeoil/snakeoil-%(release)s.tar.bz2
-.. |latest_url_asc| replace:: http://pkgcore.org/releases/snakeoil/snakeoil-%(release)s.tar.bz2.asc
-.. |release_url| replace:: http://pkgcore.org/releases/snakeoil/
+.. |homepage| replace:: http://snakeoil.pkgcore.org/'
+.. |release_url| replace:: http://code.google.com/p/snakeoil/downloads/
 """ % {"release":release}

@@ -43,7 +43,7 @@ cannot find its extensions to use.
 Community
 ---------
 
-Snakeoil now lives in full at :homepage:; issue tracking, wiki, groups, source, are all available from there.
+Snakeoil now lives in full at |homepage|; issue tracking, wiki, groups, source, are all available from there.
 
 For IRC, the core developers are generally accessible for bugs/questions via `the freenode network in the #pkgcore channel <irc://freenode.net/#pkgcore>`_.
 
@@ -51,15 +51,9 @@ For IRC, the core developers are generally accessible for bugs/questions via `th
 Getting the source (downloading releases or trunk)
 --------------------------------------------------
 
-Snakeoil vcs of choice is `bzr <http://bazaar.canonical.com/>`_ and our main integration
-branch is located at `bzr://bzr.pkgcore.org/snakeoil`.  We also have our source available
-for browsing via `loggerhead`_, although this is occasionally down (we're working on stabilizing it).
+Snakeoil vcs of choice is `git <http://git.scm.org/>`_, and our source can be checked out at https://code.google.com/p/snakeoil
 
-All releases are available at |release_url|\.  The latest
-version is |release|, and can be downloaded from |latest_url|,
-the signing key is 0x8037554D (Brian Harring, primary author of snakeoil, key available via http://subkeys.pgp.net),
-and each release is detach-signed to .asc alongside the release.  The signing for the current release is at
-|latest_url_asc|.
+All releases are available at |release_url|\.
 
 As for dependencies, snakeoil basically just requires python2.4 and up.
 
