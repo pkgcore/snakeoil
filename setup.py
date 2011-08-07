@@ -96,19 +96,36 @@ if not snk_distutils.is_py3k:
     )
 
 from snakeoil.version import __version__ as VERSION
+name = 'snakeoil'
+url = 'http://snakeoil.googlecode.com'
+cmdclass = {
+    'sdist': mysdist,
+    'build_ext': snk_distutils.build_ext,
+    'build_py': snakeoil_build_py,
+    'test': test,
+}
+
+command_options = {}
+
+BuildDoc = snk_distutils.sphinx_build_docs()
+if BuildDoc:
+    cmdclass['build_docs'] = BuildDoc
+    command_options['build_docs'] = {
+        'version': ('setup.py', VERSION),
+        'source_dir': ('setup.py', 'doc'),
+    }
 
 core.setup(
-    name='snakeoil',
+    name=name,
     version=VERSION,
     description='misc common functionality, and useful optimizations',
-    url='http://www.pkgcore.org/',
+    url=url,
+    license='BSD',
+    author='Brian Harring',
+    author_email='ferringb@gmail.com',
     packages=packages,
     ext_modules=extensions,
     headers=common_includes,
-    cmdclass={
-        'sdist': mysdist,
-        'build_ext': snk_distutils.build_ext,
-        'build_py': snakeoil_build_py,
-        'test': test,
-        },
+    cmdclass=cmdclass,
+    command_options=command_options,
     )
