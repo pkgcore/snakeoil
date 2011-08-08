@@ -43,7 +43,7 @@ cannot find its extensions to use.
 Community
 ---------
 
-Snakeoil now lives in full at |homepage|; issue tracking, wiki, groups, source, are all available from there.
+Snakeoil now lives in full at |homepage|.  Issue tracking, wiki, groups, source, are all available from there.
 
 For IRC, the core developers are generally accessible for bugs/questions via `the freenode network in the #pkgcore channel <irc://freenode.net/#pkgcore>`_.
 
