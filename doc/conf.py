@@ -228,6 +228,6 @@ autodoc_default_flags = ['members', 'show-inheritance', 'inherited-members'] # +
 autosummary_generate = False
 
 rst_epilog = """
-.. |homepage| replace:: http://snakeoil.pkgcore.org/'
+.. |homepage| replace:: http://snakeoil.googlecode.com/'
 .. |release_url| replace:: http://code.google.com/p/snakeoil/downloads/
 """ % {"release":release}

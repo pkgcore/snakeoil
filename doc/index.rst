@@ -17,7 +17,7 @@ Snakeoil's naming was chosen partially as a python analog of `liboil <http://lib
 on the common meaning of `Snake Oil <http://en.wikipedia.org/wiki/Snake_oil>`_; specifically
 a supposed miracle cure that has no affect.  To be clear, this package `does` have some
 very powerful functionality and optimizations available, and its usage is well known to speed
-things up: the `pkgcore <http://pkgcore.org/trac/pkgcore>`_ package manager from which this
+things up: the `pkgcore <http://pkgcore.googlecode.com>`_ package manager from which this
 library was derived, makes heavy usage of these optimizations- further in a simple test usage
 of :py:class:`snakeoil.caching.WeakInstMeta` to `portage <http://www.gentoo.org/proj/en/portage/>`_'s Atom class,
 ``emerge -ep system`` was sped up by 7% with a 20% memory reduction- specifically via just adding
@@ -149,8 +149,6 @@ methods, attribute/class attribute aliasing for backwards compatibility, JIT pro
 cloning documentation from preexisting sources.  If interested, :py:mod:`snakeoil.klass` is a
 good place to start reading.
 
-
-.. _loggerhead: http://pkgcore.org:8080/snakeoil/files
 
 
 General Contents:
