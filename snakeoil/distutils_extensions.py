@@ -221,14 +221,16 @@ class build_py(dst_build_py.build_py):
         from lib2to3 import refactor as ref_mod
         from snakeoil import caching_2to3
 
-        if proc_count == 0:
-            proc_count = get_number_of_processors()
-        if proc_count and (sys.version_info >= (3,0) and sys.version_info < (3,1,2)) or \
+        if (sys.version_info >= (3,0) and sys.version_info < (3,1,2)) or \
             (sys.version_info >=  (2,6) and sys.version_info < (2,6,5)):
-            log.warn("disabling parallelization: you're running a python "
-                "version with a broken multiprocessing.queue.JoinableQueue.put "
-                "(python bug 4660).")
+            if proc_count not in (0, 1):
+                log.warn("disabling parallelization: you're running a python "
+                    "version with a broken multiprocessing.queue.JoinableQueue.put "
+                    "(python bug 4660).")
             proc_count = 1
+        elif proc_count == 0:
+            import multiprocessing
+            proc_count = multiprocessing.cpu_count()
 
         assert proc_count >= 1
 
