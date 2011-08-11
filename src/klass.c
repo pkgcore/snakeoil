@@ -12,6 +12,7 @@
 
 #define PY_SSIZE_T_CLEAN
 #include "snakeoil/common.h"
+#include "structmember.h"
 #include <ceval.h>
 
 static PyObject *snakeoil_equality_attr = NULL;
@@ -230,6 +231,16 @@ typedef struct {
 	int use_setattr;
 } snakeoil_InternalJitAttr;
 
+static PyMemberDef snakeoil_InternalJitAttr_members[] = {
+	{"storage_attr", T_OBJECT_EX, offsetof(snakeoil_InternalJitAttr, storage_attr),
+		0, "attribute the value is cached in"},
+	{"function", T_OBJECT_EX, offsetof(snakeoil_InternalJitAttr, function),
+		0, "functor to cache values from"},
+	{"singleton", T_OBJECT_EX, offsetof(snakeoil_InternalJitAttr, singleton),
+		0, "singleton value to look for if regeneration is needed, or if unset"},
+	{NULL}
+};
+
 static int
 snakeoil_InternalJitAttr_clear(snakeoil_InternalJitAttr *self)
 {
@@ -321,6 +332,7 @@ snakeoil_InternalJitAttr_get(PyObject *self_pyo, PyObject *obj,
 	return result;
 }
 
+
 static PyTypeObject snakeoil_InternalJitAttrType = {
 	PyObject_HEAD_INIT(NULL)
 	0,											   /* ob_size */
@@ -352,7 +364,7 @@ static PyTypeObject snakeoil_InternalJitAttrType = {
 	0,											   /* tp_iter */
 	0,											   /* tp_iternext */
 	0,											   /* tp_methods */
-	0,											   /* tp_members */
+	snakeoil_InternalJitAttr_members,			   /* tp_members */
 	0,											   /* tp_getset */
 	0,											   /* tp_base */
 	0,											   /* tp_dict */

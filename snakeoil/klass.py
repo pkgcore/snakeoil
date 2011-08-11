@@ -102,7 +102,7 @@ class _native_internal_jit_attr(object):
     instead of directly consuming this.
     """
 
-    __slots__ = ("_attr_name", "_func", "_setter", "_singleton")
+    __slots__ = ("storage_attr", "function", "_setter", "singleton")
 
     def __init__(self, func, attr_name, singleton, use_cls_setattr):
         """
@@ -123,16 +123,21 @@ class _native_internal_jit_attr(object):
             self._setter = setattr
         else:
             self._setter = object.__setattr__
-        self._func = func
-        self._attr_name = attr_name
-        self._singleton = singleton
+        self.function = func
+        self.storage_attr = attr_name
+        self.singleton = singleton
 
     def __get__(self, instance, obj_type):
-        obj = getattr(instance, self._attr_name, self._singleton)
-        if obj is self._singleton:
-            obj = self._func(instance)
-            self._setter(instance, self._attr_name, obj)
+        if instance is None:
+            # accessed from the class, rather than a running instance.
+            # access ourself...
+            return self
+        obj = getattr(instance, self.storage_attr, self.singleton)
+        if obj is self.singleton:
+            obj = self.function(instance)
+            self._setter(instance, self.storage_attr, obj)
         return obj
+
 
 try:
     from snakeoil._klass import (GetAttrProxy, contains, get,
