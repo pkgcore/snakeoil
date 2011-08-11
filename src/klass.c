@@ -180,7 +180,7 @@ snakeoil_ReflectiveHash_get(PyObject *func, PyObject *obj, PyObject *type)
 static PyTypeObject snakeoil_ReflectiveHashType = {
 	PyObject_HEAD_INIT(NULL)
 	0,											   /* ob_size */
-	"snakeoil._klass.GetAttrProxy",				  /* tp_name */
+	"snakeoil._klass.ReflectiveHash",				  /* tp_name */
 	sizeof(snakeoil_ReflectiveHash),					/* tp_basicsize */
 	0,											   /* tp_itemsize */
 	(destructor)snakeoil_ReflectiveHash_dealloc,		/* tp_dealloc */
@@ -324,7 +324,7 @@ snakeoil_InternalJitAttr_get(PyObject *self_pyo, PyObject *obj,
 static PyTypeObject snakeoil_InternalJitAttrType = {
 	PyObject_HEAD_INIT(NULL)
 	0,											   /* ob_size */
-	"snakeoil._klass.GetAttrProxy",				  /* tp_name */
+	"snakeoil._klass.InternalJitAttr",				  /* tp_name */
 	sizeof(snakeoil_InternalJitAttr),					/* tp_basicsize */
 	0,											   /* tp_itemsize */
 	(destructor)snakeoil_InternalJitAttr_dealloc,		/* tp_dealloc */
