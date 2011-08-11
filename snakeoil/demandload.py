@@ -52,6 +52,7 @@ __all__ = ("demandload", "demand_compile_regexp")
 
 
 import os
+import sys
 from snakeoil.modules import load_any
 from snakeoil.currying import partial
 from snakeoil import compatibility
@@ -124,14 +125,21 @@ def parse_imports(imports):
                     split[0] = py3k_translate.get(base, {}).get(split[0], split[0])
                 yield base + '.' + split[0], split[-1]
 
+if 'pydoc' in sys.modules or 'epydoc' in sys.modules:
+    def _protection_enabled():
+        return False
 
-def _protection_enabled():
-    val = os.environ.get("SNAKEOIL_DEMANDLOAD_PROTECTION", "n").lower()
-    return val in ("yes", "true", "1", "y")
+    def _noisy_protection():
+        return False
 
-def _noisy_protection():
-    val = os.environ.get("SNAKEOIL_DEMANDLOAD_WARN", "y").lower()
-    return val in ("yes", "true", "1", "y")
+else:
+    def _protection_enabled():
+        val = os.environ.get("SNAKEOIL_DEMANDLOAD_PROTECTION", "n").lower()
+        return val in ("yes", "true", "1", "y")
+
+    def _noisy_protection():
+        val = os.environ.get("SNAKEOIL_DEMANDLOAD_WARN", "y").lower()
+        return val in ("yes", "true", "1", "y")
 
 
 class Placeholder(object):
