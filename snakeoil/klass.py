@@ -25,7 +25,7 @@ import sys
 
 def native_GetAttrProxy(target):
     def reflected_getattr(self, attr):
-        return getattr(getattr(self, target), attr)
+        return getattr(object.__getattribute__(self, target), attr)
     return reflected_getattr
 
 
