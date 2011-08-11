@@ -15,7 +15,7 @@ import os
 from snakeoil import compatibility
 from snakeoil.weakrefs import WeakRefFinalizer
 from snakeoil.bash import *
-
+from snakeoil import klass
 
 class AtomicWriteFile_mixin(object):
 
@@ -121,10 +121,7 @@ else:
                 return None
             return self.raw.close()
 
-        def __getattr__(self, attr):
-            # use object.__getattribute__ to ensure we don't go recursive
-            # here if initialization failed during init
-            return getattr(object.__getattribute__(self, 'raw'), attr)
+        __getattr__ = klass.GetAttrProxy("raw")
 
 
 def read_dict(bash_source, splitter="=", source_isiter=False,
