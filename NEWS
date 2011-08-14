@@ -2,6 +2,9 @@ Snakeoil Release Notes
 ======================
 
 
+* added klass.cached_property, and fixed klass.jit_attr to block bad usage
+  that goes recursive.
+
 * add distutils_extension for building sphinx docs
 
 * if the invoking python has issue 7604 fixed, then use a fast single lookup

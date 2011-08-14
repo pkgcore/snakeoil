@@ -229,6 +229,7 @@ typedef struct {
 	PyObject *function;
 	PyObject *singleton;
 	int use_setattr;
+	int use_singleton;
 } snakeoil_InternalJitAttr;
 
 static PyMemberDef snakeoil_InternalJitAttr_members[] = {
@@ -261,16 +262,29 @@ snakeoil_InternalJitAttr_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	snakeoil_InternalJitAttr *self;
 	PyObject *attr = NULL, *func = NULL, *singleton = NULL,
-		*use_setattr_obj = NULL;
+		*use_setattr_obj = NULL, *use_singleton_obj = NULL;
 
 	int use_setattr = 0;
+	int use_singleton = 1;
 
-	if(!PyArg_ParseTuple(args, "OSOO:__new__", &func, &attr, &singleton,
-		&use_setattr_obj))
+	static char *kwlist[] = {"func", "attr_name", "singleton", "use_cls_setattr",
+		"use_singleton", NULL};
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OS|OOO:__new__",
+		kwlist,
+		&func, &attr, &singleton, &use_setattr_obj, &use_singleton_obj))
 		return NULL;
 
-	if(-1 == (use_setattr = PyObject_IsTrue(use_setattr_obj))) {
-		return NULL;
+	if (use_setattr_obj) {
+		if(-1 == (use_setattr = PyObject_IsTrue(use_setattr_obj))) {
+			return NULL;
+		}
+	}
+
+	if (use_singleton_obj) {
+		if(-1 == (use_singleton = PyObject_IsTrue(use_singleton_obj))) {
+			return NULL;
+		}
 	}
 
 	self = (snakeoil_InternalJitAttr *)type->tp_alloc(type, 0);
@@ -279,9 +293,13 @@ snakeoil_InternalJitAttr_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 		self->storage_attr = attr;
 		Py_INCREF(func);
 		self->function = func;
+		if (!singleton) {
+			singleton = Py_None;
+		}
 		Py_INCREF(singleton);
 		self->singleton = singleton;
 		self->use_setattr = use_setattr;
+		self->use_singleton = use_singleton;
 	}
 	return (PyObject *)self;
 }
@@ -306,16 +324,28 @@ snakeoil_InternalJitAttr_get(PyObject *self_pyo, PyObject *obj,
 		Py_INCREF(self_pyo);
 		return self_pyo;
 	}
-	if(!(result = PyObject_GetAttr(obj, self->storage_attr))) {
-		if(!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+
+	if (self->use_singleton) {
+		if(Py_EnterRecursiveCall(" in InternalJitAttr.__get__ "))
+			return NULL;
+
+		result = PyObject_GetAttr(obj, self->storage_attr);
+
+		Py_LeaveRecursiveCall();
+
+		if(!result) {
+			if(!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+				return result;
+			}
+			PyErr_Clear();
+		} else if(self->singleton != result) {
 			return result;
+		} else {
+			// got the singleton back...
+			Py_DECREF(result);
 		}
-		PyErr_Clear();
-	} else if(self->singleton != result) {
-		return result;
-	} else {
-		Py_DECREF(result);
 	}
+
 	// generate the attr.
 	result = PyObject_CallFunctionObjArgs(self->function, obj, NULL);
 	if(result) {

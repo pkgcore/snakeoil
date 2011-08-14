@@ -432,13 +432,47 @@ class Test_native_jit_attr(TestCase):
         # force attr access. if it's done wrong, it'll puke.
         obj.attr
 
+    def test_cached_property(self):
+        l = []
+        class foo(object):
+            @klass.cached_property
+            def blah(self, l=l, i=iter(xrange(5))):
+                l.append(None)
+                return i.next()
+        f = foo()
+        self.assertEqual(f.blah, 0)
+        self.assertEqual(len(l), 1)
+        self.assertEqual(f.blah, 0)
+        self.assertEqual(len(l), 1)
+        del f.blah
+        self.assertEqual(f.blah, 1)
+        self.assertEqual(len(l), 2)
+
+    def test_cached_property(self):
+        l = []
+
+        def named(self, l=l, i=iter(xrange(5))):
+            l.append(None)
+            return i.next()
+
+        class foo(object):
+            blah = klass.cached_property_named("blah")(named)
+
+        f = foo()
+        self.assertEqual(f.blah, 0)
+        self.assertEqual(len(l), 1)
+        self.assertEqual(f.blah, 0)
+        self.assertEqual(len(l), 1)
+        del f.blah
+        self.assertEqual(f.blah, 1)
+        self.assertEqual(len(l), 2)
+
 
 class Test_cpy_jit_attr(Test_native_jit_attr):
 
     kls = staticmethod(klass._internal_jit_attr)
     if klass._internal_jit_attr is klass._native_internal_jit_attr:
         skip = "extension is missing"
-
 
 
 class test_aliased_attr(TestCase):

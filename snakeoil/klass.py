@@ -13,6 +13,7 @@ involved in writing classes.
 __all__ = ("generic_equality", "reflective_hash", "inject_richcmp_methods_from_cmp",
     "static_attrgetter", "instance_attrgetter", "jit_attr", "jit_attr_none",
     "jit_attr_named", "jit_attr_ext_method", "alias_attr", "cached_hash",
+    "cached_property", "cached_property_named",
     "steal_docs", "immutable_instance", "inject_immutable_instance",
     "alias_method")
 
@@ -102,9 +103,10 @@ class _native_internal_jit_attr(object):
     instead of directly consuming this.
     """
 
-    __slots__ = ("storage_attr", "function", "_setter", "singleton")
+    __slots__ = ("storage_attr", "function", "_setter", "singleton", "use_singleton")
 
-    def __init__(self, func, attr_name, singleton, use_cls_setattr):
+    def __init__(self, func, attr_name, singleton=None, use_cls_setattr=False,
+        use_singleton=True):
         """
         :param func: function to invoke upon first request for this content
         :param attr_name: attribute name to store the generated value in
@@ -126,16 +128,21 @@ class _native_internal_jit_attr(object):
         self.function = func
         self.storage_attr = attr_name
         self.singleton = singleton
+        self.use_singleton = use_singleton
 
     def __get__(self, instance, obj_type):
         if instance is None:
             # accessed from the class, rather than a running instance.
             # access ourself...
             return self
-        obj = getattr(instance, self.storage_attr, self.singleton)
-        if obj is self.singleton:
+        if not self.use_singleton:
             obj = self.function(instance)
             self._setter(instance, self.storage_attr, obj)
+        else:
+            obj = getattr(instance, self.storage_attr, self.singleton)
+            if obj is self.singleton:
+                obj = self.function(instance)
+                self._setter(instance, self.storage_attr, obj)
         return obj
 
 
@@ -398,6 +405,63 @@ def jit_attr_ext_method(func_name, stored_attr_name,
     return kls(alias_method(func_name), stored_attr_name,
         uncached_val, use_cls_setattr)
 
+
+def cached_property(func, kls=_internal_jit_attr, use_cls_setattr=False):
+    """
+    like `property`, just with caching
+
+    This is usable in classes that aren't using slots; it exploits python
+    lookup ordering such that on first access, the function is invoked generating
+    the desired attribute.  It then assigns that content to the same name as the
+    property- directly into the instance dictionary.  Subsequent accesses will
+    find the value in the instance dictionary first- essentially just as fast
+    as normal attribute access, just w/ the ability to generate the instance
+    on first access (or to wipe the attribute and force a regeneration).
+
+    Example Usage:
+
+    >>> from snakeoil.klass import cached_property
+    >>> class foo(object):
+    ...
+    ...   @cached_property
+    ...   def attr(self):
+    ...     print "invoked"
+    ...     return 1
+    >>>
+    >>> obj = foo()
+    >>> print obj.attr
+    invoked
+    1
+    >>> print obj.attr
+    1
+    """
+    return kls(func, func.__name__, None, use_singleton=False,
+        use_cls_setattr=use_cls_setattr)
+
+def cached_property_named(name, kls=_internal_jit_attr, use_cls_setattr=False):
+    """
+    variation of `cached_property`, just with the ability to explicitly set the attribute name
+
+    Primarily of use for when the functor it's wrapping has a generic name (
+    `snakeoil.currying.partial` instances for example).
+    Example Usage:
+
+    >>> from snakeoil.klass import cached_property_named
+    >>> class foo(object):
+    ...
+    ...   @cached_property_named("attr")
+    ...   def attr(self):
+    ...     print "invoked"
+    ...     return 1
+    >>>
+    >>> obj = foo()
+    >>> print obj.attr
+    invoked
+    1
+    >>> print obj.attr
+    1
+    """
+    return post_curry(kls, name, use_singleton=False, use_cls_setattr=False)
 
 def alias_attr(target_attr):
     """
