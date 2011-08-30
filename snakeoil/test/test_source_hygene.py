@@ -8,7 +8,7 @@ class Test_modules(mixins.PythonNamespaceWalker, TestCase):
 
     target_namespace = 'snakeoil'
     if sys.version_info[:2] <= (3,0):
-        module_blacklist = frozenset(["snakeoil.caching_2to3"])
+        module_blacklist = frozenset(["snakeoil.caching_2to3", "snakeoil.compatibility_py3k"])
 
     def test__all__accuracy(self):
         failures = []

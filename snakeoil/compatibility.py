@@ -162,3 +162,16 @@ if hasattr(set(), 'isdisjoint'):
         return instance.isdisjoint(*args)
 else:
     is_disjoint = native_is_disjoint
+import sys
+
+if is_py3k:
+    from snakeoil.compatibility_py3k import raise_from
+else:
+    def raise_from(new_exception, exc_info=None):
+        if exc_info is None:
+            exc_info = sys.exc_info()
+
+        #exc_info format; class, instance, tb
+
+        new_exception.__cause__ = exc_info[1]
+        raise new_exception.__class__, new_exception, exc_info[2]

@@ -170,3 +170,25 @@ class Is_DisjointTest(TestCase):
         s2 = set(xrange(5, 10))
         self.assertTrue(self.func(s, s2))
         self.assertFalse(self.func(s, s))
+
+
+class raise_from_test(TestCase):
+
+    func = staticmethod(compatibility.raise_from)
+
+    def test_it(self):
+        def f():
+            raise KeyError(1)
+
+        def f2():
+            try:
+                f()
+            except KeyError:
+                self.func(IndexError(1))
+
+        self.assertRaises(IndexError, f2)
+        try:
+            f2()
+        except IndexError, e:
+            self.assertTrue(hasattr(e, '__cause__'))
+            self.assertTrue(isinstance(e.__cause__, KeyError))
