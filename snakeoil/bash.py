@@ -20,6 +20,7 @@ import re
 from shlex import shlex
 from snakeoil.mappings import ProtectedDict
 from snakeoil.osutils import readlines_utf8
+from snakeoil.compatibility import raise_from
 
 
 def iter_read_bash(bash_source, allow_inline_comments=True):
@@ -122,7 +123,7 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
                     s.push_token(next_tok)
                 d[key] = val
         except ValueError, e:
-            raise BashParseError(bash_source, s.lineno, str(e))
+            raise_from(BashParseError(bash_source, s.lineno, str(e)))
     finally:
         del f
     if protected:
@@ -187,7 +188,7 @@ class bash_parser(shlex):
         try:
             return shlex.sourcehook(self, newfile)
         except IOError, ie:
-            raise BashParseError(newfile, 0, str(ie))
+            raise_from(BashParseError(newfile, 0, str(ie)))
 
     def read_token(self):
         self.changed_state = []

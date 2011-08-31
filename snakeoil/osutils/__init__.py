@@ -422,16 +422,13 @@ class FsLock(object):
                 raise NonExistant(path)
 
     def _acquire_fd(self):
+        flags = os.R_OK
         if self.create:
-            try:
-                self.fd = os.open(self.path, os.R_OK|os.O_CREAT)
-            except OSError, oe:
-                raise GenericFailed(self.path, oe)
-        else:
-            try:
-                self.fd = os.open(self.path, os.R_OK)
-            except OSError, oe:
-                raise NonExistant(self.path, oe)
+            flags |= os.O_CREAT
+        try:
+            self.fd = os.open(self.path, flags)
+        except OSError, oe:
+            compatibility.raise_from(GenericFailed(self.path, oe))
 
     def _enact_change(self, flags, blocking):
         if self.fd is None:
@@ -443,7 +440,7 @@ class FsLock(object):
             except IOError, ie:
                 if ie.errno == errno.EAGAIN:
                     return False
-                raise GenericFailed(self.path, ie)
+                compatibility.raise_from(GenericFailed(self.path, ie))
         else:
             fcntl.flock(self.fd, flags)
         return True

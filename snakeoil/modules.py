@@ -7,6 +7,7 @@ dynamic import functionality
 
 __all__ = ("FailedImport", "load_module", "load_attribute", "load_any")
 
+from snakeoil.compatibility import raise_from
 import sys
 
 class FailedImport(ImportError):
@@ -37,7 +38,7 @@ def load_module(name):
     except (KeyboardInterrupt, SystemExit):
         raise
     except Exception, e:
-        raise FailedImport(name, e)
+        raise_from(FailedImport(name, e))
 
 
 def load_attribute(name):
@@ -58,7 +59,7 @@ def load_attribute(name):
         m = getattr(m, chunks[1])
         return m
     except (AttributeError, ImportError), e:
-        raise FailedImport(name, e)
+        raise_from(FailedImport(name, e))
 
 
 def load_any(name):

@@ -527,7 +527,7 @@ else:
                     tigetstr('setaf'),
                     tigetstr('setab'))
             except (_BogusTerminfo, curses.error):
-                raise TerminfoHatesOurTerminal(self._term)
+                compatibility.raise_from(TerminfoHatesOurTerminal(self._term))
             # [fg, bg]
             self._current_colors = [None, None]
             self._modes = set()

@@ -15,7 +15,7 @@ import os
 from snakeoil import compatibility
 from snakeoil.weakrefs import WeakRefFinalizer
 from snakeoil.bash import *
-from snakeoil import klass
+from snakeoil import klass, compatibility
 
 class AtomicWriteFile_mixin(object):
 
@@ -155,7 +155,7 @@ def read_dict(bash_source, splitter="=", source_isiter=False,
             except ValueError:
                 if filename == "<unknown>":
                     filename = getattr(bash_source, 'name', bash_source)
-                raise ParseError(filename, line_count)
+                compatibility.raise_from(ParseError(filename, line_count))
             if len(v) > 2 and v[0] == v[-1] and v[0] in ("'", '"'):
                 v = v[1:-1]
             d[k] = v
