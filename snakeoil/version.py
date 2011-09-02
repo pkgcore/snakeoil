@@ -5,7 +5,7 @@
 """Version information (tied to git)."""
 
 
-__version__ = '0.4.1'
+__version__ = '0.4.2'
 
 _ver = None
 

@@ -2,6 +2,8 @@ Snakeoil Release Notes
 ======================
 
 
+snakeoil 0.4.2: Sep 2nd, 2011
+
 * compatibility.raise_from; compatibility across py2k/py3k for doing py3k
   raise EXCEPTION from CAUSE; see pep3134.  Primarily for raising an exception
   which was caused by another (casting an exception essentially).
