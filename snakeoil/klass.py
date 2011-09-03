@@ -50,9 +50,10 @@ def native_get(self, key, default=None):
     except KeyError:
         return default
 
+_sentinel = object()
 
 _attrlist_getter = attrgetter("__attr_comparison__")
-def native_generic_attr_eq(inst1, inst2, sentinel=object()):
+def native_generic_attr_eq(inst1, inst2):
     """
     compare inst1 to inst2, returning True if equal, False if not.
 
@@ -61,13 +62,13 @@ def native_generic_attr_eq(inst1, inst2, sentinel=object()):
     if inst1 is inst2:
         return True
     for attr in _attrlist_getter(inst1):
-        if getattr(inst1, attr, sentinel) != \
-            getattr(inst2, attr, sentinel):
+        if getattr(inst1, attr, _sentinel) != \
+            getattr(inst2, attr, _sentinel):
             return False
     return True
 
 
-def native_generic_attr_ne(inst1, inst2, sentinel=object()):
+def native_generic_attr_ne(inst1, inst2):
     """
     compare inst1 to inst2, returning True if different, False if equal.
 
@@ -76,8 +77,8 @@ def native_generic_attr_ne(inst1, inst2, sentinel=object()):
     if inst1 is inst2:
         return False
     for attr in _attrlist_getter(inst1):
-        if getattr(inst1, attr, sentinel) != \
-            getattr(inst2, attr, sentinel):
+        if getattr(inst1, attr, _sentinel) != \
+            getattr(inst2, attr, _sentinel):
             return True
     return False
 
@@ -351,7 +352,16 @@ if sys.version_info >= (2,6):
     static_attrgetter = attrgetter
 
 
-_uncached_singleton = object()
+# we suppress the repr since if it's unmodified, it'll expose the id;
+# this annoyingly means our docs have to be recommited every change,
+# even if no real code changed (since the id() continually moves)...
+class _singleton_kls(object):
+
+    def __str__(self):
+        return "uncached singleton instance"
+
+
+_uncached_singleton = _singleton_kls
 
 def jit_attr(func, kls=_internal_jit_attr, uncached_val=_uncached_singleton):
     """

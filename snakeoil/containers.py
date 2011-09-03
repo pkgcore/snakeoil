@@ -125,8 +125,13 @@ class LimitedChangeSet(SetMixin):
     _removed    = 0
     _added      = 1
 
+
+    @staticmethod
+    def _default_key_validator(val):
+        return val
+
     def __init__(self, initial_keys, unchangable_keys=None,
-        key_validator=lambda x:x):
+        key_validator=None):
         """
         :param initial_keys: iterable holding the initial values to set
         :param unchangable_keys: container holding keys that cannot be changed
@@ -136,6 +141,8 @@ class LimitedChangeSet(SetMixin):
           what consumers try adding to this set
         :type key_validator: callback taking a single arguement, and returning a boolean
         """
+        if key_validator is None:
+            key_validator = self._default_key_validator
         self._new = set(initial_keys)
         self._validater = key_validator
         if unchangable_keys is None:
