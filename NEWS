@@ -2,6 +2,10 @@ Snakeoil Release Notes
 ======================
 
 
+* don't install compatibility_py3k.py if we're targetting py2k; no need,
+  and it pisses off pyc generation.
+
+
 snakeoil 0.4.2: Sep 2nd, 2011
 
 * compatibility.raise_from; compatibility across py2k/py3k for doing py3k

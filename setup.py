@@ -7,7 +7,7 @@ import subprocess
 import unittest
 
 from distutils import core, ccompiler, log, errors
-from distutils.command import build, sdist, build_ext, build_py, build_scripts, install
+from distutils.command import build, sdist, build_ext, build_py, build_scripts
 
 from snakeoil import distutils_extensions as snk_distutils
 OptionalExtension = snk_distutils.OptionalExtension
@@ -32,16 +32,18 @@ class snakeoil_build_py(snk_distutils.build_py):
         snk_distutils.build_py._inner_run(self, py3k_rebuilds)
 
         if sys.version_info[0:2] >= (2,5) and not self.inplace:
-            files = os.listdir(os.path.join(self.build_lib, 'snakeoil', 'xml'))
-            for x in files:
-                if x.startswith("bundled_elementtree.py"):
-                    os.unlink(os.path.join(self.build_lib,
-                        'snakeoil', 'xml', x))
+            kill_it = os.path.join(self.build_lib, 'snakeoil', 'xml', 'bundled_elementtree.py')
+            os.unlink(kill_it)
             if snk_distutils.is_py3k:
                 kill_it = os.path.join(self.build_lib, 'snakeoil', 'xml',
                     'bundled_elementtree.py')
                 py3k_rebuilds[:] = [x for x in py3k_rebuilds
                     if not x[0] == kill_it]
+
+        if sys.version_info[0] < 3 and not self.inplace:
+            kill_it = os.path.join(self.build_lib, 'snakeoil', 'compatibility_py3k.py')
+            os.unlink(kill_it)
+
 
         # distutils is stupid.  restore +x on caching_2to3
         path = os.path.join(self.build_lib, 'snakeoil', 'caching_2to3.py')
