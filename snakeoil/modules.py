@@ -7,7 +7,7 @@ dynamic import functionality
 
 __all__ = ("FailedImport", "load_module", "load_attribute", "load_any")
 
-from snakeoil.compatibility import raise_from
+from snakeoil.compatibility import raise_from, IGNORED_EXCEPTIONS
 import sys
 
 class FailedImport(ImportError):
@@ -35,7 +35,7 @@ def load_module(name):
         for bit in name.split('.')[1:]:
             m = getattr(m, bit)
         return m
-    except (KeyboardInterrupt, SystemExit):
+    except IGNORED_EXCEPTIONS:
         raise
     except Exception, e:
         raise_from(FailedImport(name, e))

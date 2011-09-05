@@ -16,7 +16,7 @@ from snakeoil import unittest_extensions
 import traceback
 import os
 import subprocess
-from snakeoil.compatibility import is_py3k_like
+from snakeoil.compatibility import is_py3k_like, IGNORED_EXCEPTIONS
 from snakeoil import modules
 
 def _tryResultCall(result, methodname, *args):
@@ -153,12 +153,10 @@ class TestCase(unittest.TestCase, object):
     def assertRaises(self, excClass, callableObj, *args, **kwargs):
         try:
             callableObj(*args, **kwargs)
-        except (RuntimeError, SystemExit, KeyboardInterrupt), e:
-            if isinstance(e, excClass):
-                return
-            raise
         except excClass:
             return
+        except IGNORED_EXCEPTIONS:
+            raise
         except Exception, e:
             tb = traceback.format_exc()
 

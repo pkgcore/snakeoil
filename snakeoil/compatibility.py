@@ -175,3 +175,5 @@ else:
 
         new_exception.__cause__ = exc_info[1]
         raise new_exception.__class__, new_exception, exc_info[2]
+
+IGNORED_EXCEPTIONS = (RuntimeError, MemoryError, SystemExit, KeyboardInterrupt)

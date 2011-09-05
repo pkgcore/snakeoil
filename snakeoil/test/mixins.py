@@ -134,7 +134,7 @@ class PythonNamespaceWalker(object):
         for chunk in namespace.split(".")[1:]:
             try:
                 obj = getattr(obj, chunk)
-            except (RuntimeError, SystemExit, KeyboardInterrupt):
+            except compatibility.IGNORED_EXCEPTIONS:
                 raise
             except AttributeError:
                 raise AssertionError("failed importing target %s" % namespace)
