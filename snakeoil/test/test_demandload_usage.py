@@ -38,4 +38,4 @@ class TestDemandLoadTargets(mixins.PythonNamespaceWalker, TestCase):
                 getattr(obj, "__class__", None)
             except ImportError, ie:
                 # hit one.
-                self._failures.append((mod.__name__ + attr, ie))
+                self._failures.append(("%s: target %s" % (mod.__name__, attr), ie))
