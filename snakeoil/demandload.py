@@ -92,7 +92,7 @@ def parse_imports(imports):
         if len(fromlist) == 1:
             # Not a "from" import.
             if '.' in s:
-                raise ValueError('dotted imports unsupported.')
+                raise ValueError('dotted imports unsupported; %r' % s)
             split = s.split('@', 1)
             for s in split:
                 if not s.translate(_allowed_chars).isspace():
