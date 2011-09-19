@@ -12,7 +12,9 @@ class TestDemandLoadTargets(mixins.PythonNamespaceWalker, TestCase):
     ignore_all_import_failures = False
 
     if not compatibility.is_py3k:
-        module_blacklist = frozenset(['snakeoil.caching_2to3', 'snakeoil.compatibility_py3k'])
+        module_blacklist = set(['snakeoil.caching_2to3', 'snakeoil.compatibility_py3k'])
+    module_blacklist.add("snakeoil.pyflakes_extension")
+    module_blacklist = frozenset(module_blacklist)
 
     def setUp(self):
         self._failures = []
