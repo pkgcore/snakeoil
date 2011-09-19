@@ -53,7 +53,10 @@ class PythonNamespaceWalker(object):
 
     valid_inits = frozenset("__init__.%s" % x for x in ("py", "pyc", "pyo", "so"))
 
-    module_blacklist = frozenset()
+    module_blacklist = set(["snakeoil.pyflakes_extension"])
+    if not compatibility.is_py3k:
+        module_blacklist.update(["snakeoil.caching_2to3", "snakeoil.compatibility_py3k"])
+    module_blacklist = frozenset(module_blacklist)
 
     def _default_module_blacklister(self, target):
         return target in self.module_blacklist

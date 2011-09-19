@@ -9,7 +9,6 @@ import inspect
 class Test_slot_shadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker, TestCase):
 
     target_namespace = 'snakeoil'
-    module_blacklist = test_demandload_usage.TestDemandLoadTargets.module_blacklist
     err_if_slots_is_str = True
     err_if_slots_is_mutable = True
 

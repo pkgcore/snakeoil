@@ -8,7 +8,6 @@ import sys
 class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker, TestCase):
 
     target_namespace = 'snakeoil'
-    module_blacklist = test_demandload_usage.TestDemandLoadTargets.module_blacklist
 
     if sys.version_info[:2] < (2, 6):
         skip = "this check doesn't work for pre2.6 python due to differences " \
