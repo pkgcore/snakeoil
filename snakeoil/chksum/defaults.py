@@ -75,15 +75,11 @@ def loop_over_file(handle, callbacks, parallelize=True):
             for callback in callbacks:
                 callback(data)
         else:
-            convert = lambda x:x
-            if is_py3k:
-                convert = lambda x:x.encode()
-
-            data = convert(f.read(blocksize))
+            data = f.read(blocksize)
             while data:
                 for callback in callbacks:
                     callback(data)
-                data = convert(f.read(blocksize))
+                data = f.read(blocksize)
 
         if parallelize:
             for callback in callbacks:
