@@ -280,7 +280,8 @@ class readlines_iter(object):
         # a generator; we intend to return nothing, but close
         # the file on the way out.
         for x in ():
-            yield
+            # have to yield /something/, else py2.4 pukes on the syntax
+            yield None
         self.source.close()
         raise StopIteration()
 
