@@ -13,6 +13,7 @@ __all__ = ("AtomicWriteFile", "read_dict", "ParseError", 'write_file',)
 
 import os
 import errno
+import itertools
 from snakeoil import compatibility
 from snakeoil.weakrefs import WeakRefFinalizer
 # kept purely for compatibility with pcheck.
@@ -222,18 +223,27 @@ def _internal_native_readfile(mode, mypath, none_on_missing=False, encoding=None
     :param none_on_missing: whether to return None if the file is missing,
         else through the exception
     """
+    f = None
     try:
-        if encoding and strict:
-            # we special case this- codecs.open is about 2x slower,
-            # thus if py3k, use the native one (which supports encoding directly)
-            if compatibility.is_py3k:
-                return open(mypath, mode, encoding=encoding).read()
-            return codecs.open(mypath, mode, encoding=encoding).read()
-        return open(mypath, mode).read()
-    except IOError, oe:
-        if none_on_missing and oe.errno == errno.ENOENT:
-            return None
-        raise
+        try:
+            if encoding and strict:
+                # we special case this- codecs.open is about 2x slower,
+                # thus if py3k, use the native one (which supports encoding directly)
+                if compatibility.is_py3k:
+                    f = open(mypath, mode, encoding=encoding)
+                else:
+                    f = codecs.open(mypath, mode, encoding=encoding)
+            else:
+                f = open(mypath, mode)
+
+            return f.read()
+        except IOError, oe:
+            if none_on_missing and oe.errno == errno.ENOENT:
+                return None
+            raise
+    finally:
+        if f is not None:
+            f.close()
 
 def _mk_pretty_derived_func(func, name_base, name, *args, **kwds):
     if name:
@@ -255,10 +265,28 @@ native_readfile_utf8_strict = _mk_readfile('utf8_strict', 'r',
     encoding='utf8', strict=True)
 
 class readlines_iter(object):
-    __slots__ = ("iterable", "mtime")
-    def __init__(self, iterable, mtime):
+    __slots__ = ("iterable", "mtime", "source")
+    def __init__(self, iterable, mtime, close=True, source=None):
+        if source is None:
+            source = iterable
+        self.source = source
+        if close:
+            iterable = itertools.chain(iterable, self._close_on_stop())
         self.iterable = iterable
         self.mtime = mtime
+
+    def _close_on_stop(self):
+        # we explicitly write this to force this method to be
+        # a generator; we intend to return nothing, but close
+        # the file on the way out.
+        for x in ():
+            yield
+        self.source.close()
+        raise StopIteration()
+
+    def close(self):
+        if hasattr(self.source, 'close'):
+            self.source.close()
 
     def __iter__(self):
         return self.iterable
@@ -304,14 +332,15 @@ def native_readlines(mode, mypath, strip_whitespace=True, swallow_missing=False,
             raise
         if none_on_missing:
             return None
-        return readlines_iter(iter([]), None)
+        return readlines_iter(iter([]), None, close=False)
 
     mtime = os.fstat(handle.fileno()).st_mtime
     if not iterable:
         iterable = iter(handle)
     if not strip_whitespace:
         return readlines_iter(iterable, mtime)
-    return readlines_iter(_strip_whitespace_filter(iterable), mtime)
+    return readlines_iter(_strip_whitespace_filter(iterable), mtime,
+        source=iterable)
 
 
 _mk_readlines = partial(_mk_pretty_derived_func, native_readlines,

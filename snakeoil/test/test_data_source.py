@@ -27,9 +27,9 @@ class TestDataSource(TestCase):
         self.assertEqual(handle.read(), converter("foonani"))
         self.assertRaises(handle.exceptions, handle.write,
             converter("monkey"))
+        handle.close()
 
     def _test_fileobj_wr(self, attr, converter=str):
-
         obj = self.get_obj(True)
         handle_f = getattr(obj, attr)
         self.assertEqual(handle_f().read(),
@@ -37,8 +37,10 @@ class TestDataSource(TestCase):
         f = handle_f(True)
         f.write(converter("dar"))
         f.close()
-        self.assertEqual(handle_f(True).read(),
+        f = handle_f(True)
+        self.assertEqual(f.read(),
             converter("darnani"))
+        f.close()
 
     def test_text_fileobj(self):
         self._test_fileobj_ro("text_fileobj", str)
@@ -56,13 +58,13 @@ class TestDataSource(TestCase):
         # just validate we get back an obj...
         # not quite blackbox, but we know we test the functionality above-
         # thus no point in repeating it just for an aliasing of the method name
-        self.get_obj().get_text_fileobj()
+        self.get_obj().get_text_fileobj().close()
 
     def test_get_textfileobj(self):
         # just validate we get back an obj...
         # not quite blackbox, but we know we test the functionality above-
         # thus no point in repeating it just for an aliasing of the method name
-        self.get_obj().get_bytes_fileobj()
+        self.get_obj().get_bytes_fileobj().close()
 
 
 class TestLocalSource(mixins.TempDirMixin, TestDataSource):
@@ -76,6 +78,7 @@ class TestLocalSource(mixins.TempDirMixin, TestDataSource):
         if f is None:
             f = open(self.fp, "w")
         f.write(data)
+        f.close()
         return data_source.local_source(self.fp, mutable=mutable)
 
     def test_get_path(self):
@@ -85,7 +88,9 @@ class TestLocalSource(mixins.TempDirMixin, TestDataSource):
         data = u"foonani\xf2".encode("utf8")
         obj = self.get_obj(data=data)
         # this will blow up if tries to ascii decode it.
-        self.assertEqual(obj.get_bytes_fileobj().read(), data)
+        f = obj.get_bytes_fileobj()
+        self.assertEqual(f.read(), data)
+        f.close()
 
 
 class Test_invokable_data_source(TestDataSource):

@@ -90,8 +90,11 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
         d, protected = ProtectedDict(vars_dict), True
     else:
         d, protected = {}, False
+
+    close = False
     if isinstance(bash_source, basestring):
         f = open(bash_source, "r")
+        close = True
     else:
         f = bash_source
     s = bash_parser(f, sourcing_command=sourcing_command, env=d)
@@ -129,7 +132,8 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
         except ValueError, e:
             raise_from(BashParseError(bash_source, s.lineno, str(e)))
     finally:
-        del f
+        if close and f is not None:
+            f.close()
     if protected:
         d = d.new
     return d

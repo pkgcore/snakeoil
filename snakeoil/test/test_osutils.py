@@ -277,6 +277,7 @@ class FsLockTest(TempDirMixin):
         lock.release_write_lock()
         fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
         fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
+        f.close()
 
 
 class TestAccess(TempDirMixin):

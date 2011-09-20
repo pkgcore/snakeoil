@@ -5,7 +5,7 @@ import tempfile, os
 from snakeoil.test import TestCase, SkipTest
 from snakeoil.currying import post_curry
 from snakeoil.compatibility import is_py3k
-from snakeoil import chksum
+from snakeoil import chksum, fileutils
 from snakeoil.data_source import data_source, local_source
 
 data = "afsd123klawerponzzbnzsdf;h89y23746123;haas"
@@ -39,12 +39,14 @@ class base(object):
         self.assertEqual(self.chf(self.fn), self.expected_long)
 
     def test_fileobj_check(self):
-        self.assertEqual(self.chf(open(self.fn, "r")), self.expected_long)
+        f = open(self.fn, "r")
+        self.assertEqual(self.chf(f), self.expected_long)
+        f.close()
 
     def test_data_source_check(self):
         self.assertEqual(self.chf(local_source(self.fn)), self.expected_long)
         self.assertEqual(
-            self.chf(data_source(open(self.fn, "r").read())), self.expected_long)
+            self.chf(data_source(fileutils.readfile_ascii(self.fn))), self.expected_long)
 
 class ChksumTest(base):
 

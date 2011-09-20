@@ -80,65 +80,70 @@ class ReadBashDictTest(TestCase):
         self.unclosed_file.flush()
 
     def tearDown(self):
-        del self.valid_file
-        del self.sourcing_file
-        del self.advanced_file
-        del self.env_file
-        del self.escaped_file
-        del self.unclosed_file
+        for x in ("valid", "sourcing", "advanced", "env", "escaped", "unclosed"):
+            x = getattr(self, '%s_file' % x, None)
+            if x is not None:
+                x.close()
+
+    def invoke_and_close(self, handle, *args, **kwds):
+        try:
+            return read_bash_dict(handle, *args, **kwds)
+        finally:
+            if hasattr(handle, 'close'):
+                handle.close()
 
     def test_read_bash_dict(self):
         # TODO this is not even close to complete
         self.assertEqual(
-            read_bash_dict(self.valid_file.name),
+            self.invoke_and_close(self.valid_file.name),
             {'foo1': 'bar', 'foo2': 'bar', 'foo3': 'bar', 'foo4': '-/:j4',
                 'foo5': ''})
         s = "a=b\ny='"
-        self.assertRaises(BashParseError, read_bash_dict, StringIO(s))
+        self.assertRaises(BashParseError, self.invoke_and_close, StringIO(s))
 
     def test_var_read(self):
-        self.assertEqual(read_bash_dict(StringIO("x=y@a\n")),
+        self.assertEqual(self.invoke_and_close(StringIO("x=y@a\n")),
             {'x':'y@a'})
-        self.assertEqual(read_bash_dict(StringIO("x=y~a\n")),
+        self.assertEqual(self.invoke_and_close(StringIO("x=y~a\n")),
             {'x':'y~a'})
-        self.assertEqual(read_bash_dict(StringIO("x=y^a\n")),
+        self.assertEqual(self.invoke_and_close(StringIO("x=y^a\n")),
             {'x':'y^a'})
-        self.assertEqual(read_bash_dict(StringIO('x="\nasdf\nfdsa"')),
+        self.assertEqual(self.invoke_and_close(StringIO('x="\nasdf\nfdsa"')),
             {'x':'\nasdf\nfdsa'})
 
     def test_empty_assign(self):
         self.write_file(self.valid_file.name, 'w', "foo=\ndar=blah\n")
-        self.assertEqual(read_bash_dict(self.valid_file.name),
+        self.assertEqual(self.invoke_and_close(self.valid_file.name),
             {'foo':'', 'dar':'blah'})
         self.write_file(self.valid_file.name, 'w', "foo=\ndar=\n")
-        self.assertEqual(read_bash_dict(self.valid_file.name),
+        self.assertEqual(self.invoke_and_close(self.valid_file.name),
             {'foo':'', 'dar':''})
         self.write_file(self.valid_file.name, 'w', "foo=blah\ndar=\n")
-        self.assertEqual(read_bash_dict(self.valid_file.name),
+        self.assertEqual(self.invoke_and_close(self.valid_file.name),
             {'foo':'blah', 'dar':''})
 
     def test_quoting(self):
-        self.assertEqual(read_bash_dict(StringIO("x='y \\\na'")),
+        self.assertEqual(self.invoke_and_close(StringIO("x='y \\\na'")),
             {'x':'y \\\na'})
-        self.assertEqual(read_bash_dict(StringIO("x='y'a\n")),
+        self.assertEqual(self.invoke_and_close(StringIO("x='y'a\n")),
             {'x':"ya"})
-        self.assertEqual(read_bash_dict(StringIO('x="y \\\nasdf"')),
+        self.assertEqual(self.invoke_and_close(StringIO('x="y \\\nasdf"')),
             {'x':'y asdf'})
 
     def test_eof_without_newline(self):
-        self.assertEqual(read_bash_dict(StringIO("x=y")), {'x':'y'})
-        self.assertEqual(read_bash_dict(StringIO("x='y'a")), {'x':'ya'})
+        self.assertEqual(self.invoke_and_close(StringIO("x=y")), {'x':'y'})
+        self.assertEqual(self.invoke_and_close(StringIO("x='y'a")), {'x':'ya'})
 
     def test_sourcing(self):
         # TODO this is not even close to complete
         self.assertEqual(
-            read_bash_dict(self.sourcing_file.name, sourcing_command='source'),
+            self.invoke_and_close(self.sourcing_file.name, sourcing_command='source'),
             {'foo1': 'bar', 'foo2': 'bar', 'foo3': 'bar', 'foo4': '-/:j4',
                 'foo5':''})
 
     def test_read_advanced(self):
         self.assertEqual(
-            read_bash_dict(self.advanced_file.name),
+            self.invoke_and_close(self.advanced_file.name),
             {'one1': '1',
              'one_': '1',
              'two1': '2',
@@ -147,25 +152,25 @@ class ReadBashDictTest(TestCase):
 
     def test_env(self):
         self.assertEqual(
-            read_bash_dict(self.env_file.name),
+            self.invoke_and_close(self.env_file.name),
             {'imported': ''})
         env = {'external': 'imported foo'}
         env_backup = env.copy()
         self.assertEqual(
-            read_bash_dict(self.env_file.name, env),
+            self.invoke_and_close(self.env_file.name, env),
             {'imported': 'imported foo'})
         self.assertEqual(env_backup, env)
 
     def test_escaping(self):
         self.assertEqual(
-            read_bash_dict(self.escaped_file.name), {
+            self.invoke_and_close(self.escaped_file.name), {
                 'end': 'bye',
                 'quoteddollar': '${dollar}',
                 'quotedexpansion': '${bye}',
                 })
 
     def test_unclosed(self):
-        self.assertRaises(BashParseError, read_bash_dict, self.unclosed_file.name)
+        self.assertRaises(BashParseError, self.invoke_and_close, self.unclosed_file.name)
 
     def test_wordchards(self):
-        self.assertEqual(read_bash_dict(StringIO("x=-*")), {"x":"-*"})
+        self.assertEqual(self.invoke_and_close(StringIO("x=-*")), {"x":"-*"})

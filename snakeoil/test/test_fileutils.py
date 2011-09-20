@@ -17,7 +17,7 @@ from snakeoil.test import TestCase
 from snakeoil.test.mixins import TempDirMixin
 
 
-class TestReadBashConfig(TestCase):
+class TestReadDictConfig(TestCase):
 
     def test_read_dict(self):
         self.assertEqual(
@@ -51,9 +51,9 @@ class TestAtomicWriteFile(TempDirMixin):
         self.write_file(fp, "w", "me")
         af = self.kls(fp)
         af.write("dar")
-        self.assertEqual(open(fp, "r").read(), "me")
+        self.assertEqual(fileutils.readfile_ascii(fp), "me")
         af.close()
-        self.assertEqual(open(fp, "r").read(), "dar")
+        self.assertEqual(fileutils.readfile_ascii(fp), "dar")
 
     def test_perms(self):
         fp = pjoin(self.dir, 'target')
@@ -70,11 +70,11 @@ class TestAtomicWriteFile(TempDirMixin):
     def test_del(self):
         fp = pjoin(self.dir, "target")
         self.write_file(fp, "w", "me")
-        self.assertEqual(open(fp, "r").read(), "me")
+        self.assertEqual(fileutils.readfile_ascii(fp), "me")
         af = self.kls(fp)
         af.write("dar")
         del af
-        self.assertEqual(open(fp, "r").read(), "me")
+        self.assertEqual(fileutils.readfile_ascii(fp), "me")
         self.assertEqual(len(os.listdir(self.dir)), 1)
 
     def test_close(self):
@@ -86,13 +86,13 @@ class TestAtomicWriteFile(TempDirMixin):
     def test_discard(self):
         fp = pjoin(self.dir, "target")
         self.write_file(fp, "w", "me")
-        self.assertEqual(open(fp, "r").read(), "me")
+        self.assertEqual(fileutils.readfile_ascii(fp), "me")
         af = self.kls(fp)
         af.write("dar")
         af.discard()
         self.assertFalse(os.path.exists(af._temp_fp))
         af.close()
-        self.assertEqual(open(fp, "r").read(), "me")
+        self.assertEqual(fileutils.readfile_ascii(fp), "me")
 
         # finally validate that it handles multiple discards properly.
         af = self.kls(fp)

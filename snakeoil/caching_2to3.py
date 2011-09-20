@@ -47,8 +47,17 @@ class caching_mixin(object):
         if not os.path.exists(cache_dir):
             os.mkdir(cache_dir)
         if new_text is None:
-            new_text = open(filename, 'rb').read().decode(encoding)
-        open(os.path.join(cache_dir, cache_key), 'wb').write(new_text.encode(encoding))
+            f = open(filename, 'rb').read()
+            # annoying, but we do this since we force encoding further down
+            new_text = f.read().decode(encoding)
+            f.close()
+        f = None
+        try:
+            f = open(os.path.join(cache_dir, cache_key), 'wb')
+            f.write(new_text.encode(encoding))
+        finally:
+            if f is not None:
+                f.close()
 
     def check_cache(self, cache_key, encoding):
         cache_path = self.get_cache_path(cache_key)
