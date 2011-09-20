@@ -317,7 +317,7 @@ class native_readfile_Test(TempDirMixin):
                 if expected[1] is not None:
                     encoding = expected[1]
                 expected = expected[0]
-            open(fp, 'wb').write(
+            self.write_file(fp, 'wb',
                 self.convert_data(expected, encoding))
             if raised:
                 self.assertRaises(raised, self.assertFunc, fp, expected)
@@ -332,7 +332,7 @@ class native_readfile_Test(TempDirMixin):
         self.assertRaises(EnvironmentError, self.func, fp)
         self.assertEqual(self.func(fp, True), None)
         data = self.test_cases[0]
-        open(fp, 'wb').write(self.convert_data('dar', 'ascii'))
+        self.write_file(fp, 'wb', self.convert_data('dar', 'ascii'))
         self.assertEqual(self.func(fp, True),
             self.none_on_missing_ret_data)
 
@@ -409,14 +409,14 @@ class readlines_mixin(object):
         self.assertRaises(EnvironmentError, self.func, fp)
         self.assertEqual(tuple(self.func(fp, False, True)), ())
         data = self.test_cases[0]
-        open(fp, 'wb').write(self.convert_data('dar', 'ascii'))
+        self.write_file(fp, 'wb', self.convert_data('dar', 'ascii'))
         self.assertEqual(tuple(self.func(fp, True)),
             (self.none_on_missing_ret_data,))
 
     def test_strip_whitespace(self):
         fp = pjoin(self.dir, 'data')
 
-        open(fp, 'wb').write(self.convert_data(' dar1 \ndar2 \n dar3\n',
+        self.write_file(fp, 'wb', self.convert_data(' dar1 \ndar2 \n dar3\n',
             'ascii'))
         results = tuple(self.func(fp, True))
         expected = ('dar1', 'dar2', 'dar3')
@@ -425,7 +425,7 @@ class readlines_mixin(object):
         self.assertEqual(results, expected)
 
         # this time without the trailing newline...
-        open(fp, 'wb').write(self.convert_data(' dar1 \ndar2 \n dar3',
+        self.write_file(fp, 'wb', self.convert_data(' dar1 \ndar2 \n dar3',
             'ascii'))
         results = tuple(self.func(fp, True))
         self.assertEqual(results, expected)
@@ -433,21 +433,21 @@ class readlines_mixin(object):
 
         # test a couple of edgecases; underly c extension has gotten these
         # wrong before.
-        open(fp, 'wb').write(self.convert_data('0', 'ascii'))
+        self.write_file(fp, 'wb', self.convert_data('0', 'ascii'))
         results = tuple(self.func(fp, True))
         expected = ('0',)
         if self.encoding_mode == 'bytes' and compatibility.is_py3k:
             expected = tuple(x.encode("ascii") for x in expected)
         self.assertEqual(results, expected)
 
-        open(fp, 'wb').write(self.convert_data('0\n', 'ascii'))
+        self.write_file(fp, 'wb', self.convert_data('0\n', 'ascii'))
         results = tuple(self.func(fp, True))
         expected = ('0',)
         if self.encoding_mode == 'bytes' and compatibility.is_py3k:
             expected = tuple(x.encode("ascii") for x in expected)
         self.assertEqual(results, expected)
 
-        open(fp, 'wb').write(self.convert_data('0 ', 'ascii'))
+        self.write_file(fp, 'wb', self.convert_data('0 ', 'ascii'))
         results = tuple(self.func(fp, True))
         expected = ('0',)
         if self.encoding_mode == 'bytes' and compatibility.is_py3k:
@@ -500,7 +500,7 @@ class Test_unlink_if_exists(TempDirMixin):
         f = self.func
         path = pjoin(self.dir, 'target')
         f(path)
-        open(path, 'w')
+        self.write_file(path, 'w', '')
         f(path)
         self.assertFalse(os.path.exists(path))
         # and once more for good measure...

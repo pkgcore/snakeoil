@@ -16,8 +16,9 @@ from snakeoil import unittest_extensions
 import traceback
 import os
 import subprocess
-from snakeoil.compatibility import is_py3k_like, IGNORED_EXCEPTIONS
+from snakeoil.compatibility import is_py3k_like, IGNORED_EXCEPTIONS, is_py3k
 from snakeoil import modules
+from snakeoil import fileutils
 
 def _tryResultCall(result, methodname, *args):
     method = getattr(result, methodname, None)
@@ -182,6 +183,9 @@ class TestCase(unittest.TestCase, object):
         else:
             excName = getattr(excClass, '__name__', str(excClass))
             raise self.failureException("%s not raised: %s" % (excName, msg))
+
+    def write_file(self, path, mode, stream, encoding=None):
+        return fileutils.write_file(path, mode, stream, encoding=encoding)
 
     # unittest and twisted each have a differing count of how many frames
     # to pop off when displaying an exception; thus we force an extra

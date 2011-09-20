@@ -9,13 +9,41 @@ till 0.5 of snakeoil, compatibility imports from :py:mod:`snakeoil.bash` will
 be left in place here.
 """
 
-__all__ = ("AtomicWriteFile", "read_dict", "ParseError")
+__all__ = ("AtomicWriteFile", "read_dict", "ParseError", 'write_file',)
 
 import os
 from snakeoil import compatibility
 from snakeoil.weakrefs import WeakRefFinalizer
 from snakeoil.bash import *
 from snakeoil import klass, compatibility
+from snakeoil.demandload import demandload
+demandload(globals(),
+    'codecs',
+)
+
+
+def write_file(path, mode, stream, encoding=None):
+    f = None
+    try:
+        if compatibility.is_py3k:
+            f = open(path, mode, encoding=encoding)
+        elif encoding is not None:
+            f = codecs.open(path, mode, encoding=encoding)
+        else:
+            f = open(path, mode)
+
+        if compatibility.is_py3k:
+            if isinstance(stream, (str, bytes)):
+                stream = [stream]
+        elif isinstance(stream, basestring):
+            stream = [stream]
+
+        for data in stream:
+            f.write(data)
+    finally:
+        if f is not None:
+            f.close()
+
 
 class AtomicWriteFile_mixin(object):
 

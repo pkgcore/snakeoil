@@ -47,7 +47,7 @@ class TestAtomicWriteFile(TempDirMixin):
 
     def test_normal_ops(self):
         fp = pjoin(self.dir, "target")
-        open(fp, "w").write("me")
+        self.write_file(fp, "w", "me")
         af = self.kls(fp)
         af.write("dar")
         self.assertEqual(open(fp, "r").read(), "me")
@@ -68,7 +68,7 @@ class TestAtomicWriteFile(TempDirMixin):
 
     def test_del(self):
         fp = pjoin(self.dir, "target")
-        open(fp, "w").write("me")
+        self.write_file(fp, "w", "me")
         self.assertEqual(open(fp, "r").read(), "me")
         af = self.kls(fp)
         af.write("dar")
@@ -84,7 +84,7 @@ class TestAtomicWriteFile(TempDirMixin):
 
     def test_discard(self):
         fp = pjoin(self.dir, "target")
-        open(fp, "w").write("me")
+        self.write_file(fp, "w", "me")
         self.assertEqual(open(fp, "r").read(), "me")
         af = self.kls(fp)
         af.write("dar")

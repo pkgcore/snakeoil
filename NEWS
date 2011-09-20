@@ -2,6 +2,8 @@ Snakeoil Release Notes
 ======================
 
 
+* fileutils.write_file was added for quick one off writes.
+
 * chksums generation now will parallelize where worthwhile.  Since this is
   python, GIL bouncing does occur, ultimately costing more total CPU for the
   larger/more chksums.  That said, it's overall faster going in parallel

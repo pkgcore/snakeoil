@@ -107,13 +107,13 @@ class ReadBashDictTest(TestCase):
             {'x':'\nasdf\nfdsa'})
 
     def test_empty_assign(self):
-        open(self.valid_file.name, 'w').write("foo=\ndar=blah\n")
+        self.write_file(self.valid_file.name, 'w', "foo=\ndar=blah\n")
         self.assertEqual(read_bash_dict(self.valid_file.name),
             {'foo':'', 'dar':'blah'})
-        open(self.valid_file.name, 'w').write("foo=\ndar=\n")
+        self.write_file(self.valid_file.name, 'w', "foo=\ndar=\n")
         self.assertEqual(read_bash_dict(self.valid_file.name),
             {'foo':'', 'dar':''})
-        open(self.valid_file.name, 'w').write("foo=blah\ndar=\n")
+        self.write_file(self.valid_file.name, 'w', "foo=blah\ndar=\n")
         self.assertEqual(read_bash_dict(self.valid_file.name),
             {'foo':'blah', 'dar':''})
 
