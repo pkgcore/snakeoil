@@ -1,4 +1,4 @@
-# Copyright: 2005-2010 Brian Harring <ferringb@gmail.com>
+# Copyright: 2005-2011 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
 """
@@ -12,10 +12,13 @@ be left in place here.
 __all__ = ("AtomicWriteFile", "read_dict", "ParseError", 'write_file',)
 
 import os
+import errno
 from snakeoil import compatibility
 from snakeoil.weakrefs import WeakRefFinalizer
-from snakeoil.bash import *
+# kept purely for compatibility with pcheck.
+from snakeoil.bash import iter_read_bash, read_bash_dict
 from snakeoil import klass, compatibility
+from snakeoil.currying import partial, pretty_docs
 from snakeoil.demandload import demandload
 demandload(globals(),
     'codecs',
@@ -208,3 +211,132 @@ class ParseError(Exception):
                                "error parsing '%s' on or before line %i" %
                                (filename, line))
         self.file, self.line, self.errmsg = filename, line, errmsg
+
+
+def _internal_native_readfile(mode, mypath, none_on_missing=False, encoding=None,
+    strict=compatibility.is_py3k):
+    """
+    read a file, returning the contents
+
+    :param mypath: fs path for the file to read
+    :param none_on_missing: whether to return None if the file is missing,
+        else through the exception
+    """
+    try:
+        if encoding and strict:
+            # we special case this- codecs.open is about 2x slower,
+            # thus if py3k, use the native one (which supports encoding directly)
+            if compatibility.is_py3k:
+                return open(mypath, mode, encoding=encoding).read()
+            return codecs.open(mypath, mode, encoding=encoding).read()
+        return open(mypath, mode).read()
+    except IOError, oe:
+        if none_on_missing and oe.errno == errno.ENOENT:
+            return None
+        raise
+
+def _mk_pretty_derived_func(func, name_base, name, *args, **kwds):
+    if name:
+        name = '_' + name
+    return pretty_docs(partial(func, *args, **kwds),
+        name='%s%s' % (name_base, name))
+
+_mk_readfile = partial(_mk_pretty_derived_func, _internal_native_readfile,
+    'readfile')
+
+native_readfile_ascii = _mk_readfile('ascii', 'rt')
+native_readfile = native_readfile_ascii
+native_readfile_ascii_strict = _mk_readfile('ascii_strict', 'r',
+    encoding='ascii', strict=True)
+native_readfile_bytes = _mk_readfile('bytes', 'rb')
+native_readfile_utf8 = _mk_readfile('utf8', 'r',
+    encoding='utf8', strict=False)
+native_readfile_utf8_strict = _mk_readfile('utf8_strict', 'r',
+    encoding='utf8', strict=True)
+
+class readlines_iter(object):
+    __slots__ = ("iterable", "mtime")
+    def __init__(self, iterable, mtime):
+        self.iterable = iterable
+        self.mtime = mtime
+
+    def __iter__(self):
+        return self.iterable
+
+def _py2k_ascii_strict_filter(source):
+    any = compatibility.any
+    for line in source:
+        if any((0x80 & ord(char)) for char in line):
+            raise ValueError("character ordinal over 127");
+        yield line
+
+
+def _strip_whitespace_filter(iterable):
+    for line in iterable:
+        yield line.strip()
+
+def native_readlines(mode, mypath, strip_whitespace=True, swallow_missing=False,
+    none_on_missing=False, encoding=None, strict=compatibility.is_py3k):
+    """
+    read a file, yielding each line
+
+    :param mypath: fs path for the file to read
+    :param strip_whitespace: strip any leading or trailing whitespace including newline?
+    :param swallow_missing: throw an IOError if missing, or swallow it?
+    :param none_on_missing: if the file is missing, return None, else
+        if the file is missing return an empty iterable
+    """
+    handle = iterable = None
+    try:
+        if encoding and strict:
+            # we special case this- codecs.open is about 2x slower,
+            # thus if py3k, use the native one (which supports encoding directly)
+            if compatibility.is_py3k:
+                handle = open(mypath, mode, encoding=encoding)
+            else:
+                handle = codecs.open(mypath, mode, encoding=encoding)
+                if encoding == 'ascii':
+                    iterable = _py2k_ascii_strict_filter(handle)
+        else:
+            handle = open(mypath, mode)
+    except IOError, ie:
+        if ie.errno != errno.ENOENT or not swallow_missing:
+            raise
+        if none_on_missing:
+            return None
+        return readlines_iter(iter([]), None)
+
+    mtime = os.fstat(handle.fileno()).st_mtime
+    if not iterable:
+        iterable = iter(handle)
+    if not strip_whitespace:
+        return readlines_iter(iterable, mtime)
+    return readlines_iter(_strip_whitespace_filter(iterable), mtime)
+
+
+_mk_readlines = partial(_mk_pretty_derived_func, native_readlines,
+    'readlines')
+
+try:
+    from snakeoil.osutils._posix import readfile, readlines
+    readfile_ascii = readfile
+    readlines_ascii = readlines
+except ImportError:
+    readfile_ascii = native_readfile_ascii
+    readfile = native_readfile
+    readlines_ascii = _mk_readlines('ascii', 'r',
+        encoding='ascii')
+    readlines = readlines_ascii
+
+readlines_bytes = _mk_readlines('bytes', 'rb')
+readlines_ascii_strict = _mk_readlines('ascii_strict', 'r',
+    encoding='ascii', strict=True)
+readlines_utf8 = _mk_readlines('utf8', 'r', encoding='utf8')
+readlines_utf8_strict = _mk_readlines('utf8_strict', 'r',
+    encoding='utf8', strict=True)
+
+readfile_ascii_strict = native_readfile_ascii_strict
+readfile_bytes = native_readfile_bytes
+readfile_utf8 = native_readfile_utf8
+readfile_utf8_strict = native_readfile_utf8_strict
+

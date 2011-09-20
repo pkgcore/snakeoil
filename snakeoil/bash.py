@@ -19,9 +19,13 @@ __all__ = ("iter_read_bash", "read_bash", "read_bash_dict", "bash_parser",
 import re
 from shlex import shlex
 from snakeoil.mappings import ProtectedDict
-from snakeoil.osutils import readlines_utf8
 from snakeoil.compatibility import raise_from
-
+# demandloaded since their is a !@#*ing import cycle.
+# that cycle goes away once fileutils stops it's compatibility for bash access
+from snakeoil.demandload import demandload
+demandload(globals(),
+    'snakeoil.osutils:readlines_utf8',
+)
 
 def iter_read_bash(bash_source, allow_inline_comments=True):
     """

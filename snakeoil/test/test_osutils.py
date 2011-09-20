@@ -1,4 +1,4 @@
-# Copyright: 2005-2009 Brian Harring <ferringb@gmail.com>
+# Copyright: 2005-2011 Brian Harring <ferringb@gmail.com>
 # Copyright: 2006 Marien Zwart <marienz@gentoo.org>
 # License: BSD/GPL2
 
@@ -7,10 +7,9 @@ pjoin = os.path.join
 import grp
 import stat
 import fcntl
-import codecs
 
 from snakeoil.test import TestCase, SkipTest, mk_cpy_loadable_testcase
-from snakeoil import osutils, compatibility, currying
+from snakeoil import osutils
 from snakeoil.osutils import native_readdir
 from snakeoil.test.mixins import TempDirMixin
 
@@ -278,199 +277,6 @@ class FsLockTest(TempDirMixin):
         lock.release_write_lock()
         fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
         fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
-
-def cpy_setup_class(scope, func_name):
-    if getattr(osutils, 'native_%s' % func_name) \
-        is getattr(osutils, func_name):
-        scope['skip'] = 'extensions disabled'
-    else:
-        scope['func'] = staticmethod(getattr(osutils, func_name))
-
-
-class native_readfile_Test(TempDirMixin):
-    func = staticmethod(osutils.native_readfile)
-
-    test_cases = ['asdf\nfdasswer\1923',
-        '',
-        '987234']
-
-    default_encoding = 'ascii'
-    none_on_missing_ret_data = 'dar'
-
-    @staticmethod
-    def convert_data(data, encoding):
-        if compatibility.is_py3k:
-            if isinstance(data, bytes):
-                return data
-        if encoding:
-            return data.encode(encoding)
-        return data
-
-    def test_it(self):
-        fp = pjoin(self.dir, 'testfile')
-        for expected in self.test_cases:
-            raised = None
-            encoding = self.default_encoding
-            if isinstance(expected, tuple):
-                if len(expected) == 3:
-                    raised = expected[2]
-                if expected[1] is not None:
-                    encoding = expected[1]
-                expected = expected[0]
-            self.write_file(fp, 'wb',
-                self.convert_data(expected, encoding))
-            if raised:
-                self.assertRaises(raised, self.assertFunc, fp, expected)
-            else:
-                self.assertFunc(fp, expected)
-
-    def assertFunc(self, path, expected):
-        self.assertEqual(self.func(path), expected)
-
-    def test_none_on_missing(self):
-        fp = pjoin(self.dir, 'nonexistant')
-        self.assertRaises(EnvironmentError, self.func, fp)
-        self.assertEqual(self.func(fp, True), None)
-        data = self.test_cases[0]
-        self.write_file(fp, 'wb', self.convert_data('dar', 'ascii'))
-        self.assertEqual(self.func(fp, True),
-            self.none_on_missing_ret_data)
-
-
-class cpy_readfile_Test(native_readfile_Test):
-    cpy_setup_class(locals(), 'readfile')
-
-
-class native_readfile_ascii_Test(native_readfile_Test):
-    func = staticmethod(osutils.native_readfile_ascii)
-
-
-class cpy_readfile_ascii_Test(native_readfile_ascii_Test):
-    cpy_setup_class(locals(), 'readfile_ascii')
-
-
-class native_readfile_ascii_strict_Test(native_readfile_ascii_Test):
-    func = staticmethod(osutils.native_readfile_ascii_strict)
-    test_cases = native_readfile_ascii_Test.test_cases + [
-        (u'\xf2', 'latin', (ValueError, UnicodeDecodeError)),
-        (u'\ua000', 'utf8', UnicodeDecodeError),
-        ]
-
-class cpy_readfile_ascii_strict_Test(native_readfile_ascii_strict_Test):
-    cpy_setup_class(locals(), 'readfile_ascii_strict')
-
-
-class native_readfile_utf8_Test(native_readfile_Test):
-    func = staticmethod(osutils.native_readfile_utf8)
-    default_encoding = 'utf8'
-
-class cpy_readfile_utf8_Test(native_readfile_utf8_Test):
-    cpy_setup_class(locals(), 'readfile_utf8')
-
-class native_readfile_utf8_strict_Test(native_readfile_Test):
-    func = staticmethod(osutils.native_readfile_utf8_strict)
-    default_encoding = 'utf8'
-    test_cases = native_readfile_ascii_Test.test_cases + [
-        u'\ua000fa',
-        ]
-
-class cpy_readfile_utf8_Test(native_readfile_utf8_Test):
-    cpy_setup_class(locals(), 'readfile_utf8_strict')
-
-class native_readfile_bytes_Test(native_readfile_Test):
-    func = staticmethod(osutils.native_readfile_bytes)
-    default_encoding = None
-    test_cases = map(
-        currying.post_curry(native_readfile_Test.convert_data, 'ascii'),
-        native_readfile_Test.test_cases)
-    test_cases.append(u'\ua000fa'.encode("utf8"))
-    none_on_missing_ret_data = native_readfile_Test.convert_data(
-        native_readfile_Test.none_on_missing_ret_data, 'ascii')
-
-
-class readlines_mixin(object):
-
-    def assertFunc(self, path, expected):
-        expected = tuple(expected.split())
-        if expected == ('',):
-            expected = ()
-
-        if 'utf8' not in self.encoding_mode:
-            self.assertEqual(tuple(self.func(path)),
-                expected)
-            return
-        data = tuple(self.func(path))
-        if 'strict' not in self.encoding_mode and not compatibility.is_py3k:
-            data = tuple(x.decode() for x in data)
-        self.assertEqual(data, expected)
-
-    def test_none_on_missing(self):
-        fp = pjoin(self.dir, 'nonexistant')
-        self.assertRaises(EnvironmentError, self.func, fp)
-        self.assertEqual(tuple(self.func(fp, False, True)), ())
-        data = self.test_cases[0]
-        self.write_file(fp, 'wb', self.convert_data('dar', 'ascii'))
-        self.assertEqual(tuple(self.func(fp, True)),
-            (self.none_on_missing_ret_data,))
-
-    def test_strip_whitespace(self):
-        fp = pjoin(self.dir, 'data')
-
-        self.write_file(fp, 'wb', self.convert_data(' dar1 \ndar2 \n dar3\n',
-            'ascii'))
-        results = tuple(self.func(fp, True))
-        expected = ('dar1', 'dar2', 'dar3')
-        if self.encoding_mode == 'bytes' and compatibility.is_py3k:
-            expected = tuple(x.encode("ascii") for x in expected)
-        self.assertEqual(results, expected)
-
-        # this time without the trailing newline...
-        self.write_file(fp, 'wb', self.convert_data(' dar1 \ndar2 \n dar3',
-            'ascii'))
-        results = tuple(self.func(fp, True))
-        self.assertEqual(results, expected)
-
-
-        # test a couple of edgecases; underly c extension has gotten these
-        # wrong before.
-        self.write_file(fp, 'wb', self.convert_data('0', 'ascii'))
-        results = tuple(self.func(fp, True))
-        expected = ('0',)
-        if self.encoding_mode == 'bytes' and compatibility.is_py3k:
-            expected = tuple(x.encode("ascii") for x in expected)
-        self.assertEqual(results, expected)
-
-        self.write_file(fp, 'wb', self.convert_data('0\n', 'ascii'))
-        results = tuple(self.func(fp, True))
-        expected = ('0',)
-        if self.encoding_mode == 'bytes' and compatibility.is_py3k:
-            expected = tuple(x.encode("ascii") for x in expected)
-        self.assertEqual(results, expected)
-
-        self.write_file(fp, 'wb', self.convert_data('0 ', 'ascii'))
-        results = tuple(self.func(fp, True))
-        expected = ('0',)
-        if self.encoding_mode == 'bytes' and compatibility.is_py3k:
-            expected = tuple(x.encode("ascii") for x in expected)
-        self.assertEqual(results, expected)
-
-
-def mk_readlines_test(scope, mode):
-    func_name = 'readlines_%s' % mode
-    base = globals()['native_readfile_%s_Test' % mode]
-
-    class kls(readlines_mixin, base):
-        func = staticmethod(getattr(osutils, func_name))
-        encoding_mode = mode
-
-    kls.__name__ = "%s_Test" % func_name
-    scope["%s_Test" % func_name] = kls
-
-for case in ("ascii", "ascii_strict", "bytes",
-    "utf8"):
-
-    name = 'readlines_%s' % case
-    mk_readlines_test(locals(), case)
 
 
 class TestAccess(TempDirMixin):
