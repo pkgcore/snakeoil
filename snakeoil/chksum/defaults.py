@@ -79,11 +79,12 @@ def loop_over_file(filename, callbacks, parallelize=True):
             data = f.getvalue()
             if is_py3k and not isinstance(data, bytes):
                 data = data.encode()
+
             for callback in callbacks:
                 callback(data)
         else:
             convert = lambda x:x
-            if is_py3k and isinstance(data, bytes):
+            if is_py3k:
                 convert = lambda x:x.encode()
 
             data = convert(f.read(blocksize))
