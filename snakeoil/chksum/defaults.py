@@ -10,12 +10,18 @@ for chksum implementations, while also preferring the fastest implementation
 available.
 """
 
+import threading
+import Queue
+
 from snakeoil.data_source import base as base_data_source
 from snakeoil.currying import partial
 from snakeoil import modules
 from snakeoil.compatibility import intern, is_py3k
 from snakeoil.demandload import demandload
-demandload(globals(), "os")
+demandload(globals(),
+    'os',
+    'snakeoil.process:get_proc_count',
+)
 
 blocksize = 2 ** 17
 
@@ -24,7 +30,22 @@ md5_size = 32
 rmd160_size = 40
 sha256_size = 64
 
-def loop_over_file(filename, *objs):
+
+def chf_thread(queue, callback):
+    qget = queue.get
+    data = qget()
+    while data is not None:
+        callback(data)
+        data = qget()
+
+
+def chksum_loop_over_file(filename, chfs, parallelize=True):
+    chfs = [chf() for chf in chfs]
+    loop_over_file(filename, [chf.update for chf in chfs], parallelize=parallelize)
+    return [long(chf.hexdigest(), 16) for chf in chfs]
+
+
+def loop_over_file(filename, callbacks, parallelize=True):
     if isinstance(filename, base_data_source):
         if filename.path is not None:
             filename = filename.path
@@ -38,36 +59,53 @@ def loop_over_file(filename, *objs):
         f = filename
         # reposition to start
         f.seek(0, 0)
+
+    parallelize = parallelize and len(callbacks) > 1 and get_proc_count() > 1
+    threads, queues = [], []
+
     try:
-        chfs = [chf() for chf in objs]
+        if parallelize:
+            queues = [Queue.Queue(8) for x in callbacks]
+
+            threads = [threading.Thread(target=chf_thread, args=(queue, functor))
+                for queue, functor in zip(queues, callbacks)]
+
+            for thread in threads:
+                thread.start()
+
+            callbacks = [queue.put for queue in queues]
+
         if hasattr(f, 'getvalue'):
             data = f.getvalue()
-            if is_py3k:
-                if not isinstance(data, bytes):
-                    data = data.encode()
-            for chf in chfs:
-                chf.update(data)
-        elif is_py3k:
-            data = f.read(blocksize)
-            if isinstance(data, bytes):
-                convert = lambda x:x
-            else:
-                convert = lambda x:x.encode()
-                data = convert(data)
-            while data:
-                for chf in chfs:
-                    # this probably is wrong...
-                    chf.update(data)
-                data = convert(f.read(blocksize))
+            if is_py3k and not isinstance(data, bytes):
+                data = data.encode()
+            for callback in callbacks:
+                callback(data)
         else:
-            data = f.read(blocksize)
-            while data:
-                for chf in chfs:
-                    chf.update(data)
-                data = f.read(blocksize)
+            convert = lambda x:x
+            if is_py3k and isinstance(data, bytes):
+                convert = lambda x:x.encode()
 
-        return [long(chf.hexdigest(), 16) for chf in chfs]
+            data = convert(f.read(blocksize))
+            while data:
+                for callback in callbacks:
+                    callback(data)
+                data = convert(f.read(blocksize))
+
+        if parallelize:
+            for callback in callbacks:
+                # signal it to finish
+                callback(None)
+            for thread in threads:
+                thread.join()
+
     finally:
+        if parallelize:
+            for functor in callbacks:
+                functor(None)
+            for thread in threads:
+                thread.join()
+
         if wipeit:
             f.close()
 
@@ -90,7 +128,7 @@ class Chksummer(object):
         return long(val, 16)
 
     def __call__(self, filename):
-        return loop_over_file(filename, self.obj)[0]
+        return chksum_loop_over_file(filename, [self.obj])[0]
 
     def __str__(self):
         return "%s chksummer" % self.chf_type
@@ -230,7 +268,7 @@ if 'md5' not in chksum_types:
                         filename = filename.path
                 if isinstance(filename, basestring) and fchksum is not None:
                     return long(fchksum.fmd5t(filename)[0], 16)
-                return loop_over_file(filename, md5.new)[0]
+                return chksum_loop_over_file(filename, md5.new)[0]
 
         chksum_types["md5"] = MD5Chksummer()
 

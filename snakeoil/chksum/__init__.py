@@ -9,7 +9,7 @@ from snakeoil.data_source import base as base_data_source
 from snakeoil.demandload import demandload
 demandload(globals(), "os",
     "sys",
-    "snakeoil.chksum.defaults:loop_over_file",
+    "snakeoil.chksum.defaults:chksum_loop_over_file",
     "snakeoil.modules:load_module",
     "snakeoil.osutils:listdir_files",
 )
@@ -104,7 +104,7 @@ def init(additional_handlers=None):
     __inited__ = True
 
 
-def get_chksums(location, *chksums):
+def get_chksums(location, *chksums, **kwds):
     """
     run multiple chksumers over a data_source/file path
 
@@ -121,4 +121,5 @@ def get_chksums(location, *chksums):
     # try to hand off to the per file handler, may be faster.
     if len(chksums) == 1:
         return [handlers[chksums[0]](location)]
-    return loop_over_file(location, *[handlers[k].new() for k in chksums])
+    return chksum_loop_over_file(location, [handlers[k].new() for k in chksums],
+        parallelize=kwds.pop('parallelize', True))

@@ -2,6 +2,13 @@ Snakeoil Release Notes
 ======================
 
 
+* chksums generation now will parallelize where worthwhile.  Since this is
+  python, GIL bouncing does occur, ultimately costing more total CPU for the
+  larger/more chksums.  That said, it's overall faster going in parallel
+  (for 4 chksummers, it's about 75% faster; for 2, about 40% faster).
+
+  Again, note this is enabled by default.  To disable, parallelize=False.
+
 * added snakeoil.process for getting processor count
 
 * don't install compatibility_py3k.py if we're targetting py2k; no need,
