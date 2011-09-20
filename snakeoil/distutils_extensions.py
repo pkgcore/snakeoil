@@ -378,7 +378,7 @@ class test(core.Command):
             mods_to_wipe = set(x[0] for x in mods)
             mods_to_wipe.update('.'.join(x[:2]) for x in mods)
 
-        namespace = self.namespaces
+        namespaces = self.namespaces
         if not self.namespaces:
             namespaces = [self.default_test_namespace]
 
