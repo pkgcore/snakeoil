@@ -51,6 +51,13 @@ def loop_over_file(handle, callbacks, parallelize=True):
         f = open(handle, 'rb', 0)
     elif isinstance(handle, base_data_source):
         f = handle.get_bytes_fileobj()
+    else:
+        if is_py3k and getattr(handle, 'encoding', None):
+            # wanker.  bypass the encoding, go straight to the raw source.
+            f = f.buffer
+        # reset; we do it for compat, but it also avoids unpleasant issues from
+        # the encoding bypass during py3k
+        f.seek(0, 0)
 
     parallelize = parallelize and len(callbacks) > 1 and get_proc_count() > 1
     threads, queues = [], []
