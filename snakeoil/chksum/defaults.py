@@ -45,20 +45,12 @@ def chksum_loop_over_file(filename, chfs, parallelize=True):
     return [long(chf.hexdigest(), 16) for chf in chfs]
 
 
-def loop_over_file(filename, callbacks, parallelize=True):
-    if isinstance(filename, base_data_source):
-        if filename.path is not None:
-            filename = filename.path
-        else:
-            filename = filename.get_bytes_fileobj()
-    wipeit = False
-    if isinstance(filename, basestring):
-        wipeit = True
-        f = open(filename, 'rb', 0)
-    else:
-        f = filename
-        # reposition to start
-        f.seek(0, 0)
+def loop_over_file(handle, callbacks, parallelize=True):
+    f = handle
+    if isinstance(handle, basestring):
+        f = open(handle, 'rb', 0)
+    elif isinstance(handle, base_data_source):
+        f = handle.get_bytes_fileobj()
 
     parallelize = parallelize and len(callbacks) > 1 and get_proc_count() > 1
     threads, queues = [], []
@@ -107,8 +99,7 @@ def loop_over_file(filename, callbacks, parallelize=True):
             for thread in threads:
                 thread.join()
 
-        if wipeit:
-            f.close()
+        f.close()
 
 
 class Chksummer(object):
