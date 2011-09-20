@@ -341,7 +341,7 @@ def native_readlines(mode, mypath, strip_whitespace=True, swallow_missing=False,
     if not strip_whitespace:
         return readlines_iter(iterable, mtime)
     return readlines_iter(_strip_whitespace_filter(iterable), mtime,
-        source=iterable)
+        source=handle)
 
 
 _mk_readlines = partial(_mk_pretty_derived_func, native_readlines,
