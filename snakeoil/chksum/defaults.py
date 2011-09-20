@@ -17,7 +17,7 @@ from snakeoil.compatibility import intern, is_py3k
 from snakeoil.demandload import demandload
 demandload(globals(), "os")
 
-blocksize = 32768
+blocksize = 2 ** 17
 
 sha1_size = 40
 md5_size = 32
@@ -33,7 +33,7 @@ def loop_over_file(filename, *objs):
     wipeit = False
     if isinstance(filename, basestring):
         wipeit = True
-        f = open(filename, 'rb', blocksize * 2)
+        f = open(filename, 'rb', 0)
     else:
         f = filename
         # reposition to start
