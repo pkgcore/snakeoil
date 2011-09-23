@@ -124,22 +124,26 @@ def parse_imports(imports):
                 if compatibility.is_py3k:
                     split[0] = py3k_translate.get(base, {}).get(split[0], split[0])
                 yield base + '.' + split[0], split[-1]
+def _protection_enabled_disabled():
+    return False
+
+def _noisy_protection_disabled():
+    return False
+
+def _protection_enabled_enabled():
+    val = os.environ.get("SNAKEOIL_DEMANDLOAD_PROTECTION", "n").lower()
+    return val in ("yes", "true", "1", "y")
+
+def _noisy_protection_enabled():
+    val = os.environ.get("SNAKEOIL_DEMANDLOAD_WARN", "y").lower()
+    return val in ("yes", "true", "1", "y")
 
 if 'pydoc' in sys.modules or 'epydoc' in sys.modules:
-    def _protection_enabled():
-        return False
-
-    def _noisy_protection():
-        return False
-
+    _protection_enabled = _protection_enabled_disabled
+    _nosiy_protection = _noisy_protection_disabled
 else:
-    def _protection_enabled():
-        val = os.environ.get("SNAKEOIL_DEMANDLOAD_PROTECTION", "n").lower()
-        return val in ("yes", "true", "1", "y")
-
-    def _noisy_protection():
-        val = os.environ.get("SNAKEOIL_DEMANDLOAD_WARN", "y").lower()
-        return val in ("yes", "true", "1", "y")
+    _protection_enabled = _protection_enabled_enabled
+    _noisy_protection = _noisy_protection_enabled
 
 
 class Placeholder(object):
@@ -275,7 +279,13 @@ def demand_compile_regexp(scope, name, *args, **kwargs):
     return r
 
 
+def disabled_demand_compile_regexp(scope, name, *args, **kwargs):
+    """Exactly like :py:func:`demand_compile_regexp` but does all imports immediately."""
+    scope[name] = re.compile(*args, **kwargs)
+
+
 if os.environ.get("SNAKEOIL_DEMANDLOAD_DISABLED", 'n').lower() in ('y', 'yes' '1', 'true'):
     demandload = disabled_demandload
+    demand_compile_regexp = disabled_demand_compile_regexp
 
-demandload(globals(), 're', 'logging')
+demandload(globals(), 're', 'logging', 'threading')

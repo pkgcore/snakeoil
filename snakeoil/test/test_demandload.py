@@ -6,9 +6,30 @@ from snakeoil.test import TestCase
 from snakeoil import demandload
 import sre_constants
 
+# few notes:
+# all tests need to be wrapped w/ the following decorator; it
+# ensures that snakeoils env-aware disabling is reversed, ensuring the
+# setup is what the test expects.
+# it also explicitly resets the state on the way out.
+
+def reset_globals(functor):
+    def f(*args, **kwds):
+        orig_demandload = demandload.demandload
+        orig_demand_compile = demandload.demand_compile_regexp
+        orig_protection = demandload._protection_enabled
+        orig_noisy = demandload._noisy_protection
+        try:
+            return f(*args, **kwds)
+        finally:
+            demandload.demandload = orig_demandload
+            demandload.demand_compile_regexp = orig_demand_compile
+            demandload._protection_enabled = orig_protection
+            demandload._noisy_protection = orig_noisy
+
 
 class ParserTest(TestCase):
 
+    @reset_globals
     def test_parse(self):
         for input, output in [
             ('foo', [('foo', 'foo')]),
@@ -27,19 +48,17 @@ class ParserTest(TestCase):
 
 class PlaceholderTest(TestCase):
 
+    @reset_globals
     def test_getattr(self):
         scope = {}
         placeholder = demandload.Placeholder(scope, 'foo', list)
         self.assertEqual({}, scope)
         self.assertEqual(placeholder.__doc__, [].__doc__)
         self.assertEqual(scope['foo'], [])
-        orig = demandload._protection_enabled
-        try:
-            demandload._protection_enabled = lambda:True
-            self.assertRaises(ValueError, getattr, placeholder, '__doc__')
-        finally:
-            demandload._protection_enabled = orig
+        demandload._protection_enabled = lambda:True
+        self.assertRaises(ValueError, getattr, placeholder, '__doc__')
 
+    @reset_globals
     def test__str__(self):
         scope = {}
         placehold = demandload.Placeholder(scope, 'foo', list)
@@ -47,6 +66,7 @@ class PlaceholderTest(TestCase):
         self.assertEqual(str(placehold), str([]))
         self.assertEqual(scope['foo'], [])
 
+    @reset_globals
     def test_call(self):
         def passthrough(*args, **kwargs):
             return args, kwargs
@@ -59,6 +79,7 @@ class PlaceholderTest(TestCase):
             (('arg',), {'kwarg': 42}), placeholder('arg', kwarg=42))
         self.assertIdentical(passthrough, scope['foo'])
 
+    @reset_globals
     def test_setattr(self):
         class Struct(object):
             pass
@@ -67,16 +88,14 @@ class PlaceholderTest(TestCase):
         placeholder = demandload.Placeholder(scope, 'foo', Struct)
         placeholder.val = 7
         orig = demandload._protection_enabled
-        try:
-            demandload._protection_enabled = lambda:True
-            self.assertRaises(ValueError, getattr, placeholder, 'val')
-        finally:
-            demandload._protection_enabled = orig
+        demandload._protection_enabled = lambda:True
+        self.assertRaises(ValueError, getattr, placeholder, 'val')
         self.assertEqual(7, scope['foo'].val)
 
 
 class ImportTest(TestCase):
 
+    @reset_globals
     def test_demandload(self):
         scope = {}
         demandload.demandload(scope, 'snakeoil:demandload')
@@ -85,6 +104,7 @@ class ImportTest(TestCase):
             demandload.demandload, scope['demandload'].demandload)
         self.assertIdentical(demandload, scope['demandload'])
 
+    @reset_globals
     def test_disabled_demandload(self):
         scope = {}
         demandload.disabled_demandload(scope, 'snakeoil:demandload')
@@ -93,6 +113,7 @@ class ImportTest(TestCase):
 
 class DemandCompileRegexpTest(TestCase):
 
+    @reset_globals
     def test_demand_compile_regexp(self):
         scope = {}
         demandload.demand_compile_regexp(scope, 'foo', 'frob')
