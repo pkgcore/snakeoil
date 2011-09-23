@@ -185,7 +185,7 @@ class Placeholder(object):
         # meaning it is a misuse by the consuming client code.
         if 'threading' in sys.modules or 'thread' in sys.modules:
             tids_to_complain_about = object.__getattribute__(self, '_replacing_tids')
-            complain = threading.current_thread().ident in tids_to_complain_about
+            complain = _get_thread_ident() in tids_to_complain_about
         else:
             complain = True
 
@@ -219,7 +219,7 @@ class Placeholder(object):
         # will go maximum depth recursion.
         if 'thread' in sys.modules or 'threading' in sys.modules:
             tids = object.__getattribute__(self, '_replacing_tids')
-            tids.append(threading.current_thread().ident)
+            tids.append(_get_thread_ident())
 
         return result
 
@@ -316,4 +316,10 @@ if os.environ.get("SNAKEOIL_DEMANDLOAD_DISABLED", 'n').lower() in ('y', 'yes' '1
     demandload = disabled_demandload
     demand_compile_regexp = disabled_demand_compile_regexp
 
-demandload(globals(), 're', 'logging', 'threading')
+demandload(globals(), 're', 'logging', 'threading', 'thread')
+if compatibility.is_py3k:
+    def _get_thread_ident():
+        return threading.current_thread().ident
+else:
+    def _get_thread_ident():
+        return thread.get_ident()
