@@ -164,15 +164,37 @@ class Placeholder(object):
         object.__setattr__(self, '_scope', scope)
         object.__setattr__(self, '_name', name)
         object.__setattr__(self, '_replace_func', replace_func)
+        object.__setattr__(self, '_replacing_tids', [])
 
     def _already_replaced(self):
         name = object.__getattribute__(self, '_name')
         scope = object.__getattribute__(self, '_scope')
-        if _protection_enabled():
-            raise ValueError('Placeholder for %r was triggered twice' % (name,))
-        elif _noisy_protection():
-            logging.warning('Placeholder for %r was triggered multiple times '
-                'in file %r' % (name, scope.get("__file__", "unknown")))
+
+        # in a threaded environment, it's possible for tid1 to get the
+        # placeholder from globals, python switches to tid2, which triggers
+        # a full update (thus enabling this pathway), switch back to tid1,
+        # which then throws the complaint.
+        # this cannot be locked to address; the pull from global scope is
+        # what would need locking, and that's infeasible (VM shouldn't do it
+        # anyways; would kill performance)
+        # if threading is enabled, we'll have the tid's of the threads that
+        # triggered replacement; if the thread triggering this pathway isn't
+        # one of the ones that caused replacement, silence the warning.
+        # as for why we watch for the threading modules; if they're not there,
+        # it's impossible for this pathway to accidentally be triggered twice-
+        # meaning it is a misuse by the consuming client code.
+        if 'threading' in sys.modules or 'thread' in sys.modules:
+            tids_to_complain_about = object.__getattribute__(self, '_replacing_tids')
+            complain = threading.current_thread().ident in tids_to_complain_about
+        else:
+            complain = True
+
+        if complain:
+            if _protection_enabled():
+                raise ValueError('Placeholder for %r was triggered twice' % (name,))
+            elif _noisy_protection():
+                logging.warning('Placeholder for %r was triggered multiple times '
+                    'in file %r' % (name, scope.get("__file__", "unknown")))
         return scope[name]
 
     def _replace(self):
@@ -183,16 +205,22 @@ class Placeholder(object):
         replace_func = object.__getattribute__(self, '_replace_func')
         scope = object.__getattribute__(self, '_scope')
         name = object.__getattribute__(self, '_name')
-        # Paranoia, explained in the module docstring.
-        already_replaced = object.__getattribute__(self, '_already_replaced')
-        object.__setattr__(self, '_replace_func', already_replaced)
-
-        # Cleanup, possibly unnecessary.
-        if _protection_enabled():
-            object.__setattr__(self, '_scope', None)
 
         result = replace_func()
         scope[name] = result
+
+        # Paranoia, explained in the module docstring.
+        # note that this *must* follow scope mutation, else it can cause
+        # issues for threading
+        already_replaced = object.__getattribute__(self, '_already_replaced')
+        object.__setattr__(self, '_replace_func', already_replaced)
+
+        # note this step *has* to follow scope modification; else it
+        # will go maximum depth recursion.
+        if 'thread' in sys.modules or 'threading' in sys.modules:
+            tids = object.__getattribute__(self, '_replacing_tids')
+            tids.append(threading.current_thread().ident)
+
         return result
 
     # Various methods proxied to our replacement.

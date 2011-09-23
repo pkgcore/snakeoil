@@ -2,6 +2,9 @@ Snakeoil Release Notes
 ======================
 
 
+* snakeoil.demandload is now threading aware, and no longer will complain
+  if threading leads to an accidental already-replaced placeholder access.
+
 * snakeoil.osutils.read* moved to snakeoil.fileutils; compatibility
   shim will be removed in 0.5.
 
