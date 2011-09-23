@@ -316,10 +316,13 @@ if os.environ.get("SNAKEOIL_DEMANDLOAD_DISABLED", 'n').lower() in ('y', 'yes' '1
     demandload = disabled_demandload
     demand_compile_regexp = disabled_demand_compile_regexp
 
-demandload(globals(), 're', 'logging', 'threading', 'thread')
+demandload(globals(), 're', 'logging')
+
 if compatibility.is_py3k:
+    demandload(globals(), 'threading')
     def _get_thread_ident():
         return threading.current_thread().ident
 else:
+    demandload(globals(), 'thread')
     def _get_thread_ident():
         return thread.get_ident()
