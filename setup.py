@@ -45,12 +45,13 @@ class snakeoil_build_py(snk_distutils.build_py):
             os.unlink(kill_it)
 
 
-        # distutils is stupid.  restore +x on caching_2to3
-        path = os.path.join(self.build_lib, 'snakeoil', 'caching_2to3.py')
-        mode = os.stat(path).st_mode
-        # note, we use the int here for python3k compatibility.
-        # 365 == 0555, 4095 = 0777
-        os.chmod(path, ((mode | 365) & 4095))
+        # distutils is stupid.  restore +x on appropriate scripts
+        for script_name in ("caching_2to3.py", "pyflakes_extension.py"):
+            path = os.path.join(self.build_lib, 'snakeoil', script_name)
+            mode = os.stat(path).st_mode
+            # note, we use the int here for python3k compatibility.
+            # 365 == 0555, 4095 = 0777
+            os.chmod(path, ((mode | 365) & 4095))
 
 
 
