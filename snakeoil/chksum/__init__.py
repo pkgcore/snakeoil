@@ -121,5 +121,9 @@ def get_chksums(location, *chksums, **kwds):
     # try to hand off to the per file handler, may be faster.
     if len(chksums) == 1:
         return [handlers[chksums[0]](location)]
+    if len(chksums) == 2 and 'size' in chksums:
+        parallelize = False
+    else:
+        parallelize = kwds.get("parallelize", True)
     return chksum_loop_over_file(location, [handlers[k].new() for k in chksums],
-        parallelize=kwds.pop('parallelize', True))
+        parallelize=parallelize)
