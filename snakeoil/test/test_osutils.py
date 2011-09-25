@@ -64,14 +64,14 @@ class NativeReaddirTest(ReaddirCommon):
     def test_readdir(self):
         os.symlink("foon", pjoin(self.dir, "monkeys"))
         os.symlink(pjoin(self.dir, "file"), pjoin(self.dir, "sym"))
-        self.assertEquals(set([
+        self.assertEqual(set([
             ("dir", "directory"),
             ("file", "file"),
             ("fifo", "fifo"),
             ("monkeys", "symlink"),
             ("sym", "symlink"),
         ]), set(self.module.readdir(self.dir)))
-        self.assertEquals([], self.module.readdir(self.subdir))
+        self.assertEqual([], self.module.readdir(self.subdir))
 
     def test_missing(self):
         return self._test_missing((self.module.readdir,))
