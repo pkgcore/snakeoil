@@ -101,8 +101,8 @@ class LazyValDictTestMixin(object):
         self.assertRaises(AttributeError, operator.delitem, self.dict, 7)
 
     def test_contains(self):
-        self.failUnless(7 in self.dict)
-        self.failIf(12 in self.dict)
+        self.assertIn(7, self.dict)
+        self.assertNotIn(12, self.dict)
 
     def test_keys(self):
         # Called twice because the first call will trigger a keyfunc call.
@@ -186,8 +186,8 @@ class ProtectedDictTest(TestCase):
             return self.dict[i]
         self.assertRaises(KeyError, get, 3)
         self.assertEqual(sorted(self.dict.keys()), [1, 2])
-        self.failIf(-1 in self.dict)
-        self.failUnless(2 in self.dict)
+        self.assertNotIn(-1, self.dict)
+        self.assertIn(2, self.dict)
         def remove(i):
             del self.dict[i]
         self.assertRaises(KeyError, remove, 50)
@@ -197,12 +197,12 @@ class ProtectedDictTest(TestCase):
         self.dict[7] = -7
         def check_after_adding():
             self.assertEqual(self.dict[7], -7)
-            self.failUnless(7 in self.dict)
+            self.assertIn(7, self.dict)
             self.assertEqual(sorted(self.dict.keys()), [1, 2, 7])
         check_after_adding()
         # remove it again
         del self.dict[7]
-        self.failIf(7 in self.dict)
+        self.assertNotIn(7, self.dict)
         def get(i):
             return self.dict[i]
         self.assertRaises(KeyError, get, 7)
@@ -212,7 +212,7 @@ class ProtectedDictTest(TestCase):
         check_after_adding()
         # remove something not previously added
         del self.dict[1]
-        self.failIf(1 in self.dict)
+        self.assertNotIn(1, self.dict)
         self.assertRaises(KeyError, get, 1)
         self.assertEqual(sorted(self.dict.keys()), [2, 7])
         # and add it back
@@ -249,21 +249,21 @@ class StackedDictTest(TestCase):
 
     def test_contains(self):
         std = mappings.StackedDict(self.orig_dict, self.new_dict)
-        self.failUnless(1 in std)
-        self.failUnless(std.has_key(1))
+        self.assertIn(1, std)
+        self.assertTrue(std.has_key(1))
 
     def test_stacking(self):
         o = dict(self.orig_dict)
         std = mappings.StackedDict(o, self.new_dict)
         for x in chain(*map(iter, (self.orig_dict, self.new_dict))):
-            self.failUnless(x in std)
+            self.assertIn(x, std)
 
         for key in self.orig_dict.iterkeys():
             del o[key]
         for x in self.orig_dict:
-            self.failIf(x in std)
+            self.assertNotIn(x, std)
         for x in self.new_dict:
-            self.failUnless(x in std)
+            self.assertIn(x, std)
 
     def test_len(self):
         self.assertEqual(sum(map(len, (self.orig_dict, self.new_dict))),
@@ -283,7 +283,7 @@ class StackedDictTest(TestCase):
         for item in chain(iter(self.orig_dict), iter(self.new_dict)):
             s.add(item)
         for x in mappings.StackedDict(self.orig_dict, self.new_dict):
-            self.failUnless(x in s)
+            self.assertIn(x, s)
             s.remove(x)
         self.assertEqual(len(s), 0)
 
@@ -401,22 +401,22 @@ class FoldingDictTest(TestCase):
         self.assertEqual(sorted(['bar', 'donkey']), sorted(dct.values()))
         self.assertEqual(dct.copy(), dct)
         self.assertEqual(dct['foo'], dct.get('Foo'))
-        self.assert_('foo' in dct)
+        self.assertIn('foo', dct)
         keys = ['Foo', 'fnz']
         keysList = list(dct)
         for key in keys:
-            self.assert_(key in dct.keys())
-            self.assert_(key in keysList)
-            self.assert_((key, dct[key]) in dct.items())
+            self.assertIn(key, dct.keys())
+            self.assertIn(key, keysList)
+            self.assertIn((key, dct[key]), dct.items())
         self.assertEqual(len(keys), len(dct))
-        self.assert_(dct.pop('foo') == 'bar')
-        self.assert_('foo' not in dct)
+        self.assertEqual(dct.pop('foo'), 'bar')
+        self.assertNotIn('foo', dct)
         del dct['fnz']
-        self.assert_('fnz' not in dct)
+        self.assertNotIn('fnz', dct)
         dct['Foo'] = 'bar'
         dct.refold(lambda _: _)
-        self.assert_('foo' not in dct)
-        self.assert_('Foo' in dct)
+        self.assertNotIn('foo', dct)
+        self.assertIn('Foo', dct)
         self.assertEqual(dct.items(), [('Foo', 'bar')])
         dct.clear()
         self.assertEqual({}, dict(dct))
@@ -429,10 +429,10 @@ class FoldingDictTest(TestCase):
         keys = ['foo', 'fnz']
         keysList = [key for key in dct]
         for key in keys:
-            self.assert_(key in dct.keys())
-            self.assert_(key in dct)
-            self.assert_(key in keysList)
-            self.assert_((key, dct[key]) in dct.items())
+            self.assertIn(key, dct.keys())
+            self.assertIn(key, dct)
+            self.assertIn(key, keysList)
+            self.assertIn((key, dct[key]), dct.items())
         self.assertEqual(len(keys), len(dct))
         self.assertEqual(dct.pop('foo'), 'bar')
         del dct['fnz']
