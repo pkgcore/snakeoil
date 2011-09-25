@@ -21,6 +21,7 @@ from snakeoil.demandload import demandload
 demandload(globals(),
     'os',
     'snakeoil.process:get_proc_count',
+    'mmap',
 )
 
 blocksize = 2 ** 17
@@ -46,9 +47,10 @@ def chksum_loop_over_file(filename, chfs, parallelize=True):
 
 
 def loop_over_file(handle, callbacks, parallelize=True):
-    f = handle
+    f, fd, m = handle, None, None
     if isinstance(handle, basestring):
-        f = open(handle, 'rb', 0)
+        fd = os.open(handle, os.O_RDONLY)
+        #f = open(handle, 'rb', 0)
     elif isinstance(handle, base_data_source):
         f = handle.get_bytes_fileobj()
     else:
@@ -74,7 +76,11 @@ def loop_over_file(handle, callbacks, parallelize=True):
 
             callbacks = [queue.put for queue in queues]
 
-        if hasattr(f, 'getvalue'):
+        if fd is not None:
+            m = mmap.mmap(fd, 0, mmap.MAP_SHARED, mmap.PROT_READ)
+            for callback in callbacks:
+                callback(m)
+        elif hasattr(f, 'getvalue'):
             data = f.getvalue()
             if is_py3k and not isinstance(data, bytes):
                 data = data.encode()
@@ -102,7 +108,12 @@ def loop_over_file(handle, callbacks, parallelize=True):
             for thread in threads:
                 thread.join()
 
-        f.close()
+        if m is not None:
+            m.close()
+        if fd is not None:
+            os.close(fd)
+        else:
+            f.close()
 
 
 class Chksummer(object):
