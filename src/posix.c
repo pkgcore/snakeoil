@@ -19,10 +19,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-// only 2.5.46 kernels and up have this.
-#ifndef MAP_POPULATE
-#define MAP_POPULATE 0
-#endif
 
 static PyObject *snakeoil_stat_float_times = NULL;
 static PyObject *snakeoil_empty_tuple = NULL;
@@ -435,7 +431,7 @@ snakeoil_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 	}
 	if(st.st_size >= 0x4000) {
 		ptr = (char *)mmap(NULL, st.st_size, PROT_READ,
-			MAP_SHARED|MAP_NORESERVE|MAP_POPULATE, fd, 0);
+			MAP_SHARED|MAP_NORESERVE, fd, 0);
 		if(ptr == MAP_FAILED)
 			ptr = NULL;
 	} else {
