@@ -338,15 +338,8 @@ class Test_mmap_and_close(TempDirMixin):
             fd = None
             self.assertEqual(len(m), len(data))
             self.assertEqual(m.read(len(data)), data)
-            # ensure it's cleaning up the mapping
-            self.assertRaises(EnvironmentError,
-                mmap.mmap.close, m)
-            m = None
         finally:
             if m is not None:
-                try:
-                    mmap.mmap.close(m)
-                except EnvironmentError:
-                    pass
+                m.close()
             if fd is not None:
                 os.close(fd)
