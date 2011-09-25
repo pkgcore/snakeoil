@@ -7,24 +7,20 @@ compatibility module to break an import cycle, do not directly use this
 Access this functionality from :py:module:`snakeoil.osutils` instead
 """
 
-from snakeoil.demandload import demandload
+__all__ = ("mmap_and_close",)
 
 import os
 import mmap
 
-
-class ClosingMmap(mmap.mmap):
-
+def mmap_and_close(fd, *args, **kwargs):
     """
-    :py:class:`mmap.mmap` derivate that closes the fd upon .close() invocation
+    see :py:obj:`mmap.mmap`; basically this maps, then closes, to ensure the
+    fd doesn't bleed out.
     """
-
-    __slots__ = ("_fd",)
-
-    def __init__(self, fd, length, *args, **kwargs):
-        mmap.mmap.__init__(self, fd, length, *args, **kwargs)
-        self._fd = fd
-
-    def close(self):
-        mmap.mmap.close(self)
-        os.close(self._fd)
+    try:
+        return mmap.mmap(fd, *args, **kwargs)
+    finally:
+        try:
+            os.close(fd)
+        except EnvironmentError:
+            pass

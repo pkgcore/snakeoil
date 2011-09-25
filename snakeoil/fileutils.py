@@ -59,7 +59,7 @@ def mmap_or_open_for_read(path):
     fd = None
     try:
         fd = os.open(path, os.O_RDONLY)
-        return (_osutils_compat.ClosingMmap(fd, size,
+        return (_osutils_compat.mmap_and_close(fd, size,
             mmap.MAP_SHARED, mmap.PROT_READ), None)
     except compatibility.IGNORED_EXCEPTIONS:
         raise
