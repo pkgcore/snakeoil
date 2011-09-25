@@ -7,7 +7,9 @@ pjoin = os.path.join
 import grp
 import stat
 import fcntl
+import mmap
 
+from snakeoil import compatibility
 from snakeoil.test import TestCase, SkipTest, mk_cpy_loadable_testcase
 from snakeoil import osutils
 from snakeoil.osutils import native_readdir
@@ -317,3 +319,35 @@ cpy_readdir_loaded_Test = mk_cpy_loadable_testcase("snakeoil.osutils._readdir",
     "snakeoil.osutils", "listdir", "listdir")
 cpy_posix_loaded_Test = mk_cpy_loadable_testcase("snakeoil.osutils._posix",
     "snakeoil.osutils", "normpath", "normpath")
+
+
+class Test_ClosingMmap(TempDirMixin):
+
+    def test_it(self):
+        path = pjoin(self.dir, 'target')
+        data = compatibility.force_bytes('asdfasdf')
+        self.write_file(path, 'wb', [data])
+        fd, m = None, None
+        try:
+            fd = os.open(path, os.O_RDONLY)
+            m = osutils.ClosingMmap(fd, len(data),
+                mmap.MAP_PRIVATE, mmap.PROT_READ)
+            self.assertEqual(len(m), len(data))
+            self.assertEqual(m.read(len(data)), data)
+            # ensure it's cleaning up the mapping
+            self.assertRaises(EnvironmentError,
+                mmap.mmap.close, m)
+            m = None
+            # and ensure it closed the fd...
+            self.assertRaises(EnvironmentError,
+                os.read, fd, 1)
+        finally:
+            if m is not None:
+                try:
+                    mmap.mmap.close(m)
+                except EnvironmentError:
+                    pass
+            try:
+                os.close(fd)
+            except EnvironmentError:
+                pass

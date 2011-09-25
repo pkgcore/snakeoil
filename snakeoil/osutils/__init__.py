@@ -41,7 +41,8 @@ __all__ = ('abspath', 'abssymlink', 'ensure_dirs', 'join', 'pjoin',
     'listdir_files', 'listdir_dirs', 'listdir',
     'readdir', 'normpath', 'unlink_if_exists',
     'FsLock', 'GenericFailed',
-    'LockException', 'NonExistant')
+    'LockException', 'NonExistant',
+    'ClosingMmap')
 
 import os, stat
 import fcntl
@@ -53,6 +54,8 @@ from snakeoil.fileutils import (
     readlines, readlines_ascii, readlines_ascii_strict,
         readlines_bytes, readlines_utf8, readlines_utf8_strict
 )
+
+from snakeoil._osutils_compat import ClosingMmap
 
 # No name '_readdir' in module osutils
 # pylint: disable-msg=E0611
