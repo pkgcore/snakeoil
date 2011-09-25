@@ -23,6 +23,9 @@ from snakeoil.currying import partial, pretty_docs
 from snakeoil.demandload import demandload
 demandload(globals(),
     'codecs',
+    'mmap',
+    'snakeoil:data_source',
+    'snakeoil:_osutils_compat',
 )
 
 
@@ -47,6 +50,25 @@ def write_file(path, mode, stream, encoding=None):
     finally:
         if f is not None:
             f.close()
+
+def mmap_or_open_for_read(path):
+    size = os.stat(path).st_size
+    if size == 0:
+        return (None, data_source.bytes_ro_StringIO(
+            compatibiltiy.force_bytes('')))
+    fd = None
+    try:
+        fd = os.open(path, os.O_RDONLY)
+        return (_osutils_compat.ClosingMmap(fd, size,
+            mmap.MAP_SHARED, mmap.PROT_READ), None)
+    except compatibility.IGNORED_EXCEPTIONS:
+        raise
+    except:
+        try:
+            os.close(fd)
+        except EnvironmentError:
+            pass
+        raise
 
 
 class AtomicWriteFile_mixin(object):

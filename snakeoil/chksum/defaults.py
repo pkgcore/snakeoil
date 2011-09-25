@@ -21,7 +21,7 @@ from snakeoil.demandload import demandload
 demandload(globals(),
     'os',
     'snakeoil.process:get_proc_count',
-    'mmap',
+    'snakeoil.fileutils:mmap_or_open_for_read',
 )
 
 blocksize = 2 ** 17
@@ -47,13 +47,15 @@ def chksum_loop_over_file(filename, chfs, parallelize=True):
 
 
 def loop_over_file(handle, callbacks, parallelize=True):
-    f, fd, m = handle, None, None
+    m = None
+    close_f = True
     if isinstance(handle, basestring):
-        fd = os.open(handle, os.O_RDONLY)
-        #f = open(handle, 'rb', 0)
+        m, f = mmap_or_open_for_read(handle)
     elif isinstance(handle, base_data_source):
         f = handle.get_bytes_fileobj()
     else:
+        f = handle
+        close_f = False
         if is_py3k and getattr(handle, 'encoding', None):
             # wanker.  bypass the encoding, go straight to the raw source.
             f = f.buffer
@@ -76,8 +78,7 @@ def loop_over_file(handle, callbacks, parallelize=True):
 
             callbacks = [queue.put for queue in queues]
 
-        if fd is not None:
-            m = mmap.mmap(fd, 0, mmap.MAP_SHARED, mmap.PROT_READ)
+        if m is not None:
             for callback in callbacks:
                 callback(m)
         elif hasattr(f, 'getvalue'):
@@ -94,13 +95,6 @@ def loop_over_file(handle, callbacks, parallelize=True):
                     callback(data)
                 data = f.read(blocksize)
 
-        if parallelize:
-            for callback in callbacks:
-                # signal it to finish
-                callback(None)
-            for thread in threads:
-                thread.join()
-
     finally:
         if parallelize:
             for functor in callbacks:
@@ -110,9 +104,7 @@ def loop_over_file(handle, callbacks, parallelize=True):
 
         if m is not None:
             m.close()
-        if fd is not None:
-            os.close(fd)
-        else:
+        elif f is not None and close_f:
             f.close()
 
 
