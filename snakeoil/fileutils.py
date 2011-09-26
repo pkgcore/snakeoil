@@ -55,7 +55,7 @@ def mmap_or_open_for_read(path):
     size = os.stat(path).st_size
     if size == 0:
         return (None, data_source.bytes_ro_StringIO(
-            compatibiltiy.force_bytes('')))
+            compatibility.force_bytes('')))
     fd = None
     try:
         fd = os.open(path, os.O_RDONLY)

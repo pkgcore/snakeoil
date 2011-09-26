@@ -293,3 +293,27 @@ for case in ("ascii", "ascii_strict", "bytes",
 
     name = 'readlines_%s' % case
     mk_readlines_test(locals(), case)
+
+
+class mmap_or_open_for_read(TempDirMixin, TestCase):
+
+    func = staticmethod(fileutils.mmap_or_open_for_read)
+
+    def test_zero_length(self):
+        path = pjoin(self.dir, 'target')
+        self.write_file(path, 'w', '')
+        m, f = self.func(path)
+        self.assertIdentical(m, None)
+        self.assertEqual(f.read(), compatibility.force_bytes(''))
+        f.close()
+
+    def test_mmap(self, data='foonani'):
+        path = pjoin(self.dir, 'target')
+        data = compatibility.force_bytes(data)
+        self.write_file(path, 'w', data)
+
+        m, f = self.func(path)
+        self.assertEqual(len(m), len(data))
+        self.assertEqual(m.read(len(data)), data)
+        m.close()
+        self.assertIdentical(f, None)
