@@ -32,8 +32,10 @@ class TestDataSource(TestCase):
     def _test_fileobj_wr(self, attr, converter=str):
         obj = self.get_obj(mutable=True)
         handle_f = getattr(obj, attr)
-        self.assertEqual(handle_f().read(),
+        f = handle_f()
+        self.assertEqual(f.read(),
             converter("foonani"))
+        f.close()
         f = handle_f(True)
         f.write(converter("dar"))
         f.close()
