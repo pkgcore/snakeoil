@@ -285,7 +285,7 @@ class FsLockTest(TempDirMixin):
 class TestAccess(TempDirMixin):
 
     if osutils.access is os.access:
-        skip = "os.access is used, no need to test"
+        skip = "os.access is usable, no need to test"
     elif os.getuid() != 0:
         skip = "these tests must be ran as root"
 
