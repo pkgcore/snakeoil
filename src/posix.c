@@ -625,7 +625,7 @@ PyDoc_STRVAR(
 static PyTypeObject snakeoil_readlines_type = {
 	PyObject_HEAD_INIT(NULL)
 	0,											   /* ob_size*/
-	"snakeoil.osutils._posix.readlines",			 /* tp_name*/
+	"snakeoil._posix.readlines",				 /* tp_name*/
 	sizeof(snakeoil_readlines),					   /* tp_basicsize*/
 	0,											   /* tp_itemsize*/
 	(destructor)snakeoil_readlines_dealloc,		   /* tp_dealloc*/

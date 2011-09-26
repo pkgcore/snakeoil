@@ -231,7 +231,7 @@ def native_normpath(mypath):
 native_join = os.path.join
 
 try:
-    from snakeoil.osutils._posix import normpath, join
+    from snakeoil._posix import normpath, join
 except ImportError:
     normpath = native_normpath
     join = native_join

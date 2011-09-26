@@ -85,7 +85,7 @@ if sys.version_info < (2, 5):
 if not snk_distutils.is_py3k:
     extensions.extend([
         OptionalExtension(
-            'snakeoil.osutils._posix', ['src/posix.c'], **extra_kwargs),
+            'snakeoil._posix', ['src/posix.c'], **extra_kwargs),
         OptionalExtension(
             'snakeoil._klass', ['src/klass.c'], **extra_kwargs),
         OptionalExtension(

@@ -370,7 +370,7 @@ _mk_readlines = partial(_mk_pretty_derived_func, native_readlines,
     'readlines')
 
 try:
-    from snakeoil.osutils._posix import readfile, readlines
+    from snakeoil._posix import readfile, readlines
     readfile_ascii = readfile
     readlines_ascii = readlines
 except ImportError:

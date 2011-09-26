@@ -317,7 +317,7 @@ class Test_unlink_if_exists(TempDirMixin):
 
 cpy_readdir_loaded_Test = mk_cpy_loadable_testcase("snakeoil.osutils._readdir",
     "snakeoil.osutils", "listdir", "listdir")
-cpy_posix_loaded_Test = mk_cpy_loadable_testcase("snakeoil.osutils._posix",
+cpy_posix_loaded_Test = mk_cpy_loadable_testcase("snakeoil._posix",
     "snakeoil.osutils", "normpath", "normpath")
 
 
