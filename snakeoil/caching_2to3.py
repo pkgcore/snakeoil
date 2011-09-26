@@ -112,6 +112,10 @@ else:
         pass
 
 
+class my_StdoutRefactoringTool(caching_mixin, lib2to3.main.StdoutRefactoringTool):
+    base_cls = lib2to3.main.StdoutRefactoringTool
+
+
 def StdoutRefactoringTool(*args):
     # stupid hacks...
     lib2to3.main.StdoutRefactoringTool = my_StdoutRefactoringTool.base_cls
