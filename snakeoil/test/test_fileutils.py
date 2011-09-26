@@ -309,9 +309,9 @@ class mmap_or_open_for_read(TempDirMixin, TestCase):
 
     def test_mmap(self, data='foonani'):
         path = pjoin(self.dir, 'target')
-        data = compatibility.force_bytes(data)
         self.write_file(path, 'w', data)
 
+        data = compatibility.force_bytes(data)
         m, f = self.func(path)
         self.assertEqual(len(m), len(data))
         self.assertEqual(m.read(len(data)), data)
