@@ -1,11 +1,10 @@
-# Copyright: 2005-2010 Brian Harring <ferringb@gmail.com>
+# Copyright: 2005-2011 Brian Harring <ferringb@gmail.com>
 # License: GPL2/BSD
 
 """
 chksum verification/generation subsystem
 """
 
-from snakeoil.data_source import base as base_data_source
 from snakeoil.demandload import demandload
 demandload(globals(), "os",
     "sys",
@@ -89,14 +88,7 @@ def init(additional_handlers=None):
         except AttributeError:
             # no go.
             continue
-        try:
-            chksum_types.update(types)
-
-        except ValueError:
-            logger.warn(
-                "%s.%s invalid chksum_types, ValueError Exception" % (
-                    __name__, f))
-            continue
+        chksum_types.update(types)
 
     if additional_handlers is not None:
         chksum_types.update(additional_handlers)
