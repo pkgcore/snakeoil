@@ -1,4 +1,4 @@
-# Copyright: 2005-2010 Brian Harring <ferringb@gmail.com>
+# Copyright: 2005-2011 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
 """Metaclass to inject dependencies into method calls.
@@ -126,7 +126,6 @@ def __unwrap_stage_dependencies__(cls):
         except AttributeError:
             raise TypeError("class %r stage_depends specifies "
                 "%r, which doesn't exist" % (cls, x))
-        f2 = getattr(f, 'sd_raw_func', x)
         setattr(cls, x, getattr(f, 'sd_raw_func', f))
 
 

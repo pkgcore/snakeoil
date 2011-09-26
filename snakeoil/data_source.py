@@ -45,7 +45,7 @@ __all__ = ("base", "data_source", "local_source", "text_data_source",
     "bytes_data_source", "invokable_data_source")
 
 import errno
-from snakeoil.currying import pre_curry, post_curry, pretty_docs, partial
+from snakeoil.currying import post_curry, partial
 from snakeoil import compatibility, demandload, stringio, klass
 demandload.demandload(globals(),
     'codecs',

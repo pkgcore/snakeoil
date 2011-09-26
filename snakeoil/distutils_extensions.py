@@ -11,13 +11,12 @@ Generally speaking, you should flip through this modules src.
 
 import os
 import sys
-import errno
 import subprocess
 
 os.environ["SNAKEOIL_DEMANDLOAD_PROTECTION"] = 'n'
 os.environ["SNAKEOIL_DEMANDLOAD_WARN"] = 'n'
 
-from distutils import core, ccompiler, log, errors
+from distutils import core, log, errors
 from distutils.command import (
     sdist as dst_sdist, build_ext as dst_build_ext, build_py as dst_build_py,
     build as dst_build)
@@ -105,7 +104,6 @@ class sdist(dst_sdist.sdist):
         p = subprocess.Popen(['bzr', 'tags', '--sort=time'],
             stdout=subprocess.PIPE)
         data = [x.split() for x in p.stdout if x]
-        data_d = dict(data)
         if not p.returncode != 0:
             raise errors.DistutilsExecError("bzr tags returned non zero: %r"
                 % (p.returncode,))

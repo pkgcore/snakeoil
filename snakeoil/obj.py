@@ -79,8 +79,7 @@ try to proxy builtin objects like tuples, lists, dicts, sets, etc.
 __all__ = ("DelayedInstantiation", "DelayedInstantiation_kls", "make_SlottedDict_kls",
     "make_kls",)
 
-from operator import attrgetter
-from snakeoil.currying import pre_curry, pretty_docs
+# make_SlottedDict_kls is imported for compat till 0.5
 from snakeoil.mappings import make_SlottedDict_kls
 from snakeoil import compatibility, klass
 

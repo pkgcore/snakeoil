@@ -1,4 +1,4 @@
-# Copyright: 2005-2010 Brian Harring <ferringb@gmail.com>
+# Copyright: 2005-2011 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
 """
@@ -8,7 +8,6 @@ sequence related operations and classes
 __all__ = ("unstable_unique", "stable_unique", "iter_stable_unique",
     "iflatten_instance", "iflatten_func", "ChainedLists", "predicate_split")
 
-from itertools import imap
 from snakeoil.iterables import expandable_chain
 from snakeoil.klass import steal_docs
 
