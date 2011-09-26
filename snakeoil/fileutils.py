@@ -16,7 +16,7 @@ import errno
 import itertools
 from snakeoil import compatibility
 from snakeoil.weakrefs import WeakRefFinalizer
-# kept purely for compatibility with pcheck.
+# kept purely for compatibility with pcheck; removable in snakeoil 0.5
 from snakeoil.bash import iter_read_bash, read_bash_dict
 from snakeoil import klass, compatibility
 from snakeoil.currying import partial, pretty_docs
@@ -168,12 +168,9 @@ else:
             self.raw = io.open(self._temp_fp, mode=self._computed_mode)
 
         def _real_close(self):
-            try:
-                raw = self.raw
-            except AttributeError:
-                # ignore it.  means that initialization flat out failed.
-                return None
-            return self.raw.close()
+            if hasattr(self, 'raw'):
+                return self.raw.close()
+            return None
 
         __getattr__ = klass.GetAttrProxy("raw")
 
