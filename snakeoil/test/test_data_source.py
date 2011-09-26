@@ -6,14 +6,14 @@ from snakeoil import data_source
 from snakeoil.test import TestCase, mixins
 from snakeoil import compatibility
 from snakeoil import stringio, currying
-
+from snakeoil.osutils import pjoin
 
 class TestDataSource(TestCase):
 
-    supports_mutable = False
+    supports_mutable = True
 
-    def get_obj(self, mutable=False):
-        return data_source.data_source("foonani", mutable=mutable)
+    def get_obj(self, data="foonani", mutable=False):
+        return data_source.data_source(data, mutable=mutable)
 
     def test_get_path(self):
         obj = self.get_obj()
@@ -30,7 +30,7 @@ class TestDataSource(TestCase):
         handle.close()
 
     def _test_fileobj_wr(self, attr, converter=str):
-        obj = self.get_obj(True)
+        obj = self.get_obj(mutable=True)
         handle_f = getattr(obj, attr)
         self.assertEqual(handle_f().read(),
             converter("foonani"))
@@ -66,10 +66,59 @@ class TestDataSource(TestCase):
         # thus no point in repeating it just for an aliasing of the method name
         self.get_obj().get_bytes_fileobj().close()
 
+    def assertContents(self, reader, writer):
+        reader_f = reader.bytes_fileobj()
+        writer_f = writer.bytes_fileobj()
+        reader_data = reader_f.read()
+        reader_f.close()
+        writer_data = writer_f.read()
+        writer_f.close()
+        self.assertEqual(reader_data, writer_data)
+
+    def _mk_data(self, size=(100000)):
+        return ''.join("%s" % (x % 10)
+            for x in xrange(size))
+
+    def test_transfer_to_data_source(self):
+        data = self._mk_data()
+        reader = self.get_obj(data=data)
+        if self.supports_mutable:
+            writer = self.get_obj(data='', mutable=True)
+        else:
+            writer = data_source.data_source('', mutable=True)
+        reader.transfer_to_data_source(writer)
+
+        self.assertContents(reader, writer)
+
+    @mixins.tempdir_decorator
+    def test_transfer_to_path(self):
+        data = self._mk_data()
+        reader = self.get_obj(data=data)
+        writer = data_source.local_source(pjoin(self.dir, 'transfer_to_path'), mutable=True)
+
+        reader.transfer_to_path(writer.path)
+
+        self.assertContents(reader, writer)
+
+    def test_transfer_data_between_files(self):
+        data = self._mk_data()
+        reader = self.get_obj(data=data)
+        if self.supports_mutable:
+            writer = self.get_obj(data='', mutable=True)
+        else:
+            writer = data_source.data_source('', mutable=True)
+
+        reader_f, writer_f = reader.bytes_fileobj(), writer.bytes_fileobj(True)
+        data_source.transfer_between_files(reader_f, writer_f)
+        reader_f.close(), writer_f.close()
+
+        self.assertContents(reader, writer)
+
+
 
 class TestLocalSource(mixins.TempDirMixin, TestDataSource):
 
-    def get_obj(self, mutable=False, data="foonani", test_creation=False):
+    def get_obj(self, data="foonani", mutable=False, test_creation=False):
         self.fp = os.path.join(self.dir, "localsource.test")
         f = None
         if not test_creation:
@@ -110,7 +159,7 @@ class Test_invokable_data_source(TestDataSource):
 
     supports_mutable = False
 
-    def get_obj(self, mutable=False, data="foonani"):
+    def get_obj(self, data="foonani", mutable=False):
         if isinstance(data, basestring):
             data = data.encode("utf8")
         return data_source.invokable_data_source(
@@ -147,40 +196,3 @@ class Test_invokable_data_source_wrapper_bytes(Test_invokable_data_source_wrappe
 
     text_mode = False
 
-
-class Test_transfer_data(TestDataSource):
-
-    func = staticmethod(data_source.transfer_data)
-
-    def assertTransfer(self, reader, writer):
-        r_position = reader.tell()
-        w_position = writer.tell()
-        self.func(reader, writer)
-
-        r_size = reader.tell() - r_position
-        # make sure no data is remaining
-        self.assertFalse(reader.read())
-        self.assertEqual(writer.tell() - w_position, r_size)
-        writer.seek(w_position, 0)
-        reader.seek(r_position)
-        data = reader.read()
-        self.assertLen(data, r_size)
-        self.assertEqual(data, writer.read())
-
-    def _mk_data(self, size=(100000)):
-        return ''.join("%s" % (x % 10)
-            for x in xrange(size))
-
-    def test_it(self):
-        data = self._mk_data()
-        reader = stringio.text_readonly(data)
-        writer = stringio.text_writable(data)
-        self.assertTransfer(reader, writer)
-        writer.seek(5, 0)
-        reader.seek(0)
-        self.assertTransfer(reader, writer)
-        writer.seek(0)
-        self.assertEqual(writer.getvalue()[5:],
-            data)
-        self.assertEqual(writer.getvalue()[:5],
-            data[:5])

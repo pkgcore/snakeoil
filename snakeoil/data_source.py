@@ -49,6 +49,7 @@ from snakeoil.currying import pre_curry, post_curry, pretty_docs, partial
 from snakeoil import compatibility, demandload, stringio, klass
 demandload.demandload(globals(),
     'codecs',
+    'snakeoil:fileutils',
 )
 
 
@@ -178,6 +179,32 @@ class base(object):
         doc="deprecated; use text_fileobj directly")
     get_bytes_fileobj = klass.alias_method("bytes_fileobj",
         doc="deprecated; use bytes_fileobj directed")
+
+    def transfer_to_path(self, path):
+        return self.transfer_to_data_source(
+            local_source(path, mutable=True, encoding=None))
+
+    def transfer_to_data_source(self, write_source):
+        read_f, m, write_f = None, None, None
+        try:
+            write_f = write_source.bytes_fileobj(True)
+            if self.path is not None:
+                m, read_f = fileutils.mmap_or_open_for_read(self.path)
+            else:
+                read_f = self.bytes_fileobj()
+
+            if read_f is not None:
+                transfer_between_files(read_f, write_f)
+            else:
+                write_f.write(m)
+        finally:
+            for x in (read_f, write_f, m):
+                if x is None:
+                    continue
+                try:
+                    x.close()
+                except EnvironmentError:
+                    pass
 
 
 class local_source(base):
@@ -441,11 +468,8 @@ class invokable_data_source(data_source):
         return bytes_ro_StringIO(data)
 
 
-def transfer_data(read_fsobj, write_fsobj, bufsize=(4096 * 16)):
-    """
-    transfer all remaining data of *read_fsobj* to *write_fsobj*
-    """
-    data = read_fsobj.read(bufsize)
+def transfer_between_files(read_file, write_file, bufsize=(32 * 1024)):
+    data = read_file.read(bufsize)
     while data:
-        write_fsobj.write(data)
-        data = read_fsobj.read(bufsize)
+        write_file.write(data)
+        data = read_file.read(bufsize)
