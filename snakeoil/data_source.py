@@ -44,9 +44,12 @@ we caught the exception.
 __all__ = ("base", "data_source", "local_source", "text_data_source",
     "bytes_data_source", "invokable_data_source")
 
+import errno
 from snakeoil.currying import pre_curry, post_curry, pretty_docs, partial
 from snakeoil import compatibility, demandload, stringio, klass
-demandload.demandload(globals(), 'codecs')
+demandload.demandload(globals(),
+    'codecs',
+)
 
 
 def _mk_writable_cls(base, name):
@@ -216,17 +219,27 @@ class local_source(base):
                 encoding=self.encoding)
         else:
             opener = post_curry(open_file, self.buffering_window)
-        if writable:
+        if not writable:
+            return opener(self.path, 'r')
+        try:
             return opener(self.path, "r+")
-        return opener(self.path, "r")
+        except IOError, ie:
+            if ie.errno != errno.ENOENT:
+                raise
+            return opener(self.path, 'w+')
 
     @klass.steal_docs(base)
     def bytes_fileobj(self, writable=False):
-        if writable:
-            if not self.mutable:
-                raise TypeError("data source %s is immutable" % (self,))
-            return open_file(self.path, "rb+", self.buffering_window)
-        return open_file(self.path, 'rb', self.buffering_window)
+        if not writable:
+            return open_file(self.path, 'rb', self.buffering_window)
+        if not self.mutable:
+            raise TypeError("data source %s is immutable" % (self,))
+        try:
+            return open_file(self.path, 'rb+', self.buffering_window)
+        except IOError, ie:
+            if ie.errno != errno.ENOENT:
+                raise
+            return open_file(self.path, 'wb+', self.buffering_window)
 
 
 class data_source(base):
