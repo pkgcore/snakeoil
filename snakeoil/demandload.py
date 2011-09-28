@@ -1,4 +1,3 @@
-# Copyright: 2006 Vadim Gelfer <vadim.gelfer@gmail.com>: GPL2
 # Copyright: 2007 Marien Zwart <marienz@gentoo.org>: GPL2/BSD
 # Copyright: 2009-2011 Brian Harring <ferringb@gmail.com>: GPL2/BSD
 # License: GPL2
