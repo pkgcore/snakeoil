@@ -2,6 +2,8 @@ Snakeoil Release Notes
 ======================
 
 
+snakeoil 0.4.3: Sept 27th, 2011
+
 * snakeoil.demandload is now threading aware, and no longer will complain
   if threading leads to an accidental already-replaced placeholder access.
 
@@ -23,7 +25,7 @@ Snakeoil Release Notes
   and it pisses off pyc generation.
 
 
-snakeoil 0.4.2: Sep 2nd, 2011
+snakeoil 0.4.2: Sept 2nd, 2011
 
 * compatibility.raise_from; compatibility across py2k/py3k for doing py3k
   raise EXCEPTION from CAUSE; see pep3134.  Primarily for raising an exception
