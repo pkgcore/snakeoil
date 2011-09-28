@@ -1,4 +1,4 @@
-# Copyright: 2009 Brian Harring <ferringb@gmail.com>
+# Copyright: 2009-2011 Brian Harring <ferringb@gmail.com>
 # License: GPL2/BSD
 
 from snakeoil.test import mixins, TestCase, test_demandload_usage
