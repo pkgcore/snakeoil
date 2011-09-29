@@ -173,7 +173,7 @@ class base(object):
         raise NotImplementedError(self, "bytes_fileobj")
 
     get_fileobj = klass.alias_method("text_fileobj", "get_fileobj",
-        "deprecated; use get_text_fileobj instead")
+        "deprecated; use text_fileobj instead")
 
     get_text_fileobj = klass.alias_method("text_fileobj",
         doc="deprecated; use text_fileobj directly")
