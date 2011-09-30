@@ -109,6 +109,11 @@ def get_chksums(location, *chksums, **kwds):
         be valid chksums known in `chksum_types`
     :return: a list of chksums, matching the order of requested chksums
     """
+
+    if not chksums:
+        # dumb api invocation...
+        return []
+
     handlers = get_handlers(chksums)
     # try to hand off to the per file handler, may be faster.
     if len(chksums) == 1:
