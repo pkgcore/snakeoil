@@ -10,6 +10,9 @@ be left in place here.
 """
 
 __all__ = ("AtomicWriteFile", "read_dict", "ParseError", 'write_file',)
+types = [""] + list("_%s" % x for x in ("ascii", "ascii_strict", "utf8", "utf8_strict", "utf8_strict"))
+__all__ += tuple("readfile%s" % x for x in types) + tuple("readlines%s" % x for x in types)
+del types
 
 import os
 import errno
@@ -388,4 +391,3 @@ readfile_ascii_strict = native_readfile_ascii_strict
 readfile_bytes = native_readfile_bytes
 readfile_utf8 = native_readfile_utf8
 readfile_utf8_strict = native_readfile_utf8_strict
-
