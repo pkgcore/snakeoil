@@ -179,7 +179,7 @@ else:
 
 
 def read_dict(bash_source, splitter="=", source_isiter=False,
-    allow_inline_comments=True):
+    allow_inline_comments=True, strip=False):
     """
     read key value pairs from a file, ignoring bash-style comments.
 
@@ -210,6 +210,8 @@ def read_dict(bash_source, splitter="=", source_isiter=False,
                 if filename == "<unknown>":
                     filename = getattr(bash_source, 'name', bash_source)
                 compatibility.raise_from(ParseError(filename, line_count))
+            if strip:
+                k, v = k.strip(), v.strip()
             if len(v) > 2 and v[0] == v[-1] and v[0] in ("'", '"'):
                 v = v[1:-1]
             d[k] = v

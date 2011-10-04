@@ -40,6 +40,10 @@ class TestReadDictConfig(TestCase):
             read_dict(StringIO("foo bar\nfoo2  bar\nfoo3\tbar\n"),
                 splitter=None),
             {}.fromkeys(('foo', 'foo2', 'foo3'), 'bar'))
+        self.assertEqual(
+            read_dict(['foo = blah', 'foo2= blah ', 'foo3=blah'], strip=True),
+            {}.fromkeys(('foo', 'foo2', 'foo3'), 'blah'))
+
 
 
 class TestAtomicWriteFile(TempDirMixin):
