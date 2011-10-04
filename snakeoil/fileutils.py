@@ -260,7 +260,7 @@ def _internal_native_readfile(mode, mypath, none_on_missing=False, encoding=None
 
             return f.read()
         except IOError, oe:
-            if none_on_missing and oe.errno == errno.ENOENT:
+            if none_on_missing and oe.errno in (errno.ENOENT, errno.ENOTDIR):
                 return None
             raise
     finally:
@@ -351,7 +351,7 @@ def native_readlines(mode, mypath, strip_whitespace=True, swallow_missing=False,
         else:
             handle = open(mypath, mode)
     except IOError, ie:
-        if ie.errno != errno.ENOENT or not swallow_missing:
+        if not swallow_missing or ie.errno not in (errno.ENOTDIR, errno.ENOENT):
             raise
         if none_on_missing:
             return None

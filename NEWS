@@ -2,6 +2,10 @@ Snakeoil Release Notes
 ======================
 
 
+* swallow ENOTDIR from readfiles and readlines if told to ignore
+  missing files.
+
+
 snakeoil 0.4.3: Sept 27th, 2011
 
 * snakeoil.demandload is now threading aware, and no longer will complain

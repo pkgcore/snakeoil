@@ -158,6 +158,10 @@ class native_readfile_Test(TempDirMixin):
         self.assertEqual(self.func(fp, True),
             self.none_on_missing_ret_data)
 
+        # ensure it handles paths that go through files-
+        # still should be suppress
+        self.assertEqual(self.func(pjoin(fp, 'extra'), True), None)
+
 
 class cpy_readfile_Test(native_readfile_Test):
     cpy_setup_class(locals(), 'readfile')
@@ -234,6 +238,9 @@ class readlines_mixin(object):
         self.write_file(fp, 'wb', self.convert_data('dar', 'ascii'))
         self.assertEqual(tuple(self.func(fp, True)),
             (self.none_on_missing_ret_data,))
+
+        self.assertEqual(tuple(self.func(pjoin(fp, 'missing'), False, True)), ())
+
 
     def test_strip_whitespace(self):
         fp = pjoin(self.dir, 'data')
