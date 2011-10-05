@@ -259,7 +259,7 @@ static inline int
 handle_failed_open_stat(int fd, PyObject *path, PyObject *swallow_missing)
 {
 	if(fd < 0) {
-		if(errno == ENOENT) {
+		if(errno == ENOENT || errno == ENOTDIR) {
 			if(swallow_missing) {
 				int result = PyObject_IsTrue(swallow_missing);
 				if(result == -1) {
