@@ -179,7 +179,7 @@ else:
 
 
 def read_dict(bash_source, splitter="=", source_isiter=False,
-    allow_inline_comments=True, strip=False):
+    allow_inline_comments=True, strip=False, filename=None):
     """
     read key value pairs from a file, ignoring bash-style comments.
 
@@ -197,8 +197,9 @@ def read_dict(bash_source, splitter="=", source_isiter=False,
         i = iter_read_bash(bash_source,
             allow_inline_comments=allow_inline_comments)
     else:
-        # XXX what to do?
-        filename = '<unknown>'
+        if filename is None:
+            # XXX what to do?
+            filename = '<unknown>'
         i = bash_source
     line_count = 1
     try:
