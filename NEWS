@@ -2,6 +2,8 @@ Snakeoil Release Notes
 ======================
 
 
+snakeoil 0.4.4: Oct 26th, 2011
+
 * use sane permissions for directories created for tests.
 
 * swallow ENOTDIR from readfiles and readlines if told to ignore
