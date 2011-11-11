@@ -155,6 +155,11 @@ class WeakRefFinalizer(type):
     @classmethod
     def _atexit_cleanup(cls):
         # cleanup any instances strongly referenced at the time of sys.exit
+        # everything in this function should be protected against gc- it's
+        # possible that a finalizer will release another, resulting in
+        # no more instances holding that class in memory for example.
+        # as such, everything here should strongly ref what we're working
+        # on.
         target_classes = cls.__known_classes__.keys()
         for target_cls in target_classes:
             for target_ref in target_cls.__finalizer_weakrefs__.values():
