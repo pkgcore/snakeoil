@@ -10,13 +10,15 @@ __all__ = ("WeakValCache", "WeakRefFinalizer")
 # Unused import
 # pylint: disable-msg=W0611
 
+import atexit
+
 try:
     # No name in module
     # pylint: disable-msg=E0611
     from snakeoil._caching import WeakValCache
-    from weakref import ref
+    from weakref import ref, WeakKeyDictionary
 except ImportError:
-    from weakref import WeakValueDictionary as WeakValCache, ref
+    from weakref import WeakValueDictionary as WeakValCache, ref, WeakKeyDictionary
 
 from snakeoil.obj import make_kls, BaseDelayedObject
 from snakeoil.currying import partial
@@ -37,7 +39,6 @@ class WeakRefProxy(BaseDelayedObject):
         weakref = ref(self, partial(finalize_instance, obj))
         obj.__enable_finalization__(weakref)
         return obj
-
 
 def __enable_finalization__(self, weakref):
     # note we directly access the class, to ensure the instance hasn't overshadowed.
@@ -116,6 +117,9 @@ class WeakRefFinalizer(type):
     >>> del obj
     finalization invoked: bar
     """
+
+    __known_classes__ = WeakKeyDictionary()
+
     def __new__(cls, name, bases, d):
         if '__del__' in d:
             d['__finalizer__'] = d.pop("__del__")
@@ -137,6 +141,7 @@ class WeakRefFinalizer(type):
         new_cls = super(WeakRefFinalizer, cls).__new__(cls, name, bases, d)
         new_cls.__proxy_class__ = partial(make_kls(new_cls, WeakRefProxy), cls, lambda x:x)
         new_cls.__proxy_class__.__name__ = name
+        cls.__known_classes__[new_cls] = True
         return new_cls
 
     def __call__(cls, *a, **kw):
@@ -146,3 +151,15 @@ class WeakRefFinalizer(type):
         # weakref registration
         getattr(proxy, '__finalizer__')
         return proxy
+
+    @classmethod
+    def _atexit_cleanup(cls):
+        # cleanup any instances strongly referenced at the time of sys.exit
+        target_classes = cls.__known_classes__.keys()
+        for target_cls in target_classes:
+            for target_ref in target_cls.__finalizer_weakrefs__.values():
+                obj = target_ref()
+                if obj is not None:
+                    obj.__finalizer__()
+
+atexit.register(WeakRefFinalizer._atexit_cleanup)

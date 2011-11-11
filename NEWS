@@ -2,6 +2,10 @@ Snakeoil Release Notes
 ======================
 
 
+* Fix WeakRefFinalizer so that instances that are still strongly referenced
+  at the time of sys.exit have their finalizers ran via atexit.
+
+
 snakeoil 0.4.4: Oct 26th, 2011
 
 * use sane permissions for directories created for tests.
