@@ -156,7 +156,7 @@ class WeakRefFinalizer(type):
         return proxy
 
     @classmethod
-    def _atexit_cleanup(cls):
+    def _atexit_cleanup(cls, _getpid_func=os.getpid):
         # cleanup any instances strongly referenced at the time of sys.exit
         # everything in this function should be protected against gc- it's
         # possible that a finalizer will release another, resulting in
@@ -164,7 +164,7 @@ class WeakRefFinalizer(type):
         # as such, everything here should strongly ref what we're working
         # on.
         target_classes = cls.__known_classes__.keys()
-        pid = os.getpid()
+        pid = _getpid_func()
         for target_cls in target_classes:
             for target_ref in target_cls.__finalizer_weakrefs__.get(pid, {}).values():
                 obj = target_ref()
