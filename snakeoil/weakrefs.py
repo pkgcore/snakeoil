@@ -10,7 +10,7 @@ __all__ = ("WeakValCache", "WeakRefFinalizer")
 # Unused import
 # pylint: disable-msg=W0611
 
-import atexit
+import atexit, os
 
 try:
     # No name in module
@@ -22,6 +22,7 @@ except ImportError:
 
 from snakeoil.obj import make_kls, BaseDelayedObject
 from snakeoil.currying import partial
+from snakeoil import mappings
 from snakeoil.compatibility import any
 
 
@@ -42,12 +43,14 @@ class WeakRefProxy(BaseDelayedObject):
 
 def __enable_finalization__(self, weakref):
     # note we directly access the class, to ensure the instance hasn't overshadowed.
-    self.__class__.__finalizer_weakrefs__[id(self)] = weakref
+    self.__class__.__finalizer_weakrefs__[os.getpid()][id(self)] = weakref
 
 def __disable_finalization__(self):
     # note we directly access the class, to ensure the instance hasn't overshadowed.
     # use pop to allow for repeat invocations of __disable_finalization__
-    self.__class__.__finalizer_weakrefs__.pop(id(self), None)
+    d = self.__class__.__finalizer_weakrefs__.get(os.getpid)
+    if d is not None:
+        d.pop(id(self), None)
 
 
 class WeakRefFinalizer(type):
@@ -136,7 +139,7 @@ class WeakRefFinalizer(type):
         # install tracking bits.  we do this per class- this is intended to avoid any
         # potential stupid subclasses wiping a parents tracking.
 
-        d['__finalizer_weakrefs__'] = {}
+        d['__finalizer_weakrefs__'] = mappings.defaultdict(dict)
 
         new_cls = super(WeakRefFinalizer, cls).__new__(cls, name, bases, d)
         new_cls.__proxy_class__ = partial(make_kls(new_cls, WeakRefProxy), cls, lambda x:x)
@@ -161,8 +164,9 @@ class WeakRefFinalizer(type):
         # as such, everything here should strongly ref what we're working
         # on.
         target_classes = cls.__known_classes__.keys()
+        pid = os.getpid()
         for target_cls in target_classes:
-            for target_ref in target_cls.__finalizer_weakrefs__.values():
+            for target_ref in target_cls.__finalizer_weakrefs__.get(pid, {}).values():
                 obj = target_ref()
                 if obj is not None:
                     obj.__finalizer__()

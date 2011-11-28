@@ -3,7 +3,8 @@ Snakeoil Release Notes
 
 
 * Fix WeakRefFinalizer so that instances that are still strongly referenced
-  at the time of sys.exit have their finalizers ran via atexit.
+  at the time of sys.exit have their finalizers ran via atexit; specifically,
+  run the finalizers only for that pid.
 
 
 snakeoil 0.4.4: Oct 26th, 2011
