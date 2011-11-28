@@ -537,7 +537,7 @@ def cached_hash(func):
     return __hash__
 
 
-def steal_docs(target_class, ignore_missing=False):
+def steal_docs(target_class, ignore_missing=False, name=None):
     """
     decorator to steal __doc__ off of a target class.
 
@@ -562,8 +562,12 @@ def steal_docs(target_class, ignore_missing=False):
     >>> assert f.extend.__doc__ == list.extend.__doc__
     """
     def inner(functor):
+        if name is not None:
+            target_name = name
+        else:
+            target_name = functor.__name__
         try:
-            obj = getattr(target_class, functor.__name__)
+            obj = getattr(target_class, target_name)
             functor.__doc__ = obj.__doc__
         except AttributeError:
             if not ignore_missing:
