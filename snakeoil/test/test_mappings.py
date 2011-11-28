@@ -440,6 +440,7 @@ class FoldingDictTest(TestCase):
         dct.clear()
         self.assertEqual({}, dict(dct))
 
+
 class defaultdictTest(TestCase):
 
     kls = mappings.defaultdict
@@ -465,6 +466,14 @@ class defaultdictTest(TestCase):
         self.assertRaises(KeyError, d.__delitem__, 1)
         d.clear()
         self.assertFalse(d)
+
+    def test_compat(self):
+        d = self.kls(list)
+        self.assertEqual(None, d.get('asfdf'))
+        self.assertEqual(None, d.pop('asdf', None))
+        self.assertEqual(None, d.setdefault('asdf', None))
+        self.assertEqual(d['asdf'], None)
+        self.assertNotIn('nonexistant key', d)
 
 
 class defaultdictkeyTest(TestCase):

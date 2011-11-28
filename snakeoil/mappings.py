@@ -14,7 +14,7 @@ __all__ = ("autoconvert_py3k_methods_metaclass", "DictMixin", "LazyValDict",
 
 import operator, sys
 from itertools import imap, chain, ifilterfalse, izip
-from snakeoil.klass import get, contains, steal_docs
+from snakeoil.klass import get, contains, steal_docs, alias_method
 from collections import deque
 from snakeoil import compatibility
 cmp = compatibility.cmp
@@ -693,6 +693,12 @@ else:
                 return self._storage[key]
             except KeyError:
                 return self.__missing__(key)
+
+
+        get = steal_docs(dict, name='get')(alias_method('_storage.get'))
+        pop = steal_docs(dict, name='pop')(alias_method('_storage.pop'))
+        setdefault = steal_docs(dict, name='setdefault')(alias_method('_storage.setdefault'))
+        __contains__ = steal_docs(dict, name='__contains__')(alias_method('_storage.__contains__'))
 
         @steal_docs(dict)
         def __setitem__(self, key, value):
