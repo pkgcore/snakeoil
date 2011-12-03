@@ -164,3 +164,77 @@ class TestAliasClassMethod(TestCase):
         c.__len__ = lambda : 4
         self.assertEqual(c.__len__(), c.lfunc())
 
+
+class Test_wrap_exception(TestCase):
+
+    def test_wrap_exception_complex(self):
+        inner, outer = [], []
+
+        inner_exception = ValueError
+        wrapping_exception = IndexError
+
+        def f(exception, functor, fargs, fkwds):
+            self.assertIsInstance(exception, inner_exception)
+            self.assertIs(functor, throwing_func)
+            self.assertEqual(fargs, (False,))
+            self.assertEqual(fkwds, {'monkey':'bone'})
+            outer.append(True)
+            raise wrapping_exception()
+
+        def throwing_func(*args, **kwds):
+            self.assertEqual(args, (False,))
+            self.assertEqual(kwds, {'monkey':'bone'})
+            inner.append(True)
+            raise inner_exception()
+
+        func = currying.wrap_exception_complex(f, IndexError)(throwing_func)
+
+        #basic behaviour
+        self.assertRaises(IndexError, func, False, monkey='bone')
+        self.assertLen(inner, 1)
+        self.assertLen(outer, 1)
+
+        # ensure pass thru if it's an allowed exception
+        inner_exception = IndexError
+        self.assertRaises(IndexError, func, False, monkey='bone')
+        self.assertLen(inner, 2)
+        self.assertLen(outer, 1)
+
+        # finally, ensure it doesn't intercept, and passes thru for
+        # exceptions it shouldn't handle
+        inner_exception = MemoryError
+        self.assertRaises(MemoryError, func, False, monkey='bone')
+        self.assertLen(inner, 3)
+        self.assertLen(outer, 1)
+
+    def test_wrap_exception(self):
+        def throwing_func(*args, **kwds):
+            raise ValueError()
+
+        class my_exception(Exception):
+            def __init__(self, *args, **kwds):
+                self.args = args
+                self.kwds = kwds
+
+        func = currying.wrap_exception(my_exception, 1, 3, 2, monkey='bone',
+            ignores=ValueError)(throwing_func)
+        self.assertEqual(func.__name__, 'throwing_func')
+        self.assertRaises(my_exception, func)
+        try:
+            func()
+            raise AssertionError("shouldn't have been able to reach here")
+        except my_exception, e:
+            self.assertEqual(e.args, (1,3,2))
+            self.assertEqual(e.kwds, {'monkey':'bone'})
+
+        # finally, verify that the exception can be pased in.
+        func = currying.wrap_exception(my_exception, 1, 3, 2, monkey='bone',
+            ignores=ValueError, pass_error="the_exception")(throwing_func)
+        self.assertEqual(func.__name__, 'throwing_func')
+        self.assertRaises(my_exception, func)
+        try:
+            func()
+            raise AssertionError("shouldn't have been able to reach here")
+        except my_exception, e:
+            self.assertEqual(e.args, (1,3,2))
+            self.assertEqual(e.kwds, {'monkey':'bone', 'the_exception':e.__cause__})

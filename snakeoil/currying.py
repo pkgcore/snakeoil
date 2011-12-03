@@ -32,6 +32,7 @@ should be identical. Because :py:func:`partial` has an implementation in c
 while :py:func:`pre_curry` is python you should use :py:func:`partial` if possible.
 """
 
+from snakeoil import compatibility
 from operator import attrgetter
 import sys
 
@@ -208,3 +209,44 @@ def alias_class_method(attr, name=None, doc=None):
     if name:
         _asecond_level_call.__name__ = name
     return _asecond_level_call
+
+
+def wrap_exception(recast_exception, *args, **kwds):
+    if not isinstance(recast_exception, type) or not issubclass(recast_exception, Exception):
+        raise ValueError("recast_exception %r must be an Exception derivative" % (
+            recast_exception,))
+    ignores = kwds.pop("ignores", (recast_exception,))
+    if issubclass(recast_exception, Exception):
+        ignores = (recast_exception,)
+    ignores = tuple(ignores)
+    pass_error = kwds.pop("pass_error", None)
+    return wrap_exception_complex(partial(_simple_throw, recast_exception, args, kwds, pass_error), ignores)
+
+def _simple_throw(recast_exception, recast_args, recast_kwds, pass_error,
+    exception, functor, args, kwds):
+    if pass_error:
+        recast_kwds[pass_error] = exception
+    return recast_exception(*recast_args, **recast_kwds)
+
+def wrap_exception_complex(creation_func, ignores):
+    if not isinstance(ignores, Exception):
+        ignores = (ignores,)
+    ignores = tuple(ignores)
+    return partial(_inner_wrap_exception, creation_func, ignores)
+
+def _inner_wrap_exception(exception_maker, ignores, functor):
+    def _wrap_exception(*args, **kwargs):
+        try:
+            return functor(*args, **kwargs)
+        except compatibility.IGNORED_EXCEPTIONS:
+            raise
+        except ignores:
+            raise
+        except Exception, e:
+            # snag the exception info prior, just to ensure the maker
+            # doesn't corrupt the tb info.
+            exc_info = sys.exc_info()
+            new_exc = exception_maker(e, functor, args, kwargs)
+            compatibility.raise_from(new_exc, exc_info=exc_info)
+    _wrap_exception.func = functor
+    return pretty_docs(_wrap_exception, name=functor.__name__)
