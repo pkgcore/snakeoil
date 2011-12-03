@@ -125,9 +125,11 @@ class TestCase(unittest.TestCase, object):
             msg or '%r must not be an instance of %r, is %r' % (obj, kls,
                 getattr(obj, '__class__', "__class__ wasn't pullable")))
 
-    def assertIdentical(self, this, other, reason=None):
-        self.assertTrue(
-            this is other, reason or '%r is not %r' % (this, other))
+    assertIdentical = klass.alias_method("assertIs")
+    if not hasattr(unittest.TestCase, 'assertIs'):
+        def assertIs(self, this, other, reason=None):
+            self.assertTrue(
+                this is other, reason or '%r is not %r' % (this, other))
 
     def assertNotIdentical(self, this, other, reason=None):
         self.assertTrue(
