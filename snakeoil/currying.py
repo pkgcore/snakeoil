@@ -238,7 +238,7 @@ def wrap_exception_complex(creation_func, ignores):
     except TypeError, e:
         raise TypeError("ignores must be either a tuple of %s, or a %s: got %r, error %r"
             % (Exception.__name__, Exception.__name__, ignores, e))
-    if not all(issubclass(x, Exception) for x in ignores):
+    if not compatibility.all(issubclass(x, Exception) for x in ignores):
         raise TypeError("ignores has a non %s derivative in it: %r" %
             (Exception.__name__, ignores))
     return partial(_inner_wrap_exception, creation_func, ignores)
