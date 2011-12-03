@@ -231,9 +231,9 @@ def _simple_throw(recast_exception, recast_args, recast_kwds, pass_error,
     return recast_exception(*recast_args, **recast_kwds)
 
 def wrap_exception_complex(creation_func, ignores):
-    if issubclass(ignores, Exception) or ignores is Exception:
-        ignores = (ignores,)
     try:
+        if not hasattr(ignores, '__iter__') and issubclass(ignores, Exception) or ignores is Exception:
+            ignores = (ignores,)
         ignores = tuple(ignores)
     except TypeError, e:
         raise TypeError("ignores must be either a tuple of %s, or a %s: got %r, error %r"
