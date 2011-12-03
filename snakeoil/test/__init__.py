@@ -19,6 +19,7 @@ import subprocess
 from snakeoil.compatibility import is_py3k_like, IGNORED_EXCEPTIONS, is_py3k
 from snakeoil import modules
 from snakeoil import fileutils
+from snakeoil import klass
 
 def _tryResultCall(result, methodname, *args):
     method = getattr(result, methodname, None)
@@ -105,13 +106,16 @@ class TestCase(unittest.TestCase, object):
         self.assertTrue(len(obj) == length,
             msg or '%r needs to be len %i, is %i' % (obj, length, len(obj)))
 
-    def assertInstance(self, obj, kls, msg=None):
-        """
-        assert that obj is an instance of kls
-        """
-        self.assertTrue(isinstance(obj, kls),
-            msg or '%r needs to be an instance of %r, is %r' % (obj, kls,
-                getattr(obj, '__class__', "__class__ wasn't pullable")))
+    assertInstance = klass.alias_method("assertIsInstance")
+
+    if not hasattr(unittest.TestCase, 'assertIsInstance'):
+        def assertIsInstance(self, obj, kls, msg=None):
+            """
+            assert that obj is an instance of kls
+            """
+            self.assertTrue(isinstance(obj, kls),
+                msg or '%r needs to be an instance of %r, is %r' % (obj, kls,
+                    getattr(obj, '__class__', "__class__ wasn't pullable")))
 
     def assertNotInstance(self, obj, kls, msg=None):
         """
