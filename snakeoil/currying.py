@@ -212,11 +212,17 @@ def alias_class_method(attr, name=None, doc=None):
 
 
 def wrap_exception(recast_exception, *args, **kwds):
-    if not isinstance(recast_exception, type) or not issubclass(recast_exception, Exception):
-        raise ValueError("recast_exception %r must be an Exception derivative" % (
-            recast_exception,))
+    # set this here so that 2to3 will rewrite it.
+    kls = Exception
+    try:
+        if not issubclass(recast_exception, kls):
+            raise ValueError("recast_exception must be an %s derivative: got %r" %
+                (kls, recast_exception))
+    except TypeError, e:
+        raise TypeError("recast_exception must be an %s derivative; got %r, failed %r",
+            (kls, recast_exception, e))
     ignores = kwds.pop("ignores", (recast_exception,))
-    if issubclass(recast_exception, Exception):
+    if issubclass(recast_exception, kls):
         ignores = (recast_exception,)
     ignores = tuple(ignores)
     pass_error = kwds.pop("pass_error", None)
