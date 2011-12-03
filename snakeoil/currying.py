@@ -213,18 +213,14 @@ def alias_class_method(attr, name=None, doc=None):
 
 def wrap_exception(recast_exception, *args, **kwds):
     # set this here so that 2to3 will rewrite it.
-    kls = Exception
     try:
-        if not issubclass(recast_exception, kls):
+        if not issubclass(recast_exception, Exception):
             raise ValueError("recast_exception must be an %s derivative: got %r" %
-                (kls, recast_exception))
+                (Exception, recast_exception))
     except TypeError, e:
         raise TypeError("recast_exception must be an %s derivative; got %r, failed %r",
-            (kls, recast_exception, e))
+            (Exception.__name__, recast_exception, e))
     ignores = kwds.pop("ignores", (recast_exception,))
-    if issubclass(recast_exception, kls):
-        ignores = (recast_exception,)
-    ignores = tuple(ignores)
     pass_error = kwds.pop("pass_error", None)
     return wrap_exception_complex(partial(_simple_throw, recast_exception, args, kwds, pass_error), ignores)
 
@@ -235,9 +231,16 @@ def _simple_throw(recast_exception, recast_args, recast_kwds, pass_error,
     return recast_exception(*recast_args, **recast_kwds)
 
 def wrap_exception_complex(creation_func, ignores):
-    if not isinstance(ignores, Exception):
+    if issubclass(ignores, Exception) or ignores is Exception:
         ignores = (ignores,)
-    ignores = tuple(ignores)
+    try:
+        ignores = tuple(ignores)
+    except TypeError, e:
+        raise TypeError("ignores must be either a tuple of %s, or a %s: got %r, error %r"
+            % (Exception.__name__, Exception.__name__, ignores, e))
+    if not all(issubclass(x, Exception) for x in ignores):
+        raise TypeError("ignores has a non %s derivative in it: %r" %
+            (Exception.__name__, ignores))
     return partial(_inner_wrap_exception, creation_func, ignores)
 
 def _inner_wrap_exception(exception_maker, ignores, functor):

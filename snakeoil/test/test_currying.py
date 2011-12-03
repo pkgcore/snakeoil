@@ -208,8 +208,9 @@ class Test_wrap_exception(TestCase):
         self.assertLen(outer, 1)
 
     def test_wrap_exception(self):
+        throw_kls = ValueError
         def throwing_func(*args, **kwds):
-            raise ValueError()
+            raise throw_kls()
 
         class my_exception(Exception):
             def __init__(self, *args, **kwds):
@@ -219,6 +220,8 @@ class Test_wrap_exception(TestCase):
         func = currying.wrap_exception(my_exception, 1, 3, 2, monkey='bone',
             ignores=ValueError)(throwing_func)
         self.assertEqual(func.__name__, 'throwing_func')
+        self.assertRaises(ValueError, func)
+        throw_kls = IndexError
         self.assertRaises(my_exception, func)
         try:
             func()
