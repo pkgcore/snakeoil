@@ -55,6 +55,9 @@ class ReadBashDictTest(TestCase):
         self.sourcing_file = mk_named_tempfile()
         self.sourcing_file.write('source "%s"\n' % self.valid_file.name)
         self.sourcing_file.flush()
+        self.sourcing_file2 = mk_named_tempfile()
+        self.sourcing_file2.write('source "%s"\n' % os.path.basename(self.valid_file.name))
+        self.sourcing_file2.flush()
         self.advanced_file = mk_named_tempfile()
         self.advanced_file.write(
             'one1=1\n'
@@ -135,9 +138,12 @@ class ReadBashDictTest(TestCase):
         self.assertEqual(self.invoke_and_close(StringIO("x='y'a")), {'x':'ya'})
 
     def test_sourcing(self):
-        # TODO this is not even close to complete
         self.assertEqual(
             self.invoke_and_close(self.sourcing_file.name, sourcing_command='source'),
+            {'foo1': 'bar', 'foo2': 'bar', 'foo3': 'bar', 'foo4': '-/:j4',
+                'foo5':''})
+        self.assertEqual(
+            self.invoke_and_close(self.sourcing_file2.name, sourcing_command='source'),
             {'foo1': 'bar', 'foo2': 'bar', 'foo3': 'bar', 'foo4': '-/:j4',
                 'foo5':''})
 

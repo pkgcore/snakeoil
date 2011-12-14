@@ -2,6 +2,9 @@ Snakeoil Release Notes
 ======================
 
 
+* for bash parsing, pass into shlex the file being read so that
+  relative source calls can find the file correctly.  Issue #1.
+
 * add currying.wrap_exception and currying.wrap_exception_complex
 
 

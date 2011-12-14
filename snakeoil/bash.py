@@ -92,12 +92,14 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
         d, protected = {}, False
 
     close = False
+    infile = None
     if isinstance(bash_source, basestring):
         f = open(bash_source, "r")
         close = True
+        infile = bash_source
     else:
         f = bash_source
-    s = bash_parser(f, sourcing_command=sourcing_command, env=d)
+    s = bash_parser(f, sourcing_command=sourcing_command, env=d, infile=infile)
 
     try:
         tok = ""
@@ -159,7 +161,7 @@ class bash_parser(shlex):
     subset of bash syntax than stdlib shlex
     """
 
-    def __init__(self, source, sourcing_command=None, env=None):
+    def __init__(self, source, sourcing_command=None, env=None, infile=None):
         """
         instantiate the parser
 
@@ -171,7 +173,7 @@ class bash_parser(shlex):
         :type env: must be a mapping; if None, an empty dict is used
         """
         self.__dict__['state'] = ' '
-        shlex.__init__(self, source, posix=True)
+        shlex.__init__(self, source, posix=True, infile=infile)
         self.wordchars += "@${}/.-+/:~^*"
         self.wordchars = frozenset(self.wordchars)
         if sourcing_command is not None:
