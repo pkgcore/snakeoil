@@ -16,12 +16,14 @@ def get_git_version(cwd=__file__):
     env = dict(os.environ)
     env["LC_CTYPE"] = "C"
 
+    null = open("/dev/null", 'wb')
     r = subprocess.Popen(["git", "log", "HEAD^..HEAD"], stdout=subprocess.PIPE,
-        stderr=None,
+        stderr=null,
         env=env,
         cwd=os.path.dirname(os.path.abspath(cwd)))
     if r.wait() != 0:
         return "unknown (couldn't identify from git)"
+    null.close()
     data = r.stdout.read().split("\n")
     commit = [x.split()[-1] for x in data if x.startswith("commit")][0]
     date = [x.split(":", 1)[-1].lstrip() for x in data if x.lower().startswith("date")][0]
