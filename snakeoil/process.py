@@ -6,6 +6,7 @@ import sys
 from snakeoil.demandload import demandload
 demandload(globals(),
     'subprocess',
+    'snakeoil.osutils:access',
 )
 
 def _get_linux_proc_count():
@@ -47,3 +48,27 @@ def get_proc_count(force=False):
     return val
 
 
+def find_binary(binary, paths=None):
+    """look through the PATH environment, finding the binary to execute"""
+
+    if os.path.isabs(binary):
+        if not (os.path.isfile(binary) and access(binary, os.X_OK)):
+            raise CommandNotFound(binary)
+        return binary
+
+    if paths is None:
+        paths = os.environ.get("PATH", "").split(":")
+
+    for path in paths:
+        filename = "%s/%s" % (path, binary)
+        if access(filename, os.X_OK) and os.path.isfile(filename):
+            return filename
+
+    raise CommandNotFound(binary)
+
+
+class CommandNotFound(Exception):
+
+    def __init__(self, command):
+        Exception.__init__(self, "Failed to find binary %r" % (command,))
+        self.command = command
