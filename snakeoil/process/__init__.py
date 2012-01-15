@@ -1,4 +1,4 @@
-# Copyright: 2011 Brian Harring <ferringb@gmail.com>
+# Copyright: 2011-2012 Brian Harring <ferringb@gmail.com>
 # License: GPL2/BSD 3 clause
 
 import os
@@ -72,3 +72,25 @@ class CommandNotFound(Exception):
     def __init__(self, command):
         Exception.__init__(self, "Failed to find binary %r" % (command,))
         self.command = command
+
+
+def _native_closerange(from_fd, to_fd):
+    for fd in xrange(from_fd, to_fd):
+        try:
+            os.close(fd)
+        except EnvironmentError:
+            pass
+
+try:
+    if os.uname()[0].lower() != 'linux':
+        # the optimized closerange works for sure on linux/glibc; for others
+        # whitelist expand this as needed.
+        raise ImportError()
+    from snakeoil._posix import closerange
+    # monkey patch os.closerange with the saner version;
+    # this makes subprocess.Popen calls less noisy, and slightly faster.
+    # only do this if we can drop our optimized version in.
+    os.closerange = closerange
+except ImportError:
+    closerange = getattr(os, 'closerange', _native_closerange)
+

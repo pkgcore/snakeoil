@@ -16,8 +16,12 @@
 #include <structmember.h>
 #include <sys/mman.h>
 #include <sys/types.h>
+#include <dirent.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
+// we get MAXPATHLEN from python.
+#include <osdefs.h>
 
 
 static PyObject *snakeoil_stat_float_times = NULL;
@@ -664,6 +668,59 @@ static PyTypeObject snakeoil_readlines_type = {
 	snakeoil_readlines_new,						   /* tp_new */
 };
 
+void
+snakeoil_slow_closerange(int from, int to)
+{
+	int i;
+	for(i=from; i < to; i++)
+		close(i);
+}
+
+static PyObject *
+snakeoil_closerange(PyObject *self, PyObject *args)
+{
+	int from, to, i;
+	DIR *fd_dir;
+	struct dirent *entry;
+	char path[MAXPATHLEN];
+
+	if (!PyArg_ParseTuple(args, "ii:closerange", &from, &to))
+		return NULL;
+
+	// Note that the version I submitted to python upstream
+	// has this in a ALLOW_THREADS block; snakeoils doesn't
+	// since it's pointless.  Realistically the only time
+	// this code is ever ran is immediately post fork-
+	// where no threads can be running.  Thus no gain
+	// to releasing the GIL than reacquiring it, thus we
+	// skip it.
+
+	PyOS_snprintf(path, MAXPATHLEN, "/proc/%i/fd", getpid());
+
+	if(!(fd_dir = opendir(path))) {
+		snakeoil_slow_closerange(from, to);
+		Py_RETURN_NONE;
+	}
+
+	while((entry = readdir(fd_dir))) {
+		const char *name = entry->d_name;
+		if (name[0] == '.' && (
+			(name[1] == '.' && name[2] == '\0') ||
+			name[1] == '\0')) {
+			continue;
+		}
+
+		i = atoi(name);
+		if (i >= from && i < to) {
+			close(i);
+		}
+	}
+	closedir(fd_dir);
+
+	Py_RETURN_NONE;
+}
+
+
 static PyMethodDef snakeoil_posix_methods[] = {
 	{"normpath", (PyCFunction)snakeoil_normpath, METH_O,
 		"normalize a path entry"},
@@ -672,8 +729,11 @@ static PyMethodDef snakeoil_posix_methods[] = {
 	{"readfile", snakeoil_readfile, METH_VARARGS,
 		"fast read of a file: requires a string path, and an optional bool "
 		"indicating whether to swallow ENOENT; defaults to false"},
+	{"closerange", (PyCFunction)snakeoil_closerange, METH_VARARGS,
+		"close a range of fds"},
 	{NULL}
 };
+
 
 PyDoc_STRVAR(
 	snakeoil_posix_documentation,
