@@ -19,10 +19,12 @@ def _drive_process(args, mode, data):
         if p is not None and p.returncode is None:
             p.kill()
 
-def compress_data(binary, data, compress_level=9):
-    return _drive_process([binary, '-%ic' % compress_level],
-        'compression', data)
+def compress_data(binary, data, level=9, extra_args=()):
+    args = [binary, '-%ic' % level]
+    args.extend(extra_args)
+    return _drive_process(args, 'compression', data)
 
-def decompress_data(binary, data):
-    return _drive_process([binary, '-dc'],
-        'decompression', data)
+def decompress_data(binary, data, extra_args=()):
+    args = [binary, '-dc']
+    args.extend(extra_args)
+    return _drive_process(args, 'decompression', data)

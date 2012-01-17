@@ -13,18 +13,14 @@ Should use this module unless its absolutely critical that bz2 module be used
 
 __all__ = ("compress_data", "decompress_data")
 
-from snakeoil.demandload import demandload
-demandload(globals(),
-    'snakeoil.process:find_binary',
-    'snakeoil.compression:_util',
-    'snakeoil.currying:partial',
-)
+from snakeoil import process, currying
+from snakeoil.compression import _util
 
 # Unused import
 # pylint: disable-msg=W0611
 
 try:
-    from bz2 import compress as compress_data, decompress as decompress_data
+    from bz2 import compress as _compress_data, decompress as _decompress_data
     native = True
 except ImportError:
 
@@ -33,8 +29,25 @@ except ImportError:
     native = False
 
     # if Bzip2 can't be found, throw an error.
-    bz2_path = find_binary("bzip2")
+    bz2_path = process.find_binary("bzip2")
 
-    compress_data = partial(_util.compress_data, bz2_path)
-    decompress_data = partial(_util.decompress_data, bz2_path)
+    _compress_data = currying.partial(_util.compress_data, bz2_path)
+    _decompress_data = currying.partial(_util.decompress_data, bz2_path)
 
+pbzip2_path = None
+parallelizable = False
+try:
+    pbzip2_path = process.find_binary("pbzip2")
+    parallelizable = True
+except process.CommandNotFound:
+    pass
+
+def compress_data(data, level=9, parallelize=False):
+    if parallelize and parallelizable:
+        return _util.compress_data(pbzip2_path, data, level=level)
+    return _compress_data(data, compresslevel=level)
+
+def decompress_data(data, parallelize=False):
+    if parallelize and parallelizable:
+        return _util.decompress_data(pbzip2_path, data)
+    return _decompress_data(data)
