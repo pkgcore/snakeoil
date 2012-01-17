@@ -679,13 +679,17 @@ snakeoil_slow_closerange(int from, int to)
 static PyObject *
 snakeoil_closerange(PyObject *self, PyObject *args)
 {
-	int from, to, i;
-	DIR *fd_dir;
+	int from, to, i, fd_dir;
+	DIR *dir_handle;
 	struct dirent *entry;
 	char path[MAXPATHLEN];
 
 	if (!PyArg_ParseTuple(args, "ii:closerange", &from, &to))
 		return NULL;
+
+	if (from >= to) {
+		Py_RETURN_NONE;
+	}
 
 	// Note that the version I submitted to python upstream
 	// has this in a ALLOW_THREADS block; snakeoils doesn't
@@ -697,25 +701,29 @@ snakeoil_closerange(PyObject *self, PyObject *args)
 
 	PyOS_snprintf(path, MAXPATHLEN, "/proc/%i/fd", getpid());
 
-	if(!(fd_dir = opendir(path))) {
+	if(!(dir_handle = opendir(path))) {
 		snakeoil_slow_closerange(from, to);
 		Py_RETURN_NONE;
 	}
 
-	while((entry = readdir(fd_dir))) {
-		const char *name = entry->d_name;
-		if (name[0] == '.' && (
-			(name[1] == '.' && name[2] == '\0') ||
-			name[1] == '\0')) {
+	fd_dir = dirfd(dir_handle);
+
+	if (fd_dir < 0) {
+		snakeoil_slow_closerange(from, to);
+		Py_RETURN_NONE;
+	}
+
+	while((entry = readdir(dir_handle))) {
+		if (!isdigit(entry->d_name[0])) {
 			continue;
 		}
 
-		i = atoi(name);
-		if (i >= from && i < to) {
+		i = atoi(entry->d_name);
+		if (i >= from && i < to && i != fd_dir) {
 			close(i);
 		}
 	}
-	closedir(fd_dir);
+	closedir(dir_handle);
 
 	Py_RETURN_NONE;
 }
