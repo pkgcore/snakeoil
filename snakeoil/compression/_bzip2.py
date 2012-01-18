@@ -19,8 +19,14 @@ from snakeoil.compression import _util
 # Unused import
 # pylint: disable-msg=W0611
 
+# if Bzip2 can't be found, throw an error.
+bz2_path = process.find_binary("bzip2")
+
+
 try:
-    from bz2 import compress as _compress_data, decompress as _decompress_data
+    from bz2 import (compress as _compress_data,
+                     decompress as _decompress_data,
+                     BZ2File)
     native = True
 except ImportError:
 
@@ -28,11 +34,11 @@ except ImportError:
     # (and some code needs to be able to check that).
     native = False
 
-    # if Bzip2 can't be found, throw an error.
-    bz2_path = process.find_binary("bzip2")
-
     _compress_data = currying.partial(_util.compress_data, bz2_path)
     _decompress_data = currying.partial(_util.decompress_data, bz2_path)
+
+_compress_handle = currying.partial(_util.compress_handle, bz2_path)
+_decompress_handle = currying.partial(_util.decompress_handle, bz2_path)
 
 pbzip2_path = None
 parallelizable = False
@@ -51,3 +57,17 @@ def decompress_data(data, parallelize=False):
     if parallelize and parallelizable:
         return _util.decompress_data(pbzip2_path, data)
     return _decompress_data(data)
+
+def compress_handle(handle, level=9, parallelize=False):
+    if parallelize and parallelizable:
+        return _util.compress_handle(pbzip2_path, handle, level=level)
+    elif native and isinstance(handle, basestring):
+        return BZ2File(handle, mode='w', compresslevel=level)
+    return _compress_handle(handle, level=level)
+
+def decompress_handle(handle, parallelize=False):
+    if parallelize and parallelizable:
+        return _util.decompress_handle(pbzip2_path, handle)
+    elif native and isinstance(handle, basestring):
+        return BZ2File(handle, mode='r')
+    return _decompress_handle(handle)
