@@ -15,6 +15,7 @@ __all__ = ("compress_data", "decompress_data")
 
 from snakeoil import process, currying
 from snakeoil.compression import _util
+import sys
 
 # Unused import
 # pylint: disable-msg=W0611
@@ -68,6 +69,9 @@ def compress_handle(handle, level=9, parallelize=False):
 def decompress_handle(handle, parallelize=False):
     if parallelize and parallelizable:
         return _util.decompress_handle(pbzip2_path, handle)
-    elif native and isinstance(handle, basestring):
+    elif native and isinstance(handle, basestring) \
+        and sys.version_info[:3] >= (3,3):
+        # note that <3.3, bz2file doesn't handle multiple streams.
+        # thus don't use it.
         return BZ2File(handle, mode='r')
     return _decompress_handle(handle)
