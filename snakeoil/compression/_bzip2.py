@@ -42,6 +42,7 @@ _compress_handle = currying.partial(_util.compress_handle, bz2_path)
 _decompress_handle = currying.partial(_util.decompress_handle, bz2_path)
 
 pbzip2_path = None
+pbzip2_args = ('--ignore-trailing-garbage=1',)
 parallelizable = False
 try:
     pbzip2_path = process.find_binary("pbzip2")
@@ -56,7 +57,7 @@ def compress_data(data, level=9, parallelize=False):
 
 def decompress_data(data, parallelize=False):
     if parallelize and parallelizable:
-        return _util.decompress_data(pbzip2_path, data)
+        return _util.decompress_data(pbzip2_path, data, extra_args=pbzip2_args)
     return _decompress_data(data)
 
 def compress_handle(handle, level=9, parallelize=False):
@@ -68,7 +69,8 @@ def compress_handle(handle, level=9, parallelize=False):
 
 def decompress_handle(handle, parallelize=False):
     if parallelize and parallelizable:
-        return _util.decompress_handle(pbzip2_path, handle)
+        return _util.decompress_handle(pbzip2_path, handle,
+            extra_args=pbzip2_args)
     elif native and isinstance(handle, basestring) \
         and sys.version_info[:3] >= (3,3):
         # note that <3.3, bz2file doesn't handle multiple streams.
