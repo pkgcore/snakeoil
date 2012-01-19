@@ -45,6 +45,7 @@ def get_proc_count(force=False):
             val = _get_bsd_proc_count()
         if not val:
             val = 1
+        get_proc_count.cached_result = val
     return val
 
 
