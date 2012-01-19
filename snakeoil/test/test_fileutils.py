@@ -3,7 +3,7 @@
 # License: BSD/GPL2
 
 
-import os
+import os, mmap
 from StringIO import StringIO
 from snakeoil import compatibility
 from snakeoil import currying
@@ -12,7 +12,7 @@ pjoin = os.path.join
 
 from snakeoil.fileutils import (
     read_dict, AtomicWriteFile, ParseError)
-from snakeoil import fileutils
+from snakeoil import fileutils, _fileutils
 from snakeoil.test import TestCase
 from snakeoil.test.mixins import TempDirMixin
 
@@ -328,3 +328,29 @@ class mmap_or_open_for_read(TempDirMixin, TestCase):
         self.assertEqual(m.read(len(data)), data)
         m.close()
         self.assertIdentical(f, None)
+
+
+class Test_mmap_and_close(TempDirMixin):
+
+    def test_it(self):
+        path = pjoin(self.dir, 'target')
+        data = compatibility.force_bytes('asdfasdf')
+        self.write_file(path, 'wb', [data])
+        fd, m = None, None
+        try:
+            fd = os.open(path, os.O_RDONLY)
+            m = _fileutils.mmap_and_close(fd, len(data),
+                mmap.MAP_PRIVATE, mmap.PROT_READ)
+            # and ensure it closed the fd...
+            self.assertRaises(EnvironmentError,
+                os.read, fd, 1)
+            fd = None
+            self.assertEqual(len(m), len(data))
+            self.assertEqual(m.read(len(data)), data)
+        finally:
+            if m is not None:
+                m.close()
+            if fd is not None:
+                os.close(fd)
+
+

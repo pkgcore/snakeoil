@@ -7,7 +7,6 @@ pjoin = os.path.join
 import grp
 import stat
 import fcntl
-import mmap
 
 from snakeoil import compatibility
 from snakeoil.test import TestCase, SkipTest, mk_cpy_loadable_testcase
@@ -319,27 +318,3 @@ cpy_readdir_loaded_Test = mk_cpy_loadable_testcase("snakeoil.osutils._readdir",
     "snakeoil.osutils", "listdir", "listdir")
 cpy_posix_loaded_Test = mk_cpy_loadable_testcase("snakeoil._posix",
     "snakeoil.osutils", "normpath", "normpath")
-
-
-class Test_mmap_and_close(TempDirMixin):
-
-    def test_it(self):
-        path = pjoin(self.dir, 'target')
-        data = compatibility.force_bytes('asdfasdf')
-        self.write_file(path, 'wb', [data])
-        fd, m = None, None
-        try:
-            fd = os.open(path, os.O_RDONLY)
-            m = osutils.mmap_and_close(fd, len(data),
-                mmap.MAP_PRIVATE, mmap.PROT_READ)
-            # and ensure it closed the fd...
-            self.assertRaises(EnvironmentError,
-                os.read, fd, 1)
-            fd = None
-            self.assertEqual(len(m), len(data))
-            self.assertEqual(m.read(len(data)), data)
-        finally:
-            if m is not None:
-                m.close()
-            if fd is not None:
-                os.close(fd)
