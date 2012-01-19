@@ -61,6 +61,8 @@ class readlines_iter(object):
     def __iter__(self):
         return self.iterable
 
+def _native_readlines_shim(*args, **kwds):
+    return native_readlines('r', *args, **kwds)
 
 def native_readlines(mode, mypath, strip_whitespace=True, swallow_missing=False,
     none_on_missing=False, encoding=None, strict=compatibility.is_py3k):
@@ -114,6 +116,8 @@ def _py2k_ascii_strict_filter(source):
             raise ValueError("character ordinal over 127");
         yield line
 
+def _native_readfile_shim(*args, **kwds):
+    return native_readfile('r', *args, **kwds)
 
 def native_readfile(mode, mypath, none_on_missing=False, encoding=None,
     strict=compatibility.is_py3k):
@@ -145,4 +149,3 @@ def native_readfile(mode, mypath, none_on_missing=False, encoding=None,
     finally:
         if f is not None:
             f.close()
-

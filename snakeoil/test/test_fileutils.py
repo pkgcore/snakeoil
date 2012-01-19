@@ -306,6 +306,37 @@ for case in ("ascii", "ascii_strict", "bytes",
     mk_readlines_test(locals(), case)
 
 
+class TestBrokenStats(TestCase):
+
+    test_cases = ['/proc/cpuinfo', '/sys/kernel/vmcoreinfo']
+
+    def test_readfile(self):
+        for path in self.test_cases:
+            self._check_path(path, fileutils.readfile)
+
+    def test_readlines(self):
+        for path in self.test_cases:
+            self._check_path(path, fileutils.readlines, True)
+
+    def _check_path(self, path, func, split_it=False):
+        try:
+            handle = open(path, 'rb')
+            data = handle.read()
+            handle.close()
+        except EnvironmentError, e:
+            if e.errno not in (errno.ENOENT, errno.EPERM):
+                raise
+            return
+
+        func_data = func(path)
+        if split_it:
+            func_data = list(func_data)
+            data = filter(None, data.split('\n'))
+            func_data = filter(None, func_data)
+
+        self.assertEqual(func_data, data)
+
+
 class mmap_or_open_for_read(TempDirMixin, TestCase):
 
     func = staticmethod(fileutils.mmap_or_open_for_read)

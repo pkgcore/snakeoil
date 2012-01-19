@@ -27,6 +27,8 @@
 static PyObject *snakeoil_stat_float_times = NULL;
 static PyObject *snakeoil_empty_tuple = NULL;
 static PyObject *snakeoil_readlines_empty_iter_singleton = NULL;
+static PyObject *snakeoil_native_readfile_shim = NULL;
+static PyObject *snakeoil_native_readlines_shim = NULL;
 
 
 #define SKIP_SLASHES(ptr) while('/' == *(ptr)) (ptr)++;
@@ -292,32 +294,57 @@ snakeoil_readfile(PyObject *self, PyObject *args)
 		return NULL;
 	}
 //	Py_ssize_t size;
-	int fd;
+	int fd, ret;
 	struct stat st;
 	Py_BEGIN_ALLOW_THREADS
-	if(snakeoil_read_open_and_stat(path, &fd, &st)) {
-		Py_BLOCK_THREADS
+	ret = snakeoil_read_open_and_stat(path, &fd, &st);
+	Py_END_ALLOW_THREADS
+	if (ret) {
 		if(handle_failed_open_stat(fd, path, swallow_missing))
 			return NULL;
 		Py_RETURN_NONE;
 	}
-	Py_END_ALLOW_THREADS
 
-	int ret = 0;
+	if (0 == st.st_size) {
+		// we're either dealing with an empty file, or a virtual fs
+		// that doesn't return proper stat information
+		char buf[1];
+		size_t ret = read(fd, buf, 1);
+		close(fd);
+		if (ret == 0) {
+			return PyString_FromStringAndSize(NULL, 0);
+		} else if (ret == 1) {
+			// procfs, fallback to native.
+			return PyObject_Call(snakeoil_native_readfile_shim, args, NULL);
+		}
+	}
+
 	PyObject *data = PyString_FromStringAndSize(NULL, st.st_size);
 
+	if (!data) {
+		close(fd);
+		return (PyObject *)NULL;
+	}
+
+	size_t actual_read = 0;
 	Py_BEGIN_ALLOW_THREADS
 	errno = 0;
-	if(data) {
-		ret = read(fd, PyString_AS_STRING(data), st.st_size) != st.st_size ? 1 : 0;
-	}
-	ret += close(fd);
+	actual_read = read(fd, PyString_AS_STRING(data), st.st_size);
+	close(fd);
 	Py_END_ALLOW_THREADS
 
-	if(ret) {
-		Py_CLEAR(data);
-		data = PyErr_SetFromErrnoWithFilenameObject(PyExc_OSError, path);
+	if (actual_read != st.st_size) {
+		// if no error, then sysfs/virtual fs gave us bad stat data.
+		if (0 != errno) {
+			Py_DECREF(data);
+			data = PyErr_SetFromErrnoWithFilenameObject(PyExc_OSError, path);
+		} else {
+			// note that if this fails, it'll wipe data and set an appropriate
+			// exception.
+			_PyString_Resize(&data, actual_read);
+		}
 	}
+
 	return data;
 }
 
@@ -414,7 +441,7 @@ snakeoil_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 
 	int fd;
 	struct stat st;
-//	Py_ssize_t size;
+	size_t size;
 	void *ptr = NULL;
 	PyObject *fallback = NULL;
 	Py_BEGIN_ALLOW_THREADS
@@ -433,19 +460,55 @@ snakeoil_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 		Py_INCREF(snakeoil_readlines_empty_iter_singleton);
 		return snakeoil_readlines_empty_iter_singleton;
 	}
-	if(st.st_size >= 0x4000) {
+	size = st.st_size;
+	if(st.st_size == 0) {
+		// procfs is known to lie; do a read check.
+		char buf[1];
+		int ret = read(fd, buf, 1);
+		close(fd);
+		Py_BLOCK_THREADS
+
+		if (ret == 0) {
+			// actual empty file.
+			Py_INCREF(snakeoil_readlines_empty_iter_singleton);
+			return snakeoil_readlines_empty_iter_singleton;
+		} else if (ret == 1) {
+			// procfs.  fallback to native.
+			return PyObject_Call(snakeoil_native_readlines_shim, args, kwargs);
+		}
+		// no clue how it could happen, but handle it.
+		ptr = MAP_FAILED;
+
+	} else if(st.st_size >= 0x4000) {
 		ptr = (char *)mmap(NULL, st.st_size, PROT_READ,
 			MAP_SHARED|MAP_NORESERVE, fd, 0);
-		if(ptr == MAP_FAILED)
-			ptr = NULL;
+		if(ptr == MAP_FAILED) {
+	        // for this to occur, either mmap isn't support, or it's sysfs and gave
+			// us bad stat data, or the file changed under our feet.  Either way,
+			// leave it for native to handle.
+			close(fd);
+			Py_BLOCK_THREADS
+			return PyObject_Call(snakeoil_native_readlines_shim, args, kwargs);
+		}
+
 	} else {
 		Py_BLOCK_THREADS
 		fallback = PyString_FromStringAndSize(NULL, st.st_size);
 		Py_UNBLOCK_THREADS
 		if(fallback) {
 			errno = 0;
-			ptr = (read(fd, PyString_AS_STRING(fallback), st.st_size) != st.st_size) ?
-				MAP_FAILED : NULL;
+			size_t actual_read = read(fd, PyString_AS_STRING(fallback), st.st_size);
+			if (actual_read != st.st_size) {
+				// we reset the size since syfs (and other virtual filesystems) lie
+				// and report a st_size of 4096 (for example), but have less data.
+				size = actual_read;
+				if (0 != errno) {
+					// actual error occured;
+					ptr = MAP_FAILED;
+				}
+			} else {
+				ptr = NULL;
+			}
 		}
 		int ret = close(fd);
 		if(ret) {
@@ -466,6 +529,13 @@ snakeoil_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 			PyErr_SetFromErrnoWithFilenameObject(PyExc_OSError, path);
 		Py_CLEAR(fallback);
 		return NULL;
+	}
+
+	// cleanup now that we've got the gil; resize only if needed.
+	if (size != st.st_size && fallback) {
+		if (-1 == _PyString_Resize(&fallback, st.st_size)) {
+			return (PyObject *)NULL;
+		}
 	}
 
 	self = (snakeoil_readlines *)type->tp_alloc(type, 0);
@@ -498,7 +568,7 @@ snakeoil_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 		self->start = PyString_AS_STRING(fallback);
 		self->fd = -1;
 	}
-	self->end = self->start + st.st_size;
+	self->end = self->start + size;
 
 	if(strip_whitespace) {
 		if(strip_whitespace == Py_True) {
@@ -776,6 +846,11 @@ init_posix(void)
 	if (PyModule_AddObject(
 			m, "readlines", (PyObject *)&snakeoil_readlines_type) == -1)
 		return;
+
+	snakeoil_LOAD_SINGLE_ATTR(snakeoil_native_readlines_shim, "snakeoil._fileutils",
+		"_native_readlines_shim");
+	snakeoil_LOAD_SINGLE_ATTR(snakeoil_native_readfile_shim, "snakeoil._fileutils",
+		"_native_readfile_shim");
 
 	/* Success! */
 }
