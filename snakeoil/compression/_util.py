@@ -148,6 +148,9 @@ class _process_handle(object):
 
     def close(self):
         if self._process.returncode is not None:
+            if self._process.returncode != 0:
+                raise Exception("%s invocation had non zero exit: %i" %
+                    (self.args, self._process.returncode))
             return
 
         self.handle.close()
