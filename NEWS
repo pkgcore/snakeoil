@@ -2,6 +2,10 @@ Snakeoil Release Notes
 ======================
 
 
+* snakeoil._compatibility extension was dropped- only users affected
+  are those still on py2.4.
+
+
 snakeoil 0.4.6: Dec 14th, 2011
 
 * for bash parsing, pass into shlex the file being read so that

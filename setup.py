@@ -77,10 +77,6 @@ extra_kwargs = dict(
     )
 
 extensions = []
-if sys.version_info < (2, 5):
-    # Almost unmodified copy from the python 2.5 source.
-    extensions.append(OptionalExtension(
-            'snakeoil._compatibility', ['src/compatibility.c'], **extra_kwargs))
 
 if not snk_distutils.is_py3k:
     extensions.extend([

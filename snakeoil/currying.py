@@ -83,10 +83,7 @@ class native_partial(object):
 try:
     from functools import partial
 except ImportError:
-    try:
-        from snakeoil._compatibility import partial
-    except ImportError:
-        partial = native_partial
+    partial = native_partial
 
 
 def _pydoc_isdata_override(object):

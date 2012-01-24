@@ -82,10 +82,7 @@ is_py3k_like = is_py3k or float(sys.version[:3]) >= 2.7
 try:
     from __builtin__ import any, all
 except ImportError:
-    try:
-        from snakeoil._compatibility import any, all
-    except ImportError:
-        any, all = native_any, native_all
+    any, all = native_any, native_all
 
 def sorted_key_from_cmp(cmp_func, key_func=None):
     class _key_proxy(object):
