@@ -139,7 +139,7 @@ def _noisy_protection_enabled():
 
 if 'pydoc' in sys.modules or 'epydoc' in sys.modules:
     _protection_enabled = _protection_enabled_disabled
-    _nosiy_protection = _noisy_protection_disabled
+    _noisy_protection = _noisy_protection_disabled
 else:
     _protection_enabled = _protection_enabled_enabled
     _noisy_protection = _noisy_protection_enabled
