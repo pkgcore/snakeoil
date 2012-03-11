@@ -3,7 +3,7 @@
 # License: BSD/GPL2
 
 
-import os, mmap
+import errno, mmap, os
 from StringIO import StringIO
 from snakeoil import compatibility
 from snakeoil import currying
