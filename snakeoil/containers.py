@@ -139,7 +139,7 @@ class LimitedChangeSet(SetMixin):
         :param key_validator: callback to validate whether or not a key is usable
           for this set; primarily is an implementation detail for consumers to validate
           what consumers try adding to this set
-        :type key_validator: callback taking a single arguement, and returning a boolean
+        :type key_validator: callback taking a single argument, and returning a boolean
         """
         if key_validator is None:
             key_validator = self._default_key_validator

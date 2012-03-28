@@ -137,7 +137,7 @@ snakeoil_join(PyObject *self, PyObject *args)
 	Py_ssize_t end = PySequence_Fast_GET_SIZE(fast);
 	if(!end) {
 		PyErr_SetString(PyExc_TypeError,
-			"join takes at least one arguement (0 given)");
+			"join takes at least one argument (0 given)");
 		return NULL;
 	}
 

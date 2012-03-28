@@ -402,7 +402,7 @@ class invokable_data_source(data_source):
 
     def __init__(self, data):
         """
-        :param data: callable that accepts one arguement- True if a text
+        :param data: callable that accepts one argument- True if a text
           file obj was requested, False if a bytes file obj is requested.
         """
         data_source.__init__(self, data, mutable=False)

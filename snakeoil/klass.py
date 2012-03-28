@@ -234,10 +234,6 @@ def inject_richcmp_methods_from_cmp(scope, inject_always=False):
     reasons for example, but performance is less of a concern for the other
     rich comparison methods.
 
-    :param scope: the modifiable scope of a class namespace to work on
-    :param inject_always: normally injection is only done if it's py3k; if True,
-        it'll always inject the rich comparison methods
-
     Example usage:
 
     >>> from snakeoil.klass import inject_richcmp_methods_from_cmp
@@ -262,6 +258,10 @@ def inject_richcmp_methods_from_cmp(scope, inject_always=False):
     >>>
     >>> assert foo(1, 2).__ge__(foo(1, 1))
     >>> assert foo(1, 1).__eq__(foo(1, 1))
+
+    :param scope: the modifiable scope of a class namespace to work on
+    :param inject_always: normally injection is only done if it's py3k; if True,
+        it'll always inject the rich comparison methods
     """
 
     if not (inject_always or compatibility.is_py3k):
@@ -595,8 +595,10 @@ def inject_immutable_instance(scope):
     """inject immutable __setattr__ and __delattr__ implementations
 
     see immutable_instance for further details
+
     :param scope: mapping to modify, inserting __setattr__ and __delattr__
-        methods if they're not yet defined"""
+      methods if they're not yet defined.
+    """
     scope.setdefault("__setattr__", _immutable_setattr)
     scope.setdefault("__delattr__", _immutable_delattr)
 

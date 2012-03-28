@@ -299,7 +299,7 @@ def demand_compile_regexp(scope, name, *args, **kwargs):
 
     :param scope: the scope, just like for :py:func:`demandload`.
     :param name: the name of the compiled re object in that scope.
-    @returns: for compatibility, the placeholder object.  It's deprecated to
+    :returns: for compatibility, the placeholder object.  It's deprecated to
         rely on this however.
     """
     r = scope[name] = RegexPlaceholder(scope, name, (args, kwargs))

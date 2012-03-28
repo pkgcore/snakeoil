@@ -140,6 +140,8 @@ class DictMixin(object):
         def itervalues(self):
             return imap(self.__getitem__, self)
 
+        iteritems = steal_docs(dict)(iteritems)
+
     else:
         items = iteritems
         items.__name__ = 'items'

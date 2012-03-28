@@ -222,11 +222,11 @@ def make_kls(kls, proxy_base=BaseDelayedObject):
 
 def DelayedInstantiation_kls(kls, *a, **kwd):
     """
-    wrapper for DelayedInstantiation
+    Wrapper for DelayedInstantiation
 
-    This just invokes DelayedInstantiation(kls, kls *a, **kwd)
+    This just invokes DelayedInstantiation(kls, kls \*a, \*\*kwd)
 
-    See :py:func:`DelayedInstantiation` for arguement specifics.
+    See :func:`DelayedInstantiation` for argument specifics.
     """
     return DelayedInstantiation(kls, kls, *a, **kwd)
 
