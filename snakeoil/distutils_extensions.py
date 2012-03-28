@@ -16,7 +16,7 @@ import subprocess
 os.environ["SNAKEOIL_DEMANDLOAD_PROTECTION"] = 'n'
 os.environ["SNAKEOIL_DEMANDLOAD_WARN"] = 'n'
 
-from distutils import core, log, errors
+from distutils import core, log, errors, cmd
 from distutils.command import (
     sdist as dst_sdist, build_ext as dst_build_ext, build_py as dst_build_py,
     build as dst_build)
@@ -435,5 +435,18 @@ class build_docs_mixin(object):
 
         return BuildDoc
 
+
+class _sphinx_missing(cmd.Command):
+
+    user_options = []
+
+    def initialize_options(self):
+        raise errors.DistutilsExecError("sphinx is not available")
+
+
 def sphinx_build_docs():
-    return build_docs_mixin.setup_kls()
+    kls = build_docs_mixin.setup_kls()
+    if kls is None:
+        return _sphinx_missing
+
+    return kls
