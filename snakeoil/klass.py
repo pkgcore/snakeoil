@@ -628,8 +628,10 @@ def alias_method(attr, name=None, doc=None):
     def _asecond_level_call(self, *a, **kw):
         return grab_attr(self)(*a, **kw)
 
-    if doc:
-        _asecond_level_call.__doc__ = doc
+    if doc is None:
+      doc = "Method alias to invoke :py:meth:`%s`." % (attr,)
+
+    _asecond_level_call.__doc__ = doc
     if name:
         _asecond_level_call.__name__ = name
     return _asecond_level_call
