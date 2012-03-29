@@ -44,29 +44,11 @@ class sdist(dst_sdist.sdist):
 
     """sdist command specifying the right files and generating ChangeLog."""
 
-    user_options = dst_sdist.sdist.user_options + [
-        ('changelog', None, 'create a ChangeLog [default]'),
-        ('no-changelog', None, 'do not create the ChangeLog file'),
-        ('changelog-start', None, 'the bzr rev to start dumping the changelog'
-            ' from; defaults to the last 5 tagged versions'),
-        ]
-
-    boolean_options = dst_sdist.sdist.boolean_options + ['changelog']
-
-    negative_opt = {'no-changelog': 'changelog'}
-    negative_opt.update(dst_sdist.sdist.negative_opt)
-
     default_format = dict(dst_sdist.sdist.default_format)
     default_format["posix"] = "bztar"
-    default_log_format = '--short'
 
     package_namespace = None
     old_verinfo = True
-
-    def initialize_options(self):
-        dst_sdist.sdist.initialize_options(self)
-        self.changelog = False
-        self.changelog_start = None
 
     def get_file_list(self):
         """Get a filelist without doing anything involving MANIFEST files."""
@@ -101,25 +83,6 @@ class sdist(dst_sdist.sdist):
     def _add_to_file_list(self):
         pass
 
-    def find_last_tags_back(self, last_n_tags=5, majors_only=False):
-        p = subprocess.Popen(['bzr', 'tags', '--sort=time'],
-            stdout=subprocess.PIPE)
-        data = [x.split() for x in p.stdout if x]
-        if not p.returncode != 0:
-            raise errors.DistutilsExecError("bzr tags returned non zero: %r"
-                % (p.returncode,))
-        seen = set()
-        tags = []
-        for tag, revno in data:
-            tag_targ = tag
-            if majors_only:
-                tag_targ = '.'.join(tag.split(".")[:2])
-            if tag_targ not in seen:
-                seen.add(tag_targ)
-                tags.append((tag_targ, tag, revno))
-        tags = tags[max(len(tags) - last_n_tags, 0):]
-        return 'tag:%s' % (tags[0][1],)
-
     def generate_verinfo(self, base_dir):
         log.info('generating _verinfo')
         from snakeoil.version import get_git_version
@@ -143,21 +106,6 @@ class sdist(dst_sdist.sdist):
         exist in a working tree.
         """
         dst_sdist.sdist.make_release_tree(self, base_dir, files)
-        if self.changelog:
-            args = []
-            if not self.changelog_start:
-                self.changelog_start = self.find_last_tags_back()
-            if self.changelog_start:
-                args += ['-r', '%s..' % (self.changelog_start,),
-                    '--include-merge']
-            if self.default_log_format:
-                args += [self.default_log_format]
-            log.info("regenning ChangeLog to %r (may take a while)" %
-                (self.changelog_start,))
-            if subprocess.call(
-                [bzrbin, 'log', '--verbose'] + args,
-                stdout=open(os.path.join(base_dir, 'ChangeLog'), 'w')):
-                raise errors.DistutilsExecError('bzr log failed')
         self.generate_verinfo(base_dir)
         self.cleanup_post_release_tree(base_dir)
 
