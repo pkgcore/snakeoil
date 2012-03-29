@@ -27,7 +27,7 @@ class mysdist(snk_distutils.sdist):
 class snakeoil_build_py(snk_distutils.build_py):
 
     package_namespace = 'snakeoil'
-    generate_bzr_ver = False
+    generate_verinfo = True
 
     def _inner_run(self, py3k_rebuilds):
         snk_distutils.build_py._inner_run(self, py3k_rebuilds)

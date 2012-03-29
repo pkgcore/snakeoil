@@ -122,7 +122,7 @@ class build_py(dst_build_py.build_py):
     user_options = dst_build_py.build_py.user_options + [("inplace", "i", "do any source conversions in place")]
 
     package_namespace = None
-    generate_bzr_ver = True
+    generate_verinfo = False
 
     def initialize_options(self):
         dst_build_py.build_py.initialize_options(self)
@@ -157,20 +157,17 @@ class build_py(dst_build_py.build_py):
     def _inner_run(self, py3k_rebuilds):
         pass
 
-    def _run_generate_bzr_ver(self, py3k_rebuilds):
-        bzr_ver = self.get_module_outfile(
-            self.build_lib, (self.package_namespace,), 'bzr_verinfo')
+    def _run_generate_verinfo(self, py3k_rebuilds):
+        ver_path = self.get_module_outfile(
+            self.build_lib, (self.package_namespace,), '_verinfo')
         # this should check mtime...
-        if not os.path.exists(bzr_ver):
-            log.info('generating bzr_verinfo')
-            if subprocess.call(
-                [bzrbin, 'version-info', '--format=python'],
-                stdout=open(bzr_ver, 'w')):
-                # Not fatal, just less useful --version output.
-                log.warn('generating bzr_verinfo failed!')
-            else:
-                self.byte_compile([bzr_ver])
-                py3k_rebuilds.append((bzr_ver, os.lstat(bzr_ver).st_mtime))
+        if not os.path.exists(ver_path):
+            log.info('generating _verinfo')
+            from snakeoil import version
+            open(ver_path, 'w').write("version_info=%r" %
+                (version.get_git_version('.'),))
+            self.byte_compile([ver_path])
+            py3k_rebuilds.append((ver_path, os.lstat(ver_path).st_mtime))
 
     def get_py2to3_converter(self, options=None, proc_count=0):
         from lib2to3 import refactor as ref_mod
@@ -212,8 +209,8 @@ class build_py(dst_build_py.build_py):
                     self.force))
             dst_build_py.build_py.run(self)
 
-        if self.generate_bzr_ver:
-            self._run_generate_bzr_ver(py3k_rebuilds)
+        if self.generate_verinfo:
+            self._run_generate_verinfo(py3k_rebuilds)
 
         self._inner_run(py3k_rebuilds)
 
