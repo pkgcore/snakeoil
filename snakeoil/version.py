@@ -18,8 +18,8 @@ def _run(cwd, cmd):
 
     null = open("/dev/null", 'wb')
     try:
-        r = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=env, stderr=null,
-            cwd=os.path.dirname(os.path.abspath(cwd)))
+        r = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=env,
+            stderr=null, cwd=cwd)
     finally:
         null.close()
 
@@ -62,8 +62,9 @@ def _get_git_tag(cwd, rev):
     return tag
 
 
-def format_version(project, cwd, api_version):
+def format_version(project, file_in_the_repo, api_version):
     from snakeoil import modules
+    cwd = os.path.dirname(os.path.abspath(file_in_the_repo))
     try:
         version_info = modules.load_attribute(
             '%s._verinfo.version_info' % (project,))
