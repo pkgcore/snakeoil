@@ -36,7 +36,7 @@ def get_git_version(cwd):
     if ret != 0:
         return {}
 
-    data = stdout.splitlines()
+    data = stdout.decode("ascii").splitlines()
     commit = [x.split()[-1]
               for x in data if x.startswith("commit")][0]
 
@@ -48,7 +48,7 @@ def get_git_version(cwd):
 
 def _get_git_tag(cwd, rev):
     stdout, ret = _run(cwd, ['git', 'name-rev', '--tag', rev])
-    tag = stdout.split()
+    tag = stdout.decode("ascii").split()
     if len(tag) != 2:
         return None
     tag = tag[1]
