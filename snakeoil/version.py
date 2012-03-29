@@ -8,39 +8,82 @@
 __version__ = '0.4.6'
 
 _ver = None
+import os
 
-def get_git_version(cwd=__file__):
-    """:return: git sha1 rev"""
-    import subprocess, os
+def _run(cwd, cmd):
+    import subprocess
 
     env = dict(os.environ)
     env["LC_CTYPE"] = "C"
 
     null = open("/dev/null", 'wb')
-    r = subprocess.Popen(["git", "log", "HEAD^..HEAD"], stdout=subprocess.PIPE,
-        stderr=null,
-        env=env,
-        cwd=os.path.dirname(os.path.abspath(cwd)))
-    if r.wait() != 0:
-        return "unknown (couldn't identify from git)"
-    null.close()
-    data = r.stdout.read().split("\n")
-    commit = [x.split()[-1] for x in data if x.startswith("commit")][0]
-    date = [x.split(":", 1)[-1].lstrip() for x in data if x.lower().startswith("date")][0]
-    return "git rev %s, date %s" % (commit, date)
+    try:
+        r = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=env, stderr=null,
+            cwd=os.path.dirname(os.path.abspath(cwd)))
+    finally:
+        null.close()
+
+    stdout = r.communicate()[0]
+    return stdout, r.returncode
+
+
+def get_git_version(cwd):
+    """:return: git sha1 rev"""
+
+    cwd = os.path.abspath(cwd)
+    stdout, ret = _run(cwd, ["git", "log", "HEAD^..HEAD"])
+
+    if ret != 0:
+        return {}
+
+    data = stdout.splitlines()
+    commit = [x.split()[-1]
+              for x in data if x.startswith("commit")][0]
+
+    date = [x.split(":", 1)[-1].lstrip()
+            for x in data if x.lower().startswith("date")][0]
+
+    return {"rev":commit, "date":date, 'tag':_get_git_tag(cwd, commit)}
+
+
+def _get_git_tag(cwd, rev):
+    stdout, ret = _run(cwd, ['git', 'name-rev', '--tag', rev])
+    tag = stdout.split()
+    if len(tag) != 2:
+        return None
+    tag = tag[1]
+    if not tag.startswith("tags/"):
+        return None
+    tag = tag[len("tags/"):]
+    if tag.endswith("^0"):
+        tag = tag[:-2]
+    if tag.startswith("v"):
+        tag = tag[1:]
+    return tag
+
+
+def format_version(project, cwd, api_version):
+    from snakeoil import modules
+    try:
+        version_info = modules.load_attribute(
+            '%s._verinfo.version_info' % (project,))
+    except modules.FailedImport:
+        version_info = get_git_version(cwd)
+
+    if not version_info:
+        s = "extend version info unavailable"
+    elif version_info['tag'] == api_version:
+        s = 'released %s' % (version_info['date'],)
+    else:
+        s = ('vcs version %s, date %s' %
+            (version_info['rev'], version_info['date']))
+
+    return '%s %s\n%s' % (project, api_version, s)
 
 
 def get_version():
     """:return: a string describing the snakeoil version."""
     global _ver
-    if _ver is not None:
-        return _ver
-
-    try:
-        from snakeoil._verinfo import version_info
-    except ImportError:
-        version_info = get_git_version()
-
-    _ver = 'snakeoil %s\n(%s)' % (__version__, version_info)
-
+    if _ver is None:
+        _ver = format_version('snakeoil', __file__, __version__)
     return _ver

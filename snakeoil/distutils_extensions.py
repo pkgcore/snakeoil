@@ -61,6 +61,7 @@ class sdist(dst_sdist.sdist):
     default_log_format = '--short'
 
     package_namespace = None
+    old_verinfo = True
 
     def initialize_options(self):
         dst_sdist.sdist.initialize_options(self)
@@ -122,9 +123,17 @@ class sdist(dst_sdist.sdist):
     def generate_verinfo(self, base_dir):
         log.info('generating _verinfo')
         from snakeoil.version import get_git_version
-        val = get_git_version(base_dir)
-        open(os.path.join(base_dir, self.package_namespace, '_verinfo.py'), 'w').write(
-            'version_info="""%s"""\n' % (val.strip(),))
+        data = get_git_version(base_dir)
+        if not data:
+            return
+        if self.old_verinfo:
+            content = 'git rev %s, date %s' % (data['rev'],
+                                               data['date'])
+            content = 'version_info="%s"' % content
+        else:
+            content = 'version_info=%r' % (data,)
+        path = os.path.join(base_dir, self.package_namespace, '_verinfo.py')
+        open(path, 'w').write(content)
 
     def make_release_tree(self, base_dir, files):
         """Create and populate the directory tree that is put in source tars.

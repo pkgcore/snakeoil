@@ -17,6 +17,7 @@ class mysdist(snk_distutils.sdist):
     """sdist command specifying the right files and generating ChangeLog."""
 
     package_namespace = 'snakeoil'
+    old_verinfo = False
 
     def _add_to_file_list(self):
         self.filelist.include_pattern('.h', prefix='include/snakeoil')
