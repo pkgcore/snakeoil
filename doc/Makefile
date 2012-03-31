@@ -46,11 +46,11 @@ api:
 	@mkdir -p api
 	@for fn in `cat public_modules.txt`; \
 		do echo $${fn} api/$${fn}.rst; \
-	done | ./generate_api_rsts.py
+	done | python -m snakeoil.sphinx_utils.generate_api_rsts
 
 news:
 	@echo "autogenerating news.rst..."
-	./generate_news_rst.py snakeoil ../NEWS news.rst 'git_release' 'git_tag'
+	python -m snakeoil.sphinx_utils.generate_news_rst snakeoil ../NEWS news.rst 'git_release' 'git_tag'
 
 html: generated
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
