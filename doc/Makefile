@@ -39,7 +39,7 @@ help:
 clean:
 	-rm -rf $(BUILDDIR) api
 
-generated: api
+generated: api news
 
 api:
 	@echo "autogenerating api rsts..."
@@ -47,6 +47,10 @@ api:
 	@for fn in `cat public_modules.txt`; \
 		do echo $${fn} api/$${fn}.rst; \
 	done | ./generate_api_rsts.py
+
+news:
+	@echo "autogenerating news.rst..."
+	./generate_news_rst.py snakeoil ../NEWS news.rst 'git_release' 'git_tag'
 
 html: generated
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html

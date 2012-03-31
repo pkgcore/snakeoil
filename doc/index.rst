@@ -53,7 +53,7 @@ Getting the source (downloading releases or trunk)
 
 Snakeoil vcs of choice is `git <http://git.scm.org/>`_, and our source can be checked out at https://code.google.com/p/snakeoil
 
-All releases are available at |release_url|\.
+All releases are available at |release_url|\., with release news available at :ref:`releases`\.
 
 As for dependencies, snakeoil basically just requires python2.4 and up.
 
@@ -158,6 +158,7 @@ General Contents:
    :maxdepth: 2
 
    api
+   news
 
 Indices and tables
 ==================

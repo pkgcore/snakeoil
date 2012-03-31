@@ -2,6 +2,8 @@ Snakeoil Release Notes
 ======================
 
 
+snakeoil trunk:
+
 * snakeoil._compatibility extension was dropped- only users affected
   are those still on py2.4.
 

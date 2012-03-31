@@ -231,3 +231,9 @@ rst_epilog = """
 .. |homepage| replace:: http://snakeoil.googlecode.com/'
 .. |release_url| replace:: http://code.google.com/p/snakeoil/downloads/
 """ % {"release":release}
+
+extlinks = {
+    'git_tag':('http://code.google.com/p/snakeoil/source/list?name=%s', 'git log '),
+    'git_release':('http://code.google.com/p/snakeoil/downloads/detail?name=snakeoil-%s.tar.bz2',
+        'release download ')
+}
