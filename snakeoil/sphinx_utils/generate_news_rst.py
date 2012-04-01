@@ -46,7 +46,11 @@ def convert_news(text, project_name, release_extlink=None, git_extlink=None):
         date = date.strip()
         # Ensure we leave a trailing and leading newline to keep ReST happy.
         l = ['']
-        major = '.'.join(ver.split('.')[:2])
+
+        # Mangle any -rc2/_rc1/_p1 crap
+        major = ver.replace('-', '.')
+        major = major.replace('_', '.')
+        major = '.'.join(major.split('.')[:2])
         if major not in seen:
             l += ['.. _release-latest-%s:' % major, '']
             if major != 'trunk':
