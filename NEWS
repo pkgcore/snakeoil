@@ -4,6 +4,56 @@ Snakeoil Release Notes
 
 snakeoil trunk:
 
+* snakeoil.sphinx_utils was added w/ two reusable/importable scripts;
+
+  - generate_api_rsts.py: scans a given python namespace, generating properly
+    structured ReST docs.  This is intended for better api doc generation than
+    what sphinx's autodoc tools currently provide.
+
+  - generate_news_rst.py: given a mostly ReST like NEWS/changelog file, this
+    can convert into into pages like
+    http://docs.snakeoil.googlecode.com/git/news.html .  Given appropriate
+    args, it can bind in release urls, git shortlog urls, and generally make
+    it fairly pretty while useful.
+
+* snakeoil.version is now reusable for other projects, and the _verinfo format
+  it uses has been converted to storing a dictionary (better deserialization
+  namely via having it as a dict).
+
+* snakeoil.distutils_extensions:
+
+  - sphinx_build_doc now always returns
+    a class for usage, rather than None if sphinx wasn't available.  Clients
+    should use this, and structure their deps appropriately to not execute
+    doc building unless desired (in which case it's better to have the command
+    throw an error, instead of having distutils state "no such command" for
+    a build_doc target for example).
+
+  - build and install now support generating _verinfo files automatically
+    from git, and installing them if the support is enabled.
+
+  - All bzr related code has been ripped out in full.
+
+* Docstring work, and general doc's overhaul (including site updates).
+
+* snakeoil.process now exposes functionality for finding the number of
+  actual HW cores, filtering out HT cpus.  This is relevant since certain
+  operations (pbzip2 in particular) aren't any faster using HT- they just
+  consume more cpu.
+
+* Api's have been shifting a bit; compatibility was left in place, but
+  large chunks of snakeoil.osutils and snakeoil.fileutils have moved to
+  the appropriate place.
+
+* Compression framework was added; snakeoil.compression.  Has built in
+  awareness of pbzip2, parallelization, and will use the most efficient
+  form it can to get things done (primarily threaded, but implemented
+  in a fashion where the GIL doesn't matter thus can easily hit multi
+  core).
+
+* closerange compatibility method was added for <2.6; this method of
+  closing is far faster than normal "scan all fds", thus exposing it.
+
 * snakeoil._compatibility extension was dropped- only users affected
   are those still on py2.4.
 
@@ -405,7 +455,7 @@ snakeoil 0.1: November 11, 2007
 * Add a cpython version of snakeoil.formatters.
 
 
-snakeoil 0.1 rc2: July 06, 2007
+snakeoil 0.1-rc2: July 06, 2007
 
 * Pulled in any/all cpy extensions if not available in current python version.
 
