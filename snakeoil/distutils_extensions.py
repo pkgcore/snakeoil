@@ -356,22 +356,46 @@ def get_number_of_processors():
         return 1
 
 
-class build_docs_mixin(object):
+class BuildDocs(core.Command):
 
-    _kls = None
+    user_options = [
+        ('version=', None, "version we're building for"),
+        ('source-dir=', None, "source directory run in"),
+        ('build-dir=', None, "build directory"),
+        ('builder=', None, "which sphinx builder to run.  Defaults to html"),
+    ]
 
     def initialize_options(self):
-        self._kls.initialize_options(self)
-        self.generate = True
+        self.builder = None
+        self.source_dir = None
+        self.build_dir = None
+        self.version = None
 
-    def generate_docs(self):
-        if subprocess.call(['make', 'generated'], cwd=self.source_dir):
-            raise errors.DistutilsExecError("doc generation failed")
+    def finalize_options(self):
+        self.source_dir = os.path.abspath(self.source_dir)
+        if self.build_dir is None:
+            self.set_undefined_options('build', ('build_base', 'build_dir'))
+            self.build_dir = os.path.join(self.build_dir, 'sphinx')
+        self.build_dir = os.path.abspath(self.build_dir)
+
+        if self.builder is None:
+            self.builder = 'html'
 
     def run(self):
-        if self.generate:
-            self.generate_docs()
-        return self._kls.run(self)
+        env = os.environ.copy()
+        cmd = ['make', str(self.builder)]
+        opts = []
+        if self.version:
+            opts.append('-D version=%s' % self.version)
+        if self.build_dir:
+            cmd.append('BUILDDIR=%s' % (self.build_dir,))
+        if opts:
+            cmd.append('SPHINXOPTS=%s' % (' '.join(opts),))
+        cwd = self.source_dir
+        if not cwd:
+            cwd = os.getcwd()
+        if subprocess.call(cmd, cwd=cwd, env=env):
+            raise errors.DistutilsExecError("doc generation failed")
 
     @classmethod
     def setup_kls(cls):
@@ -399,8 +423,9 @@ class _sphinx_missing(cmd.Command):
 
 
 def sphinx_build_docs():
-    kls = build_docs_mixin.setup_kls()
-    if kls is None:
+    try:
+        import sphinx
+    except ImportError:
         return _sphinx_missing
 
-    return kls
+    return BuildDocs
