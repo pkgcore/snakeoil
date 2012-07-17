@@ -31,6 +31,7 @@ md5_size = 32
 rmd160_size = 40
 sha256_size = 64
 sha512_size = 128
+whirlpool_size = 128
 
 
 def chf_thread(queue, callback):
@@ -296,6 +297,31 @@ for modulename, chksumname, size in [
         chksum_types[chksumname] = Chksummer(chksumname,
             modules.load_attribute('%s.new' % (modulename,)), size)
 del modulename, chksumname
+
+try:
+    import mhash
+except ImportError:
+    pass
+else:
+    # Scan mhash for what we need next.
+    for chf in ('sha1', 'sha256', 'sha512', ('rmd160', 'ripemd160'),
+                'whirlpool', 'md5'):
+        target = chf
+        if not isinstance(chf, basestring):
+            chf, target = chf
+        if chf in chksum_types:
+            continue
+        target = 'MHASH_%s' % chf.upper()
+        if hasattr(mhash, target):
+            chksum_types[chf] = Chksummer(chf,
+                                partial(mhash.MHASH, getattr(mhash, target)),
+                                locals()['%s_size' % chf])
+
+if 'whirlpool' not in chksum_types:
+    # Fallback to the python implementation.
+    chksum_types['whirlpool'] = Chksummer('whirlpool',
+        modules.load_attribute('snakeoil.chksum._whirlpool.Whirlpool'),
+        whirlpool_size)
 
 
 class SizeUpdater(object):
