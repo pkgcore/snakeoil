@@ -4,6 +4,8 @@ Snakeoil Release Notes
 
 snakeoil trunk:
 
+* snakeoil.chksum grew sha512 support.
+
 * snakeoil.sphinx_utils was added w/ two reusable/importable scripts;
 
   - generate_api_rsts.py: scans a given python namespace, generating properly

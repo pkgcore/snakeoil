@@ -30,6 +30,7 @@ sha1_size = 40
 md5_size = 32
 rmd160_size = 40
 sha256_size = 64
+sha512_size = 128
 
 
 def chf_thread(queue, callback):
@@ -225,6 +226,7 @@ else:
         ('md5', 'md5', md5_size),
         ('sha1', 'sha1', sha1_size),
         ('sha256', 'sha256', sha256_size),
+        ('sha512', 'sha512', sha512_size),
         ]:
         chksum_types[chksumname] = Chksummer(chksumname,
             getattr(hashlib, hashlibname), size)
@@ -274,6 +276,7 @@ if 'md5' not in chksum_types:
 # expand this to load all available at some point
 for k, v, str_size in (("sha1", "SHA", sha1_size),
     ("sha256", "SHA256", sha256_size),
+    ("sha512", "SHA512", sha512_size),
     ("rmd160", "RIPEMD", rmd160_size)):
     if k in chksum_types:
         continue
@@ -293,6 +296,7 @@ for modulename, chksumname, size in [
         chksum_types[chksumname] = Chksummer(chksumname,
             modules.load_attribute('%s.new' % (modulename,)), size)
 del modulename, chksumname
+
 
 class SizeUpdater(object):
 

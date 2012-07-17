@@ -71,6 +71,7 @@ checksums = {
     "sha1":"63cd8cce8a1773dffb400ee184be3ec7d89791f5",
     "md5":"d17ea153bc57ba9e07298c5378664369",
     "sha256":"68ae37b45e4a4a5df252db33c0cbf79baf5916b5ff6fc15e8159163b6dbe3bae",
+    "sha512":"cdc2b749d28cd9c5fca45d3ca6b65661445decd992da93054fd6f4f3e4013ca8b44b0ba159d1cf1f58f9af2b9d267343b9e10f611494c0850fdcebe0379135c6"
 }
 checksums.update((k, (long(v, 16), v)) for k, v in checksums.iteritems())
 checksums["size"] = (long(len(data)*multi), str(long(len(data)*multi)))
