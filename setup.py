@@ -32,15 +32,6 @@ class snakeoil_build_py(snk_distutils.build_py):
     def _inner_run(self, py3k_rebuilds):
         snk_distutils.build_py._inner_run(self, py3k_rebuilds)
 
-        if sys.version_info[0:2] >= (2,5) and not self.inplace:
-            kill_it = os.path.join(self.build_lib, 'snakeoil', 'xml', 'bundled_elementtree.py')
-            os.unlink(kill_it)
-            if snk_distutils.is_py3k:
-                kill_it = os.path.join(self.build_lib, 'snakeoil', 'xml',
-                    'bundled_elementtree.py')
-                py3k_rebuilds[:] = [x for x in py3k_rebuilds
-                    if not x[0] == kill_it]
-
         if sys.version_info[0] < 3 and not self.inplace:
             kill_it = os.path.join(self.build_lib, 'snakeoil', 'compatibility_py3k.py')
             os.unlink(kill_it)
