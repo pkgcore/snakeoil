@@ -14,38 +14,7 @@ __all__ = ("Struct", "error", "pack", "pack", "calcsize")
 # sucks, but is what it is.
 from struct import *
 
-class fake_struct(object):
-
-    """
-    Struct class implementation matching python2.5 behaviour
-
-    This is only used if we're running python2.4
-    """
-
-    __slots__ = ("format", "size", "weakref")
-
-    def __init__(self, format):
-        """
-        :param format: struct format for parsing/writing
-        """
-        self.format = format
-        self.size = calcsize(self.format)
-
-    def unpack(self, string):
-        """
-        Unpack the string containing packed C structure data, according to fmt.
-        Requires len(string) == calcsize(fmt).
-        """
-        return unpack(self.format, string)
-
-    def pack(self, *args):
-        """Return string containing values v1, v2, ... packed according to fmt."""
-        return pack(self.format, *args)
-
-
-# note the struct import above; this just swaps our fake_struct in if
-# we're running <python2.5
-base_struct = locals().get('Struct', fake_struct)
+base_struct = Struct
 
 
 class Struct(base_struct):

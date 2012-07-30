@@ -4,6 +4,9 @@ Snakeoil Release Notes
 
 snakeoil trunk:
 
+* Effective immediately, python2.4 is no longer supported.  Last release
+  was in '08, so really, really don't care anymore.
+
 * snakeoil.chksum grew sha512 support.
 
 * snakeoil.sphinx_utils was added w/ two reusable/importable scripts;

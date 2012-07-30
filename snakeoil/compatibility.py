@@ -2,7 +2,7 @@
 # License: BSD/GPL2
 
 """
-Compatibility functionality for python 2.4 through 3.2
+Compatibility functionality for python 2.5 through 3.2
 
 For those of us still supporting older python versions, we're in a bit of a
 bind- we'd *love* to use the newer python functions but cannot without
@@ -14,23 +14,6 @@ newer python functionality is usable in older python versions.  Additionally,
 functionality that has been moved in py3k and isn't translated by 2to3 is
 accessible via this module.
 
-An example would be python2.4 users wanting access to the :py:func:`any`
-or :py:func:`all` functions- they're only available in python2.5 however
-the following code will work regardless if the python versions is 2.4, 2.6,
-or 3.2:
-
->>> from snakeoil.compatibility import any, all
->>> print all(True for x in (1 ,2))
-True
->>> print all(0 == (x % 2) for x in (0, 1))
-False
->>> print any(1 == (x % 2) for x in (0, 1))
-True
-
-The module is designed such that if there is a builtin version of
-the target functionality available, it will always prefer that.  Essentially,
-you'll get the cpython version of any/all for python 2.5 and up, and the fallback
-implementation for python 2.4 alone.
 
 For easing py3k compatibility:
 
@@ -55,18 +38,6 @@ __all__ = ("all", "any", "is_py3k", "is_py3k_like", "next",
 import sys
 
 
-def native_any(iterable):
-    for x in iterable:
-        if x:
-            return True
-    return False
-
-def native_all(iterable):
-    for x in iterable:
-        if not x:
-            return False
-    return True
-
 # figure out if we're jython or not...
 is_jython = False
 if hasattr(sys, 'getPlatform'):
@@ -79,10 +50,8 @@ if hasattr(sys, 'getPlatform'):
 is_py3k = int(sys.version[0]) == 3
 is_py3k_like = is_py3k or float(sys.version[:3]) >= 2.7
 
-try:
-    from __builtin__ import any, all
-except ImportError:
-    any, all = native_any, native_all
+# Imported for compatibility w/ old code that was using us for 2.4 compatibility.
+from __builtin__ import any, all
 
 def sorted_key_from_cmp(cmp_func, key_func=None):
     class _key_proxy(object):

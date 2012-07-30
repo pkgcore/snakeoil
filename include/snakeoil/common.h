@@ -9,7 +9,6 @@
 #define snakeoil_COMMON_HEADER 1
 
 #include <Python.h>
-#include "snakeoil/py24-compatibility.h"
 
 #if PY_VERSION_EX <  0x02060000
 /* note this is a horrible hack.  see http://mail.python.org/pipermail/python-bugs-list/2008-July/055285.html

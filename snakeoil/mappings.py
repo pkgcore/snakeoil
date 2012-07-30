@@ -658,73 +658,7 @@ class NonPreservingFoldingDict(DictMixin):
         self._dict = {}
 
 
-if sys.version_info >= (2, 5):
-    from collections import defaultdict
-else:
-    class defaultdict(DictMixin):
-        """
-        fallback implementation of collections.defaultdict from >=python2.5
-
-        Essentially, if a key request is made but it's not within this mapping,
-        it'll invoke self.__missing__, which defaults to invoking self.default_factory()
-
-        This is a useful way to convert do away with `setdefault` usage.
-
-        For usage examples, check the web for :py:class:`collections.defaultdict`; this
-        implementation is purely for python2.4 compatibility.
-        """
-
-        def __init__(self, default_factory):
-            """
-            :param default_factory: functor that takes no args, returning the default
-                value to assume if the key is missing
-            """
-            self.default_factory = default_factory
-            self._storage = {}
-
-        def __missing__(self, key):
-            """
-            called by __getitem__ and friends when the key is missing.
-            """
-            obj = self._storage[key] = self.default_factory()
-            return obj
-
-        @steal_docs(dict)
-        def __getitem__(self, key):
-            try:
-                return self._storage[key]
-            except KeyError:
-                return self.__missing__(key)
-
-
-        get = steal_docs(dict, name='get')(alias_method('_storage.get'))
-        pop = steal_docs(dict, name='pop')(alias_method('_storage.pop'))
-        setdefault = steal_docs(dict, name='setdefault')(alias_method('_storage.setdefault'))
-        __contains__ = steal_docs(dict, name='__contains__')(alias_method('_storage.__contains__'))
-
-        @steal_docs(dict)
-        def __setitem__(self, key, value):
-            self._storage[key] = value
-
-        @steal_docs(dict)
-        def __delitem__(self, key):
-            del self._storage[key]
-
-        @steal_docs(dict)
-        def iterkeys(self):
-            return iter(self._storage)
-
-        @steal_docs(dict)
-        def clear(self):
-            return self._storage.clear()
-
-        @steal_docs(dict)
-        def __len__(self):
-            return len(self._storage)
-
-        def __nonzero__(self):
-            return bool(self._storage)
-
+from collections import defaultdict
 
 class defaultdictkey(defaultdict):
 

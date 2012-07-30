@@ -441,41 +441,6 @@ class FoldingDictTest(TestCase):
         self.assertEqual({}, dict(dct))
 
 
-class defaultdictTest(TestCase):
-
-    kls = mappings.defaultdict
-
-    def test_basic(self):
-        d = self.kls(list)
-        self.assertFalse(d)
-        self.assertLen(d, 0)
-        self.assertEqual(d[1], [])
-        self.assertEqual(d.items(), [(1, [])])
-        d[2].append(2)
-        self.assertEqual(sorted(d.iteritems()), [(1, []), (2, [2])])
-        self.assertLen(d, 2)
-        del d[2]
-        self.assertLen(d, 1)
-        self.assertEqual(d.items(), [(1, [])])
-        d[1].extend((2, 3))
-        self.assertEqual(d.items(), [(1, [2, 3])])
-        self.assertTrue(d)
-        d[1] = 2
-        self.assertEqual(d.items(), [(1, 2)])
-        self.assertEqual(d.pop(1), 2)
-        self.assertRaises(KeyError, d.__delitem__, 1)
-        d.clear()
-        self.assertFalse(d)
-
-    def test_compat(self):
-        d = self.kls(list)
-        self.assertEqual(None, d.get('asfdf'))
-        self.assertEqual(None, d.pop('asdf', None))
-        self.assertEqual(None, d.setdefault('asdf', None))
-        self.assertEqual(d['asdf'], None)
-        self.assertNotIn('nonexistant key', d)
-
-
 class defaultdictkeyTest(TestCase):
 
     kls = mappings.defaultdictkey
