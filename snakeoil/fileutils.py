@@ -135,6 +135,15 @@ class AtomicWriteFile_mixin(object):
             os.unlink(self._temp_fp)
             self._is_finalized = True
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        if exc is not None:
+            self.discard()
+        else:
+            self.close()
+
     def close(self):
         """Close this file handle, atomically updating the target in the process.
 
