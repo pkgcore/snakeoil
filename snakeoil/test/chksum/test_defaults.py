@@ -99,7 +99,7 @@ del chf_type, expected
 
 class get_chksums_test(base, TestCase):
 
-    chfs = [k for k in sorted(checksums) if k != "size"]
+    chfs = [k for k in sorted(checksums) if k in ('md5', 'sha1')]
     expected_long = [checksums[k][0] for k in chfs]
     if not is_py3k:
         del k
