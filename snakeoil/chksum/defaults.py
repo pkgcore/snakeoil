@@ -366,7 +366,7 @@ class SizeChksummer(Chksummer):
             try:
                 st_size = os.lstat(file_obj).st_size
             except OSError:
-                return None
+                return -1
             return st_size
         # seek to the end.
         file_obj.seek(0, 2)
