@@ -5,6 +5,14 @@
    Defined to avoid complicated function defs
 */
 
+
+/* Copied from stdtypes.c in guppy */
+#define INTERATTR(name) \
+       if ((PyObject *)v->name == r->tgt &&                                  \
+               (r->visit(NYHR_INTERATTR, PyString_FromString(#name), r)))    \
+               return 1;
+
+
 typedef struct {
 	int flags;
 	PyObject *hv; /* A HeapView object providing context to the traversal
