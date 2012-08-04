@@ -755,9 +755,10 @@ def processBuffer(ctx):
                    ((buffr[buf_cnt+6] & 0xff) <<  8) ^ \
                    ((buffr[buf_cnt+7] & 0xff) <<  0)
         buf_cnt += 8
+
     for i in xrange(8):
-        K[i] = ctx.hash[i]
-        state[i] = block[i] ^ K[i]
+        x = K[i] = ctx.hash[i]
+        state[i] = block[i] ^ x
 
     for r in xrange(1, R+1):
         L[0] = CDo(K, 0, 7, 6, 5, 4, 3, 2, 1) ^ rc[r]
@@ -768,8 +769,9 @@ def processBuffer(ctx):
         L[5] = CDo(K, 5, 4, 3, 2, 1, 0, 7, 6)
         L[6] = CDo(K, 6, 5, 4, 3, 2, 1, 0, 7)
         L[7] = CDo(K, 7, 6, 5, 4, 3, 2, 1, 0)
-        for i in xrange(8):
-            K[i] = L[i]
+
+        K[0:8] = L[0:8]
+
         L[0] = CDo(state, 0, 7, 6, 5, 4, 3, 2, 1) ^ K[0]
         L[1] = CDo(state, 1, 0, 7, 6, 5, 4, 3, 2) ^ K[1]
         L[2] = CDo(state, 2, 1, 0, 7, 6, 5, 4, 3) ^ K[2]
