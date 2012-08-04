@@ -641,7 +641,6 @@ try:
     init(C0, C1, C2, C3, C4, C5, C6, C7)
     del init
 except ImportError:
-    print "falling back to native whirlpool"
     def CDo(buf, starting_index):
         return C0[((buf[starting_index] >> 56) & 0xff)] ^ \
                C1[((buf[(starting_index + 7) % 8] >> 48) & 0xff)] ^ \
