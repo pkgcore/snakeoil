@@ -726,15 +726,22 @@ def WhirlpoolFinalize(ctx):
     ctx.bufferPos = bufferPos
     return digest
 
-def CDo(buf, a0, a1, a2, a3, a4, a5, a6, a7):
-    return C0[(buf[a0] >> 56) & 0xff] ^ \
-           C1[(buf[a1] >> 48) & 0xff] ^ \
-           C2[(buf[a2] >> 40) & 0xff] ^ \
-           C3[(buf[a3] >> 32) & 0xff] ^ \
-           C4[(buf[a4] >> 24) & 0xff] ^ \
-           C5[(buf[a5] >> 16) & 0xff] ^ \
-           C6[(buf[a6] >>  8) & 0xff] ^ \
-           C7[(buf[a7]      ) & 0xff]
+# See if we can use a C version of this for speed reasons.
+try:
+    from snakeoil.chksum._whirlpool_cdo import CDo, init
+    init(C0, C1, C2, C3, C4, C5, C6, C7)
+    del init
+except ImportError:
+    print "falling back to native whirlpool"
+    def CDo(buf, a0, a1, a2, a3, a4, a5, a6, a7):
+        return C0[((buf[a0] >> 56) & 0xff)] ^ \
+               C1[((buf[a1] >> 48) & 0xff)] ^ \
+               C2[((buf[a2] >> 40) & 0xff)] ^ \
+               C3[((buf[a3] >> 32) & 0xff)] ^ \
+               C4[((buf[a4] >> 24) & 0xff)] ^ \
+               C5[((buf[a5] >> 16) & 0xff)] ^ \
+               C6[((buf[a6] >>  8) & 0xff)] ^ \
+               C7[((buf[a7] >>  0) & 0xff)]
 
 def processBuffer(ctx):
     i, r = 0, 0

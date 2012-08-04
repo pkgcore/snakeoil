@@ -84,6 +84,8 @@ if not snk_distutils.is_py3k:
             'snakeoil.osutils._readdir', ['src/readdir.c'], **extra_kwargs),
         OptionalExtension(
             'snakeoil._formatters', ['src/formatters.c'], **extra_kwargs),
+        OptionalExtension(
+            'snakeoil.chksum._whirlpool_cdo', ['src/whirlpool_cdo.c'], **extra_kwargs),
         ]
     )
 
