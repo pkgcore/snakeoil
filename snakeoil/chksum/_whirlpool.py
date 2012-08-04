@@ -33,7 +33,7 @@ if sys.hexversion >= 0x3000000:
 digest_size = 64
 digestsize = 64
 
-class Whirlpool:
+class Whirlpool(object):
     """Return a new Whirlpool object. An optional string argument
     may be provided; if present, this string will be automatically
     hashed."""
@@ -43,15 +43,25 @@ class Whirlpool:
             self.update(arg)
         self.digest_status = 0
 
-    def update(self, arg):
-        """update(arg)"""
-        WhirlpoolAdd(arg, len(arg)*8, self.ctx)
-        self.digest_status = 0
+    if sys.hexversion < 0x3000000:
+        # Explicitly force this to a string to ensure it's ascii compatible
+        # if it's unicode..
+        def update(self, arg):
+            """update(arg)"""
+            if isinstance(arg, unicode):
+                arg = str(arg)
+            self.ctx.WhirlpoolAdd(map(ord, arg), len(arg) * 8)
+            self.digest_status = 0
+    else:
+        def update(self, arg):
+            """update(arg)"""
+            self.ctx.WhirlpoolAdd(arg, len(arg)*8)
+            self.digest_status = 0
 
     def digest(self):
         """digest()"""
         if self.digest_status == 0:
-            self.dig = WhirlpoolFinalize(self.ctx)
+            self.dig = self.ctx.WhirlpoolFinalize()
         self.digest_status = 1
         return self.dig
 
@@ -82,7 +92,7 @@ def new(init=None):
 
 R = 10
 
-C0 = [
+C0 = (
 0x18186018c07830d8, 0x23238c2305af4626, 0xc6c63fc67ef991b8, 0xe8e887e8136fcdfb,
 0x878726874ca113cb, 0xb8b8dab8a9626d11, 0x0101040108050209, 0x4f4f214f426e9e0d,
 0x3636d836adee6c9b, 0xa6a6a2a6590451ff, 0xd2d26fd2debdb90c, 0xf5f5f3f5fb06f70e,
@@ -147,8 +157,8 @@ C0 = [
 0x7070dd70a7ade0d7, 0xb6b6e2b6d954716f, 0xd0d067d0ceb7bd1e, 0xeded93ed3b7ec7d6,
 0xcccc17cc2edb85e2, 0x424215422a578468, 0x98985a98b4c22d2c, 0xa4a4aaa4490e55ed,
 0x2828a0285d885075, 0x5c5c6d5cda31b886, 0xf8f8c7f8933fed6b, 0x8686228644a411c2,
-]
-C1 = [
+)
+C1 = (
 0xd818186018c07830, 0x2623238c2305af46, 0xb8c6c63fc67ef991, 0xfbe8e887e8136fcd,
 0xcb878726874ca113, 0x11b8b8dab8a9626d, 0x0901010401080502, 0x0d4f4f214f426e9e,
 0x9b3636d836adee6c, 0xffa6a6a2a6590451, 0x0cd2d26fd2debdb9, 0x0ef5f5f3f5fb06f7,
@@ -213,8 +223,8 @@ C1 = [
 0xd77070dd70a7ade0, 0x6fb6b6e2b6d95471, 0x1ed0d067d0ceb7bd, 0xd6eded93ed3b7ec7,
 0xe2cccc17cc2edb85, 0x68424215422a5784, 0x2c98985a98b4c22d, 0xeda4a4aaa4490e55,
 0x752828a0285d8850, 0x865c5c6d5cda31b8, 0x6bf8f8c7f8933fed, 0xc28686228644a411,
-]
-C2 = [
+)
+C2 = (
 0x30d818186018c078, 0x462623238c2305af, 0x91b8c6c63fc67ef9, 0xcdfbe8e887e8136f,
 0x13cb878726874ca1, 0x6d11b8b8dab8a962, 0x0209010104010805, 0x9e0d4f4f214f426e,
 0x6c9b3636d836adee, 0x51ffa6a6a2a65904, 0xb90cd2d26fd2debd, 0xf70ef5f5f3f5fb06,
@@ -279,8 +289,8 @@ C2 = [
 0xe0d77070dd70a7ad, 0x716fb6b6e2b6d954, 0xbd1ed0d067d0ceb7, 0xc7d6eded93ed3b7e,
 0x85e2cccc17cc2edb, 0x8468424215422a57, 0x2d2c98985a98b4c2, 0x55eda4a4aaa4490e,
 0x50752828a0285d88, 0xb8865c5c6d5cda31, 0xed6bf8f8c7f8933f, 0x11c28686228644a4,
-]
-C3 = [
+)
+C3 = (
 0x7830d818186018c0, 0xaf462623238c2305, 0xf991b8c6c63fc67e, 0x6fcdfbe8e887e813,
 0xa113cb878726874c, 0x626d11b8b8dab8a9, 0x0502090101040108, 0x6e9e0d4f4f214f42,
 0xee6c9b3636d836ad, 0x0451ffa6a6a2a659, 0xbdb90cd2d26fd2de, 0x06f70ef5f5f3f5fb,
@@ -345,8 +355,8 @@ C3 = [
 0xade0d77070dd70a7, 0x54716fb6b6e2b6d9, 0xb7bd1ed0d067d0ce, 0x7ec7d6eded93ed3b,
 0xdb85e2cccc17cc2e, 0x578468424215422a, 0xc22d2c98985a98b4, 0x0e55eda4a4aaa449,
 0x8850752828a0285d, 0x31b8865c5c6d5cda, 0x3fed6bf8f8c7f893, 0xa411c28686228644,
-]
-C4 = [
+)
+C4 = (
 0xc07830d818186018, 0x05af462623238c23, 0x7ef991b8c6c63fc6, 0x136fcdfbe8e887e8,
 0x4ca113cb87872687, 0xa9626d11b8b8dab8, 0x0805020901010401, 0x426e9e0d4f4f214f,
 0xadee6c9b3636d836, 0x590451ffa6a6a2a6, 0xdebdb90cd2d26fd2, 0xfb06f70ef5f5f3f5,
@@ -411,8 +421,8 @@ C4 = [
 0xa7ade0d77070dd70, 0xd954716fb6b6e2b6, 0xceb7bd1ed0d067d0, 0x3b7ec7d6eded93ed,
 0x2edb85e2cccc17cc, 0x2a57846842421542, 0xb4c22d2c98985a98, 0x490e55eda4a4aaa4,
 0x5d8850752828a028, 0xda31b8865c5c6d5c, 0x933fed6bf8f8c7f8, 0x44a411c286862286,
-]
-C5 = [
+)
+C5 = (
 0x18c07830d8181860, 0x2305af462623238c, 0xc67ef991b8c6c63f, 0xe8136fcdfbe8e887,
 0x874ca113cb878726, 0xb8a9626d11b8b8da, 0x0108050209010104, 0x4f426e9e0d4f4f21,
 0x36adee6c9b3636d8, 0xa6590451ffa6a6a2, 0xd2debdb90cd2d26f, 0xf5fb06f70ef5f5f3,
@@ -477,8 +487,8 @@ C5 = [
 0x70a7ade0d77070dd, 0xb6d954716fb6b6e2, 0xd0ceb7bd1ed0d067, 0xed3b7ec7d6eded93,
 0xcc2edb85e2cccc17, 0x422a578468424215, 0x98b4c22d2c98985a, 0xa4490e55eda4a4aa,
 0x285d8850752828a0, 0x5cda31b8865c5c6d, 0xf8933fed6bf8f8c7, 0x8644a411c2868622,
-]
-C6 = [
+)
+C6 = (
 0x6018c07830d81818, 0x8c2305af46262323, 0x3fc67ef991b8c6c6, 0x87e8136fcdfbe8e8,
 0x26874ca113cb8787, 0xdab8a9626d11b8b8, 0x0401080502090101, 0x214f426e9e0d4f4f,
 0xd836adee6c9b3636, 0xa2a6590451ffa6a6, 0x6fd2debdb90cd2d2, 0xf3f5fb06f70ef5f5,
@@ -543,8 +553,8 @@ C6 = [
 0xdd70a7ade0d77070, 0xe2b6d954716fb6b6, 0x67d0ceb7bd1ed0d0, 0x93ed3b7ec7d6eded,
 0x17cc2edb85e2cccc, 0x15422a5784684242, 0x5a98b4c22d2c9898, 0xaaa4490e55eda4a4,
 0xa0285d8850752828, 0x6d5cda31b8865c5c, 0xc7f8933fed6bf8f8, 0x228644a411c28686,
-]
-C7 = [
+)
+C7 = (
 0x186018c07830d818, 0x238c2305af462623, 0xc63fc67ef991b8c6, 0xe887e8136fcdfbe8,
 0x8726874ca113cb87, 0xb8dab8a9626d11b8, 0x0104010805020901, 0x4f214f426e9e0d4f,
 0x36d836adee6c9b36, 0xa6a2a6590451ffa6, 0xd26fd2debdb90cd2, 0xf5f3f5fb06f70ef5,
@@ -609,9 +619,9 @@ C7 = [
 0x70dd70a7ade0d770, 0xb6e2b6d954716fb6, 0xd067d0ceb7bd1ed0, 0xed93ed3b7ec7d6ed,
 0xcc17cc2edb85e2cc, 0x4215422a57846842, 0x985a98b4c22d2c98, 0xa4aaa4490e55eda4,
 0x28a0285d88507528, 0x5c6d5cda31b8865c, 0xf8c7f8933fed6bf8, 0x86228644a411c286,
-]
+)
 
-rc = [
+rc = (
 0x0000000000000000,
 0x1823c6e887b8014f,
 0x36a6d2f5796f9152,
@@ -623,108 +633,7 @@ rc = [
 0xe427418ba77d95d8,
 0xfbee7c66dd17479e,
 0xca2dbf07ad5a8333
-]
-
-DIGESTBYTES = 64
-class WhirlpoolStruct:
-    def __init__(self):
-        self.bitLength = [0]*32
-        self.buffer = [0]*64
-        self.bufferBits = 0
-        self.bufferPos = 0
-        self.hash = [0]*8
-
-def WhirlpoolInit(ctx):
-    ctx = WhirlpoolStruct()
-    return
-
-def WhirlpoolAdd(source, sourceBits, ctx):
-    if sys.hexversion < 0x3000000:
-        # Explicitly force this to a string to ensure it's ascii compatible
-        # if it's unicode..
-        if isinstance(source, unicode):
-            source = str(source)
-        source = map(ord, source)
-
-    carry = 0
-    value = sourceBits
-    i = 31
-    while i >= 0 and (carry != 0 or value != 0):
-        carry += ctx.bitLength[i] + (value & 0xff)
-        ctx.bitLength[i] = carry % 0x100
-        carry >>= 8
-        value >>= 8
-        i -= 1
-
-    bufferBits = ctx.bufferBits
-    bufferPos = ctx.bufferPos
-    sourcePos = 0
-    sourceGap = (8 - (sourceBits & 7)) & 7
-    bufferRem = ctx.bufferBits & 7
-    buffr = ctx.buffer
-
-    while sourceBits > 8:
-        b = ((source[sourcePos] << sourceGap) & 0xff) | ((source[sourcePos + 1] & 0xff) >> (8 - sourceGap))
-        buffr[bufferPos] |= (b >> bufferRem) % 0x100
-        bufferPos += 1
-        bufferBits += 8 - bufferRem
-        if bufferBits == 512:
-            processBuffer(ctx)
-            bufferBits = 0
-            bufferPos = 0
-
-        buffr[bufferPos] = b << (8 - bufferRem)
-        bufferBits += bufferRem
-
-        sourceBits -= 8
-        sourcePos += 1
-
-    b = (source[sourcePos] << sourceGap) & 0xff
-    buffr[bufferPos] |= b >> bufferRem
-    if bufferRem + sourceBits < 8:
-        bufferBits += sourceBits
-    else:
-        bufferPos += 1
-        bufferBits += 8 - bufferRem
-        sourceBits -= 8 - bufferRem
-        if bufferBits == 512:
-            processBuffer(ctx)
-            bufferBits = 0
-            bufferPos = 0
-        buffr[bufferPos] = b << (8 - bufferRem)
-        bufferBits += sourceBits
-    ctx.bufferBits = bufferBits
-    ctx.bufferPos = bufferPos
-
-def WhirlpoolFinalize(ctx):
-    bufferPos = ctx.bufferPos
-    ctx.buffer[bufferPos] |= 0x80 >> (ctx.bufferBits & 7)
-    bufferPos += 1
-    if bufferPos > 32:
-        if bufferPos < 64:
-            for i in xrange(64 - bufferPos):
-                ctx.buffer[bufferPos+i] = 0
-        processBuffer(ctx)
-        bufferPos = 0
-    if bufferPos < 32:
-        for i in xrange(32 - bufferPos):
-            ctx.buffer[bufferPos+i] = 0
-    bufferPos = 32
-    for i in xrange(32):
-        ctx.buffer[32+i] = ctx.bitLength[i]
-    processBuffer(ctx)
-    digest = ''
-    for i in xrange(8):
-        digest += chr((ctx.hash[i] >> 56) % 0x100)
-        digest += chr((ctx.hash[i] >> 48) % 0x100)
-        digest += chr((ctx.hash[i] >> 40) % 0x100)
-        digest += chr((ctx.hash[i] >> 32) % 0x100)
-        digest += chr((ctx.hash[i] >> 24) % 0x100)
-        digest += chr((ctx.hash[i] >> 16) % 0x100)
-        digest += chr((ctx.hash[i] >> 8) % 0x100)
-        digest += chr((ctx.hash[i]) % 0x100)
-    ctx.bufferPos = bufferPos
-    return digest
+)
 
 # See if we can use a C version of this for speed reasons.
 try:
@@ -743,56 +652,150 @@ except ImportError:
                C6[((buf[(starting_index + 2) % 8] >>  8) & 0xff)] ^ \
                C7[((buf[(starting_index + 1) % 8]      ) & 0xff)]
 
-def processBuffer(ctx):
-    i, r = 0, 0
-    K = [0]*8
-    block = [0]*8
-    state = [0]*8
-    L = [0]*8
-    buffr = ctx.buffer
 
-    buf_cnt = 0
-    for i in xrange(8):
-        block[i] = ((buffr[buf_cnt+0] & 0xff) << 56) ^ \
-                   ((buffr[buf_cnt+1] & 0xff) << 48) ^ \
-                   ((buffr[buf_cnt+2] & 0xff) << 40) ^ \
-                   ((buffr[buf_cnt+3] & 0xff) << 32) ^ \
-                   ((buffr[buf_cnt+4] & 0xff) << 24) ^ \
-                   ((buffr[buf_cnt+5] & 0xff) << 16) ^ \
-                   ((buffr[buf_cnt+6] & 0xff) <<  8) ^ \
-                   ((buffr[buf_cnt+7] & 0xff)      )
-        buf_cnt += 8
+DIGESTBYTES = 64
+class WhirlpoolStruct(object):
 
-    for i in xrange(8):
-        x = K[i] = ctx.hash[i]
-        state[i] = block[i] ^ x
+    def __init__(self):
+        self.bitLength = [0]*32
+        self.buffer = [0]*64
+        self.bufferBits = 0
+        self.bufferPos = 0
+        self.hash = [0]*8
 
-    for r in xrange(1, R+1):
-        L[0] = CDo(K, 0) ^ rc[r]
-        L[1] = CDo(K, 1)
-        L[2] = CDo(K, 2)
-        L[3] = CDo(K, 3)
-        L[4] = CDo(K, 4)
-        L[5] = CDo(K, 5)
-        L[6] = CDo(K, 6)
-        L[7] = CDo(K, 7)
+    def WhirlpoolAdd(self, source, sourceBits):
+        carry = 0
+        value = sourceBits
+        i = 31
+        bitLength = self.bitLength
+        while i >= 0 and (carry != 0 or value != 0):
+            carry += bitLength[i] + (value & 0xff)
+            bitLength[i] = carry % 0x100
+            carry >>= 8
+            value >>= 8
+            i -= 1
 
-        K[0:8] = L[0:8]
+        bufferBits = self.bufferBits
+        bufferPos = self.bufferPos
+        sourcePos = 0
+        sourceGap = (8 - (sourceBits & 7)) & 7
+        bufferRem = bufferBits & 7
+        buffr = self.buffer
 
-        L[0] = CDo(state, 0) ^ K[0]
-        L[1] = CDo(state, 1) ^ K[1]
-        L[2] = CDo(state, 2) ^ K[2]
-        L[3] = CDo(state, 3) ^ K[3]
-        L[4] = CDo(state, 4) ^ K[4]
-        L[5] = CDo(state, 5) ^ K[5]
-        L[6] = CDo(state, 6) ^ K[6]
-        L[7] = CDo(state, 7) ^ K[7]
+        while sourceBits > 8:
+            b = ((source[sourcePos] << sourceGap) & 0xff) | ((source[sourcePos + 1] & 0xff) >> (8 - sourceGap))
+            buffr[bufferPos] |= (b >> bufferRem) % 0x100
+            bufferPos += 1
+            bufferBits += 8 - bufferRem
+            if bufferBits == 512:
+                self._processBuffer()
+                bufferBits = 0
+                bufferPos = 0
+
+            buffr[bufferPos] = b << (8 - bufferRem)
+            bufferBits += bufferRem
+
+            sourceBits -= 8
+            sourcePos += 1
+
+        b = (source[sourcePos] << sourceGap) & 0xff
+        buffr[bufferPos] |= b >> bufferRem
+        if bufferRem + sourceBits < 8:
+            bufferBits += sourceBits
+        else:
+            bufferPos += 1
+            bufferBits += 8 - bufferRem
+            sourceBits -= 8 - bufferRem
+            if bufferBits == 512:
+                self._processBuffer()
+                bufferBits = 0
+                bufferPos = 0
+            buffr[bufferPos] = b << (8 - bufferRem)
+            bufferBits += sourceBits
+        self.bufferBits = bufferBits
+        self.bufferPos = bufferPos
+
+    def WhirlpoolFinalize(self):
+        bufferPos = self.bufferPos
+        self.buffer[bufferPos] |= 0x80 >> (self.bufferBits & 7)
+        bufferPos += 1
+        if bufferPos > 32:
+            if bufferPos < 64:
+                for i in xrange(64 - bufferPos):
+                    self.buffer[bufferPos+i] = 0
+            self._processBuffer()
+            bufferPos = 0
+        if bufferPos < 32:
+            for i in xrange(32 - bufferPos):
+                self.buffer[bufferPos+i] = 0
+        bufferPos = 32
+        for i in xrange(32):
+            self.buffer[32+i] = self.bitLength[i]
+        self._processBuffer()
+        digest = ''
         for i in xrange(8):
-            state[i] = L[i]
-    # apply the Miyaguchi-Preneel compression function
-    for i in xrange(8):
-        ctx.hash[i] ^= state[i] ^ block[i]
-    return
+            digest += chr((self.hash[i] >> 56) % 0x100)
+            digest += chr((self.hash[i] >> 48) % 0x100)
+            digest += chr((self.hash[i] >> 40) % 0x100)
+            digest += chr((self.hash[i] >> 32) % 0x100)
+            digest += chr((self.hash[i] >> 24) % 0x100)
+            digest += chr((self.hash[i] >> 16) % 0x100)
+            digest += chr((self.hash[i] >> 8) % 0x100)
+            digest += chr((self.hash[i]) % 0x100)
+        self.bufferPos = bufferPos
+        return digest
+
+    def _processBuffer(self):
+        i, r = 0, 0
+        K = [0]*8
+        block = [0]*8
+        state = [0]*8
+        L = [0]*8
+        buffr = self.buffer
+
+        buf_cnt = 0
+        for i in xrange(8):
+            block[i] = ((buffr[buf_cnt  ] & 0xff) << 56) ^ \
+                       ((buffr[buf_cnt+1] & 0xff) << 48) ^ \
+                       ((buffr[buf_cnt+2] & 0xff) << 40) ^ \
+                       ((buffr[buf_cnt+3] & 0xff) << 32) ^ \
+                       ((buffr[buf_cnt+4] & 0xff) << 24) ^ \
+                       ((buffr[buf_cnt+5] & 0xff) << 16) ^ \
+                       ((buffr[buf_cnt+6] & 0xff) <<  8) ^ \
+                       ((buffr[buf_cnt+7] & 0xff)      )
+            buf_cnt += 8
+
+        for i in xrange(8):
+            x = K[i] = self.hash[i]
+            state[i] = block[i] ^ x
+
+        for r in xrange(1, R+1):
+            L[0] = CDo(K, 0) ^ rc[r]
+            L[1] = CDo(K, 1)
+            L[2] = CDo(K, 2)
+            L[3] = CDo(K, 3)
+            L[4] = CDo(K, 4)
+            L[5] = CDo(K, 5)
+            L[6] = CDo(K, 6)
+            L[7] = CDo(K, 7)
+
+            K[0:8] = L[0:8]
+
+            L[0] = CDo(state, 0) ^ K[0]
+            L[1] = CDo(state, 1) ^ K[1]
+            L[2] = CDo(state, 2) ^ K[2]
+            L[3] = CDo(state, 3) ^ K[3]
+            L[4] = CDo(state, 4) ^ K[4]
+            L[5] = CDo(state, 5) ^ K[5]
+            L[6] = CDo(state, 6) ^ K[6]
+            L[7] = CDo(state, 7) ^ K[7]
+            for i in xrange(8):
+                state[i] = L[i]
+        # apply the Miyaguchi-Preneel compression function
+        for i in xrange(8):
+            self.hash[i] ^= state[i] ^ block[i]
+        return
+
 
 #
 # Tests.
