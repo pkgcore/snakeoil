@@ -28,7 +28,7 @@ snakeoil_whirlpool_CDo(PyObject *self, PyObject *args)
 		return NULL;
 	}
 
-	/* Relevant python code: 
+	/* Relevant python code:
 	def CDo(buf, index):
 		return C0[((buf[a0] >> 56) % 0x100000000) & 0xff] ^ \
 		C1[((buf[index] >> 48) % 0x100000000) & 0xff] ^ \
@@ -78,7 +78,6 @@ snakeoil_whirlpool_CDo(PyObject *self, PyObject *args)
 	CDo_item(C7, (index + 1) % 8, 0);
 	#undef CDo_item
 	return PyLong_FromUnsignedLongLong(result);
-		
 }
 
 
@@ -104,7 +103,7 @@ snakeoil_whirlpool_init_hash(PyObject *source, unsigned long long hash[])
 		if (hash[x] == -1 && PyErr_Occurred()) {
 			return 0;
 		}
-	}		
+	}
 	return 1;
 }
 
@@ -156,4 +155,3 @@ init_whirlpool_cdo(void)
 	m = Py_InitModule3("_whirlpool_cdo", snakeoil_whirlpool_methods,
 					  snakeoil_whirlpool_documentation);
 }
-	
