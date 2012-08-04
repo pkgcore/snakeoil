@@ -58,7 +58,6 @@ packages = [
     if '__init__.py' in files]
 
 common_includes=[
-    'include/snakeoil/py24-compatibility.h',
     'include/snakeoil/heapdef.h',
     'include/snakeoil/common.h',
     ]
