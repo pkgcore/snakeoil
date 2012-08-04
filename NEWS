@@ -7,6 +7,8 @@ snakeoil trunk:
 * Effective immediately, python2.4 is no longer supported.  Last release
   was in '08, so really, really don't care anymore.
 
+* snakeoil.chksum grew whirlpool support, including native python fallback.
+
 * snakeoil.chksum grew sha512 support.
 
 * snakeoil.sphinx_utils was added w/ two reusable/importable scripts;
@@ -58,9 +60,6 @@ snakeoil trunk:
 
 * closerange compatibility method was added for <2.6; this method of
   closing is far faster than normal "scan all fds", thus exposing it.
-
-* snakeoil._compatibility extension was dropped- only users affected
-  are those still on py2.4.
 
 
 snakeoil 0.4.6: Dec 14th, 2011
