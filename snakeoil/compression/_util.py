@@ -3,6 +3,7 @@
 
 __all__ = ("compress_data", "decompress_data")
 
+import os, signal
 import subprocess
 from snakeoil import klass
 from snakeoil.weakrefs import WeakRefFinalizer
@@ -19,7 +20,11 @@ def _drive_process(args, mode, data):
         return stdout
     finally:
         if p is not None and p.returncode is None:
-            p.kill()
+            if hasattr(p, 'kill'):
+                p.kill()
+            else:
+                # py2.5 lacks kill.
+                os.kill(p.pid, signal.SIGKILL)
 
 def compress_data(binary, data, level=9, extra_args=()):
     args = [binary, '-%ic' % level]
@@ -140,7 +145,11 @@ class _process_handle(object):
 
     def _terminate(self):
         try:
-            self._process.terminate()
+            if hasattr(self._process, 'terminate'):
+                self._process.terminate()
+            else:
+                # py2.5 lacks terminate...
+                os.kill(self._process.pid, signal.SIGTERM)
         except EnvironmentError, e:
             # allow no such process only.
             if e.errno != errno.ESRCH:
