@@ -9,7 +9,7 @@ python 2to3 with caching support
 
 import lib2to3.main
 import lib2to3.refactor
-import os, hashlib
+import os, hashlib, logging
 
 def md5_hash_data(data):
     chf = hashlib.md5()
@@ -74,12 +74,16 @@ class caching_mixin(object):
         cache_key = self.compute_cache_key(input, encoding)
         cache_data = self.check_cache(cache_key, encoding)
 
-        if not write or cache_data is None:
-            return super(caching_mixin, self).refactor_file(filename, write=write,
-                doctests_only=doctests_only)
-        else:
-            self.processed_file(cache_data, filename, write=write,
-                encoding=encoding, old_text=input)
+        try:
+            if not write or cache_data is None:
+                return super(caching_mixin, self).refactor_file(filename, write=write,
+                    doctests_only=doctests_only)
+            else:
+                self.processed_file(cache_data, filename, write=write,
+                    encoding=encoding, old_text=input)
+        except Exception:
+            logging.exception("Failed processing %s", filename)
+            raise
 
     def processed_file(self, new_text, filename, old_text=None, write=False,
         encoding=None):
