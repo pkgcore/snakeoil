@@ -640,7 +640,11 @@ def WhirlpoolInit(ctx):
 
 def WhirlpoolAdd(source, sourceBits, ctx):
     if sys.hexversion < 0x3000000:
-        source = [ord(s)&0xff for s in source]
+        # Explicitly force this to a string to ensure it's ascii compatible
+        # if it's unicode..
+        if isinstance(source, unicode):
+            source = str(source)
+        source = map(ord, source)
 
     carry = 0
     value = sourceBits
