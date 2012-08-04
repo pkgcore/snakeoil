@@ -29,21 +29,20 @@ snakeoil_whirlpool_CDo(PyObject *self, PyObject *args)
 	}
 
 	/* Relevant python code: 
-	def CDo(buf, a0, a1, a2, a3, a4, a5, a6, a7):
+	def CDo(buf, index):
 		return C0[((buf[a0] >> 56) % 0x100000000) & 0xff] ^ \
-		C1[((buf[a1] >> 48) % 0x100000000) & 0xff] ^ \
-		C2[((buf[a2] >> 40) % 0x100000000) & 0xff] ^ \
-		C3[((buf[a3] >> 32) % 0x100000000) & 0xff] ^ \
-		C4[((buf[a4] >> 24) % 0x100000000) & 0xff] ^ \
-		C5[((buf[a5] >> 16) % 0x100000000) & 0xff] ^ \
-		C6[((buf[a6] >>  8) % 0x100000000) & 0xff] ^ \
-		C7[((buf[a7] >>  0) % 0x100000000) & 0xff]
+		C1[((buf[index] >> 48) % 0x100000000) & 0xff] ^ \
+		C2[((buf[(index + 7) % 8] >> 40) % 0x100000000) & 0xff] ^ \
+		C3[((buf[(index + 6) % 8] >> 32) % 0x100000000) & 0xff] ^ \
+		C4[((buf[(index + 5) % 8] >> 24) % 0x100000000) & 0xff] ^ \
+		C5[((buf[(index + 4) % 8] >> 16) % 0x100000000) & 0xff] ^ \
+		C6[((buf[(index + 3) % 8] >>  8) % 0x100000000) & 0xff] ^ \
+		C7[((buf[(index + 2) % 8] >>  0) % 0x100000000) & 0xff]
 	*/
 
 	PyObject *tmp;
-	int a0, a1, a2, a3, a4, a5, a6, a7;
-	if (!PyArg_ParseTuple(args, "Oiiiiiiii", &tmp, &a0, &a1, &a2, &a3,
-						  &a4, &a5, &a6, &a7)) {
+	int index;
+	if (!PyArg_ParseTuple(args, "Oi", &tmp, &index)) {
 		return NULL;
 	}
 	if (!PyList_CheckExact(tmp) && !PyTuple_CheckExact(tmp)) {
@@ -69,14 +68,14 @@ snakeoil_whirlpool_CDo(PyObject *self, PyObject *args)
 			} \
 		} \
 		result ^= ((array)[(val >> (shift)) & 0xff]);
-	CDo_item(C0, a0, 56);
-	CDo_item(C1, a1, 48);
-	CDo_item(C2, a2, 40);
-	CDo_item(C3, a3, 32);
-	CDo_item(C4, a4, 24);
-	CDo_item(C5, a5, 16);
-	CDo_item(C6, a6, 8);
-	CDo_item(C7, a7, 0);
+	CDo_item(C0, index, 56);
+	CDo_item(C1, (index + 7) % 8, 48);
+	CDo_item(C2, (index + 6) % 8, 40);
+	CDo_item(C3, (index + 5) % 8, 32);
+	CDo_item(C4, (index + 4) % 8, 24);
+	CDo_item(C5, (index + 3) % 8, 16);
+	CDo_item(C6, (index + 2) % 8, 8);
+	CDo_item(C7, (index + 1) % 8, 0);
 	#undef CDo_item
 	return PyLong_FromUnsignedLongLong(result);
 		

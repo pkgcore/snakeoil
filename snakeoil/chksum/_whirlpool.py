@@ -733,15 +733,15 @@ try:
     del init
 except ImportError:
     print "falling back to native whirlpool"
-    def CDo(buf, a0, a1, a2, a3, a4, a5, a6, a7):
-        return C0[((buf[a0] >> 56) & 0xff)] ^ \
-               C1[((buf[a1] >> 48) & 0xff)] ^ \
-               C2[((buf[a2] >> 40) & 0xff)] ^ \
-               C3[((buf[a3] >> 32) & 0xff)] ^ \
-               C4[((buf[a4] >> 24) & 0xff)] ^ \
-               C5[((buf[a5] >> 16) & 0xff)] ^ \
-               C6[((buf[a6] >>  8) & 0xff)] ^ \
-               C7[((buf[a7] >>  0) & 0xff)]
+    def CDo(buf, starting_index):
+        return C0[((buf[starting_index] >> 56) & 0xff)] ^ \
+               C1[((buf[(starting_index + 7) % 8] >> 48) & 0xff)] ^ \
+               C2[((buf[(starting_index + 6) % 8] >> 40) & 0xff)] ^ \
+               C3[((buf[(starting_index + 5) % 8] >> 32) & 0xff)] ^ \
+               C4[((buf[(starting_index + 4) % 8] >> 24) & 0xff)] ^ \
+               C5[((buf[(starting_index + 3) % 8] >> 16) & 0xff)] ^ \
+               C6[((buf[(starting_index + 2) % 8] >>  8) & 0xff)] ^ \
+               C7[((buf[(starting_index + 1) % 8]      ) & 0xff)]
 
 def processBuffer(ctx):
     i, r = 0, 0
@@ -760,7 +760,7 @@ def processBuffer(ctx):
                    ((buffr[buf_cnt+4] & 0xff) << 24) ^ \
                    ((buffr[buf_cnt+5] & 0xff) << 16) ^ \
                    ((buffr[buf_cnt+6] & 0xff) <<  8) ^ \
-                   ((buffr[buf_cnt+7] & 0xff) <<  0)
+                   ((buffr[buf_cnt+7] & 0xff)      )
         buf_cnt += 8
 
     for i in xrange(8):
@@ -768,25 +768,25 @@ def processBuffer(ctx):
         state[i] = block[i] ^ x
 
     for r in xrange(1, R+1):
-        L[0] = CDo(K, 0, 7, 6, 5, 4, 3, 2, 1) ^ rc[r]
-        L[1] = CDo(K, 1, 0, 7, 6, 5, 4, 3, 2)
-        L[2] = CDo(K, 2, 1, 0, 7, 6, 5, 4, 3)
-        L[3] = CDo(K, 3, 2, 1, 0, 7, 6, 5, 4)
-        L[4] = CDo(K, 4, 3, 2, 1, 0, 7, 6, 5)
-        L[5] = CDo(K, 5, 4, 3, 2, 1, 0, 7, 6)
-        L[6] = CDo(K, 6, 5, 4, 3, 2, 1, 0, 7)
-        L[7] = CDo(K, 7, 6, 5, 4, 3, 2, 1, 0)
+        L[0] = CDo(K, 0) ^ rc[r]
+        L[1] = CDo(K, 1)
+        L[2] = CDo(K, 2)
+        L[3] = CDo(K, 3)
+        L[4] = CDo(K, 4)
+        L[5] = CDo(K, 5)
+        L[6] = CDo(K, 6)
+        L[7] = CDo(K, 7)
 
         K[0:8] = L[0:8]
 
-        L[0] = CDo(state, 0, 7, 6, 5, 4, 3, 2, 1) ^ K[0]
-        L[1] = CDo(state, 1, 0, 7, 6, 5, 4, 3, 2) ^ K[1]
-        L[2] = CDo(state, 2, 1, 0, 7, 6, 5, 4, 3) ^ K[2]
-        L[3] = CDo(state, 3, 2, 1, 0, 7, 6, 5, 4) ^ K[3]
-        L[4] = CDo(state, 4, 3, 2, 1, 0, 7, 6, 5) ^ K[4]
-        L[5] = CDo(state, 5, 4, 3, 2, 1, 0, 7, 6) ^ K[5]
-        L[6] = CDo(state, 6, 5, 4, 3, 2, 1, 0, 7) ^ K[6]
-        L[7] = CDo(state, 7, 6, 5, 4, 3, 2, 1, 0) ^ K[7]
+        L[0] = CDo(state, 0) ^ K[0]
+        L[1] = CDo(state, 1) ^ K[1]
+        L[2] = CDo(state, 2) ^ K[2]
+        L[3] = CDo(state, 3) ^ K[3]
+        L[4] = CDo(state, 4) ^ K[4]
+        L[5] = CDo(state, 5) ^ K[5]
+        L[6] = CDo(state, 6) ^ K[6]
+        L[7] = CDo(state, 7) ^ K[7]
         for i in xrange(8):
             state[i] = L[i]
     # apply the Miyaguchi-Preneel compression function
