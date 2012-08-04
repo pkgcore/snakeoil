@@ -650,7 +650,7 @@ def WhirlpoolAdd(source, sourceBits, ctx):
     value = sourceBits
     i = 31
     while i >= 0 and (carry != 0 or value != 0):
-        carry += ctx.bitLength[i] + ((value % 0x100000000) & 0xff)
+        carry += ctx.bitLength[i] + (value & 0xff)
         ctx.bitLength[i] = carry % 0x100
         carry >>= 8
         value >>= 8
@@ -727,14 +727,14 @@ def WhirlpoolFinalize(ctx):
     return digest
 
 def CDo(buf, a0, a1, a2, a3, a4, a5, a6, a7):
-    return C0[((buf[a0] >> 56) % 0x100000000) & 0xff] ^ \
-           C1[((buf[a1] >> 48) % 0x100000000) & 0xff] ^ \
-           C2[((buf[a2] >> 40) % 0x100000000) & 0xff] ^ \
-           C3[((buf[a3] >> 32) % 0x100000000) & 0xff] ^ \
-           C4[((buf[a4] >> 24) % 0x100000000) & 0xff] ^ \
-           C5[((buf[a5] >> 16) % 0x100000000) & 0xff] ^ \
-           C6[((buf[a6] >>  8) % 0x100000000) & 0xff] ^ \
-           C7[((buf[a7] >>  0) % 0x100000000) & 0xff]
+    return C0[(buf[a0] >> 56) & 0xff] ^ \
+           C1[(buf[a1] >> 48) & 0xff] ^ \
+           C2[(buf[a2] >> 40) & 0xff] ^ \
+           C3[(buf[a3] >> 32) & 0xff] ^ \
+           C4[(buf[a4] >> 24) & 0xff] ^ \
+           C5[(buf[a5] >> 16) & 0xff] ^ \
+           C6[(buf[a6] >>  8) & 0xff] ^ \
+           C7[(buf[a7]      ) & 0xff]
 
 def processBuffer(ctx):
     i, r = 0, 0
