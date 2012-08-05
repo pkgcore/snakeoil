@@ -2,7 +2,7 @@ Snakeoil Release Notes
 ======================
 
 
-snakeoil 0.5, August 4th, 2012
+snakeoil 0.5: August 4th, 2012
 
 * lintplugins were updated to pylint 0.25.1 API; likely works with >=0.21.
 
