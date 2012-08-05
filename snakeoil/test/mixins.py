@@ -3,10 +3,13 @@
 # License: BSD/GPL2
 
 
-import os, stat, errno
-import shutil
-import tempfile
+import errno
 import inspect
+import os
+import shutil
+import stat
+import sys
+import tempfile
 
 from snakeoil.test import TestCase
 from snakeoil import compatibility
@@ -56,6 +59,11 @@ class PythonNamespaceWalker(object):
 
     valid_inits = frozenset("__init__.%s" % x for x in ("py", "pyc", "pyo", "so"))
 
+    # This is for py3.2/PEP3149; dso's now have the interp + major/minor embedded
+    # in the name.
+    # TODO: Update this for pypy's naming, and jythons.
+    abi_target = 'cpython-%i%i' % tuple(sys.version_info[:2])
+
     module_blacklist = set(["snakeoil.pyflakes_extension"])
     if not compatibility.is_py3k:
         module_blacklist.update(["snakeoil.caching_2to3", "snakeoil.compatibility_py3k"])
@@ -96,6 +104,10 @@ class PythonNamespaceWalker(object):
                     raise
 
     def recurse(self, location, valid_namespace=True):
+        if os.path.dirname(location) == '__pycache__':
+            # Shouldn't be possible, but make sure we avoid this if it manages
+            # to occur.
+            return
         l = os.listdir(location)
         if not self.valid_inits.intersection(l):
             if valid_namespace:
@@ -122,7 +134,13 @@ class PythonNamespaceWalker(object):
                 if (x.endswith(".py") or x.endswith(".pyc")
                     or x.endswith(".pyo") or x.endswith(".so")):
                     y = x.rsplit(".", 1)[0]
+                    # Ensure we're not looking at a >=py3k .so which injects
+                    # the version name in...
                     if y not in seen:
+                        if '.' in y and x.endswith('.so'):
+                            y, abi = x.rsplit('.', 1)
+                            if abi != self.abi_target:
+                                continue
                         seen.add(y)
                         yield y
 
@@ -135,8 +153,15 @@ class PythonNamespaceWalker(object):
                         yield "%s.%s" % (x, y)
 
     @staticmethod
-    def poor_mans_load(namespace):
-        obj = __import__(namespace)
+    def poor_mans_load(namespace, existance_check=False):
+        try:
+            obj = __import__(namespace)
+            if existance_check:
+                return True
+        except:
+            if existance_check:
+                return False
+            raise
         for chunk in namespace.split(".")[1:]:
             try:
                 obj = getattr(obj, chunk)
