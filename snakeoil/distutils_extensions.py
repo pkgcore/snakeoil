@@ -9,6 +9,7 @@ extensions CFLAG passing in distutils.
 Generally speaking, you should flip through this modules src.
 """
 
+import math
 import os
 import sys
 import subprocess
@@ -138,7 +139,7 @@ class build_py(dst_build_py.build_py):
         pjoin = os.path.join
         for base, mod_name, path in self.find_all_modules():
             try:
-                new_mtime = os.lstat(path).st_mtime
+                new_mtime = math.floor(os.lstat(path).st_mtime)
             except EnvironmentError:
                 # ok... wtf distutils?
                 continue
@@ -147,7 +148,7 @@ class build_py(dst_build_py.build_py):
                 yield trg_path, new_mtime
                 continue
             try:
-                old_mtime = os.lstat(trg_path).st_mtime
+                old_mtime = math.floor(os.lstat(trg_path).st_mtime)
             except EnvironmentError:
                 yield trg_path, new_mtime
                 continue
