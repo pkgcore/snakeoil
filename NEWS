@@ -4,6 +4,14 @@ Snakeoil Release Notes
 
 snakeoil trunk:
 
+
+* Added awareness of PEP3149 naming schemes to the namespace walkers.
+
+* Fixed utime related race in 2to3 cacher; comes about due to python not
+  stamping the inode w/ the exact float given, represents via a particular
+  source file being converted a second time (typically breaking it); only
+  triggerable in local development, however it's annoying, thus sorted.
+
 * Effective immediately, python2.4 is no longer supported.  Last release
   was in '08, so really, really don't care anymore.
 
