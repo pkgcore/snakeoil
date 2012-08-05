@@ -5,6 +5,8 @@ Snakeoil Release Notes
 snakeoil trunk:
 
 
+* lintplugins were updated to pylint 0.25.1 API; likely works with >=0.21.
+
 * Added awareness of PEP3149 naming schemes to the namespace walkers.
 
 * Fixed utime related race in 2to3 cacher; comes about due to python not

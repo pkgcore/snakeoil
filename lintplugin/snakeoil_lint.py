@@ -11,9 +11,6 @@ from logilab.astng import (nodes, raw_building, utils,
 
 from snakeoil.lists import iflatten_func
 
-builtins = tuple(x for x in dir(__builtin__) if x[0].islower())
-ignore_shadowing = ('all', 'any', 'intern', 'cmp')
-
 class SnakeoilChecker(checkers.BaseChecker):
 
     __implements__ = (interfaces.IRawChecker, interfaces.IASTNGChecker)
@@ -39,15 +36,9 @@ class SnakeoilChecker(checkers.BaseChecker):
                   'with spaces.'),
         'WPC04': ('non new-style class',
                   'All classes should be new-style classes.'),
-        'WPC05': ('raise statement with two args',
-                  'A raise statement which has a message raised with the '
-                  'exception instead of as an argument to the exception '
-                  'class.'),
         'WPC06': ('raise of Exception base class',
                   'A raise statement in which Exception is raised- make a '
                   'subclass of it and raise that instead.'),
-        'WPC07': ('Shadowing builtin %s',
-                  'Assignment to a builtin name'),
         'WPC08': ('Iterating over dict.keys()',
                   'Iterating over dict.keys()- use `for x in dict` or '
                   '`for x in d.iteritems()` if you need the vals too'),
@@ -66,26 +57,25 @@ class SnakeoilChecker(checkers.BaseChecker):
             self.add_message('WPC04', node=node)
 
     def visit_raise(self, node):
-        if node.expr2 is not None:
-            self.add_message('WPC05', node=node)
-        expr = node.expr1
-        if expr is not None and isinstance(expr, Name) and \
-            expr.name == "Exception":
+        if node.exc is None or not hasattr(node.exc, 'func'):
+            return
+        elif getattr(node.exc.func, 'name', None) == 'Exception':
             self.add_message('WPC06', node=node)
-
-    def visit_assname(self, node):
-        if node.name in builtins and node.name not in ignore_shadowing:
-            self.add_message('WPC07', args=node.name, node=node)
 
     def visit_for(self, node):
         expr = node.iter
         if isinstance(expr, CallFunc):
-            expr = expr.getChildNodes()[0]
+            expr = list(expr.get_children())[0]
             if isinstance(expr, Getattr) and expr.attrname == 'keys':
                 self.add_message('WPC08', node=node)
 
 
-class RewriteDemandload(utils.ASTWalker):
+class SnakeoilASTRewrites(utils.ASTWalker):
+
+    # Wipe the shadowing we still allow for >=py2.5 compat.
+    ignore_shadowing = frozenset(
+        x for x in ('intern', 'cmp', 'next')
+        if x not in dir(__builtin__))
 
     def __init__(self, linter):
         utils.ASTWalker.__init__(self, self)
@@ -96,6 +86,23 @@ class RewriteDemandload(utils.ASTWalker):
 
     def set_context(self, parent, child):
         pass
+
+    def _do_compatibility_rewrite(self, node):
+        wipes = [x for x in node.names if x[0] in self.ignore_shadowing
+                 or x[1] in self.ignore_shadowing]
+        if not wipes:
+            return
+        for src, trg in wipes:
+            del node.scope().locals[trg if trg is not None else src]
+        node.names = [x for x in node.names if x not in wipes]
+
+    def visit_from(self, node):
+        if getattr(node, 'modname', None) == 'snakeoil.compatibility':
+            self._do_compatibility_rewrite(node)
+
+    def visit_import(self, node):
+        if getattr(node, 'modname', None) == 'snakeoil.compatibility':
+            self._do_compatibility_rewrite(node)
 
     def visit_callfunc(self, node):
         """Hack fake imports into the tree after demandload calls."""
@@ -143,7 +150,7 @@ class RewriteDemandload(utils.ASTWalker):
 def register(linter):
     """Required method to get our checker registered."""
 
-    rewriter = RewriteDemandload(linter)
+    rewriter = SnakeoilASTRewrites(linter)
     # XXX HACK: monkeypatch the linter to transform the tree before
     # the astng checkers get at it.
     #
