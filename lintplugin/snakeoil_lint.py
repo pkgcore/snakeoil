@@ -7,12 +7,12 @@ import __builtin__
 
 from pylint import interfaces, checkers
 from logilab.astng import (nodes, raw_building, utils,
-    Name, Getattr, CallFunc, And, Or, Node)
+    Name, Getattr, CallFunc, rebuilder)
 
 from snakeoil.lists import iflatten_func
 
 builtins = tuple(x for x in dir(__builtin__) if x[0].islower())
-ignore_shadowing = ('all', 'any')
+ignore_shadowing = ('all', 'any', 'intern', 'cmp')
 
 class SnakeoilChecker(checkers.BaseChecker):
 
@@ -51,8 +51,6 @@ class SnakeoilChecker(checkers.BaseChecker):
         'WPC08': ('Iterating over dict.keys()',
                   'Iterating over dict.keys()- use `for x in dict` or '
                   '`for x in d.iteritems()` if you need the vals too'),
-        'WPC09': ('Usage of bool(len(seq))',
-                  'Testing for emptiness with len(seq) instead of bool(seq)'),
         }
 
     def process_module(self, stream):
@@ -80,24 +78,11 @@ class SnakeoilChecker(checkers.BaseChecker):
             self.add_message('WPC07', args=node.name, node=node)
 
     def visit_for(self, node):
-        expr = node.getChildNodes()[1]
+        expr = node.iter
         if isinstance(expr, CallFunc):
             expr = expr.getChildNodes()[0]
             if isinstance(expr, Getattr) and expr.attrname == 'keys':
                 self.add_message('WPC08', node=node)
-
-    def visit_if(self, node):
-        f = lambda node: \
-                isinstance(node, basestring) or \
-                node is None or \
-                (isinstance(node, Node) and isinstance(node.parent, (Or,
-                                                                     And)))
-
-        for expr in iflatten_func(node.getChildNodes()[0], f):
-            if isinstance(expr, CallFunc):
-                expr = expr.getChildNodes()[0]
-                if isinstance(expr, Name) and expr.name == 'len':
-                    self.add_message('WPC09', node=node)
 
 
 class RewriteDemandload(utils.ASTWalker):
@@ -106,10 +91,16 @@ class RewriteDemandload(utils.ASTWalker):
         utils.ASTWalker.__init__(self, self)
         self.linter = linter
 
+    def leave(self, node):
+        pass
+
+    def set_context(self, parent, child):
+        pass
+
     def visit_callfunc(self, node):
         """Hack fake imports into the tree after demandload calls."""
         # XXX inaccurate hack
-        if not node.node.as_string().endswith('demandload'):
+        if not getattr(node.func, 'name', '').endswith('demandload'):
             return
         # sanity check.
         if len(node.args) < 2:
@@ -121,6 +112,7 @@ class RewriteDemandload(utils.ASTWalker):
         if node.args[1].value.find(" ") != -1:
             self.linter.add_message('WPC03', node=node)
             return
+        # Ignore the first arg since it's gloals()
         for mod in (module.value for module in node.args[1:]):
             if not isinstance(mod, str):
                 self.linter.add_message('WPC02', node=node)
@@ -132,18 +124,20 @@ class RewriteDemandload(utils.ASTWalker):
                 # nodes.Import([('foo', None), ('foon', 'spork')])
                 # (not entirely sure though, have not found documentation.
                 # The asname/importedname might be the other way around fex).
-                newstuff = nodes.Import([(mod, None)])
-                newstuff.fromlineno = node.fromlineno
-                raw_building._attach_local_node(node.frame(), newstuff, mod)
+                new_node = nodes.Import()
+                rebuilder._set_infos(node, new_node, node.parent)
+                new_node.names = [(mod, mod)]
+                #node.frame().add_local_node(new_node, mod)
+                node.set_local(mod, new_node)
             else:
                 for name in mod[col+1:].split(','):
                     if sys.version_info < (2, 5):
-                        newstuff = nodes.From(mod[:col], ((name, None),))
+                        new_node = nodes.From(mod[:col], ((name, None),))
                     else:
-                        newstuff = nodes.From(mod[:col], ((name, None),), 0)
-                    newstuff.fromlineno = 1
-                    raw_building._attach_local_node(node.frame(), newstuff,
-                                                    name)
+                        new_node = nodes.From(mod[:col], ((name, None),), 0)
+                    rebuilder._set_infos(node, new_node, node.parent)
+                    #node.frame().add_local_node(newstuff, name)
+                    node.set_local(name, new_node)
 
 
 def register(linter):
@@ -170,10 +164,13 @@ def register(linter):
     # Definitely give them a msgs attribute.
 
     original_check_astng_module = linter.check_astng_module
-    def snakeoil_check_astng_module(astng, checkers):
+    def snakeoil_check_astng_module(astng, checkers, rawcheckers):
+        # Rewrite the ast for demandload awareness, then let the normal
+        # checks work with that tree.
         rewriter.walk(astng)
-        return original_check_astng_module(astng, checkers)
+        return original_check_astng_module(astng, checkers, rawcheckers)
     linter.check_astng_module = snakeoil_check_astng_module
 
+    # Finally, register our custom checks.
     linter.register_checker(SnakeoilChecker(linter))
 
