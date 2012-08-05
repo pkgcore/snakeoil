@@ -23,7 +23,6 @@ except ImportError:
 from snakeoil.obj import make_kls, BaseDelayedObject
 from snakeoil.currying import partial
 from snakeoil import mappings
-from snakeoil.compatibility import any
 
 
 def finalize_instance(obj, weakref_inst):

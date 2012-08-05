@@ -17,7 +17,6 @@ del types
 import os
 import errno
 import itertools
-from snakeoil import compatibility
 from snakeoil.weakrefs import WeakRefFinalizer
 # kept purely for compatibility with pcheck; removable in snakeoil 0.5
 from snakeoil.bash import iter_read_bash, read_bash_dict

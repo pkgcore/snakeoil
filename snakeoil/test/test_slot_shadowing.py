@@ -2,7 +2,6 @@
 # License: GPL2/BSD
 
 from snakeoil.test import mixins, TestCase, test_demandload_usage
-from snakeoil.compatibility import any
 import inspect
 
 
