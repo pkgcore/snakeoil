@@ -113,7 +113,7 @@ class PythonNamespaceWalker(object):
                 # file disappeared under our feet... lock file from
                 # trial can cause this.  ignore.
                 import logging
-                logging.warn("file %r disappeared under our feet, ignoring" %
+                logging.debug("file %r disappeared under our feet, ignoring" %
                     (os.path.join(location, x)))
 
         seen = set(['__init__'])
