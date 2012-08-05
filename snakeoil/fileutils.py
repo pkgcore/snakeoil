@@ -9,7 +9,7 @@ till 0.5 of snakeoil, compatibility imports from :py:mod:`snakeoil.bash` will
 be left in place here.
 """
 
-__all__ = ("AtomicWriteFile", "read_dict", "ParseError", 'write_file',)
+__all__ = ("AtomicWriteFile", "read_dict", "ParseError", 'write_file', 'UnbufferedWriteHandle')
 types = [""] + list("_%s" % x for x in ("ascii", "ascii_strict", "utf8", "utf8_strict", "utf8_strict"))
 __all__ += tuple("readfile%s" % x for x in types) + tuple("readlines%s" % x for x in types)
 del types
@@ -72,6 +72,24 @@ def mmap_or_open_for_read(path):
         except EnvironmentError:
             pass
         raise
+
+
+class UnbufferedWriteHandle(object):
+    """Class designed to work around py3k buffering issues
+
+    see http://stackoverflow.com/questions/107705/python-output-buffering
+    for background"""
+
+    def __init__(self, stream):
+        self.stream = stream
+
+    def write(self, data):
+        self.stream.write(data)
+        self.stream.flush()
+
+    #__getattr__ = klass.GetAttrProxy("stream")
+    def __getattr__(self, attr):
+        return getattr(self.stream, attr)
 
 
 class AtomicWriteFile_mixin(object):
