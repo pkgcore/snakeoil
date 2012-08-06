@@ -32,11 +32,6 @@ class snakeoil_build_py(snk_distutils.build_py):
     def _inner_run(self, py3k_rebuilds):
         snk_distutils.build_py._inner_run(self, py3k_rebuilds)
 
-        if sys.version_info[0] < 3 and not self.inplace:
-            kill_it = os.path.join(self.build_lib, 'snakeoil', 'compatibility_py3k.py')
-            os.unlink(kill_it)
-
-
         # distutils is stupid.  restore +x on appropriate scripts
         for script_name in ("caching_2to3.py", "pyflakes_extension.py"):
             path = os.path.join(self.build_lib, 'snakeoil', script_name)

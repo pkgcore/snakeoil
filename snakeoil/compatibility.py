@@ -131,7 +131,12 @@ else:
 import sys
 
 if is_py3k:
-    from snakeoil.compatibility_py3k import raise_from
+    def raise_from(new_exception, exc_info=None):
+        if exc_info is None:
+            exc_info = sys.exc_info()
+        new_exception.__context__ = new_exception.__cause__ = exc_info[1]
+        new_exception.__traceback__ = exc_info[2]
+        raise new_exception
 else:
     def raise_from(new_exception, exc_info=None):
         if exc_info is None:

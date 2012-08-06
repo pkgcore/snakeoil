@@ -66,7 +66,7 @@ class PythonNamespaceWalker(object):
 
     module_blacklist = set(["snakeoil.pyflakes_extension"])
     if not compatibility.is_py3k:
-        module_blacklist.update(["snakeoil.caching_2to3", "snakeoil.compatibility_py3k"])
+        module_blacklist.update(["snakeoil.caching_2to3"])
     module_blacklist = frozenset(module_blacklist)
 
     def _default_module_blacklister(self, target):

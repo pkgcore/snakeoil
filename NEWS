@@ -1,6 +1,11 @@
 Snakeoil Release Notes
 ======================
 
+snakeoil trunk:
+
+* compatiblility.raise_from no longer looses traceback information in
+  >py3k.
+
 
 snakeoil 0.5: August 4th, 2012
 
