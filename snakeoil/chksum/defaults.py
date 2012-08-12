@@ -236,6 +236,7 @@ else:
     # determined through trial and error.
     for hashlibname, chksumname in [
         ('ripemd160', 'rmd160'),
+        ('whirlpool', 'whirlpool'),
         ]:
         try:
             hashlib.new(hashlibname)
