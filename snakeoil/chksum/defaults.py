@@ -234,9 +234,9 @@ else:
 
     # May or may not be available depending on openssl. List
     # determined through trial and error.
-    for hashlibname, chksumname in [
-        ('ripemd160', 'rmd160'),
-        ('whirlpool', 'whirlpool'),
+    for hashlibname, chksumname, size in [
+        ('ripemd160', 'rmd160', rmd160_size),
+        ('whirlpool', 'whirlpool', whirlpool_size),
         ]:
         try:
             hashlib.new(hashlibname)
@@ -244,7 +244,7 @@ else:
             pass # This hash is not available.
         else:
             chksum_types[chksumname] = Chksummer(chksumname,
-                partial(hashlib.new, hashlibname), rmd160_size)
+                partial(hashlib.new, hashlibname), size)
     del hashlibname, chksumname
 
 
