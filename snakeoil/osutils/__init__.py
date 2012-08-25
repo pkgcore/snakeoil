@@ -413,9 +413,18 @@ def unlink_if_exists(path):
 
     :param path: a non directory target to ensure doesn't exist
     """
-
     try:
         os.unlink(path)
     except EnvironmentError, e:
         if e.errno != errno.ENOENT:
             raise
+
+
+def stat_mtime_long(path, st=None):
+    return (os.stat(path) if st is None else st)[stat.ST_MTIME]
+
+def lstat_mtime_long(path, st=None):
+    return (os.lstat(path) if st is None else st)[stat.ST_MTIME]
+
+def fstat_mtime_long(fd, st=None):
+    return (os.fstat(fd) if st is None else st)[stat.ST_MTIME]
