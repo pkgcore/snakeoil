@@ -5,12 +5,13 @@
 chksum verification/generation subsystem
 """
 
+from snakeoil import klass, compatibility
 from snakeoil.demandload import demandload
 demandload(globals(), "os",
     "sys",
     "snakeoil.chksum.defaults:chksum_loop_over_file",
     "snakeoil.modules:load_module",
-    "snakeoil.osutils:listdir_files",
+    "snakeoil:osutils",
 )
 
 chksum_types = {}
@@ -72,7 +73,7 @@ def init(additional_handlers=None):
     chksum_types.clear()
     __inited__ = False
     loc = os.path.dirname(sys.modules[__name__].__file__)
-    for f in listdir_files(loc):
+    for f in osutils.listdir_files(loc):
         if not f.endswith(".py") or f.startswith("__init__."):
             continue
         try:
@@ -124,3 +125,35 @@ def get_chksums(location, *chksums, **kwds):
         parallelize = kwds.get("parallelize", True)
     return chksum_loop_over_file(location, [handlers[k].new() for k in chksums],
         parallelize=parallelize)
+
+
+class LazilyHashedPath(object):
+
+    """Given a pathway, compute chksums on demand via attribute access."""
+
+    __metaclass__ = klass.immutable_instance
+
+    def __init__(self, path, **initial_values):
+        f = object.__setattr__
+        f(self, 'path', path)
+        for attr, val in initial_values.iteritems():
+            f(self, attr, val)
+
+    def __getattr__(self, attr):
+        if not attr.islower():
+            # Disallow sHa1.
+            raise AttributeError(attr)
+        elif attr == 'mtime':
+            val = osutils.stat_mtime_long(self.path)
+        else:
+            try:
+                val = get_chksums(self.path, attr)[0]
+            except KeyError:
+                compatibility.raise_from(AttributeError(attr))
+        object.__setattr__(self, attr, val)
+        return val
+
+    def clear(self):
+        for key in get_handlers():
+            if hasattr(self, key):
+                delattr(self, key)
