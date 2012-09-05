@@ -10,19 +10,15 @@
 import os
 import sys
 import pty
-import StringIO
-import tempfile
+from tempfile import TemporaryFile
 
 from snakeoil.test import TestCase, mk_cpy_loadable_testcase, protect_process
 from snakeoil import formatters, compatibility
 
 if compatibility.is_py3k:
-    import io
-    def mk_tempfile(*args, **kwds):
-        return io.TextIOWrapper(tempfile.TemporaryFile(*args, **kwds))
-
+    from io import BytesIO as StringIO
 else:
-    mk_tempfile = tempfile.TemporaryFile
+    from StringIO import StringIO
 
 # protect against python issu 7567 for the curses module.
 issue7567 = protect_process
@@ -30,6 +26,9 @@ issue7567 = protect_process
 class native_PlainTextFormatterTest(TestCase):
 
     kls = staticmethod(formatters.native_PlainTextFormatter)
+
+    def assertStreamEqual(self, output, stream):
+        self.assertEqual(compatibility.force_bytes(output), stream.getvalue())
 
     def test_basics(self):
         # As many sporks as fit in 20 chars.
@@ -41,11 +40,11 @@ class native_PlainTextFormatterTest(TestCase):
             ((30 * 'a'), 20 * 'a' + '\n' + 10 * 'a'),
             (30 * ('a',), 20 * 'a' + '\n' + 10 * 'a'),
             ]:
-            stream = StringIO.StringIO()
+            stream = StringIO()
             formatter = self.kls(stream, encoding='ascii')
             formatter.width = 20
             formatter.write(autoline=False, wrap=True, *inputs)
-            self.assertEqual(output, stream.getvalue())
+            self.assertStreamEqual(output, stream)
 
     def test_first_prefix(self):
         # As many sporks as fit in 20 chars.
@@ -62,12 +61,12 @@ class native_PlainTextFormatterTest(TestCase):
             ((30 * 'a'), 'foon:' + 15 * 'a' + '\n' + 15 * 'a'),
             (30 * ('a',), 'foon:' + 15 * 'a' + '\n' + 15 * 'a'),
             ]:
-            stream = StringIO.StringIO()
+            stream = StringIO()
             formatter = self.kls(stream, encoding='ascii')
             formatter.width = 20
             formatter.write(autoline=False, wrap=True, first_prefix='foon:',
                             *inputs)
-            self.assertEqual(output, stream.getvalue())
+            self.assertStreamEqual(output, stream)
 
     def test_later_prefix(self):
         for inputs, output in [
@@ -83,30 +82,30 @@ class native_PlainTextFormatterTest(TestCase):
             ((30 * 'a'), 20 * 'a' + '\n' + 'foon:' + 10 * 'a'),
             (30 * ('a',), 20 * 'a' + '\n' + 'foon:' + 10 * 'a'),
             ]:
-            stream = StringIO.StringIO()
+            stream = StringIO()
             formatter = self.kls(stream, encoding='ascii')
             formatter.width = 20
             formatter.later_prefix = ['foon:']
             formatter.write(wrap=True, autoline=False, *inputs)
-            self.assertEqual(output, stream.getvalue())
+            self.assertStreamEqual(output, stream)
 
     def test_complex(self):
-        stream = StringIO.StringIO()
+        stream = StringIO()
         formatter = self.kls(stream, encoding='ascii')
         formatter.width = 9
         formatter.first_prefix = ['foo', None, ' d']
         formatter.later_prefix = ['dorkey']
         formatter.write("dar bl", wrap=True, autoline=False)
-        self.assertEqual("foo ddar\ndorkeybl", stream.getvalue())
+        self.assertStreamEqual("foo ddar\ndorkeybl", stream)
         formatter.write(" "*formatter.width, wrap=True, autoline=True)
-        formatter.stream = stream = StringIO.StringIO()
+        formatter.stream = stream = StringIO()
         formatter.write("dar", " b", wrap=True, autoline=False)
-        self.assertEqual("foo ddar\ndorkeyb", stream.getvalue())
+        self.assertStreamEqual("foo ddar\ndorkeyb", stream)
         output = \
 """     rdepends: >=dev-lang/python-2.3 >=sys-apps/sed-4.0.5
                        dev-python/python-fchksum
 """
-        stream = StringIO.StringIO()
+        stream = StringIO()
         formatter = self.kls(stream, encoding='ascii',
             width=80)
         formatter.wrap = True
@@ -117,26 +116,26 @@ class native_PlainTextFormatterTest(TestCase):
             ">=sys-apps/sed-4.0.5 dev-python/python-fchksum")
         self.assertLen(formatter.first_prefix, 0)
         self.assertLen(formatter.later_prefix, 1)
-        self.assertEqual(output, stream.getvalue())
+        self.assertStreamEqual(output, stream)
         formatter.write()
-        formatter.stream = stream = StringIO.StringIO()
+        formatter.stream = stream = StringIO()
         # push it right up to the limit.
         formatter.width = 82
         formatter.write("     rdepends: >=dev-lang/python-2.3 "
             ">=sys-apps/sed-4.0.5 dev-python/python-fchksum")
-        self.assertEqual(output, stream.getvalue())
+        self.assertStreamEqual(output, stream)
 
         formatter.first_prefix = []
         formatter.later_prefix = ['                  ']
         formatter.width = 28
         formatter.autoline = False
         formatter.wrap = True
-        formatter.stream = stream = StringIO.StringIO()
+        formatter.stream = stream = StringIO()
         input = ("     description: ","The Portage")
         formatter.write(*input)
         output = ''.join(input).rsplit(" ", 1)
         output[1] = '                  %s' % output[1]
-        self.assertEqual(output, stream.getvalue().split("\n"))
+        self.assertStreamEqual('\n'.join(output), stream)
 
 
     def test_wrap_autoline(self):
@@ -156,12 +155,12 @@ class native_PlainTextFormatterTest(TestCase):
              'foonporksp\n'
              'foonork\n'),
             ]:
-            stream = StringIO.StringIO()
+            stream = StringIO()
             formatter = self.kls(stream, encoding='ascii')
             formatter.width = 10
             for input in inputs:
                 formatter.write(wrap=True, later_prefix='foon', *input)
-            self.assertEqual(output, stream.getvalue())
+            self.assertStreamEqual(output, stream)
 
 
 class cpy_PlainTextFormatterTest(native_PlainTextFormatterTest):
@@ -178,13 +177,13 @@ class TerminfoFormatterTest(TestCase):
         formatter.write(*inputs)
         stream.seek(0)
         result = stream.read()
-        self.assertEqual(''.join(output), result,
+        self.assertEqual(compatibility.force_bytes(''.join(output)), result,
             msg="given(%r), expected(%r), got(%r)" % (inputs, ''.join(output), result))
 
     @issue7567
     def test_terminfo(self):
         esc = '\x1b['
-        stream = mk_tempfile()
+        stream = TemporaryFile()
         f = formatters.TerminfoFormatter(stream, 'ansi', True, 'ascii')
         f.autoline = False
         for inputs, output in (
@@ -205,10 +204,19 @@ class TerminfoFormatterTest(TestCase):
             stream, f, ('lala',), ('lala', '\n'))
 
     def test_terminfo_hates_term(self):
-        stream = mk_tempfile()
+        stream = TemporaryFile()
         self.assertRaises(
             formatters.TerminfoHatesOurTerminal,
             formatters.TerminfoFormatter, stream, term='dumb')
+
+    @issue7567
+    def test_title(self):
+        stream = TemporaryFile()
+        f = formatters.TerminfoFormatter(stream, 'xterm+sl', True, 'ascii')
+        f.title('TITLE')
+        stream.seek(0)
+        self.assertEqual(compatibility.force_bytes('\x1b]0;TITLE\x07'),
+                         stream.read())
 
 
 def _with_term(term, func, *args, **kwargs):
@@ -227,10 +235,6 @@ def _get_pty_pair(encoding='ascii'):
     master_fd, slave_fd = pty.openpty()
     master = os.fdopen(master_fd, 'rb', 0)
     out = os.fdopen(slave_fd, 'wb', 0)
-    if compatibility.is_py3k:
-        # note that 2to3 converts the global StringIO import to io
-        master = io.TextIOWrapper(master)
-        out = io.TextIOWrapper(out)
     return master, out
 
 
@@ -250,13 +254,13 @@ class GetFormatterTest(TestCase):
 
     @issue7567
     def test_not_a_tty(self):
-        stream = mk_tempfile()
+        stream = TemporaryFile()
         formatter = _with_term('xterm', formatters.get_formatter, stream)
         self.failUnless(isinstance(formatter, formatters.PlainTextFormatter))
 
     @issue7567
     def test_no_fd(self):
-        stream = StringIO.StringIO()
+        stream = StringIO()
         formatter = _with_term('xterm', formatters.get_formatter, stream)
         self.failUnless(isinstance(formatter, formatters.PlainTextFormatter))
 

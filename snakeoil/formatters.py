@@ -160,15 +160,12 @@ class native_PlainTextFormatter(Formatter):
     if compatibility.is_py3k:
         def _encoding_conversion_needed(self, val):
             return True
-
-        def _force_encoding(self, val):
-            return val.encode(self.encoding, 'replace').decode('ascii')
     else:
         def _encoding_conversion_needed(self, val):
             return isinstance(val, unicode)
 
-        def _force_encoding(self, val):
-            return val.encode(self.encoding, 'replace')
+    def _force_encoding(self, val):
+        return val.encode(self.encoding, 'replace')
 
     def _write_prefix(self, wrap):
         if self._in_first_line:
@@ -275,7 +272,7 @@ class native_PlainTextFormatter(Formatter):
                         if conversion_needed:
                             bit = self._force_encoding(bit)
                         self.stream.write(bit)
-                        self.stream.write('\n')
+                        self.stream.write(self._force_encoding('\n'))
                         self._pos = 0
                         self._in_first_line = False
                         self._wrote_something = False
@@ -288,7 +285,7 @@ class native_PlainTextFormatter(Formatter):
                         arg = self._force_encoding(arg)
                     self.stream.write(arg)
                 if autoline:
-                    self.stream.write('\n')
+                    self.stream.write(self._force_encoding('\n'))
                     self._wrote_something = False
                     self._pos = 0
                     self._in_first_line = True
@@ -367,15 +364,6 @@ except ImportError:
     TerminfoColor = None
 else:
 
-    if compatibility.is_py3k:
-        def tigetstr(key):
-            val = curses.tigetstr(key)
-            if val is not None:
-                return str(val, 'ascii')
-            return val
-    else:
-        tigetstr = curses.tigetstr
-
     class TerminfoColor(object):
         """
         class encapsulating a specific terminfo entry for a color
@@ -408,9 +396,9 @@ else:
                 # bogus template so check explicitly.
                 template = formatter._set_color[self.mode]
                 if template:
-                    res = curses.tparm(template, color).decode("ascii")
+                    res = curses.tparm(template, color)
                 else:
-                    res = ''
+                    res = compatibility.force_bytes('')
                 formatter._current_colors[self.mode] = res
             formatter.stream.write(res)
 
@@ -519,15 +507,26 @@ else:
             self._term = term
             self.width = curses.tigetnum('cols')
             try:
-                self.reset = TerminfoReset(tigetstr('sgr0'))
-                self.bold = TerminfoMode(tigetstr('bold'))
-                self.underline = TerminfoMode(tigetstr('smul'))
-                self._color_reset = tigetstr('op')
+                self.reset = TerminfoReset(curses.tigetstr('sgr0'))
+                self.bold = TerminfoMode(curses.tigetstr('bold'))
+                self.underline = TerminfoMode(curses.tigetstr('smul'))
+                self._color_reset = curses.tigetstr('op')
                 self._set_color = (
-                    tigetstr('setaf'),
-                    tigetstr('setab'))
+                    curses.tigetstr('setaf'),
+                    curses.tigetstr('setab'))
             except (_BogusTerminfo, curses.error):
                 compatibility.raise_from(TerminfoHatesOurTerminal(self._term))
+
+            # Older python 3 has a tparm that takes a str, which makes
+            # little sense. This was fixed in 3.2.3 (yes, in a micro
+            # release), so this mess can go away if we require 3.3.
+            try:
+                curses.tparm(self._set_color[0], curses.COLOR_WHITE)
+            except TypeError:
+                # This is python 3 < 3.2.3.
+                self._set_color = tuple(
+                    template.decode('ascii') for template in self._set_color)
+
             # [fg, bg]
             self._current_colors = [None, None]
             self._modes = set()
@@ -564,9 +563,11 @@ else:
             # not set the hs flag. So just check for the ability to
             # jump to and out of the status line, without checking if
             # the status line we're using exists.
-            if tigetstr('tsl') and tigetstr('fsl'):
+            tsl = curses.tigetstr('tsl')
+            fsl = curses.tigetstr('fsl')
+            if tsl and fsl:
                 self.stream.write(
-                    tigetstr('tsl') + string + tigetstr('fsl'))
+                    tsl + string.encode(self.encoding, 'replace') + fsl)
                 self.stream.flush()
 
 
