@@ -141,7 +141,15 @@ class native_PlainTextFormatter(Formatter):
         :param encoding: encoding unicode strings are converted to.
         """
         Formatter.__init__(self)
-        self.stream = stream
+        # We used to require a TextIOWrapper on py3. We still accept
+        # one, guess the encoding from it and grab its underlying
+        # bytestream.
+        # It would probably be saner to shift the encoding-guessing up
+        # a layer, but keep it here for backwards compat for now.
+        if compatibility.is_py3k and isinstance(stream, io.TextIOWrapper):
+            self.stream = stream.buffer
+        else:
+            self.stream = stream
         if encoding is None:
             encoding = getattr(self.stream, 'encoding', None)
         if encoding is None:
