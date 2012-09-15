@@ -17,6 +17,23 @@
  */
 
 
+#define RETURN_POSSIBLE_NONE(target) \
+{  \
+	if (!(target)) { \
+		Py_RETURN_NONE; \
+	} \
+	Py_INCREF((target)); \
+	return (target); \
+}
+
+#define SWAP_VALUE_HANDLE_NULL(target, newval) \
+{  \
+	PyObject *tmp = (target); \
+	Py_INCREF((newval)); \
+	(target) = (newval); \
+	Py_XDECREF(tmp); \
+}
+
 
 /* Duplicating this is annoying, but we need to
    access it from the C level, so we do. */
@@ -71,10 +88,8 @@ PTF_set_first_prefix(PTF_object *self, PyObject *value, void *closure)
 		return PyList_SetSlice(self->first_prefix,
 			0, PyList_GET_SIZE(self->first_prefix),
 			value);
-	tmp = self->first_prefix;
-	Py_INCREF(value);
-	self->first_prefix = value;
-	Py_DECREF(tmp);
+
+	SWAP_VALUE_HANDLE_NULL(self->first_prefix, value);
 	return 0;
 }
 
@@ -91,18 +106,15 @@ PTF_set_later_prefix(PTF_object *self, PyObject *value, void *closure)
 		return PyList_SetSlice(self->later_prefix,
 			0, PyList_GET_SIZE(self->later_prefix),
 			value);
-	tmp = self->later_prefix;
-	Py_INCREF(value);
-	self->later_prefix = value;
-	Py_DECREF(tmp);
+
+	SWAP_VALUE_HANDLE_NULL(self->later_prefix, value);
 	return 0;
 }
 
 static PyObject *
 PTF_getstream(PTF_object *self, void *closure)
 {
-	Py_INCREF(self->raw_stream);
-	return self->raw_stream;
+	RETURN_POSSIBLE_NONE(self->raw_stream);
 }
 
 static int
@@ -116,10 +128,7 @@ PTF_set_encoding(PTF_object *self, PyObject *value, void *closure)
 		PyErr_SetString(PyExc_TypeError, "encoding must be a string");
 		return -1;
 	}
-	tmp = self->encoding;
-	Py_INCREF(value);
-	self->encoding = value;
-	Py_DECREF(tmp);
+	SWAP_VALUE_HANDLE_NULL(self->encoding, value);
 	return 0;
 }
 
@@ -129,8 +138,9 @@ PTF_get_encoding(PTF_object *self, void *closure)
 	PyObject *tmp = self->encoding;
 	if(!tmp) {
 		PyErr_SetString(PyExc_RuntimeError, "PTF instance has null encoding; this shouldn't be possible");
+		return tmp;
 	}
-	Py_XDECREF(tmp);
+	Py_INCREF(tmp);
 	return tmp;
 }
 
@@ -155,11 +165,7 @@ PTF_setstream(PTF_object *self, PyObject *value, void *closure)
 		Py_XDECREF(tmp2);
 	}
 
-	tmp = self->raw_stream;
-	Py_INCREF(value);
-	self->raw_stream = value;
-	Py_XDECREF(tmp);
-
+	SWAP_VALUE_HANDLE_NULL(self->raw_stream, value);
 	return 0;
 }
 

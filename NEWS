@@ -3,6 +3,8 @@ Snakeoil Release Notes
 
 snakeoil trunk:
 
+* Fix corner case exception in formatter extension, cleanup potential
+  NULL derefs.
 
 * If hashlib has a whirlpool implementation, we use it and prefer it
   over mhash or our fallback implementation; it's faster, drops the
