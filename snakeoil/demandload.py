@@ -67,6 +67,7 @@ py3k_translate = {
     "ConfigParser": "configparser",
     "Queue":"queue",
     "StringIO":"io",
+    "cStringIO":"io",
 }
 
 def parse_imports(imports):
