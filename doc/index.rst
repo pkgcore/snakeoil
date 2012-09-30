@@ -9,7 +9,7 @@ Welcome to snakeoil.  Now what is it?
 
 Snakeoil is a library with the rough intentions of holding common python
 patterns/implementations, optimized common functionality, functionality to ease
-supporting multiple python versions (specifically python2.4 through 3.2), and finally
+supporting multiple python versions (specifically python2.5 through 3.3), and finally
 well tested implementations of rather hard problems to solve.
 
 Snakeoil's naming was chosen partially as a python analog of `liboil <http://liboil.freedesktop.org/>`_
