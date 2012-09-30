@@ -3,6 +3,8 @@ Snakeoil Release Notes
 
 snakeoil trunk:
 
+snakeoil 0.5.1: September 29th, 2012
+
 * Fix corner case exception in formatter extension, cleanup potential
   NULL derefs.
 
