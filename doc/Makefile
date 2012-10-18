@@ -15,7 +15,7 @@ PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 export SNAKEOIL_DEMANDLOAD_WARN = no
 export SNAKEOIL_DEMANDLOAD_PROTECTION = no
-export PYTHONPATH=$(PYTHONPATH)
+export PYTHONPATH
 
 .PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest generated api
 
