@@ -3,8 +3,11 @@ Snakeoil Release Notes
 
 snakeoil trunk:
 
+snakeoil 0.5.2: October 17th, 2012
+
 * Fixed doc generation for py3k, including threading appropriate python
   path/version down through the generation.
+
 
 snakeoil 0.5.1: September 29th, 2012
 
