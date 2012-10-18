@@ -1,6 +1,8 @@
 # Makefile for Sphinx documentation
 #
 
+PYTHON = python
+PYTHONPATH = ../
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
@@ -13,7 +15,7 @@ PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 export SNAKEOIL_DEMANDLOAD_WARN = no
 export SNAKEOIL_DEMANDLOAD_PROTECTION = no
-export PYTHONPATH=../
+export PYTHONPATH=$(PYTHONPATH)
 
 .PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest generated api
 
@@ -44,13 +46,14 @@ generated: api news
 api:
 	@echo "autogenerating api rsts..."
 	@mkdir -p api
+	@echo "pythonpath=${PYTHONPATH}"
 	@for fn in `cat public_modules.txt`; \
 		do echo $${fn} api/$${fn}.rst; \
-	done | python -m snakeoil.sphinx_utils.generate_api_rsts
+	done | $(PYTHON) -m snakeoil.sphinx_utils.generate_api_rsts
 
 news:
 	@echo "autogenerating news.rst..."
-	python -m snakeoil.sphinx_utils.generate_news_rst snakeoil ../NEWS news.rst 'git_release' 'git_tag'
+	$(PYTHON) -m snakeoil.sphinx_utils.generate_news_rst snakeoil ../NEWS news.rst 'git_release' 'git_tag'
 
 html: generated
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html

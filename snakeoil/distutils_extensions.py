@@ -382,9 +382,30 @@ class BuildDocs(core.Command):
         if self.builder is None:
             self.builder = 'html'
 
+    @staticmethod
+    def find_sphinx_build():
+        for ver in (3, 2, 1, 0):
+            ver_info = '.'.join(str(x) for x in sys.version_info[:ver])
+            p = subprocess.Popen(
+                ['which', 'sphinx-build-%s' % ver_info],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, _ = p.communicate()
+            if p.wait() == 0:
+              return stdout.decode().strip()
+        raise Exception("Couldn't find sphinx-build")
+
     def run(self):
         env = os.environ.copy()
-        cmd = ['make', str(self.builder)]
+        syspath = [os.path.abspath(x) for x in sys.path]
+        if self.build_dir:
+            syspath.insert(0, os.path.abspath(
+                os.path.join(self.build_dir, '..', 'lib')))
+            # base dir since it's /doc; this is a bit of a hardcoded hack however.
+            basedir = os.path.dirname(self.source_dir)
+            syspath = [x for x in syspath if x != basedir]
+        syspath = ':'.join(syspath)
+        cmd = ['make', 'PYTHON=%s' % sys.executable, 'PYTHONPATH=%s' % syspath,
+               'SPHINXBUILD=%s' % self.find_sphinx_build(), str(self.builder)]
         opts = []
         if self.version:
             opts.append('-D version=%s' % self.version)
