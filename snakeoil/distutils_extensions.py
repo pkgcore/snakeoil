@@ -400,9 +400,6 @@ class BuildDocs(core.Command):
         if self.build_dir:
             syspath.insert(0, os.path.abspath(
                 os.path.join(self.build_dir, '..', 'lib')))
-            # base dir since it's /doc; this is a bit of a hardcoded hack however.
-            basedir = os.path.dirname(self.source_dir)
-            syspath = [x for x in syspath if x != basedir]
         syspath = ':'.join(syspath)
         cmd = ['make', 'PYTHON=%s' % sys.executable, 'PYTHONPATH=%s' % syspath,
                'SPHINXBUILD=%s' % self.find_sphinx_build(), str(self.builder)]
