@@ -353,20 +353,10 @@ snakeoil_iflatten_instance_iternext(snakeoil_iflatten_instance *self) {
 				Py_DECREF(result);
 				result = NULL;
 			} else if (!res) {
-				/* Not in skip_flattening. */
+
 				/* If it is an iterator add it to our chain, else return it. */
 				iter = PyObject_GetIter(result);
-				if (iter) {
-					/* Iterable, append to our stack and continue. */
-					Py_DECREF(result);
-					result = NULL;
-					res = PyList_Append(self->iterables, iter);
-					Py_DECREF(iter);
-					if (res != -1) {
-						continue;
-					}
-					/* Fall through and propagate the error. */
-				} else {
+				if (!iter) {
 					/* If we get here PyObject_GetIter raised an exception.
 					 * If it was TypeError we have a non-iterator we can
 					 * just return, else we propagate the error.
@@ -377,6 +367,31 @@ snakeoil_iflatten_instance_iternext(snakeoil_iflatten_instance *self) {
 						Py_DECREF(result);
 						result = NULL;
 					}
+				}
+				if (PyString_Check(result)) {
+					/* Block infinite recursion of single char strings */
+					Py_ssize_t len = PyObject_Length(result);
+					if (-1 == len) {
+						Py_DECREF(result);
+						Py_DECREF(iter);
+						return NULL;
+					}
+					if (len <= 1) {
+						Py_CLEAR(iter);
+					}
+				}
+
+				if (iter) {
+					/* Iterable, append to our stack and continue.
+					 * */
+					Py_DECREF(result);
+					result = NULL;
+					res = PyList_Append(self->iterables, iter);
+					Py_DECREF(iter);
+					if (res != -1) {
+						continue;
+					}
+					/* Fall through and propagate the error. */
 				}
 			}
 		} else {

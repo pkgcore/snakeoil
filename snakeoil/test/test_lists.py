@@ -104,6 +104,9 @@ class Test_iflatten_instance(TestCase):
             ([o, 1, "fds"], [o, 1, "fds"], (basestring, OrderedDict)),
             ([o, 1, "fds"], range(10) + [1, "fds"], basestring),
             ("fds", ["fds"], basestring),
+            ("fds", ["f", "d", "s"], int),
+            ('', [''], basestring),
+            (1, [1], int),
             ]:
             iterator = self.func(l, skip)
             self.assertEqual(list(iterator), correct)
@@ -138,6 +141,7 @@ class Test_iflatten_func(TestCase):
             ([o, 1, "fds"], [o, 1, "fds"], (basestring, OrderedDict)),
             ([o, 1, "fds"], range(10) + [1, "fds"], basestring),
             ("fds", ["fds"], basestring),
+            (1, [1], int),
             ]:
             iterator = self.func(l, lambda x:isinstance(x, skip))
             self.assertEqual(list(iterator), correct)
