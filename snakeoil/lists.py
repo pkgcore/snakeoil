@@ -8,6 +8,7 @@ sequence related operations and classes
 __all__ = ("unstable_unique", "stable_unique", "iter_stable_unique",
     "iflatten_instance", "iflatten_func", "ChainedLists", "predicate_split")
 
+from snakeoil.compatibility import is_py3k
 from snakeoil.iterables import expandable_chain
 from snakeoil.klass import steal_docs
 
@@ -91,8 +92,11 @@ def iter_stable_unique(iterable):
             continue
         break
 
-
-def native_iflatten_instance(l, skip_flattening=(basestring,)):
+if is_py3k:
+    _str_kls = (str, bytes)
+else:
+    _str_kls = basestring
+def native_iflatten_instance(l, skip_flattening=_str_kls):
     """
     collapse [[1],2] into [1,2]
 
@@ -107,7 +111,8 @@ def native_iflatten_instance(l, skip_flattening=(basestring,)):
     try:
         while True:
             x = iters.next()
-            if hasattr(x, '__iter__') and not isinstance(x, skip_flattening):
+            if hasattr(x, '__iter__') and not (isinstance(x, skip_flattening)
+                or (isinstance(x, _str_kls) and len(x) == 1)):
                 iters.appendleft(x)
             else:
                 yield x
