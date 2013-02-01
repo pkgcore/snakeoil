@@ -7,12 +7,7 @@ WHAT IS SNAKEOIL?
 
 WHO TO CONTACT IF I FIND A BUG?
 
-  Please submit a bug/ticket via http://www.pkgcore.org. Barring that, please at
-  least send the details to pkgcore-bugs@pkgcore.org.  Please do not use
-  bugs.gentoo.org as the first step; any bugs, pkgcore devs should filter before
-  passing up at this point.
-
-  You can also stop by on irc.freenode.net #pkgcore
+  Please submit a bug/ticket via https://code.google.com/p/snakeoil/ .
 
 
 TESTS?
