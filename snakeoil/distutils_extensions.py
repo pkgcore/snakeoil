@@ -392,7 +392,7 @@ class BuildDocs(core.Command):
             stdout, _ = p.communicate()
             if p.wait() == 0:
               return stdout.decode().strip()
-        raise Exception("Couldn't find sphinx-build")
+        raise Exception("Couldn't find sphinx-build w/in PATH=%r" % os.environ.get('PATH'))
 
     def run(self):
         env = os.environ.copy()
