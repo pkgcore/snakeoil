@@ -3,6 +3,9 @@ Snakeoil Release Notes
 
 snakeoil trunk:
 
+* Handle daft renaming python-exec/mgorny forced upon everyone for sphinx-build.
+
+
 snakeoil 0.5.2: October 17th, 2012
 
 * Fixed doc generation for py3k, including threading appropriate python
