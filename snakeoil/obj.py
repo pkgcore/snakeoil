@@ -108,6 +108,10 @@ if hasattr(object, '__sizeof__'):
     base_kls_descriptors = base_kls_descriptors.union(['__sizeof__',
         '__format__', '__subclasshook__'])
 
+if hasattr(object, '__dir__'):
+    # python 3.3
+    base_kls_descriptors = base_kls_descriptors.union(['__dir__'])
+
 
 class BaseDelayedObject(object):
     """
