@@ -41,48 +41,48 @@ except ImportError:
 _compress_handle = currying.partial(_util.compress_handle, bz2_path)
 _decompress_handle = currying.partial(_util.decompress_handle, bz2_path)
 
-pbzip2_path = None
+lbzip2_path = None
 parallelizable = False
-pbzip2_compress_args = pbzip2_decompress_args = ()
+lbzip2_compress_args = lbzip2_decompress_args = ()
 try:
-    pbzip2_path = process.find_binary("pbzip2")
-    # limit pbzip2 to # of actual cores; else it'll just burn cpu
+    lbzip2_path = process.find_binary("lbzip2")
+    # limit lbzip2 to # of actual cores; else it'll just burn cpu
     # usage.  for verification of this, get an intel system w/ HT,
     # grab a large file, and do some runs comparing core count.
     # HT threads are worthless for this- wall time is the same, but
     # it burns extra cpu time.
-    pbzip2_compress_args = ('-p%i' % process.get_physical_proc_count(),)
-    pbzip2_decompress_args = pbzip2_compress_args
+    lbzip2_compress_args = ('-n%i' % process.get_physical_proc_count(),)
+    lbzip2_decompress_args = lbzip2_compress_args
     parallelizable = True
 except process.CommandNotFound:
     pass
-pbzip2_decompress_args += ('--ignore-trailing-garbage=1',)
+lbzip2_decompress_args += ('--ignore-trailing-garbage=1',)
 
 
 def compress_data(data, level=9, parallelize=False):
     if parallelize and parallelizable:
-        return _util.compress_data(pbzip2_path, data, level=level,
-            extra_args=pbzip2_compress_args)
+        return _util.compress_data(lbzip2_path, data, level=level,
+            extra_args=lbzip2_compress_args)
     return _compress_data(data, compresslevel=level)
 
 def decompress_data(data, parallelize=False):
     if parallelize and parallelizable:
-        return _util.decompress_data(pbzip2_path, data,
-            extra_args=pbzip2_decompress_args)
+        return _util.decompress_data(lbzip2_path, data,
+            extra_args=lbzip2_decompress_args)
     return _decompress_data(data)
 
 def compress_handle(handle, level=9, parallelize=False):
     if parallelize and parallelizable:
-        return _util.compress_handle(pbzip2_path, handle, level=level,
-            extra_args=pbzip2_compress_args)
+        return _util.compress_handle(lbzip2_path, handle, level=level,
+            extra_args=lbzip2_compress_args)
     elif native and isinstance(handle, basestring):
         return BZ2File(handle, mode='w', compresslevel=level)
     return _compress_handle(handle, level=level)
 
 def decompress_handle(handle, parallelize=False):
     if parallelize and parallelizable:
-        return _util.decompress_handle(pbzip2_path, handle,
-            extra_args=pbzip2_decompress_args)
+        return _util.decompress_handle(lbzip2_path, handle,
+            extra_args=lbzip2_decompress_args)
     elif native and isinstance(handle, basestring) \
         and sys.version_info[:3] >= (3,3):
         # note that <3.3, bz2file doesn't handle multiple streams.
