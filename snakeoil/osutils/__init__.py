@@ -41,7 +41,7 @@ __all__ = ('abspath', 'abssymlink', 'ensure_dirs', 'join', 'pjoin',
     'listdir_files', 'listdir_dirs', 'listdir',
     'readdir', 'normpath', 'unlink_if_exists',
     'FsLock', 'GenericFailed',
-    'LockException', 'NonExistant',
+    'LockException', 'NonExistent',
 )
 
 import os, stat
@@ -244,7 +244,7 @@ class LockException(Exception):
         Exception.__init__(self, path, reason)
         self.path, self.reason = path, reason
 
-class NonExistant(LockException):
+class NonExistent(LockException):
     """Missing file/dir exception"""
 
     def __init__(self, path, reason=None):
@@ -286,7 +286,7 @@ class FsLock(object):
             If true, the base dir must exist, and it will create a file.
             If you want to lock via a dir, you have to ensure it exists
             (create doesn't suffice).
-        :raise NonExistant: if no file/dir exists for that path,
+        :raise NonExistent: if no file/dir exists for that path,
             and cannot be created
         """
         self.path = path
@@ -294,7 +294,7 @@ class FsLock(object):
         self.create = create
         if not create:
             if not os.path.exists(path):
-                raise NonExistant(path)
+                raise NonExistent(path)
 
     def _acquire_fd(self):
         flags = os.R_OK
