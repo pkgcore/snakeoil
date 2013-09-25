@@ -236,7 +236,7 @@ class Cpy_JoinTest(TestCase):
 # TODO: more error condition testing
 class FsLockTest(TempDirMixin):
 
-    def test_nonexistant(self):
+    def test_nonexistent(self):
         self.assertRaises(osutils.NonExistant, osutils.FsLock,
             pjoin(self.dir, 'missing'))
 

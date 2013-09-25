@@ -15,4 +15,4 @@ class Test_modules(mixins.PythonNamespaceWalker, TestCase):
                 if not hasattr(module, target):
                     failures.append((module, target))
         if failures:
-            self.fail("nonexistant __all__ targets spotted: %s" % (failures,))
+            self.fail("nonexistent __all__ targets spotted: %s" % (failures,))

@@ -154,7 +154,7 @@ class native_readfile_Test(TempDirMixin):
         self.assertEqual(self.func(path), expected)
 
     def test_none_on_missing(self):
-        fp = pjoin(self.dir, 'nonexistant')
+        fp = pjoin(self.dir, 'nonexistent')
         self.assertRaises(EnvironmentError, self.func, fp)
         self.assertEqual(self.func(fp, True), None)
         data = self.test_cases[0]
@@ -235,7 +235,7 @@ class readlines_mixin(object):
         self.assertEqual(data, expected)
 
     def test_none_on_missing(self):
-        fp = pjoin(self.dir, 'nonexistant')
+        fp = pjoin(self.dir, 'nonexistent')
         self.assertRaises(EnvironmentError, self.func, fp)
         self.assertEqual(tuple(self.func(fp, False, True)), ())
         data = self.test_cases[0]
