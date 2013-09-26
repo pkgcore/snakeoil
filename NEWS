@@ -3,7 +3,13 @@ Snakeoil Release Notes
 
 snakeoil trunk:
 
-* Handle daft renaming python-exec/mgorny forced upon everyone for sphinx-build.
+* Simplify sphinx-build handling, removing checks for Gentoo specific suffixes.
+
+* Switch from pbzip2 to lbzip2 for parallel bzip2 support since lbzip2 can
+  handle parallel decompression of regular non-lbzip2 compressed files unlike
+  pbzip2.
+
+* Fix python3.3 support.
 
 
 snakeoil 0.5.2: October 17th, 2012
