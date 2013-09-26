@@ -3,6 +3,8 @@ Snakeoil Release Notes
 
 snakeoil trunk:
 
+snakeoil 0.5.3: September 26th, 2013
+
 * Simplify sphinx-build handling, removing checks for Gentoo specific suffixes.
 
 * Switch from pbzip2 to lbzip2 for parallel bzip2 support since lbzip2 can
