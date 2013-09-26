@@ -21,6 +21,7 @@ from distutils import core, log, errors, cmd
 from distutils.command import (
     sdist as dst_sdist, build_ext as dst_build_ext, build_py as dst_build_py,
     build as dst_build)
+from distutils.spawn import find_executable
 from snakeoil import unittest_extensions
 
 
@@ -384,17 +385,11 @@ class BuildDocs(core.Command):
 
     @staticmethod
     def find_sphinx_build():
-        # Work our way down from the most explicit, to least explicit.
-        for ver in xrange(3, -1, -1):
-            ver_info = '.'.join(str(x) for x in sys.version_info[:ver])
-            for gentoo_renaming in ('', 'python'):
-                p = subprocess.Popen(
-                    ['which', 'sphinx-build-%s%s' % (gentoo_renaming, ver_info)],
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                stdout, _ = p.communicate()
-                if p.wait() == 0:
-                    return stdout.decode().strip()
-        raise Exception("Couldn't find sphinx-build w/in PATH=%r" % os.environ.get('PATH'))
+        sphinx_build = find_executable('sphinx-build')
+        if sphinx_build:
+            return sphinx_build
+        else:
+            raise Exception("Couldn't find sphinx-build w/in PATH=%r" % os.environ.get('PATH'))
 
     def run(self):
         env = os.environ.copy()
@@ -404,7 +399,8 @@ class BuildDocs(core.Command):
                 os.path.join(self.build_dir, '..', 'lib')))
         syspath = ':'.join(syspath)
         cmd = ['make', 'PYTHON=%s' % sys.executable, 'PYTHONPATH=%s' % syspath,
-               'SPHINXBUILD=%s' % self.find_sphinx_build(), str(self.builder)]
+               'SPHINXBUILD=%s %s' % (sys.executable, self.find_sphinx_build()),
+               str(self.builder)]
         opts = []
         if self.version:
             opts.append('-D version=%s' % self.version)
