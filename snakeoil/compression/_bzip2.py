@@ -56,7 +56,6 @@ try:
     parallelizable = True
 except process.CommandNotFound:
     pass
-lbzip2_decompress_args += ('--ignore-trailing-garbage=1',)
 
 
 def compress_data(data, level=9, parallelize=False):
