@@ -101,7 +101,7 @@ def native_iflatten_instance(l, skip_flattening=_str_kls):
     collapse [[1],2] into [1,2]
 
     :param skip_flattening: list of classes to not descend through
-    :return: this generator yields each item that cannot be flattend (or is
+    :return: this generator yields each item that cannot be flattened (or is
         skipped due to being a instance of ``skip_flattening``)
     """
     if isinstance(l, skip_flattening):
@@ -126,7 +126,7 @@ def native_iflatten_func(l, skip_func):
 
     :param skip_func: a callable that returns True when iflatten_func should
         descend no further
-    :return: this generator yields each item that cannot be flattend (or is
+    :return: this generator yields each item that cannot be flattened (or is
         skipped due to a True result from skip_func)
     """
     if skip_func(l):
