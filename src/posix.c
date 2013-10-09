@@ -121,7 +121,6 @@ snakeoil_normpath(PyObject *self, PyObject *py_old_path)
 
 	_PyString_Resize(&new_obj, write - new_path);
 	return new_obj;
-
 }
 
 static PyObject *
@@ -766,7 +765,7 @@ snakeoil_closerange(PyObject *self, PyObject *args)
 	// since it's pointless.  Realistically the only time
 	// this code is ever ran is immediately post fork-
 	// where no threads can be running.  Thus no gain
-	// to releasing the GIL than reacquiring it, thus we
+	// to releasing the GIL then reacquiring it, thus we
 	// skip it.
 
 	PyOS_snprintf(path, MAXPATHLEN, "/proc/%i/fd", getpid());
