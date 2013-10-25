@@ -118,7 +118,7 @@ class caching_iter(object):
         self.cached_list = []
 
     def __setitem__(self, key, val):
-        raise TypeError("non modifiable")
+        raise TypeError("unmodifiable")
 
     def __getitem__(self, index):
         existing_len = len(self.cached_list)

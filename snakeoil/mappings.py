@@ -404,7 +404,7 @@ class ProtectedDict(DictMixin):
 class ImmutableDict(dict):
 
     """
-    Immutable Dict, non changable after instantiating
+    Immutable Dict, unchangeable after instantiating
 
     Because this is immutable, it's hashable.
     """
@@ -412,7 +412,7 @@ class ImmutableDict(dict):
     _hash_key_grabber = operator.itemgetter(0)
 
     def __delitem__(self, *args):
-        raise TypeError("non modifiable")
+        raise TypeError("unmodifiable")
 
     __setitem__ = clear = update = pop = popitem = setdefault = __delitem__
 
@@ -457,10 +457,10 @@ class IndeterminantDict(object):
             return val
 
     def __hash__(self):
-        raise TypeError("non hashable")
+        raise TypeError("unhashable")
 
     def __delitem__(self, *args):
-        raise TypeError("non modifiable")
+        raise TypeError("unmodifiable")
 
     pop = get
 
@@ -471,7 +471,7 @@ class IndeterminantDict(object):
 
 class StackedDict(DictMixin):
 
-    """A non modifiable dict that makes multiple dicts appear as one"""
+    """A unmodifiable dict that makes multiple dicts appear as one"""
 
     def __init__(self, *dicts):
         self._dicts = dicts
@@ -495,7 +495,7 @@ class StackedDict(DictMixin):
         return False
 
     def __setitem__(self, *a):
-        raise TypeError("non modifiable")
+        raise TypeError("unmodifiable")
 
     __delitem__ = clear = __setitem__
 
