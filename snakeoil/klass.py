@@ -280,7 +280,7 @@ class chained_getter(object):
 
     Note that developers should use :py:func:`static_attrgetter` or
     :py:func:`instance_attrgetter` instead of this class directly.  They should do
-    this since dependant on the python version, there may be a faster implementation
+    this since dependent on the python version, there may be a faster implementation
     to use- for python2.6, :py:func:`operator.attrgetter` can do this same functionality
     but cannot be used as an instance method (like most stdlib functions, it's a staticmethod)
 

@@ -14,7 +14,7 @@ There are some caveats to be aware of in using this metaclass:
 * If you're doing instance sharing, it's strongly advised you do this only for
   immutable instances.  Generally speaking, you don't want two different codepaths
   modifying the same object (a ORM implementation is a notable exemption to this).
-* The implementation doesn't gurantee that it'll always reuse an instance- if the
+* The implementation doesn't guarantee that it'll always reuse an instance- if the
   args/keywords aren't hashable, this machinery cannot cache the instance.  If the
   invocation of the class differs in positional vs optional arg invocation, it's
   possible to get back a new instance.
