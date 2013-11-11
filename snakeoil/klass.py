@@ -17,11 +17,14 @@ __all__ = ("generic_equality", "reflective_hash", "inject_richcmp_methods_from_c
     "steal_docs", "immutable_instance", "inject_immutable_instance",
     "alias_method")
 
+from collections import deque
 from operator import attrgetter
+import sys
+
 from snakeoil import caching, compatibility
 from snakeoil.currying import partial, post_curry
-from collections import deque
-import sys
+from snakeoil.demandload import demandload
+demandload(globals(), 'inspect')
 
 
 def native_GetAttrProxy(target):
@@ -537,18 +540,22 @@ def cached_hash(func):
     return __hash__
 
 
-def steal_docs(target_class, ignore_missing=False, name=None):
+def steal_docs(target, ignore_missing=False, name=None):
     """
-    decorator to steal __doc__ off of a target class.
+    decorator to steal __doc__ off of a target class or function
 
-    Specifically, it will look for a member matching the functors names from target_class,
-    and clones those docs to that functor.
+    Specifically when the target is a class, it will look for a member matching
+    the functors names from target, and clones those docs to that functor;
+    otherwise, it will simply clone the targeted function's docs to the
+    functor.
 
-    :param target_class: class to use for stealing docs from
+    :param target: class or function to steal docs from
     :param ignore_missing: if True, it'll swallow the exception if it
         cannot find a matching method on the target_class.  This is rarely
         what you want- it's mainly useful for cases like `dict.has_key`, where it
         exists in py2k but doesn't in py3k
+    :param name: function name from class to steal docs from, by default the name of the
+        decorated function is used; only used when the target is a class name
 
     Example Usage:
 
@@ -562,16 +569,19 @@ def steal_docs(target_class, ignore_missing=False, name=None):
     >>> assert f.extend.__doc__ == list.extend.__doc__
     """
     def inner(functor):
-        if name is not None:
-            target_name = name
+        if inspect.isclass(target):
+            if name is not None:
+                target_name = name
+            else:
+                target_name = functor.__name__
+            try:
+                obj = getattr(target, target_name)
+            except AttributeError:
+                if not ignore_missing:
+                    raise
         else:
-            target_name = functor.__name__
-        try:
-            obj = getattr(target_class, target_name)
-            functor.__doc__ = obj.__doc__
-        except AttributeError:
-            if not ignore_missing:
-                raise
+            obj = target
+        functor.__doc__ = obj.__doc__
         return functor
     return inner
 
