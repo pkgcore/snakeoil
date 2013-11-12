@@ -3,6 +3,9 @@ Snakeoil Release Notes
 
 snakeoil trunk:
 
+* Add support to klass.steal_docs to clone docstrings from regular functions in
+  addition to class functions.
+
 snakeoil 0.5.3: September 26th, 2013
 
 * Simplify sphinx-build handling, removing checks for Gentoo specific suffixes.
