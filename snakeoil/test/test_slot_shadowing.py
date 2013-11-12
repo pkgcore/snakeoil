@@ -1,8 +1,9 @@
 # Copyright: 2009-2011 Brian Harring <ferringb@gmail.com>
 # License: GPL2/BSD
 
-from snakeoil.test import mixins, TestCase, test_demandload_usage
 import inspect
+
+from snakeoil.test import mixins, TestCase, test_demandload_usage
 
 
 class Test_slot_shadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker, TestCase):

@@ -11,8 +11,8 @@ Generally speaking, you should flip through this modules src.
 
 import math
 import os
-import sys
 import subprocess
+import sys
 
 os.environ["SNAKEOIL_DEMANDLOAD_PROTECTION"] = 'n'
 os.environ["SNAKEOIL_DEMANDLOAD_WARN"] = 'n'
@@ -22,6 +22,7 @@ from distutils.command import (
     sdist as dst_sdist, build_ext as dst_build_ext, build_py as dst_build_py,
     build as dst_build)
 from distutils.spawn import find_executable
+
 from snakeoil import unittest_extensions
 
 

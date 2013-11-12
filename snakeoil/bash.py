@@ -18,6 +18,7 @@ __all__ = ("iter_read_bash", "read_bash", "read_bash_dict", "bash_parser",
 
 import re
 from shlex import shlex
+
 from snakeoil.mappings import ProtectedDict
 from snakeoil.compatibility import raise_from
 # demandloaded since their is a !@#*ing import cycle.

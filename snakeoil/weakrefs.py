@@ -10,7 +10,8 @@ __all__ = ("WeakValCache", "WeakRefFinalizer")
 # Unused import
 # pylint: disable-msg=W0611
 
-import atexit, os
+import atexit
+import os
 
 try:
     # No name in module

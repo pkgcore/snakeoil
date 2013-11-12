@@ -1,9 +1,10 @@
 # Copyright: 2010 Brian Harring <ferringb@gmail.com>
 # License: GPL2/BSD 3 clause
 
+import sys
+
 from snakeoil.test import mixins, TestCase, test_demandload_usage
 from snakeoil.weakrefs import WeakRefFinalizer
-import sys
 
 class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker, TestCase):
 

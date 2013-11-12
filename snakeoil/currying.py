@@ -32,9 +32,10 @@ should be identical. Because :py:func:`partial` has an implementation in c
 while :py:func:`pre_curry` is python you should use :py:func:`partial` if possible.
 """
 
-from snakeoil import compatibility
 from operator import attrgetter
 import sys
+
+from snakeoil import compatibility
 
 __all__ = ("pre_curry", "partial", "post_curry", "pretty_docs",
     "alias_class_method")

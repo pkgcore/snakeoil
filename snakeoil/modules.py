@@ -7,8 +7,9 @@ dynamic import functionality
 
 __all__ = ("FailedImport", "load_module", "load_attribute", "load_any")
 
-from snakeoil.compatibility import raise_from, IGNORED_EXCEPTIONS
 import sys
+
+from snakeoil.compatibility import raise_from, IGNORED_EXCEPTIONS
 
 class FailedImport(ImportError):
     """

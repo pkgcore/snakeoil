@@ -8,8 +8,8 @@
 # aside from that, tests need heavy expansion
 
 import os
-import sys
 import pty
+import sys
 from tempfile import TemporaryFile
 
 from snakeoil.test import TestCase, mk_cpy_loadable_testcase, protect_process

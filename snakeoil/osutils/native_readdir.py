@@ -5,9 +5,11 @@
 """Wrapper for readdir which grabs file type from d_type."""
 
 
-import os, errno
+import errno
+import os
 from stat import (S_IFDIR, S_IFREG, S_IFCHR, S_IFBLK, S_IFIFO, S_IFLNK, S_IFSOCK,
     S_IFMT, S_ISDIR, S_ISREG)
+
 from snakeoil.mappings import ProtectedDict
 
 listdir = os.listdir

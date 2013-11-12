@@ -13,9 +13,10 @@ Should use this module unless its absolutely critical that bz2 module be used
 
 __all__ = ("compress_data", "decompress_data")
 
+import sys
+
 from snakeoil import process, currying
 from snakeoil.compression import _util
-import sys
 
 # Unused import
 # pylint: disable-msg=W0611

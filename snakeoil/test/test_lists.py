@@ -2,10 +2,11 @@
 # License: BSD/GPL2
 
 
+from operator import itemgetter
+
 from snakeoil.test import TestCase, mk_cpy_loadable_testcase
 from snakeoil import lists
 from snakeoil.mappings import OrderedDict
-from operator import itemgetter
 
 class UnhashableComplex(complex):
 

@@ -3,16 +3,16 @@
 # License: BSD/GPL2
 
 
-import errno, mmap, os
+import errno
+import mmap
+import os
 from StringIO import StringIO
-from snakeoil import compatibility
-from snakeoil import currying
 
 pjoin = os.path.join
 
+from snakeoil import compatibility, currying, fileutils, _fileutils
 from snakeoil.fileutils import (
     read_dict, AtomicWriteFile, ParseError)
-from snakeoil import fileutils, _fileutils
 from snakeoil.test import TestCase
 from snakeoil.test.mixins import TempDirMixin
 

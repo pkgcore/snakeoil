@@ -2,6 +2,7 @@
 # License: GPL2/BSD 3 clause
 
 import os
+
 from snakeoil.test import TestCase, mixins
 from snakeoil import process
 

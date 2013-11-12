@@ -3,7 +3,6 @@
 
 
 from snakeoil.test import TestCase
-
 from snakeoil import descriptors
 
 

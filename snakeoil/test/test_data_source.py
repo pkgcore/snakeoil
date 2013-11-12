@@ -2,10 +2,9 @@
 # License: GPL2/BSD
 
 import os
-from snakeoil import data_source
+
+from snakeoil import compatibility, currying, data_source, stringio
 from snakeoil.test import TestCase, mixins
-from snakeoil import compatibility
-from snakeoil import stringio, currying
 from snakeoil.osutils import pjoin
 
 class TestDataSource(TestCase):

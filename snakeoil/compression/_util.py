@@ -3,8 +3,10 @@
 
 __all__ = ("compress_data", "decompress_data")
 
-import os, signal
+import os
+import signal
 import subprocess
+
 from snakeoil import klass
 from snakeoil.weakrefs import WeakRefFinalizer
 

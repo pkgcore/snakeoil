@@ -9,17 +9,15 @@
 __all__ = ('SkipTest', 'TestCase')
 
 
-import sys
-import warnings
-import unittest
-from snakeoil import unittest_extensions
-import traceback
 import os
 import subprocess
+import sys
+import traceback
+import unittest
+import warnings
+
+from snakeoil import fileutils, klass, modules, unittest_extensions
 from snakeoil.compatibility import is_py3k_like, IGNORED_EXCEPTIONS, is_py3k
-from snakeoil import modules
-from snakeoil import fileutils
-from snakeoil import klass
 
 def _tryResultCall(result, methodname, *args):
     method = getattr(result, methodname, None)

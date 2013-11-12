@@ -2,9 +2,10 @@
 # License: BSD/GPL2
 
 
+import sre_constants
+
 from snakeoil.test import TestCase
 from snakeoil import demandload
-import sre_constants
 
 # few notes:
 # all tests need to be wrapped w/ the following decorator; it

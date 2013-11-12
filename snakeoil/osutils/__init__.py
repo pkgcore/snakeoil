@@ -44,9 +44,10 @@ __all__ = ('abspath', 'abssymlink', 'ensure_dirs', 'join', 'pjoin',
     'LockException', 'NonExistent',
 )
 
-import os, stat
-import fcntl
 import errno
+import fcntl
+import os
+import stat
 
 # imported for compatibility.  Will be removed in 0.5
 from snakeoil.fileutils import (

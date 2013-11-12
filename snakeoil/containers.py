@@ -11,8 +11,7 @@ __all__ = ("InvertedContains", "SetMixin", "LimitedChangeSet", "Unchangable",
 
 from snakeoil import compatibility
 from snakeoil.demandload import demandload
-demandload(
-    globals(),
+demandload(globals(),
     'itertools:chain,ifilterfalse',
 )
 

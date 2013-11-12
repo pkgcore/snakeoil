@@ -52,6 +52,7 @@ __all__ = ("demandload", "demand_compile_regexp")
 
 import os
 import sys
+
 from snakeoil.modules import load_any
 from snakeoil.currying import partial
 from snakeoil import compatibility

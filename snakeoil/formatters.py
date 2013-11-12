@@ -4,8 +4,8 @@
 
 """Classes wrapping a file-like object to do fancy output on it."""
 
-import os
 import errno
+import os
 
 from snakeoil.klass import GetAttrProxy, steal_docs
 from snakeoil.demandload import demandload

@@ -1,6 +1,11 @@
 #!/usr/bin/python
+
+import errno
+import inspect
+import os
+import sys
+
 from snakeoil.modules import load_module
-import inspect, sys, os, errno
 
 def gen_segment(name, targets):
     l = ["    .. rubric:: %s" % (name,)]

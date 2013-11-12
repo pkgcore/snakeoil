@@ -3,6 +3,7 @@
 
 import os
 import sys
+
 from snakeoil.demandload import demandload
 demandload(globals(),
     'subprocess',

@@ -2,17 +2,17 @@
 # Copyright: 2006 Marien Zwart <marienz@gentoo.org>
 # License: BSD/GPL2
 
-import os
-pjoin = os.path.join
-import grp
-import stat
 import fcntl
+import grp
+import os
+import stat
 
-from snakeoil import compatibility
+from snakeoil import compatibility, osutils
 from snakeoil.test import TestCase, SkipTest, mk_cpy_loadable_testcase
-from snakeoil import osutils
 from snakeoil.osutils import native_readdir
 from snakeoil.test.mixins import TempDirMixin
+
+pjoin = os.path.join
 
 
 class ReaddirCommon(TempDirMixin):

@@ -14,9 +14,10 @@ types = [""] + list("_%s" % x for x in ("ascii", "ascii_strict", "utf8", "utf8_s
 __all__ += tuple("readfile%s" % x for x in types) + tuple("readlines%s" % x for x in types)
 del types
 
-import os
 import errno
 import itertools
+import os
+
 from snakeoil.weakrefs import WeakRefFinalizer
 # kept purely for compatibility with pcheck; removable in snakeoil 0.5
 from snakeoil.bash import iter_read_bash, read_bash_dict

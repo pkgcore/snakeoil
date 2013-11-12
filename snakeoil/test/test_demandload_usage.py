@@ -1,7 +1,9 @@
 # Copyright: 2005-2011 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
-import os, stat, errno
+import errno
+import os
+import stat
 
 from snakeoil.test import TestCase, mixins
 from snakeoil import compatibility

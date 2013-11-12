@@ -1,10 +1,11 @@
 # Copyright: 2006-2007 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
+from time import time
+
 from snakeoil.test import TestCase, mk_cpy_loadable_testcase, test_currying
 from snakeoil import klass, currying
 from snakeoil.compatibility import cmp, is_py3k
-from time import time
 
 class Test_native_GetAttrProxy(TestCase):
     kls = staticmethod(klass.native_GetAttrProxy)

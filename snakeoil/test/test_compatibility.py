@@ -1,11 +1,12 @@
 # Copyright: 2006 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
+import __builtin__ as builtins
+from operator import itemgetter
+
 from snakeoil.test import TestCase
 from snakeoil import compatibility
 from snakeoil.currying import post_curry
-from operator import itemgetter
-import __builtin__ as builtins
 
 class override_mixin(object):
 

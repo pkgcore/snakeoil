@@ -1,7 +1,9 @@
 # Copyright: 2006-2011 Brian Harring <ferringb@gmail.com>
 # License: GPL2/BSD
 
-import tempfile, os
+import os
+import tempfile
+
 from snakeoil.test import TestCase, SkipTest
 from snakeoil.currying import post_curry
 from snakeoil.compatibility import is_py3k

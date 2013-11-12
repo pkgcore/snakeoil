@@ -12,10 +12,12 @@ __all__ = ("autoconvert_py3k_methods_metaclass", "DictMixin", "LazyValDict",
     "OrderedDict", "defaultdict", "defaultdictkey", "AttrAccessible", "StackedDict",
     "make_SlottedDict_kls")
 
-import operator, sys
-from itertools import imap, chain, ifilterfalse, izip
-from snakeoil.klass import get, contains, steal_docs, alias_method
 from collections import deque
+from itertools import imap, chain, ifilterfalse, izip
+import operator
+import sys
+
+from snakeoil.klass import get, contains, steal_docs, alias_method
 from snakeoil import compatibility
 cmp = compatibility.cmp
 

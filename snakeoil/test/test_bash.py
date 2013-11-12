@@ -3,8 +3,10 @@
 # License: BSD/GPL2
 
 
-import tempfile, os
+import os
+import tempfile
 from StringIO import StringIO
+
 from snakeoil import compatibility
 from snakeoil.test.mixins import mk_named_tempfile
 from snakeoil.test import TestCase

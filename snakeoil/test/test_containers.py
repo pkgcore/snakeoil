@@ -4,6 +4,7 @@
 
 
 from itertools import chain
+
 from snakeoil.test import TestCase
 from snakeoil import containers
 

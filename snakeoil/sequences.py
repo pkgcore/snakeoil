@@ -1,8 +1,9 @@
 # Copyright: 2010 Brian Harring <ferringb@gmail.com>
 # License: GPL2/BSD 3 clause
 
-from snakeoil.lists import *
 from operator import itemgetter
+
+from snakeoil.lists import *
 
 
 class base_namedtuple(tuple):

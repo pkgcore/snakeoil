@@ -2,14 +2,13 @@
 # License: BSD/GPL2
 
 
-from snakeoil.test import TestCase
-
 import os
-import sys
 import shutil
+import sys
 import tempfile
 
 from snakeoil import modules
+from snakeoil.test import TestCase
 
 
 class ModulesTest(TestCase):
