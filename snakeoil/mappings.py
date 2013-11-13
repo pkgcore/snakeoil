@@ -473,7 +473,7 @@ class IndeterminantDict(object):
 
 class StackedDict(DictMixin):
 
-    """A unmodifiable dict that makes multiple dicts appear as one"""
+    """An unmodifiable dict that makes multiple dicts appear as one"""
 
     def __init__(self, *dicts):
         self._dicts = dicts
