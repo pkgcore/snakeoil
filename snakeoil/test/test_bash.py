@@ -14,7 +14,7 @@ from snakeoil.test import TestCase
 pjoin = os.path.join
 
 from snakeoil.bash import (
-    iter_read_bash, read_bash, read_bash_dict,
+    iter_read_bash, read_bash, read_dict, read_bash_dict,
     BashParseError)
 
 
@@ -40,6 +40,34 @@ class TestBashCommentStripping(TestCase):
                     '# hi I am a comment\n'
                     'I am not\n')),
             ['I am not'])
+
+
+class TestReadDictConfig(TestCase):
+
+    def test_read_dict(self):
+        self.assertEqual(
+            read_dict(StringIO(
+                    '\n'
+                    '# hi I am a comment\n'
+                    'foo1=bar\n'
+                    'foo2="bar"\n'
+                    'foo3=\'bar"\n'
+                    )),
+            {'foo1': 'bar',
+             'foo2': 'bar',
+             'foo3': '\'bar"',
+             })
+        self.assertEqual(
+            read_dict(['foo=bar'], source_isiter=True), {'foo': 'bar'})
+        self.assertRaises(
+            BashParseError, read_dict, ['invalid'], source_isiter=True)
+        self.assertEqual(
+            read_dict(StringIO("foo bar\nfoo2  bar\nfoo3\tbar\n"),
+                splitter=None),
+            {}.fromkeys(('foo', 'foo2', 'foo3'), 'bar'))
+        self.assertEqual(
+            read_dict(['foo = blah', 'foo2= blah ', 'foo3=blah'], strip=True),
+            {}.fromkeys(('foo', 'foo2', 'foo3'), 'blah'))
 
 
 class ReadBashDictTest(TestCase):

@@ -13,20 +13,15 @@ It's primary usage is for reading things like gentoo make.conf's, or
 libtool .la files that are bash compatible, but non executable.
 """
 
-__all__ = ("iter_read_bash", "read_bash", "read_bash_dict", "bash_parser",
-    "BashParseError")
+__all__ = ("iter_read_bash", "read_bash", "read_dict", "read_bash_dict",
+           "bash_parser", "BashParseError")
 
 import re
 from shlex import shlex
 
 from snakeoil.mappings import ProtectedDict
 from snakeoil.compatibility import raise_from
-# demandloaded since their is a !@#*ing import cycle.
-# that cycle goes away once fileutils stops it's compatibility for bash access
-from snakeoil.demandload import demandload
-demandload(globals(),
-    'snakeoil.osutils:readlines_utf8',
-)
+from snakeoil.osutils import readlines_utf8
 
 def iter_read_bash(bash_source, allow_inline_comments=True):
     """
@@ -139,6 +134,49 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
             f.close()
     if protected:
         d = d.new
+    return d
+
+
+def read_dict(bash_source, splitter="=", source_isiter=False,
+              allow_inline_comments=True, strip=False, filename=None):
+    """
+    read key value pairs from a file, ignoring bash-style comments.
+
+    :param splitter: the string to split on.  Can be None to
+        default to str.split's default
+    :param bash_source: either a file to read from,
+        or a string holding the filename to open.
+    :param allow_inline_comments: whether or not to prune characters
+        after a # that isn't at the start of a line.
+    :raise: :py:class:`BashParseError` if there are parse errors found.
+    """
+    d = {}
+    if not source_isiter:
+        filename = bash_source
+        i = iter_read_bash(bash_source,
+            allow_inline_comments=allow_inline_comments)
+    else:
+        if filename is None:
+            # XXX what to do?
+            filename = '<unknown>'
+        i = bash_source
+    line_count = 1
+    try:
+        for k in i:
+            line_count += 1
+            try:
+                k, v = k.split(splitter, 1)
+            except ValueError:
+                if filename == "<unknown>":
+                    filename = getattr(bash_source, 'name', bash_source)
+                raise_from(BashParseError(filename, line_count))
+            if strip:
+                k, v = k.strip(), v.strip()
+            if len(v) > 2 and v[0] == v[-1] and v[0] in ("'", '"'):
+                v = v[1:-1]
+            d[k] = v
+    finally:
+        del i
     return d
 
 

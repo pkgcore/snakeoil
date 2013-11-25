@@ -3,24 +3,16 @@
 
 """
 file related operations, mainly reading
-
-Note that this originally held bash parsing functiona- for compatibility
-till 0.5 of snakeoil, compatibility imports from :py:mod:`snakeoil.bash` will
-be left in place here.
 """
 
-__all__ = ("AtomicWriteFile", "read_dict", "ParseError", 'write_file', 'UnbufferedWriteHandle')
+__all__ = ("AtomicWriteFile", 'write_file', 'UnbufferedWriteHandle')
 types = [""] + list("_%s" % x for x in ("ascii", "ascii_strict", "utf8", "utf8_strict", "utf8_strict"))
 __all__ += tuple("readfile%s" % x for x in types) + tuple("readlines%s" % x for x in types)
 del types
 
-import errno
-import itertools
 import os
 
 from snakeoil.weakrefs import WeakRefFinalizer
-# kept purely for compatibility with pcheck; removable in snakeoil 0.5
-from snakeoil.bash import iter_read_bash, read_bash_dict
 from snakeoil import klass, compatibility
 from snakeoil.currying import partial, pretty_docs
 from snakeoil.demandload import demandload
@@ -203,67 +195,6 @@ else:
             return None
 
         __getattr__ = klass.GetAttrProxy("raw")
-
-
-def read_dict(bash_source, splitter="=", source_isiter=False,
-    allow_inline_comments=True, strip=False, filename=None):
-    """
-    read key value pairs from a file, ignoring bash-style comments.
-
-    :param splitter: the string to split on.  Can be None to
-        default to str.split's default
-    :param bash_source: either a file to read from,
-        or a string holding the filename to open.
-    :param allow_inline_comments: whether or not to prune characters
-        after a # that isn't at the start of a line.
-    :raise: :py:class:`ParseError` if there are parse errors found.
-    """
-    d = {}
-    if not source_isiter:
-        filename = bash_source
-        i = iter_read_bash(bash_source,
-            allow_inline_comments=allow_inline_comments)
-    else:
-        if filename is None:
-            # XXX what to do?
-            filename = '<unknown>'
-        i = bash_source
-    line_count = 1
-    try:
-        for k in i:
-            line_count += 1
-            try:
-                k, v = k.split(splitter, 1)
-            except ValueError:
-                if filename == "<unknown>":
-                    filename = getattr(bash_source, 'name', bash_source)
-                compatibility.raise_from(ParseError(filename, line_count))
-            if strip:
-                k, v = k.strip(), v.strip()
-            if len(v) > 2 and v[0] == v[-1] and v[0] in ("'", '"'):
-                v = v[1:-1]
-            d[k] = v
-    finally:
-        del i
-    return d
-
-
-class ParseError(Exception):
-
-    """
-    Exception thrown if there is a parsing error in reading a key/value dict file
-    """
-
-    def __init__(self, filename, line, errmsg=None):
-        if errmsg is not None:
-            Exception.__init__(self,
-                               "error parsing '%s' on or before line %i: err %s" %
-                               (filename, line, errmsg))
-        else:
-            Exception.__init__(self,
-                               "error parsing '%s' on or before line %i" %
-                               (filename, line))
-        self.file, self.line, self.errmsg = filename, line, errmsg
 
 
 def _mk_pretty_derived_func(func, name_base, name, *args, **kwds):

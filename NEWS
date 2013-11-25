@@ -3,6 +3,10 @@ Snakeoil Release Notes
 
 snakeoil trunk:
 
+* Move snakeoil.fileutils.read_dict to snakeoil.bash.read_dict and drop
+  compatibility shims for the iter_read_bash and read_bash_dict methods from
+  fileutils.
+
 * Add support to klass.steal_docs to clone docstrings from regular functions in
   addition to class functions.
 
@@ -32,7 +36,7 @@ snakeoil 0.5.1: September 29th, 2012
   over mhash or our fallback implementation; it's faster, drops the
   GIL, and generally is the bees-knees.
 
-* compatiblility.raise_from no longer looses traceback information in
+* compatibility.raise_from no longer looses traceback information in
   >py3k.
 
 
