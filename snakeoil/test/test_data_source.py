@@ -52,18 +52,6 @@ class TestDataSource(TestCase):
             self._test_fileobj_wr("bytes_fileobj",
                 compatibility.force_bytes)
 
-    def test_get_textfileobj(self):
-        # just validate we get back an obj...
-        # not quite blackbox, but we know we test the functionality above-
-        # thus no point in repeating it just for an aliasing of the method name
-        self.get_obj().get_text_fileobj().close()
-
-    def test_get_textfileobj(self):
-        # just validate we get back an obj...
-        # not quite blackbox, but we know we test the functionality above-
-        # thus no point in repeating it just for an aliasing of the method name
-        self.get_obj().get_bytes_fileobj().close()
-
     def assertContents(self, reader, writer):
         reader_f = reader.bytes_fileobj()
         writer_f = writer.bytes_fileobj()
@@ -131,23 +119,23 @@ class TestLocalSource(mixins.TempDirMixin, TestDataSource):
             f.close()
         return data_source.local_source(self.fp, mutable=mutable)
 
-    def test_get_bytes_fileobj(self):
+    def test_bytes_fileobj(self):
         data = u"foonani\xf2".encode("utf8")
         obj = self.get_obj(data=data)
         # this will blow up if tries to ascii decode it.
-        f = obj.get_bytes_fileobj()
+        f = obj.bytes_fileobj()
         self.assertEqual(f.read(), data)
         f.close()
 
-    def test_get_bytes_fileobj_create(self):
+    def test_bytes_fileobj_create(self):
         data = u"foonani\xf2".encode("utf8")
         obj = self.get_obj(test_creation=True, mutable=True)
         # this will blow up if tries to ascii decode it.
-        f = obj.get_bytes_fileobj(True)
+        f = obj.bytes_fileobj(True)
         self.assertEqual(f.read(), u''.encode("utf8"))
         f.write(data)
         f.close()
-        f = obj.get_bytes_fileobj()
+        f = obj.bytes_fileobj()
         self.assertEqual(f.read(), data)
         f.close()
 

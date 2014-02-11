@@ -173,14 +173,6 @@ class base(object):
         """
         raise NotImplementedError(self, "bytes_fileobj")
 
-    get_fileobj = klass.alias_method("text_fileobj", "get_fileobj",
-        "deprecated; use text_fileobj instead")
-
-    get_text_fileobj = klass.alias_method("text_fileobj",
-        doc="deprecated; use text_fileobj directly")
-    get_bytes_fileobj = klass.alias_method("bytes_fileobj",
-        doc="deprecated; use bytes_fileobj directed")
-
     def transfer_to_path(self, path):
         return self.transfer_to_data_source(
             local_source(path, mutable=True, encoding=None))
@@ -289,8 +281,8 @@ class bz2_source(base):
         if writable:
             if not self.mutable:
                 raise TypeError("data source %s is not mutable" % (self,))
-            return data_source.text_wr_StringIO(self._set_data, data)
-        return data_source.text_ro_StringIO(data)
+            return text_wr_StringIO(self._set_data, data)
+        return text_ro_StringIO(data)
 
     def bytes_fileobj(self, writable=False):
         data = compression.decompress_data('bzip2',
@@ -298,8 +290,8 @@ class bz2_source(base):
         if writable:
             if not self.mutable:
                 raise TypeError("data source %s is not mutable" % (self,))
-            return data_source.bytes_wr_StringIO(self._set_data, data)
-        return data_source.bytes_ro_StringIO(data)
+            return bytes_wr_StringIO(self._set_data, data)
+        return bytes_ro_StringIO(data)
 
     def _set_data(self, data):
         if compatibility.is_py3k:

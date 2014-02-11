@@ -54,7 +54,7 @@ def loop_over_file(handle, callbacks, parallelize=True):
     if isinstance(handle, basestring):
         m, f = mmap_or_open_for_read(handle)
     elif isinstance(handle, base_data_source):
-        f = handle.get_bytes_fileobj()
+        f = handle.bytes_fileobj()
     else:
         f = handle
         close_f = False
@@ -362,7 +362,7 @@ class SizeChksummer(Chksummer):
             if file_obj.path is not None:
                 file_obj = file_obj.path
             else:
-                file_obj = file_obj.get_fileobj()
+                file_obj = file_obj.text_fileobj()
         if isinstance(file_obj, basestring):
             try:
                 st_size = os.lstat(file_obj).st_size
