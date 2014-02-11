@@ -3,6 +3,12 @@ Snakeoil Release Notes
 
 snakeoil trunk:
 
+* Migrate pkgcore.vdb.ondisk.bz2_data_source to
+  snakeoil.data_source.bz2_source.
+
+* Drop deprecated getters from snakeoil.data_source; attrs and functions
+  should be accessed directly.
+
 * Move snakeoil.fileutils.read_dict to snakeoil.bash.read_dict and drop
   compatibility shims for the iter_read_bash and read_bash_dict methods from
   fileutils.
