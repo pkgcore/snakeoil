@@ -150,21 +150,6 @@ class PostCurryTest(TestCase):
         self.assertEqual(((test, 'test'), {}), test.method())
 
 
-class TestAliasClassMethod(TestCase):
-
-    func = staticmethod(currying.alias_class_method)
-
-    def test_alias_class_method(self):
-        class kls(object):
-            __len__ = lambda s: 3
-            lfunc = self.func("__len__")
-
-        c = kls()
-        self.assertEqual(c.__len__(), c.lfunc())
-        c.__len__ = lambda : 4
-        self.assertEqual(c.__len__(), c.lfunc())
-
-
 class Test_wrap_exception(TestCase):
 
     def test_wrap_exception_complex(self):

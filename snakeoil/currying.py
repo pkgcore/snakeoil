@@ -37,8 +37,7 @@ import sys
 
 from snakeoil import compatibility
 
-__all__ = ("pre_curry", "partial", "post_curry", "pretty_docs",
-    "alias_class_method")
+__all__ = ("pre_curry", "partial", "post_curry", "pretty_docs")
 
 
 def pre_curry(func, *args, **kwargs):
@@ -190,23 +189,6 @@ def pretty_docs(wrapped, extradocs=None, name=None):
     if name:
         wrapped.__name__ = name
     return wrapped
-
-
-def alias_class_method(attr, name=None, doc=None):
-    """at runtime, redirect to another method
-
-    Deprecated.  Use snakeoil.klass.alias_method instead.
-    """
-    grab_attr = attrgetter(attr)
-
-    def _asecond_level_call(self, *a, **kw):
-        return grab_attr(self)(*a, **kw)
-
-    if doc:
-        _asecond_level_call.__doc__ = doc
-    if name:
-        _asecond_level_call.__name__ = name
-    return _asecond_level_call
 
 
 def wrap_exception(recast_exception, *args, **kwds):

@@ -603,6 +603,17 @@ class TestImmutableInstance(TestCase):
         self.assertRaises(TypeError, setattr, o, "dar", "foon")
         self.assertRaises(AttributeError, delattr, o, "dar")
 
-class TestAliasMethod(test_currying.TestAliasClassMethod):
+
+class TestAliasMethod(TestCase):
 
     func = staticmethod(klass.alias_method)
+
+    def test_alias_method(self):
+        class kls(object):
+            __len__ = lambda s: 3
+            lfunc = self.func("__len__")
+
+        c = kls()
+        self.assertEqual(c.__len__(), c.lfunc())
+        c.__len__ = lambda : 4
+        self.assertEqual(c.__len__(), c.lfunc())

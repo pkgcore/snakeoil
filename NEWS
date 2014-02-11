@@ -3,6 +3,8 @@ Snakeoil Release Notes
 
 snakeoil trunk:
 
+* Drop deprecated currying.alias_class_method; use klass.alias_method.
+
 * Migrate pkgcore.vdb.ondisk.bz2_data_source to
   snakeoil.data_source.bz2_source.
 
