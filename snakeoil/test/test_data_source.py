@@ -3,9 +3,10 @@
 
 import os
 
-from snakeoil import compatibility, currying, data_source, stringio
+from snakeoil import compatibility, compression, currying, data_source, stringio
 from snakeoil.test import TestCase, mixins
 from snakeoil.osutils import pjoin
+
 
 class TestDataSource(TestCase):
 
@@ -91,7 +92,10 @@ class TestDataSource(TestCase):
     def test_transfer_to_path(self):
         data = self._mk_data()
         reader = self.get_obj(data=data)
-        writer = data_source.local_source(pjoin(self.dir, 'transfer_to_path'), mutable=True)
+        if isinstance(reader, data_source.bz2_source):
+            writer = data_source.bz2_source(pjoin(self.dir, 'transfer_to_path'), mutable=True)
+        else:
+            writer = data_source.local_source(pjoin(self.dir, 'transfer_to_path'), mutable=True)
 
         reader.transfer_to_path(writer.path)
 
@@ -112,11 +116,10 @@ class TestDataSource(TestCase):
         self.assertContents(reader, writer)
 
 
-
 class TestLocalSource(mixins.TempDirMixin, TestDataSource):
 
     def get_obj(self, data="foonani", mutable=False, test_creation=False):
-        self.fp = os.path.join(self.dir, "localsource.test")
+        self.fp = pjoin(self.dir, "localsource.test")
         f = None
         if not test_creation:
             if compatibility.is_py3k:
@@ -145,6 +148,28 @@ class TestLocalSource(mixins.TempDirMixin, TestDataSource):
         f.write(data)
         f.close()
         f = obj.get_bytes_fileobj()
+        self.assertEqual(f.read(), data)
+        f.close()
+
+
+class TestBz2Source(mixins.TempDirMixin, TestDataSource):
+
+    def get_obj(self, data="foonani", mutable=False, test_creation=False):
+        self.fp = pjoin(self.dir, "bz2source.test.bz2")
+        if not test_creation:
+            if compatibility.is_py3k:
+                if isinstance(data, str):
+                    data = data.encode()
+            f = open(self.fp, 'wb')
+            f.write(compression.compress_data('bzip2', data))
+            f.close()
+        return data_source.bz2_source(self.fp, mutable=mutable)
+
+    def test_bytes_fileobj(self):
+        data = u"foonani\xf2".encode("utf8")
+        obj = self.get_obj(data=data)
+        # this will blow up if tries to ascii decode it.
+        f = obj.bytes_fileobj()
         self.assertEqual(f.read(), data)
         f.close()
 
@@ -189,4 +214,3 @@ class Test_invokable_data_source_wrapper_text(Test_invokable_data_source):
 class Test_invokable_data_source_wrapper_bytes(Test_invokable_data_source_wrapper_text):
 
     text_mode = False
-

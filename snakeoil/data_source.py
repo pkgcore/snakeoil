@@ -41,7 +41,7 @@ TypeError:
 we caught the exception.
 """
 
-__all__ = ("base", "data_source", "local_source", "text_data_source",
+__all__ = ("base", "bz2_source", "data_source", "local_source", "text_data_source",
     "bytes_data_source", "invokable_data_source")
 
 import errno
@@ -50,7 +50,7 @@ from snakeoil.currying import post_curry, partial
 from snakeoil import compatibility, demandload, stringio, klass
 demandload.demandload(globals(),
     'codecs',
-    'snakeoil:fileutils',
+    'snakeoil:compression,fileutils',
 )
 
 
@@ -263,6 +263,50 @@ class local_source(base):
             if ie.errno != errno.ENOENT:
                 raise
             return open_file(self.path, 'wb+', self.buffering_window)
+
+
+class bz2_source(base):
+    """
+    locally accessible bz2 archive
+
+    Literally a bz2 file on disk.
+    """
+
+    __slots__ = ("path", "mutable")
+
+    def __init__(self, path, mutable=False):
+        """
+        :param path: file path of the data source
+        :param mutable: whether this data source is considered modifiable or not
+        """
+        base.__init__(self)
+        self.path = path
+        self.mutable = mutable
+
+    def text_fileobj(self, writable=False):
+        data = compression.decompress_data('bzip2',
+            fileutils.readfile_bytes(self.path)).decode()
+        if writable:
+            if not self.mutable:
+                raise TypeError("data source %s is not mutable" % (self,))
+            return data_source.text_wr_StringIO(self._set_data, data)
+        return data_source.text_ro_StringIO(data)
+
+    def bytes_fileobj(self, writable=False):
+        data = compression.decompress_data('bzip2',
+            fileutils.readfile_bytes(self.path))
+        if writable:
+            if not self.mutable:
+                raise TypeError("data source %s is not mutable" % (self,))
+            return data_source.bytes_wr_StringIO(self._set_data, data)
+        return data_source.bytes_ro_StringIO(data)
+
+    def _set_data(self, data):
+        if compatibility.is_py3k:
+            if isinstance(data, str):
+                data = data.encode()
+        open(self.path, "wb").write(
+            compression.compress_data('bzip2', data))
 
 
 class data_source(base):
