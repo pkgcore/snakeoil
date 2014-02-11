@@ -153,7 +153,7 @@ class base(object):
     """
     __slots__ = ("weakref",)
 
-    get_path = path = None
+    path = None
 
     def text_fileobj(self, writable=False):
         """get a text level filehandle for for this data
@@ -229,11 +229,6 @@ class local_source(base):
         self.path = path
         self.mutable = mutable
         self.encoding = encoding
-
-    def get_path(self):
-        """deprecated getter to access ``path`` attribute; access ``path``
-        directly instead``"""
-        return self.path
 
     @klass.steal_docs(base)
     def text_fileobj(self, writable=False):

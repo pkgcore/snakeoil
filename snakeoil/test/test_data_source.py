@@ -14,10 +14,6 @@ class TestDataSource(TestCase):
     def get_obj(self, data="foonani", mutable=False):
         return data_source.data_source(data, mutable=mutable)
 
-    def test_get_path(self):
-        obj = self.get_obj()
-        self.assertIdentical(obj.get_path, None)
-
     def _test_fileobj_ro(self, attr, converter=str):
         obj = self.get_obj()
         # ensure that requesting mutable from an immutable isn't allowed
@@ -131,9 +127,6 @@ class TestLocalSource(mixins.TempDirMixin, TestDataSource):
             f.write(data)
             f.close()
         return data_source.local_source(self.fp, mutable=mutable)
-
-    def test_get_path(self):
-        self.assertEqual(self.get_obj().get_path(), self.fp)
 
     def test_get_bytes_fileobj(self):
         data = u"foonani\xf2".encode("utf8")
