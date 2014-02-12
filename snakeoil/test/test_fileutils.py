@@ -278,7 +278,7 @@ for case in ("ascii", "ascii_strict", "bytes",
 
 class TestBrokenStats(TestCase):
 
-    test_cases = ['/proc/cpuinfo', '/sys/kernel/vmcoreinfo']
+    test_cases = ['/proc/cpuinfo', '/sys/devices/system/cpu/present']
 
     def test_readfile(self):
         for path in self.test_cases:
