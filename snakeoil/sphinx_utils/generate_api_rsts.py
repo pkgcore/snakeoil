@@ -81,6 +81,5 @@ def regen_if_needed(src, out_path):
 
 
 if __name__ == '__main__':
-    import sys
     for x in sys.stdin:
         regen_if_needed(*x.rstrip("\n").split(" ", 1))
