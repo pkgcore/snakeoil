@@ -165,7 +165,7 @@ except ImportError:
 
 
 def generic_equality(name, bases, scope, real_type=type,
-    eq=generic_attr_eq, ne=generic_attr_ne):
+                     eq=generic_attr_eq, ne=generic_attr_ne):
     """
     metaclass generating __eq__/__ne__ methods from an attribute list
 
@@ -394,7 +394,7 @@ def jit_attr_none(func, kls=_internal_jit_attr):
     return jit_attr(func, kls=kls, uncached_val=None)
 
 def jit_attr_named(stored_attr_name, use_cls_setattr=False, kls=_internal_jit_attr,
-    uncached_val=_uncached_singleton):
+                   uncached_val=_uncached_singleton):
     """
     Version of :py:func:`jit_attr` decorator that allows for explicit control over the
     attribute name used to store the cache value.

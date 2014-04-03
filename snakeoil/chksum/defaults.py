@@ -315,8 +315,8 @@ else:
         target = 'MHASH_%s' % chf.upper()
         if hasattr(mhash, target):
             chksum_types[chf] = Chksummer(chf,
-                                partial(mhash.MHASH, getattr(mhash, target)),
-                                locals()['%s_size' % chf])
+                                    partial(mhash.MHASH, getattr(mhash, target)),
+                                    locals()['%s_size' % chf])
 
 if 'whirlpool' not in chksum_types:
     # Fallback to the python implementation.

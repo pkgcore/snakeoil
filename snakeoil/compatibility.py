@@ -9,7 +9,7 @@ bind- we'd *love* to use the newer python functions but cannot without
 abandoning support for the versions we target.
 
 This module exists to ease compatibility across multiple python versions
-via indirection, and fallback implementationsso that a select subset of
+via indirection, and fallback implementations so that a select subset of
 newer python functionality is usable in older python versions.  Additionally,
 functionality that has been moved in py3k and isn't translated by 2to3 is
 accessible via this module.

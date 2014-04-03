@@ -37,6 +37,6 @@ class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker, TestCase):
             "has a __del__ method rather than a __finalizer__; this shouldn't "
             "be possible.")
         self.assertTrue(hasattr(cls, '__finalizer__'),
-            msg="class %s uses metalcass WeakRefFinalizer but has no "
+            msg="class %s uses metaclass WeakRefFinalizer but has no "
             "__finalizer__ method; this means the class doesn't need "
             "finalizing.  Likely shouldn't be using WeakRefFinalizer")

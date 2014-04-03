@@ -89,7 +89,7 @@ if __name__ == "__main__":
             else:
                 print "import %s " % args[0]
             print time.time()
-#            traceback.print_stack(file=sys.stdout)
+            #traceback.print_stack(file=sys.stdout)
             print
 
 

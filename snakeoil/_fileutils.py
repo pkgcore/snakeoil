@@ -65,7 +65,7 @@ def _native_readlines_shim(*args, **kwds):
     return native_readlines('r', *args, **kwds)
 
 def native_readlines(mode, mypath, strip_whitespace=True, swallow_missing=False,
-    none_on_missing=False, encoding=None, strict=compatibility.is_py3k):
+                     none_on_missing=False, encoding=None, strict=compatibility.is_py3k):
     """
     read a file, yielding each line
 
@@ -100,8 +100,7 @@ def native_readlines(mode, mypath, strip_whitespace=True, swallow_missing=False,
         iterable = iter(handle)
     if not strip_whitespace:
         return readlines_iter(iterable, mtime)
-    return readlines_iter(_strip_whitespace_filter(iterable), mtime,
-        source=handle)
+    return readlines_iter(_strip_whitespace_filter(iterable), mtime, source=handle)
 
 
 def _strip_whitespace_filter(iterable):
@@ -120,7 +119,7 @@ def _native_readfile_shim(*args, **kwds):
     return native_readfile('r', *args, **kwds)
 
 def native_readfile(mode, mypath, none_on_missing=False, encoding=None,
-    strict=compatibility.is_py3k):
+                    strict=compatibility.is_py3k):
     """
     read a file, returning the contents
 

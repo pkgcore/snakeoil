@@ -227,8 +227,7 @@ try:
 except ImportError:
     readfile_ascii = native_readfile_ascii
     readfile = native_readfile
-    readlines_ascii = _mk_readlines('ascii', 'r',
-        encoding='ascii')
+    readlines_ascii = _mk_readlines('ascii', 'r', encoding='ascii')
     readlines = readlines_ascii
 
 readlines_bytes = _mk_readlines('bytes', 'rb')

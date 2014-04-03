@@ -205,7 +205,7 @@ def wrap_exception(recast_exception, *args, **kwds):
     return wrap_exception_complex(partial(_simple_throw, recast_exception, args, kwds, pass_error), ignores)
 
 def _simple_throw(recast_exception, recast_args, recast_kwds, pass_error,
-    exception, functor, args, kwds):
+                  exception, functor, args, kwds):
     if pass_error:
         recast_kwds[pass_error] = exception
     return recast_exception(*recast_args, **recast_kwds)
