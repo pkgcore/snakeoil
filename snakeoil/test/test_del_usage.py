@@ -3,7 +3,7 @@
 
 import sys
 
-from snakeoil.test import mixins, TestCase, test_demandload_usage
+from snakeoil.test import mixins, TestCase, SkipTest, test_demandload_usage
 from snakeoil.weakrefs import WeakRefFinalizer
 
 class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker, TestCase):
@@ -22,6 +22,9 @@ class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker, TestCase):
         return not namepath.startswith(self.target_namespace)
 
     def run_check(self, cls):
+        if sys.hexversion >= 0x03040000:
+            raise SkipTest("WeakRefFinalizer is unnecessary in python-3.4 and later")
+
         if not hasattr(cls, '__del__') or getattr(cls, '__allow_del__', False):
             return
 

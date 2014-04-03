@@ -58,8 +58,13 @@ class WeakRefFinalizer(type):
     """
     Metaclass providing __del__ without the gc issues
 
-    While python provides __del__ method support, there are some serious issues
-    in their usage- this is detailed at http://docs.python.org/reference/datamodel.html#object.__del__ .
+    Python 3.4 removes the limitations and other issues with object
+    finalization via PEP 442 (http://legacy.python.org/dev/peps/pep-0442/),
+    i.e. this class is unnecessary for code running under 3.4 or later.
+
+    For python implementations previous to 3.4, there are serious issues in the
+    usage of the __del__ method- this is detailed at
+    http://docs.python.org/reference/datamodel.html#object.__del__ .
 
     Summarizing, reference cycles that involve an object that has a
     __del__ method cannot be automatically broken due to the free form
