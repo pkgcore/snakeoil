@@ -11,7 +11,6 @@ __all__ += tuple("readfile%s" % x for x in types) + tuple("readlines%s" % x for 
 del types
 
 import os
-import sys
 
 from snakeoil.weakrefs import WeakRefFinalizer
 from snakeoil import klass, compatibility
@@ -103,8 +102,7 @@ class AtomicWriteFile_mixin(object):
     closed, the contents are discarded and a warning is issued.
     """
 
-    if sys.hexversion < 0x03040000:
-        __metaclass__ = WeakRefFinalizer
+    __metaclass__ = WeakRefFinalizer
 
     def __init__(self, fp, binary=False, perms=None, uid=-1, gid=-1):
         """

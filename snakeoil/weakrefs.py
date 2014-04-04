@@ -12,6 +12,7 @@ __all__ = ("WeakValCache", "WeakRefFinalizer")
 
 import atexit
 import os
+import sys
 
 try:
     # No name in module
@@ -57,10 +58,6 @@ class WeakRefFinalizer(type):
 
     """
     Metaclass providing __del__ without the gc issues
-
-    Python 3.4 removes the limitations and other issues with object
-    finalization via PEP 442 (http://legacy.python.org/dev/peps/pep-0442/),
-    i.e. this class is unnecessary for code running under 3.4 or later.
 
     For python implementations previous to 3.4, there are serious issues in the
     usage of the __del__ method- this is detailed at
@@ -176,4 +173,9 @@ class WeakRefFinalizer(type):
                 if obj is not None:
                     obj.__finalizer__()
 
-atexit.register(WeakRefFinalizer._atexit_cleanup)
+if sys.hexversion < 0x03040000:
+    atexit.register(WeakRefFinalizer._atexit_cleanup)
+else:
+    # Use a stub class for python 3.4 and later since object finalization
+    # limitations are fixed via PEP 442 (http://legacy.python.org/dev/peps/pep-0442/).
+    WeakRefFinalizer = type

@@ -48,7 +48,6 @@ import errno
 import fcntl
 import os
 import stat
-import sys
 
 # imported for compatibility.  Will be removed in 0.5
 from snakeoil.fileutils import (
@@ -277,8 +276,7 @@ class FsLock(object):
     fnctl based filesystem lock
     """
 
-    if sys.hexversion < 0x03040000:
-        __metaclass__ = WeakRefFinalizer
+    __metaclass__ = WeakRefFinalizer
     __slots__ = ("path", "fd", "create")
 
     def __init__(self, path, create=False):

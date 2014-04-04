@@ -6,7 +6,6 @@ __all__ = ("compress_data", "decompress_data")
 import os
 import signal
 import subprocess
-import sys
 
 from snakeoil import klass
 from snakeoil.weakrefs import WeakRefFinalizer
@@ -42,8 +41,7 @@ def decompress_data(binary, data, extra_args=()):
 
 class _process_handle(object):
 
-    if sys.hexversion < 0x03040000:
-        __metaclass__ = WeakRefFinalizer
+    __metaclass__ = WeakRefFinalizer
 
     def __init__(self, handle, args, is_read=False):
         self.mode = 'wb'
