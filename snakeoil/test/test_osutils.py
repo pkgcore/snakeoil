@@ -23,8 +23,7 @@ class ReaddirCommon(TempDirMixin):
         TempDirMixin.setUp(self)
         self.subdir = pjoin(self.dir, 'dir')
         os.mkdir(self.subdir)
-        f = open(pjoin(self.dir, 'file'), 'w')
-        f.close()
+        open(pjoin(self.dir, 'file'), 'w').close()
         os.mkfifo(pjoin(self.dir, 'fifo'))
 
     def _test_missing(self, funcs):
@@ -246,39 +245,38 @@ class FsLockTest(TempDirMixin):
         # do this all non-blocking to avoid hanging tests
         self.assertTrue(lock.acquire_read_lock(False))
         # file should exist now
-        f = open(path)
-        # acquire and release a read lock
-        fcntl.flock(f, fcntl.LOCK_SH | fcntl.LOCK_NB)
-        fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
-        # we can't acquire an exclusive lock
-        self.assertRaises(
-            IOError, fcntl.flock, f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        lock.release_read_lock()
-        # but now we can
-        fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        self.assertFalse(lock.acquire_read_lock(False))
-        self.assertFalse(lock.acquire_write_lock(False))
-        fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
-        # acquire an exclusive/write lock
-        self.assertTrue(lock.acquire_write_lock(False))
-        self.assertRaises(
-            IOError, fcntl.flock, f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        # downgrade to read lock
-        self.assertTrue(lock.acquire_read_lock())
-        fcntl.flock(f, fcntl.LOCK_SH | fcntl.LOCK_NB)
-        fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
-        self.assertRaises(
-            IOError, fcntl.flock, f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        # and release
-        lock.release_read_lock()
-        fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
+        with open(path) as f:
+            # acquire and release a read lock
+            fcntl.flock(f, fcntl.LOCK_SH | fcntl.LOCK_NB)
+            fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
+            # we can't acquire an exclusive lock
+            self.assertRaises(
+                IOError, fcntl.flock, f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            lock.release_read_lock()
+            # but now we can
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            self.assertFalse(lock.acquire_read_lock(False))
+            self.assertFalse(lock.acquire_write_lock(False))
+            fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
+            # acquire an exclusive/write lock
+            self.assertTrue(lock.acquire_write_lock(False))
+            self.assertRaises(
+                IOError, fcntl.flock, f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            # downgrade to read lock
+            self.assertTrue(lock.acquire_read_lock())
+            fcntl.flock(f, fcntl.LOCK_SH | fcntl.LOCK_NB)
+            fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
+            self.assertRaises(
+                IOError, fcntl.flock, f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            # and release
+            lock.release_read_lock()
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
 
-        self.assertTrue(lock.acquire_write_lock(False))
-        lock.release_write_lock()
-        fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
-        f.close()
+            self.assertTrue(lock.acquire_write_lock(False))
+            lock.release_write_lock()
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
 
 
 class TestAccess(TempDirMixin):

@@ -15,8 +15,10 @@ def regenerate_if_needed(project, src, out, release_extlink=None, git_extlink=No
         if e.errno != errno.ENOENT:
             raise
     print "regenerating %s news for %s -> %s" % (project, src, out)
-    new_text = convert_news(open(src, 'r').read(), project, release_extlink, git_extlink)
-    open(out, 'w').write(new_text)
+    with open(src, 'r') as f:
+        new_text = convert_news(f.read(), project, release_extlink, git_extlink)
+    with open(out, 'w') as f:
+        f.write(new_text)
     os.utime(out, (-1, cut_off))
 
 

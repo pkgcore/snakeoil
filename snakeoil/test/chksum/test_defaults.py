@@ -41,9 +41,8 @@ class base(object):
         self.assertEqual(self.chf(self.fn), self.expected_long)
 
     def test_fileobj_check(self):
-        f = open(self.fn, "r")
-        self.assertEqual(self.chf(f), self.expected_long)
-        f.close()
+        with open(self.fn, "r") as f:
+            self.assertEqual(self.chf(f), self.expected_long)
 
     def test_data_source_check(self):
         self.assertEqual(self.chf(local_source(self.fn)), self.expected_long)

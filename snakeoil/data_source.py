@@ -297,8 +297,8 @@ class bz2_source(base):
         if compatibility.is_py3k:
             if isinstance(data, str):
                 data = data.encode()
-        open(self.path, "wb").write(
-            compression.compress_data('bzip2', data))
+        with open(self.path, "wb") as f:
+            f.write(compression.compress_data('bzip2', data))
 
 
 class data_source(base):

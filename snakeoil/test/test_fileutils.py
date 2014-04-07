@@ -290,9 +290,8 @@ class TestBrokenStats(TestCase):
 
     def _check_path(self, path, func, split_it=False):
         try:
-            handle = open(path, 'r')
-            data = handle.read()
-            handle.close()
+            with open(path, 'r') as handle:
+                data = handle.read()
         except EnvironmentError, e:
             if e.errno not in (errno.ENOENT, errno.EPERM):
                 raise

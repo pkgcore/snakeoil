@@ -22,13 +22,10 @@ class ModulesTest(TestCase):
         open(os.path.join(packdir, '__init__.py'), 'w').close()
         for directory in [self.dir, packdir]:
             for i in range(3):
-                testmod = open(
-                    os.path.join(directory, 'mod_test%s.py' % i), 'w')
-                testmod.write('def foo(): pass\n')
-                testmod.close()
-            horkedmod = open(os.path.join(directory, 'mod_horked.py'), 'w')
-            horkedmod.write('1/0\n')
-            horkedmod.close()
+                with open(os.path.join(directory, 'mod_test%s.py' % i), 'w') as testmod:
+                    testmod.write('def foo(): pass\n')
+            with open(os.path.join(directory, 'mod_horked.py'), 'w') as horkedmod:
+                horkedmod.write('1/0\n')
 
         # append them to path
         sys.path.insert(0, self.dir)

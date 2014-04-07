@@ -16,12 +16,9 @@ def _run(cwd, cmd):
     env = dict(os.environ)
     env["LC_CTYPE"] = "C"
 
-    null = open("/dev/null", 'wb')
-    try:
+    with open("/dev/null", 'wb') as null:
         r = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=env,
             stderr=null, cwd=cwd)
-    finally:
-        null.close()
 
     stdout = r.communicate()[0]
     return stdout, r.returncode

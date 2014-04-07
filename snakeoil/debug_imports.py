@@ -100,7 +100,8 @@ if __name__ == "__main__":
     i.enable()
     print "starting\n",time.time(),"\n"
     try:
-        imp.load_module("__main__", open(args[0]), args[0], ("", "r", imp.PY_SOURCE))
+        with open(args[0]) as f:
+            imp.load_module("__main__", f, args[0], ("", "r", imp.PY_SOURCE))
     finally:
         i.disable()
         print "\nfinished\n",time.time(),"\n"

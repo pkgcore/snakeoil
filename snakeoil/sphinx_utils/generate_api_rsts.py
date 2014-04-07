@@ -75,7 +75,8 @@ def regen_if_needed(src, out_path):
 
     if cur_time != trg_time:
         sys.stdout.write("regenerating rst for %s\n" % (src,))
-        generate_rst(src, module, open(out_path, "w"))
+        with open(out_path, "w") as f:
+            generate_rst(src, module, f)
     os.chmod(out_path, 0644)
     os.utime(out_path, (cur_time, cur_time))
 

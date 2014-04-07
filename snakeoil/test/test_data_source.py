@@ -108,15 +108,15 @@ class TestLocalSource(mixins.TempDirMixin, TestDataSource):
 
     def get_obj(self, data="foonani", mutable=False, test_creation=False):
         self.fp = pjoin(self.dir, "localsource.test")
-        f = None
+        mode = None
         if not test_creation:
             if compatibility.is_py3k:
                 if isinstance(data, bytes):
-                    f = open(self.fp, 'wb')
-            if f is None:
-                f = open(self.fp, "w")
-            f.write(data)
-            f.close()
+                    mode = 'wb'
+            if mode is None:
+                mode = 'w'
+            with open(self.fp, mode) as f:
+                f.write(data)
         return data_source.local_source(self.fp, mutable=mutable)
 
     def test_bytes_fileobj(self):
@@ -148,9 +148,8 @@ class TestBz2Source(mixins.TempDirMixin, TestDataSource):
             if compatibility.is_py3k:
                 if isinstance(data, str):
                     data = data.encode()
-            f = open(self.fp, 'wb')
-            f.write(compression.compress_data('bzip2', data))
-            f.close()
+            with open(self.fp, 'wb') as f:
+                f.write(compression.compress_data('bzip2', data))
         return data_source.bz2_source(self.fp, mutable=mutable)
 
     def test_bytes_fileobj(self):

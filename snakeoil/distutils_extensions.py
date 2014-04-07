@@ -99,7 +99,8 @@ class sdist(dst_sdist.sdist):
         else:
             content = 'version_info=%r' % (data,)
         path = os.path.join(base_dir, self.package_namespace, '_verinfo.py')
-        open(path, 'w').write(content)
+        with open(path, 'w') as f:
+            f.write(content)
 
     def make_release_tree(self, base_dir, files):
         """Create and populate the directory tree that is put in source tars.
@@ -167,8 +168,8 @@ class build_py(dst_build_py.build_py):
         if not os.path.exists(ver_path):
             log.info('generating _verinfo')
             from snakeoil import version
-            open(ver_path, 'w').write("version_info=%r" %
-                (version.get_git_version('.'),))
+            with open(ver_path, 'w') as f:
+                f.write("version_info=%r" % (version.get_git_version('.'),))
             self.byte_compile([ver_path])
             py3k_rebuilds.append((ver_path, os.lstat(ver_path).st_mtime))
 
@@ -351,7 +352,8 @@ is_jython = 'java' in getattr(sys, 'getPlatform', lambda:'')().lower()
 
 def get_number_of_processors():
     try:
-        val = len([x for x in open("/proc/cpuinfo") if ''.join(x.split()).split(":")[0] == "processor"])
+        with open("/proc/cpuinfo") as f:
+            val = len([x for x in f if ''.join(x.split()).split(":")[0] == "processor"])
         if not val:
             return 1
         return val
