@@ -120,7 +120,6 @@ class sdist(dst_sdist.sdist):
                     os.unlink(os.path.join(base, x))
 
 
-
 class build_py(dst_build_py.build_py):
 
     user_options = dst_build_py.build_py.user_options + [("inplace", "i", "do any source conversions in place")]

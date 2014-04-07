@@ -35,7 +35,7 @@ class NativeListDirTest(ReaddirCommon):
 
     def test_listdir(self):
         self.assertEqual(['dir', 'fifo', 'file'],
-                          sorted(self.module.listdir(self.dir)))
+                         sorted(self.module.listdir(self.dir)))
         self.assertEqual([], self.module.listdir(self.subdir))
 
     def test_listdir_dirs(self):

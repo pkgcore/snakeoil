@@ -109,8 +109,8 @@ class _native_internal_jit_attr(object):
 
     __slots__ = ("storage_attr", "function", "_setter", "singleton", "use_singleton")
 
-    def __init__(self, func, attr_name, singleton=None, use_cls_setattr=False,
-        use_singleton=True):
+    def __init__(self, func, attr_name, singleton=None,
+                 use_cls_setattr=False, use_singleton=True):
         """
         :param func: function to invoke upon first request for this content
         :param attr_name: attribute name to store the generated value in
@@ -270,8 +270,8 @@ def inject_richcmp_methods_from_cmp(scope, inject_always=False):
     if not (inject_always or compatibility.is_py3k):
         return
     for key, func in (("__lt__", generic_lt), ("__le__", generic_le),
-        ("__eq__", generic_eq), ("__ne__", generic_ne),
-        ("__ge__", generic_ge), ("__gt__", generic_gt)):
+                      ("__eq__", generic_eq), ("__ne__", generic_ne),
+                      ("__ge__", generic_ge), ("__gt__", generic_gt)):
         scope.setdefault(key, func)
 
 
@@ -401,12 +401,11 @@ def jit_attr_named(stored_attr_name, use_cls_setattr=False, kls=_internal_jit_at
 
     See :py:class:`_internal_jit_attr` for documentation of the misc params.
     """
-    return post_curry(kls, stored_attr_name,
-        uncached_val, use_cls_setattr)
+    return post_curry(kls, stored_attr_name, uncached_val, use_cls_setattr)
 
 def jit_attr_ext_method(func_name, stored_attr_name,
-    use_cls_setattr=False, kls=_internal_jit_attr,
-    uncached_val=_uncached_singleton):
+                        use_cls_setattr=False, kls=_internal_jit_attr,
+                        uncached_val=_uncached_singleton):
     """
     Decorator handing maximal control of attribute JIT'ing to the invoker.
 

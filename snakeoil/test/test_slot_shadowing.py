@@ -27,7 +27,6 @@ class Test_slot_shadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker,
     def mk_name(kls):
         return '%s.%s' % (kls.__module__, kls.__name__)
 
-
     def _should_ignore(self, kls):
         return self.mk_name(kls).split(".")[0] != self.target_namespace
 
@@ -69,7 +68,6 @@ class Test_slot_shadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker,
                 raise self.failureException("cls %r; slots is %r- "
                     "- should be a tuple" % (kls, slots))
             slots = tuple(slots)
-
 
         if slots is None or (slots and slots in raw_slottings):
             # we do a bool on slots to ignore (); that's completely valid
