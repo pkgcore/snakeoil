@@ -173,9 +173,18 @@ class WeakRefFinalizer(type):
                 if obj is not None:
                     obj.__finalizer__()
 
+
+class _WeakRefFinalizerStub(type):
+    """
+    Stub for python versions since 3.4 with no finalization limitations
+
+    Object finalization limitations and related issues are fixed since 3.4 via
+    PEP 442 (http://legacy.python.org/dev/peps/pep-0442/).
+    """
+    pass
+
+
 if sys.hexversion < 0x03040000:
     atexit.register(WeakRefFinalizer._atexit_cleanup)
 else:
-    # Use a stub class for python 3.4 and later since object finalization
-    # limitations are fixed via PEP 442 (http://legacy.python.org/dev/peps/pep-0442/).
-    WeakRefFinalizer = type
+    WeakRefFinalizer = _WeakRefFinalizerStub
