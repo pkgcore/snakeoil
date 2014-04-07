@@ -25,11 +25,10 @@ class base(object):
 
     def setUp(self):
         self.get_chf()
-        self.fn = tempfile.mktemp()
-        f = open(self.fn,"w")
-        for i in xrange(multi):
-            f.write(data)
-        f.close()
+        fd, self.fn = tempfile.mkstemp()
+        with open(self.fn, 'w') as f:
+            for i in xrange(multi):
+                f.write(data)
 
     def tearDown(self):
         try:
