@@ -11,25 +11,6 @@
 #include <Python.h>
 #include "snakeoil/heapdef.h"
 
-#if PY_VERSION_EX <  0x02060000
-/* note this is a horrible hack.  see http://mail.python.org/pipermail/python-bugs-list/2008-July/055285.html
- * short version, py2.4/py2.5 Py_CLEAR(tmp) will always segfault- it tries to use a 'tmp' var.
- * since this is a horrible gotcha, we flat out override Py_CLEAR.
- * it's horrible, but it seems best for this case.
- */
-
-#undef Py_CLEAR
-#define Py_CLEAR(op)                            \
-do {                                        \
-	if (op) {                               \
-		PyObject *_py_tmp = (PyObject *)(op);               \
-		(op) = NULL;                        \
-		Py_DECREF(_py_tmp);                 \
-	}                                       \
-} while (0)
-
-#endif
-
 #define snakeoil_GET_ATTR(type, attr_name, func_post, attr)			 \
 static PyObject *													   \
 type##_get_##func_post (type *self, void *closure)					  \
