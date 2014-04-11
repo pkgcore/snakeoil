@@ -31,13 +31,13 @@ for example,
 >>> from snakeoil.obj import DelayedInstantiation_kls
 >>> class foo(object):
 ...   def __init__(self, value):
-...     print "instance was created"
+...     print("instance was created")
 ...     self.attribute = value
 ...   pass
 >>> delayed = DelayedInstantiation_kls(foo, "bar")
->>> print isinstance(DelayedInstantiation_kls(foo), foo)
+>>> print(isinstance(DelayedInstantiation_kls(foo), foo))
 True
->>> print delayed.attribute
+>>> print(delayed.attribute)
 instance was created
 bar
 
@@ -46,14 +46,14 @@ builtins.
 
 >>> from snakeoil.obj import DelayedInstantiation
 >>> delayed_tuple = DelayedInstantiation(tuple, lambda x:tuple(x), xrange(5))
->>> print delayed_tuple + (5, 6, 7)
+>>> print(delayed_tuple + (5, 6, 7))
 (0, 1, 2, 3, 4, 5, 6, 7)
->>> print (5, 6, 7) + delayed_tuple
+>>> print((5, 6, 7) + delayed_tuple)
 Traceback (most recent call last):
 TypeError: can only concatenate tuple (not "CustomDelayedObject") to tuple
 >>> # the reason this differs comes down to the cpython vm translating the previous
 >>> # call into essentially the following-
->>> print (5, 6, 7).__add__(delayed_tuple)
+>>> print((5, 6, 7).__add__(delayed_tuple))
 Traceback (most recent call last):
 TypeError: can only concatenate tuple (not "CustomDelayedObject") to tuple
 
@@ -75,6 +75,8 @@ over builtin methods (essentially have the proxy on the left for general ops).
 If that doesn't make sense to the reader, it's probably best that the reader not
 try to proxy builtin objects like tuples, lists, dicts, sets, etc.
 """
+
+from __future__ import print_function
 
 __all__ = ("DelayedInstantiation", "DelayedInstantiation_kls", "make_SlottedDict_kls",
     "make_kls",)

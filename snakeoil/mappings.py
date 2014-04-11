@@ -3,9 +3,9 @@
 
 """
 Miscellanious mapping related classes and functionality
-
-
 """
+
+from __future__ import print_function
 
 __all__ = ("autoconvert_py3k_methods_metaclass", "DictMixin", "LazyValDict",
     "LazyFullValLoadDict", "ProtectedDict", "ImmutableDict", "IndeterminantDict",
@@ -704,15 +704,15 @@ def inject_getitem_as_getattr(scope):
     ...    inject_getitem_as_getattr(locals())
     >>>
     >>> d = my_options(asdf=1)
-    >>> print d.asdf
+    >>> print(d.asdf)
     1
     >>> d.asdf = 2
-    >>> print d.asdf
+    >>> print(d.asdf)
     2
     >>> del d.asdf
-    >>> print 'asdf' in d
+    >>> print('asdf' in d)
     False
-    >>> print hasattr(d, 'asdf')
+    >>> print(hasattr(d, 'asdf'))
     False
 
     :param scope: the scope of a class to modify, adding methods as needed
@@ -847,19 +847,19 @@ def make_SlottedDict_kls(keys):
     >>> items = (("key1", 1), ("key2", 2), ("key3",3))
     >>> inst = dict(items)
     >>> slotted_inst = my_kls(items)
-    >>> print sys.getsizeof(inst) # note this is python2.6 functionality
+    >>> print(sys.getsizeof(inst)) # note this is python2.6 functionality
     280
-    >>> print sys.getsizeof(slotted_inst)
+    >>> print(sys.getsizeof(slotted_inst))
     72
     >>> # and now for an extreme example:
     >>> raw = dict(("attribute%i" % (x,), x) for x in xrange(1000))
     >>> skls = make_SlottedDict_kls(raw.keys())
-    >>> print sys.getsizeof(raw)
+    >>> print(sys.getsizeof(raw))
     49432
     >>> sraw = skls(raw.iteritems())
-    >>> print sys.getsizeof(sraw)
+    >>> print(sys.getsizeof(sraw))
     8048
-    >>> print sraw["attribute2"], sraw["attribute3"]
+    >>> print(sraw["attribute2"], sraw["attribute3"])
     2 3
 
     Note that those stats are for a 64bit python 2.6.5 VM.  The stats may

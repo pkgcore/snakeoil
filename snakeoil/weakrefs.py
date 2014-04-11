@@ -5,6 +5,8 @@
 Optimized WeakValCache implementation, and a __del__ alternative
 """
 
+from __future__ import print_function
+
 __all__ = ("WeakValCache", "WeakRefFinalizer")
 
 # Unused import
@@ -105,19 +107,19 @@ class WeakRefFinalizer(type):
     ...   def __init__(self, attr):
     ...     self.attr = attr
     ...   def __del__(self):
-    ...     print "finalization invoked: %s" % (self.attr,)
+    ...     print("finalization invoked: %s" % (self.attr,))
     >>>
     >>> obj = foo("bar")
-    >>> print obj.__class__.__name__
+    >>> print(obj.__class__.__name__)
     foo
-    >>> print obj.attr
+    >>> print(obj.attr)
     bar
     >>> # note that the resultant instance no longer has a __del__
     >>> # method
-    >>> print hasattr(obj, '__del__')
+    >>> print(hasattr(obj, '__del__'))
     False
     >>> # but it *does* have a __finalizer__ method.
-    >>> print hasattr(obj, '__finalizer__')
+    >>> print(hasattr(obj, '__finalizer__'))
     True
     >>> del obj
     finalization invoked: bar

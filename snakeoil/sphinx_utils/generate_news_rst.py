@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+from __future__ import print_function
+
 import errno
 import os
 import re
@@ -14,7 +16,7 @@ def regenerate_if_needed(project, src, out, release_extlink=None, git_extlink=No
     except EnvironmentError as e:
         if e.errno != errno.ENOENT:
             raise
-    print "regenerating %s news for %s -> %s" % (project, src, out)
+    print("regenerating %s news for %s -> %s" % (project, src, out))
     with open(src, 'r') as f:
         new_text = convert_news(f.read(), project, release_extlink, git_extlink)
     with open(out, 'w') as f:
@@ -86,6 +88,6 @@ def convert_news(text, project_name, release_extlink=None, git_extlink=None):
 
 if __name__ == '__main__':
     if len(sys.argv) not in (4, 6):
-        print "wrong args given; need project_name src out"
+        print("wrong args given; need project_name src out")
         sys.exit(1)
     regenerate_if_needed(*sys.argv[1:6])

@@ -4,6 +4,8 @@
 
 """Classes implementing the descriptor protocol."""
 
+from __future__ import print_function
+
 __all__ = ("classproperty",)
 
 
@@ -21,7 +23,7 @@ class classproperty(object):
     ...
     ...   @classproperty
     ...   def test(cls):
-    ...     print "invoked"
+    ...     print("invoked")
     ...     return True
     >>> foo.test
     invoked

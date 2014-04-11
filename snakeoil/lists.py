@@ -5,6 +5,8 @@
 sequence related operations and classes
 """
 
+from __future__ import print_function
+
 __all__ = ("unstable_unique", "stable_unique", "iter_stable_unique",
     "iflatten_instance", "iflatten_func", "ChainedLists", "predicate_split")
 
@@ -171,14 +173,14 @@ class ChainedLists(object):
     >>> from snakeoil.lists import ChainedLists
     >>> l1, l2 = [0, 1, 2, 3], [4,5,6]
     >>> cl = ChainedLists(l1, l2)
-    >>> print cl[3]
+    >>> print(cl[3])
     3
-    >>> print cl[4]
+    >>> print(cl[4])
     4
-    >>> print cl[0]
+    >>> print(cl[0])
     0
     >>> assert 4 in cl
-    >>> print len(cl)
+    >>> print(len(cl))
     7
     >>> cl[0] = 9
     Traceback (most recent call last):

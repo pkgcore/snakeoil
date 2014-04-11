@@ -5,6 +5,8 @@
 Collection of functionality to make using iterators transparently easier
 """
 
+from __future__ import print_function
+
 __all__ = ("expandable_chain", "caching_iter", "iter_sort", "chain_from_iterable")
 
 from collections import deque
@@ -35,16 +37,16 @@ class expandable_chain(object):
     >>> from snakeoil.iterables import expandable_chain
     >>> l = range(5)
     >>> i = expandable_chain(l)
-    >>> print i.next()
+    >>> print(i.next())
     0
-    >>> print i.next()
+    >>> print(i.next())
     1
     >>> i.appendleft(range(5, 7))
-    >>> print i.next()
+    >>> print(i.next())
     5
-    >>> print i.next()
+    >>> print(i.next())
     6
-    >>> print i.next()
+    >>> print(i.next())
     2
     """
 
@@ -102,11 +104,11 @@ class caching_iter(object):
     >>> from snakeoil.iterables import caching_iter
     >>> i = iter(range(5))
     >>> ci = caching_iter(i)
-    >>> print ci[0]
+    >>> print(ci[0])
     0
-    >>> print ci[2]
+    >>> print(ci[2])
     2
-    >>> print i.next()
+    >>> print(i.next())
     3
 
     """
@@ -234,7 +236,7 @@ def iter_sort(sorter, *iterables):
     >>> # note that these lists will be consumed as they go,
     >>> # sorted is just being used to compare the individual items
     >>> sorted_iter = iter_sort(sorted, iter1, iter2)
-    >>> print list(sorted_iter)
+    >>> print(list(sorted_iter))
     [0, 1, 2, 3, 4, 5]
     """
     l = []

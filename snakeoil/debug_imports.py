@@ -10,6 +10,7 @@ all imports and return a break down of how much time was taken
 per import cumulative.
 """
 
+from __future__ import print_function
 import __builtin__
 
 class intercept_import(object):
@@ -57,7 +58,7 @@ if __name__ == "__main__":
 
     usage = "debug_imports.py [-o output_file_path || -i] scriptfile [arg] ..."
     if not sys.argv[1:]:
-        print "Usage: ", usage
+        print("Usage: %s" % usage)
         sys.exit(2)
 
     # yes, at first thought, this should use getopt or optparse.
@@ -68,7 +69,7 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     if args[0] == '-o':
         if not len(args) > 2:
-            print "Usage: ", usage
+            print("Usage: %s" % usage)
             sys.exit(2)
         f = open(args[1], 'w')
         def callback(modules, key, val):
@@ -83,12 +84,12 @@ if __name__ == "__main__":
         import time
         def callback(stack, args):
             if stack:
-                print "in: %s" % ', '.join(stack)
+                print("in: %s" % ', '.join(stack))
             if len(args) == 4 and args[3] is not None:
-                print "from %s import %s" % (args[0], ', '.join(args[3]))
+                print("from %s import %s" % (args[0], ', '.join(args[3])))
             else:
-                print "import %s " % args[0]
-            print time.time()
+                print("import %s " % args[0])
+            print(time.time())
             #traceback.print_stack(file=sys.stdout)
             print
 
@@ -98,11 +99,11 @@ if __name__ == "__main__":
     sys.argv = args[:]
     i = intercept_import(callback)
     i.enable()
-    print "starting\n",time.time(),"\n"
+    print("starting\n",time.time(),"\n")
     try:
         with open(args[0]) as f:
             imp.load_module("__main__", f, args[0], ("", "r", imp.PY_SOURCE))
     finally:
         i.disable()
-        print "\nfinished\n",time.time(),"\n"
+        print("\nfinished\n",time.time(),"\n")
     sys.exit(0)

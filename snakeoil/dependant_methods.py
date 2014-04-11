@@ -26,16 +26,16 @@ Example usage:
 ...     "do_step1":"start", "do_step2": "start"}
 ...
 ...   def finish(self):
-...     print "finish invoked"
+...     print("finish invoked")
 ...     return True
 ...   def do_step1(self):
-...     print "running step1"
+...     print("running step1")
 ...     return True
 ...   def do_step2(self):
-...     print "running step2"
+...     print("running step2")
 ...     return True
 ...   def start(self):
-...     print "starting"
+...     print("starting")
 ...     return True
 >>>
 >>> obj = foo()
@@ -47,6 +47,8 @@ finish invoked
 >>> result = obj.finish()
 >>> # note, no output since finish has already been ran.
 """
+
+from __future__ import print_function
 
 from snakeoil.lists import iflatten_instance
 from snakeoil.currying import pre_curry

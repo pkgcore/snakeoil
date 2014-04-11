@@ -7,8 +7,9 @@ common class implementations, and optimizations
 The functionality contained within this module is of primary use for building
 classes themselves and cutting down on a significant amount of boilerplate
 involved in writing classes.
-
 """
+
+from __future__ import print_function
 
 __all__ = ("generic_equality", "reflective_hash", "inject_richcmp_methods_from_cmp",
     "static_attrgetter", "instance_attrgetter", "jit_attr", "jit_attr_none",
@@ -291,7 +292,7 @@ class chained_getter(object):
 
     >>> from snakeoil.klass import chained_getter
     >>> # general usage example: basically like operator.attrgetter
-    >>> print chained_getter("extend")(list).__name__
+    >>> print(chained_getter("extend")(list).__name__)
     extend
     >>>
     >>> class foo(object):
@@ -307,11 +308,11 @@ class chained_getter(object):
     ...   recursive = property(chained_getter("seq.__hash__"))
     >>>
     >>> o = foo()
-    >>> print o.a
+    >>> print(o.a)
     1
-    >>> print o.b
+    >>> print(o.b)
     1
-    >>> print o.recursive == foo.seq.__hash__
+    >>> print(o.recursive == foo.seq.__hash__)
     True
     """
     __slots__ = ('namespace', 'getter')
@@ -437,14 +438,14 @@ def cached_property(func, kls=_internal_jit_attr, use_cls_setattr=False):
     ...
     ...   @cached_property
     ...   def attr(self):
-    ...     print "invoked"
+    ...     print("invoked")
     ...     return 1
     >>>
     >>> obj = foo()
-    >>> print obj.attr
+    >>> print(obj.attr)
     invoked
     1
-    >>> print obj.attr
+    >>> print(obj.attr)
     1
     """
     return kls(func, func.__name__, None, use_singleton=False,
@@ -463,14 +464,14 @@ def cached_property_named(name, kls=_internal_jit_attr, use_cls_setattr=False):
     ...
     ...   @cached_property_named("attr")
     ...   def attr(self):
-    ...     print "invoked"
+    ...     print("invoked")
     ...     return 1
     >>>
     >>> obj = foo()
-    >>> print obj.attr
+    >>> print(obj.attr)
     invoked
     1
-    >>> print obj.attr
+    >>> print(obj.attr)
     1
     """
     return post_curry(kls, name, use_singleton=False, use_cls_setattr=False)
@@ -495,11 +496,11 @@ def alias_attr(target_attr):
     ...   recursive = alias_attr("seq.__hash__")
     >>>
     >>> o = foo()
-    >>> print o.a
+    >>> print(o.a)
     1
-    >>> print o.b
+    >>> print(o.b)
     1
-    >>> print o.recursive == foo.seq.__hash__
+    >>> print(o.recursive == foo.seq.__hash__)
     True
     """
     return property(instance_attrgetter(target_attr),
