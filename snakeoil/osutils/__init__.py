@@ -79,7 +79,7 @@ del module
 def _safe_mkdir(path, mode):
     try:
         os.mkdir(path, mode)
-    except OSError, e:
+    except OSError as e:
         # if it exists already and is a dir, non issue.
         if e.errno != errno.EEXIST:
             return False
@@ -209,7 +209,7 @@ def abspath(path):
     path = os.path.abspath(path)
     try:
         return abssymlink(path)
-    except EnvironmentError, e:
+    except EnvironmentError as e:
         if e.errno not in (errno.ENOENT, errno.EINVAL):
             raise
         return path
@@ -303,7 +303,7 @@ class FsLock(object):
             flags |= os.O_CREAT
         try:
             self.fd = os.open(self.path, flags)
-        except OSError, oe:
+        except OSError as oe:
             compatibility.raise_from(GenericFailed(self.path, oe))
 
     def _enact_change(self, flags, blocking):
@@ -313,7 +313,7 @@ class FsLock(object):
         if not blocking:
             try:
                 fcntl.flock(self.fd, flags|fcntl.LOCK_NB)
-            except IOError, ie:
+            except IOError as ie:
                 if ie.errno == errno.EAGAIN:
                     return False
                 compatibility.raise_from(GenericFailed(self.path, ie))
@@ -416,7 +416,7 @@ def unlink_if_exists(path):
     """
     try:
         os.unlink(path)
-    except EnvironmentError, e:
+    except EnvironmentError as e:
         if e.errno != errno.ENOENT:
             raise
 

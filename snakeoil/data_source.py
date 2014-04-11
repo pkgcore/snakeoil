@@ -36,7 +36,7 @@ TypeError:
 >>> # we should catch;
 >>> try:
 ...   handle.write("You wouldn't answer your phone.")
-... except handle.exceptions, e:
+... except handle.exceptions as e:
 ...   print "we caught the exception."
 we caught the exception.
 """
@@ -238,7 +238,7 @@ class local_source(base):
             return opener(self.path, 'r')
         try:
             return opener(self.path, "r+")
-        except IOError, ie:
+        except IOError as ie:
             if ie.errno != errno.ENOENT:
                 raise
             return opener(self.path, 'w+')
@@ -251,7 +251,7 @@ class local_source(base):
             raise TypeError("data source %s is immutable" % (self,))
         try:
             return open_file(self.path, 'rb+', self.buffering_window)
-        except IOError, ie:
+        except IOError as ie:
             if ie.errno != errno.ENOENT:
                 raise
             return open_file(self.path, 'wb+', self.buffering_window)

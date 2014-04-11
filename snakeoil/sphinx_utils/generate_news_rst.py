@@ -11,7 +11,7 @@ def regenerate_if_needed(project, src, out, release_extlink=None, git_extlink=No
     try:
         if int(os.stat(out).st_mtime) >= cut_off:
             return
-    except EnvironmentError, e:
+    except EnvironmentError as e:
         if e.errno != errno.ENOENT:
             raise
     print "regenerating %s news for %s -> %s" % (project, src, out)

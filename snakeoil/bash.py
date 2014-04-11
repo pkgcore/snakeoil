@@ -127,7 +127,7 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
                 else:
                     s.push_token(next_tok)
                 d[key] = val
-        except ValueError, e:
+        except ValueError as e:
             raise_from(BashParseError(bash_source, s.lineno, str(e)))
     finally:
         if close and f is not None:
@@ -236,8 +236,8 @@ class bash_parser(shlex):
     def sourcehook(self, newfile):
         try:
             return shlex.sourcehook(self, newfile)
-        except IOError, ie:
-            raise_from(BashParseError(newfile, 0, str(ie)))
+        except IOError as e:
+            raise_from(BashParseError(newfile, 0, str(e)))
 
     def read_token(self):
         self.changed_state = []

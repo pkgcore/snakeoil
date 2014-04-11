@@ -292,7 +292,7 @@ class TestBrokenStats(TestCase):
         try:
             with open(path, 'r') as handle:
                 data = handle.read()
-        except EnvironmentError, e:
+        except EnvironmentError as e:
             if e.errno not in (errno.ENOENT, errno.EPERM):
                 raise
             return

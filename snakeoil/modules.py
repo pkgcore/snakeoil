@@ -38,7 +38,7 @@ def load_module(name):
         return m
     except IGNORED_EXCEPTIONS:
         raise
-    except Exception, e:
+    except Exception as e:
         raise_from(FailedImport(name, e))
 
 
@@ -59,7 +59,7 @@ def load_attribute(name):
         m = load_module(chunks[0])
         m = getattr(m, chunks[1])
         return m
-    except (AttributeError, ImportError), e:
+    except (AttributeError, ImportError) as e:
         raise_from(FailedImport(name, e))
 
 
@@ -76,7 +76,7 @@ def load_any(name):
 
     try:
         return load_module(name)
-    except FailedImport, fi:
+    except FailedImport as fi:
         if not isinstance(fi.e, ImportError):
             raise
     return load_attribute(name)

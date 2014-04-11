@@ -297,7 +297,7 @@ class native_PlainTextFormatter(Formatter):
                     self._wrote_something = False
                     self._pos = 0
                     self._in_first_line = True
-            except IOError, e:
+            except IOError as e:
                 if e.errno == errno.EPIPE:
                     raise StreamClosed(e)
                 raise
@@ -559,7 +559,7 @@ else:
                 if self._current_colors != [None, None]:
                     self._current_colors = [None, None]
                     self.stream.write(self._color_reset)
-            except IOError, e:
+            except IOError as e:
                 if e.errno == errno.EPIPE:
                     raise StreamClosed(e)
                 raise

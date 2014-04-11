@@ -211,7 +211,7 @@ class Test_wrap_exception(TestCase):
         try:
             func()
             raise AssertionError("shouldn't have been able to reach here")
-        except my_exception, e:
+        except my_exception as e:
             self.assertEqual(e.args, (1,3,2))
             self.assertEqual(e.kwds, {'monkey':'bone'})
 
@@ -223,6 +223,6 @@ class Test_wrap_exception(TestCase):
         try:
             func()
             raise AssertionError("shouldn't have been able to reach here")
-        except my_exception, e:
+        except my_exception as e:
             self.assertEqual(e.args, (1,3,2))
             self.assertEqual(e.kwds, {'monkey':'bone', 'the_exception':e.__cause__})

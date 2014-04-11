@@ -28,7 +28,7 @@ def generate_rst(modpath, module, handle=None):
     for target in target_names:
         try:
             obj = getattr(module, target)
-        except AttributeError, a:
+        except AttributeError as a:
             sys.stderr.write("failed processing %s, accessing %s: %s\n" %
                 (modpath, target, a))
             raise
@@ -68,7 +68,7 @@ def regen_if_needed(src, out_path):
         int(os.stat(__file__).st_mtime)])
     try:
         trg_time = int(os.stat(out_path).st_mtime)
-    except EnvironmentError, e:
+    except EnvironmentError as e:
         if e.errno != errno.ENOENT:
             raise
         trg_time = -1

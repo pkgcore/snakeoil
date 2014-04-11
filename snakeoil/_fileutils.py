@@ -88,7 +88,7 @@ def native_readlines(mode, mypath, strip_whitespace=True, swallow_missing=False,
                     iterable = _py2k_ascii_strict_filter(handle)
         else:
             handle = open(mypath, mode)
-    except IOError, ie:
+    except IOError as ie:
         if not swallow_missing or ie.errno not in (errno.ENOTDIR, errno.ENOENT):
             raise
         if none_on_missing:
@@ -141,7 +141,7 @@ def native_readfile(mode, mypath, none_on_missing=False, encoding=None,
                 f = open(mypath, mode)
 
             return f.read()
-        except IOError, oe:
+        except IOError as oe:
             if none_on_missing and oe.errno in (errno.ENOENT, errno.ENOTDIR):
                 return None
             raise

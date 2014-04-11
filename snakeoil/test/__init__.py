@@ -162,7 +162,7 @@ class TestCase(unittest.TestCase, object):
             return
         except IGNORED_EXCEPTIONS:
             raise
-        except Exception, e:
+        except Exception as e:
             tb = traceback.format_exc()
 
             new_exc = AssertionError("expected an exception of %r type from invocation of-\n"
@@ -240,7 +240,7 @@ class TestCase(unittest.TestCase, object):
                                        self, exc, todo)
                     else:
                         result.addFailure(self, exc)
-                except SkipTest, e:
+                except SkipTest as e:
                     _tryResultCall(result, 'addSkip', self, str(e))
                 except KeyboardInterrupt:
                     raise

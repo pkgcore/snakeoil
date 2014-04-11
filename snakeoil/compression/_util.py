@@ -152,7 +152,7 @@ class _process_handle(object):
             else:
                 # py2.5 lacks terminate...
                 os.kill(self._process.pid, signal.SIGTERM)
-        except EnvironmentError, e:
+        except EnvironmentError as e:
             # allow no such process only.
             if e.errno != errno.ESRCH:
                 raise

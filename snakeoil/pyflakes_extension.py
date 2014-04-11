@@ -120,7 +120,7 @@ class DemandloadChecker(_Checker):
                 s = chunk.s
                 try:
                     targets = list(parse_demandload([s]))
-                except ValueError, ve:
+                except ValueError as ve:
                     self.report(BadDemandloadCall, chunk.lineno, ve)
                     continue
                 for src, asname in targets:

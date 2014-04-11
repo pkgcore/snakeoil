@@ -119,7 +119,7 @@ class PythonNamespaceWalker(object):
         for x in l:
             try:
                 stats.append((x, os.stat(os.path.join(location, x)).st_mode))
-            except OSError, oe:
+            except OSError as oe:
                 if oe.errno != errno.ENOENT:
                     raise
                 # file disappeared under our feet... lock file from
@@ -169,7 +169,7 @@ class PythonNamespaceWalker(object):
                 raise
             except AttributeError:
                 raise AssertionError("failed importing target %s" % namespace)
-            except Exception, e:
+            except Exception as e:
                 raise AssertionError("failed importing target %s; error %s"
                     % (namespace, e))
         return obj

@@ -197,7 +197,7 @@ def wrap_exception(recast_exception, *args, **kwds):
         if not issubclass(recast_exception, Exception):
             raise ValueError("recast_exception must be an %s derivative: got %r" %
                 (Exception, recast_exception))
-    except TypeError, e:
+    except TypeError as e:
         raise TypeError("recast_exception must be an %s derivative; got %r, failed %r",
             (Exception.__name__, recast_exception, e))
     ignores = kwds.pop("ignores", (recast_exception,))
@@ -215,7 +215,7 @@ def wrap_exception_complex(creation_func, ignores):
         if not hasattr(ignores, '__iter__') and issubclass(ignores, Exception) or ignores is Exception:
             ignores = (ignores,)
         ignores = tuple(ignores)
-    except TypeError, e:
+    except TypeError as e:
         raise TypeError("ignores must be either a tuple of %s, or a %s: got %r, error %r"
             % (Exception.__name__, Exception.__name__, ignores, e))
     if not all(issubclass(x, Exception) for x in ignores):
@@ -231,7 +231,7 @@ def _inner_wrap_exception(exception_maker, ignores, functor):
             raise
         except ignores:
             raise
-        except Exception, e:
+        except Exception as e:
             # snag the exception info prior, just to ensure the maker
             # doesn't corrupt the tb info.
             exc_info = sys.exc_info()

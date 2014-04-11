@@ -112,7 +112,7 @@ class native_WeakInstMeta(type):
             key = (a, tuple(kwlist))
             try:
                 instance = cls.__inst_dict__.get(key)
-            except (NotImplementedError, TypeError), t:
+            except (NotImplementedError, TypeError) as t:
                 warnings.warn(
                     "caching keys for %s, got %s for a=%s, kw=%s" % (
                         cls, t, a, kw))

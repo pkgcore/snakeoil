@@ -149,6 +149,6 @@ class raise_from_test(TestCase):
         self.assertRaises(IndexError, f2)
         try:
             f2()
-        except IndexError, e:
+        except IndexError as e:
             self.assertTrue(hasattr(e, '__cause__'))
             self.assertTrue(isinstance(e.__cause__, KeyError))

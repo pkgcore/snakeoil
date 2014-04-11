@@ -21,7 +21,7 @@ pjoin = os.path.join
 def stat_swallow_enoent(path, check, default=False, stat=os.stat):
     try:
         return check(stat(path).st_mode)
-    except OSError, oe:
+    except OSError as oe:
         if oe.errno == errno.ENOENT:
             return default
         raise
