@@ -7,25 +7,10 @@ Collection of functionality to make using iterators transparently easier
 
 from __future__ import print_function
 
-__all__ = ("expandable_chain", "caching_iter", "iter_sort", "chain_from_iterable")
+__all__ = ("expandable_chain", "caching_iter", "iter_sort")
 
 from collections import deque
 from itertools import islice, chain
-
-# py2.4/py2.5 comptatibility
-def chain_from_iterable(iterable):
-    """
-    Alternate itertools.chain() contructor taking a single iterable argument that evaluates lazily.
-
-    :param iterable: iterable that yields iterables to consume from.
-    """
-
-    for subiterable in iterable:
-        for item in subiterable:
-            yield item
-
-
-chain_from_iterable = getattr(chain, 'from_iterable', chain_from_iterable)
 
 
 class expandable_chain(object):

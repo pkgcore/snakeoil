@@ -3,6 +3,10 @@ Snakeoil Release Notes
 
 snakeoil trunk:
 
+* Remove iterables.chain_from_iterables compat method since we're not
+  supporting versions previous to python 2.6 anymore, use
+  chain.from_iterable from itertools instead.
+
 * Drop deprecated currying.alias_class_method; use klass.alias_method.
 
 * Migrate pkgcore.vdb.ondisk.bz2_data_source to
