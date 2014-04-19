@@ -86,12 +86,12 @@ from snakeoil.mappings import make_SlottedDict_kls
 from snakeoil import compatibility, klass
 
 
-# for our proxy, we have two sets of descriptors-
+# For our proxy, we have two sets of descriptors-
 # common, "always there" descriptors that come from
 # object itself (this is the base_kls_descriptors sequence)
-# and kls_descriptors.  we have a minor optimization in place
+# and kls_descriptors.  We have a minor optimization in place
 # to try and use BaseDelayedObject wherever possible to avoid
-# pointless class creation- thus having two seperate lists.
+# pointless class creation- thus having two separate lists.
 
 base_kls_descriptors_compat = []
 if compatibility.is_py3k:

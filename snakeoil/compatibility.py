@@ -72,7 +72,7 @@ def sorted_key_from_cmp(cmp_func, key_func=None):
 
 
 if is_py3k:
-    # yes this is heinous.  this is whay they recommended in the python
+    # yes this is heinous.  this is what they recommended in the python
     # docs for porting however...
     def raw_cmp(a, b):
         return (a > b) - (a < b)

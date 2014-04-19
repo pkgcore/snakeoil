@@ -15,7 +15,7 @@ well tested implementations of rather hard problems to solve.
 Snakeoil's naming was chosen partially as a python analog of `liboil <http://liboil.freedesktop.org/>`_
 (per cpu assembly optimizations of common operations), and also as a partial warning riffing
 on the common meaning of `Snake Oil <http://en.wikipedia.org/wiki/Snake_oil>`_; specifically
-a supposed miracle cure that has no affect.  To be clear, this package `does` have some
+a supposed miracle cure that has no effect.  To be clear, this package `does` have some
 very powerful functionality and optimizations available, and its usage is well known to speed
 things up: the `pkgcore <http://pkgcore.googlecode.com>`_ package manager from which this
 library was derived, makes heavy usage of these optimizations- further in a simple test usage
@@ -55,7 +55,7 @@ Snakeoil vcs of choice is `git <http://git.scm.org/>`_, and our source can be ch
 
 All releases are available at |release_url|\., with release news available at :ref:`releases`\.
 
-As for dependencies, snakeoil basically just requires python2.4 and up.
+As for dependencies, snakeoil basically just requires python2.6 and up.
 
 
 Snakeoil intentions
@@ -69,13 +69,13 @@ elsewhere.
 Python annoyances and hard issues
 ---------------------------------
 
-The philisophy behind snakeoil is essentially that `things should just work`-
+The philosophy behind snakeoil is essentially that `things should just work`-
 to that end, and via a fair amount of unit testing, snakeoil internals will cover up
 the nasty details of how to do something while presenting a simple/no surprises api
 for consumers.  Good examples of this are:
 
 * :py:class:`snakeoil.weakrefs.WeakRefFinalizer`, a metaclass allowing you to write `__del__` methods
-  without the gc cycle issues inherint in the cpython implementation.
+  without the gc cycle issues inherent in the cpython implementation previous to 3.4.
 * :py:class:`snakeoil.caching.WeakInstMeta`, a metaclass allowing you to inline instance
   reuse for immutable objects.  Essentially, why write multiple factory implementations?  Why not
   push it directly into instance generation itself so that the instance sharing is transparent,
@@ -85,7 +85,7 @@ for consumers.  Good examples of this are:
   since py2k ``items`` differs greatly from py3k ``items`` (py3k's is essentially py2k's ``iteritems``),
   developers targeting both py2k/py3k are in a tough spot.  Specifically, they wind up having to
   write nasty if/else blocks into the code.  The purpose of this metaclass is to hide all of that
-  nastyness into a single spot- you write your class targeting py2k, the metaclass will rewrite
+  nastiness into a single spot- you write your class targeting py2k, the metaclass will rewrite
   the method layouts to match py3k at runtime if used in a py3k environment.
 * :py:func:`snakeoil.obj.DelayedInstantiation`; a object proxy implementation that is effectively
   fully transparent for any non-builtin target proxying it does.  While proxying implementations
@@ -104,14 +104,14 @@ Supporting multiple python versions can be a pain
 
 Another facet of snakeoil functionality is python compatibility- already
 mentioned was :py:class:`snakeoil.mappings.autoconvert_py3k_methods_metaclass`, :py:mod:`snakeoil.compatibility` is
-a seperate module that exists to address compatibility issues across py2.4 to py3.2- whether it
+a separate module that exists to address compatibility issues across py2.4 to py3.4- whether it
 be intern moving to sys.intern, the lack of :py:func:`any` and :py:func:`all` in python2.4, needing
 to specify that a string must be bytes in py3k (but supporting python 2.4/2.5, which lack the bytes syntax) via
 :py:func:`snakeoil.compatibility.force_bytes`, there is a significant amount of functionality in there to help with these issues.
 Note that compatibility functionality that goes into that module isn't the only compatibility bits- that's
 just the general grab bag for it.  :py:class:`defaultdict` for example lives in mappings, a fallback
 version of :py:func:`operator.attrgetter` that provides dotted namespace lookup in py2.4/py2.5 is available
-at :py:func:`static_attrgetter`.  :py:mod:`snakeoil.currying` is another example (primarily targetting
+at :py:func:`static_attrgetter`.  :py:mod:`snakeoil.currying` is another example (primarily targeting
 :py:class:`functools.partial`, although providing more functionality than just that limited usage).
 
 
@@ -137,7 +137,7 @@ done only when something actually needs to access that functionality.
 While we provide speed optimized implementations, we also provide functionality for reduction of memory
 usage- for codebases with a large number of small dictionaries, :py:func:`snakeoil.obj.make_SlottedDict_kls` can
 reduce the memory requirement in the range of 75-95%.  For codebases that make extensive use of
-__slots__ for memory reasons, it's advised that they take a look at :py:class:`snakeoil.test.test_slott_shadowing`
+__slots__ for memory reasons, it's advised that they take a look at :py:class:`snakeoil.test.test_slot_shadowing`
 
 
 Avoiding Boilerplate (functionality to help with DRY- Don't Repeat Yourself)
@@ -166,4 +166,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

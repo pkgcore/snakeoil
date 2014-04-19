@@ -11,7 +11,7 @@ The primary use for data_source's is to encapsulate the following issues into a 
 * py3k compatibility concerns (bytes versus text file handles)
 
 Note that under py2k, :py:class:`text_data_source` and :py:class:`bytes_data_source` are
-just aliases of :py:class:`data_source`; under py3k however they are seperate classes
+just aliases of :py:class:`data_source`; under py3k however they are separate classes
 doing necessary conversion steps for bytes/text requests.  Use the appropriate one-
 it'll save yourself a headache when dealing with py2k/py3k compatibility in the same
 codebase.
@@ -311,7 +311,7 @@ class data_source(base):
     derivatives :py:class:`text_data_source` and :py:class:`bytes_data_source` are
     likely what you should be using for direct creation.
 
-    :ivar data: the raw data.  should either be a string or bytes depending on your
+    :ivar data: the raw data- should either be a string or bytes depending on your
       derivative
     :ivar path: note that path is None for this class- no on disk location available.
     """

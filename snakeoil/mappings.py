@@ -105,7 +105,7 @@ class DictMixin(object):
         for k in self:
             yield k, self[k]
 
-    # change our base method definitions dependant
+    # change our base method definitions dependent
     # on if it's py2k or py3k; note that the
     # autoconvert_py3k_methods_metaclass will move around
     # methods as needed to match the py3k method layout,
@@ -750,7 +750,7 @@ def native_attr_contains(self, key):
 
 # python issue 7604; depending on the python version, delattr'ing an empty slot
 # doesn't throw AttributeError; we vary our implementation for efficiency
-# dependant on a onetime runtime test of that.
+# dependent on a onetime runtime test of that.
 
 class foo(object):
     __slots__ = ("slot",)
