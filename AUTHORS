@@ -4,5 +4,3 @@ Marien Zwart <marienz@gentoo.org>
 Tim Harder <radhermit@gentoo.org>
 
 git log if you're curious about the gory details of who did what
-
-In addition, snakeoil.fix_copy was written by the bzrlib folks, (C) Canonical 2005,2006
