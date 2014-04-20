@@ -34,21 +34,6 @@ class CmpTest(TestCase, override_mixin):
             self.assertTrue(f(None, None) == 0)
 
 
-class NextTest(TestCase):
-
-    # done this way to keep 2to3 from mangling the name invalidly.
-    func = staticmethod(getattr(compatibility, 'next'))
-
-    def test_it(self):
-        f = self.func
-        self.assertRaises(TypeError, f, None)
-        self.assertRaises(TypeError, f, "s")
-        i = iter("sa")
-        self.assertEqual(f(i), "s")
-        self.assertEqual(f(i), "a")
-        self.assertRaises(StopIteration, f, i)
-
-
 class incomparable_obj(tuple):
     # used to ensure that if this raw object is compared,
     # it goes boom.

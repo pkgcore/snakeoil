@@ -32,7 +32,7 @@ For easing py3k compatibility:
   under py2k you get a plain old string w/ minimal overhead.
 """
 
-__all__ = ("is_py3k", "is_py3k_like", "next", "intern", "cmp", "sorted_cmp", "sort_cmp")
+__all__ = ("is_py3k", "is_py3k_like", "intern", "cmp", "sorted_cmp", "sort_cmp")
 
 import sys
 
@@ -83,7 +83,6 @@ if is_py3k:
         return raw_cmp(obj1, obj2)
 
     intern = sys.intern
-    from __builtin__ import next
 
     def sorted_cmp(sequence, func, key=None, reverse=False):
         return sorted(sequence, reverse=reverse,
@@ -100,12 +99,6 @@ else:
     # note that 2to3 screws this up... non issue however, since
     # this codepath won't be executed.
     from __builtin__ import cmp, intern
-    def next(iterable):
-        try:
-            obj = iterable.next
-        except AttributeError:
-            raise TypeError("%s is not an iterator" % (iterable,))
-        return obj()
 
     def sorted_cmp(sequence, func, key=None, reverse=False):
         return sorted(sequence, cmp=func, key=key, reverse=reverse)
