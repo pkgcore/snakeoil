@@ -109,7 +109,6 @@ def _strip_whitespace_filter(iterable):
 
 
 def _py2k_ascii_strict_filter(source):
-    any = compatibility.any
     for line in source:
         if any((0x80 & ord(char)) for char in line):
             raise ValueError("character ordinal over 127");

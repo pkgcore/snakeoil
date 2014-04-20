@@ -32,8 +32,7 @@ For easing py3k compatibility:
   under py2k you get a plain old string w/ minimal overhead.
 """
 
-__all__ = ("all", "any", "is_py3k", "is_py3k_like", "next",
-    "intern", "cmp", "sorted_cmp", "sort_cmp")
+__all__ = ("is_py3k", "is_py3k_like", "next", "intern", "cmp", "sorted_cmp", "sort_cmp")
 
 import sys
 
@@ -49,9 +48,6 @@ if hasattr(sys, 'getPlatform'):
 
 is_py3k = int(sys.version[0]) == 3
 is_py3k_like = is_py3k or float(sys.version[:3]) >= 2.7
-
-# Imported for compatibility w/ old code that was using us for 2.4 compatibility.
-from __builtin__ import any, all
 
 def sorted_key_from_cmp(cmp_func, key_func=None):
     class _key_proxy(object):

@@ -102,17 +102,18 @@ than worry about solving an issue someone else has already addressed essentially
 Supporting multiple python versions can be a pain
 -------------------------------------------------
 
-Another facet of snakeoil functionality is python compatibility- already
-mentioned was :py:class:`snakeoil.mappings.autoconvert_py3k_methods_metaclass`, :py:mod:`snakeoil.compatibility` is
-a separate module that exists to address compatibility issues across py2.4 to py3.4- whether it
-be intern moving to sys.intern, the lack of :py:func:`any` and :py:func:`all` in python2.4, needing
-to specify that a string must be bytes in py3k (but supporting python 2.4/2.5, which lack the bytes syntax) via
-:py:func:`snakeoil.compatibility.force_bytes`, there is a significant amount of functionality in there to help with these issues.
-Note that compatibility functionality that goes into that module isn't the only compatibility bits- that's
-just the general grab bag for it.  :py:class:`defaultdict` for example lives in mappings, a fallback
-version of :py:func:`operator.attrgetter` that provides dotted namespace lookup in py2.4/py2.5 is available
-at :py:func:`static_attrgetter`.  :py:mod:`snakeoil.currying` is another example (primarily targeting
-:py:class:`functools.partial`, although providing more functionality than just that limited usage).
+Another facet of snakeoil functionality is python compatibility- already mentioned was
+:py:class:`snakeoil.mappings.autoconvert_py3k_methods_metaclass`, :py:mod:`snakeoil.compatibility`
+is a separate module that exists to address compatibility issues across py2.4 to py3.4- whether it
+be intern moving to sys.intern, needing to specify that a string must be bytes in py3k (but
+supporting python 2.4/2.5, which lack the bytes syntax) via
+:py:func:`snakeoil.compatibility.force_bytes`, there is a significant amount of functionality in
+there to help with these issues.  Note that compatibility functionality that goes into that module
+isn't the only compatibility bits- that's just the general grab bag for it.  :py:class:`defaultdict`
+for example lives in mappings, a fallback version of :py:func:`operator.attrgetter` that provides
+dotted namespace lookup in py2.4/py2.5 is available at :py:func:`static_attrgetter`.
+:py:mod:`snakeoil.currying` is another example (primarily targeting :py:class:`functools.partial`,
+although providing more functionality than just that limited usage).
 
 
 Optimizations
