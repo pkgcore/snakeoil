@@ -315,14 +315,12 @@ class mmap_or_open_for_read(TempDirMixin, TestCase):
         self.write_file(path, 'w', '')
         m, f = self.func(path)
         self.assertIdentical(m, None)
-        self.assertEqual(f.read(), compatibility.force_bytes(''))
+        self.assertEqual(f.read(), b'')
         f.close()
 
-    def test_mmap(self, data='foonani'):
+    def test_mmap(self, data=b'foonani'):
         path = pjoin(self.dir, 'target')
-        self.write_file(path, 'w', data)
-
-        data = compatibility.force_bytes(data)
+        self.write_file(path, 'wb', data)
         m, f = self.func(path)
         self.assertEqual(len(m), len(data))
         self.assertEqual(m.read(len(data)), data)
@@ -334,7 +332,7 @@ class Test_mmap_and_close(TempDirMixin):
 
     def test_it(self):
         path = pjoin(self.dir, 'target')
-        data = compatibility.force_bytes('asdfasdf')
+        data = b'asdfasdf'
         self.write_file(path, 'wb', [data])
         fd, m = None, None
         try:

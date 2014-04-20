@@ -20,7 +20,7 @@ if compatibility.is_py3k:
 else:
     from StringIO import StringIO
 
-# protect against python issu 7567 for the curses module.
+# protect against python issue 7567 for the curses module.
 issue7567 = protect_process
 
 class native_PlainTextFormatterTest(TestCase):
@@ -215,8 +215,7 @@ class TerminfoFormatterTest(TestCase):
         f = formatters.TerminfoFormatter(stream, 'xterm+sl', True, 'ascii')
         f.title('TITLE')
         stream.seek(0)
-        self.assertEqual(compatibility.force_bytes('\x1b]0;TITLE\x07'),
-                         stream.read())
+        self.assertEqual(b'\x1b]0;TITLE\x07', stream.read())
 
 
 def _with_term(term, func, *args, **kwargs):

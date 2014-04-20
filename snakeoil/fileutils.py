@@ -49,8 +49,7 @@ def write_file(path, mode, stream, encoding=None):
 def mmap_or_open_for_read(path):
     size = os.stat(path).st_size
     if size == 0:
-        return (None, data_source.bytes_ro_StringIO(
-            compatibility.force_bytes('')))
+        return (None, data_source.bytes_ro_StringIO(b''))
     fd = None
     try:
         fd = os.open(path, os.O_RDONLY)

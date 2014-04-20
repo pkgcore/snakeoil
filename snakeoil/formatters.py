@@ -406,7 +406,7 @@ else:
                 if template:
                     res = curses.tparm(template, color)
                 else:
-                    res = compatibility.force_bytes('')
+                    res = b''
                 formatter._current_colors[self.mode] = res
             formatter.stream.write(res)
 
