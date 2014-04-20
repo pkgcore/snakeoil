@@ -2,7 +2,7 @@
 # License: BSD/GPL2
 
 """
-Compatibility functionality for python 2.5 through 3.2
+Compatibility functionality for python 2.6 through 3.4
 
 For those of us still supporting older python versions, we're in a bit of a
 bind- we'd *love* to use the newer python functions but cannot without
@@ -115,16 +115,6 @@ else:
 
     force_bytes = str
 
-def native_is_disjoint(src_set, sequence):
-    return not src_set.intersection(sequence)
-
-if hasattr(set(), 'isdisjoint'):
-    # python2.6 and up.
-    def is_disjoint(instance, *args):
-        return instance.isdisjoint(*args)
-else:
-    is_disjoint = native_is_disjoint
-import sys
 
 if is_py3k:
     def raise_from(new_exception, exc_info=None):

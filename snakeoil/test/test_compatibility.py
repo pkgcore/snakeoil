@@ -122,16 +122,6 @@ class BytesTest(TestCase):
         self.assertTrue(isinstance(self.func("adsf"), kls))
 
 
-class Is_DisjointTest(TestCase):
-    func = staticmethod(compatibility.is_disjoint)
-
-    def test_compat(self):
-        s = set(xrange(5))
-        s2 = set(xrange(5, 10))
-        self.assertTrue(self.func(s, s2))
-        self.assertFalse(self.func(s, s))
-
-
 class raise_from_test(TestCase):
 
     func = staticmethod(compatibility.raise_from)
