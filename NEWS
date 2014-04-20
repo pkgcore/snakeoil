@@ -3,9 +3,9 @@ Snakeoil Release Notes
 
 snakeoil trunk:
 
-* Remove iterables.chain_from_iterables compat method since we're not
-  supporting versions previous to python 2.6 anymore, use
-  chain.from_iterable from itertools instead.
+* Remove pre-python2.6 compat support including iterables.chain_from_iterables
+  (use chain.from_iterable from itertools), is_disjoint (use
+  isdisjoint), and built-in backports for all, any, and next.
 
 * Drop deprecated currying.alias_class_method; use klass.alias_method.
 
