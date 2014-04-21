@@ -138,14 +138,13 @@ class build_py(dst_build_py.build_py):
         dst_build_py.build_py.finalize_options(self)
 
     def _compute_py3k_rebuilds(self, force=False):
-        pjoin = os.path.join
         for base, mod_name, path in self.find_all_modules():
             try:
                 new_mtime = math.floor(os.lstat(path).st_mtime)
             except EnvironmentError:
                 # ok... wtf distutils?
                 continue
-            trg_path = pjoin(self.build_lib, path)
+            trg_path = os.path.join(self.build_lib, path)
             if force:
                 yield trg_path, new_mtime
                 continue
