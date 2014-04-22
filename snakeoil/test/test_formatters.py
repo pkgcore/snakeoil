@@ -7,12 +7,13 @@
 # that compares native vs cpy behaviour behind the scenes for each test.
 # aside from that, tests need heavy expansion
 
+import curses
 import os
 import pty
 import sys
 from tempfile import TemporaryFile
 
-from snakeoil.test import TestCase, mk_cpy_loadable_testcase, protect_process
+from snakeoil.test import SkipTest, TestCase, mk_cpy_loadable_testcase, protect_process
 from snakeoil import formatters, compatibility
 
 if compatibility.is_py3k:
@@ -212,7 +213,10 @@ class TerminfoFormatterTest(TestCase):
     @issue7567
     def test_title(self):
         stream = TemporaryFile()
-        f = formatters.TerminfoFormatter(stream, 'xterm+sl', True, 'ascii')
+        try:
+            f = formatters.TerminfoFormatter(stream, 'xterm+sl', True, 'ascii')
+        except curses.error:
+            raise SkipTest("xterm+sl not in terminfo db")
         f.title('TITLE')
         stream.seek(0)
         self.assertEqual(b'\x1b]0;TITLE\x07', stream.read())
