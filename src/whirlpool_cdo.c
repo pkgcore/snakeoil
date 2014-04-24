@@ -23,7 +23,7 @@ static int is_initialized = 0;
 static PyObject *
 snakeoil_whirlpool_CDo(PyObject *self, PyObject *args)
 {
-	if(!is_initialized) {
+	if (!is_initialized) {
 		PyErr_SetString(PyExc_RuntimeError, "whirlpool internals not initialized");
 		return NULL;
 	}

@@ -49,7 +49,7 @@ snakeoil_readdir_actual_listdir(const char* path, int followsyms,
 		return PyErr_SetFromErrno(PyExc_OSError);
 	}
 	errno = 0;
-	while ((entry = readdir(the_dir))) {
+	while (entry = readdir(the_dir)) {
 		const char *name = entry->d_name;
 		/* skip over "." and ".." */
 		if (name[0] == '.' && (name[1] == 0 || (name[1] == '.' &&
@@ -172,7 +172,7 @@ snakeoil_readdir_listdir(PyObject* self, PyObject* args)
 	}
 	errno = 0;
 	struct dirent *entry;
-	while ((entry = readdir(the_dir))) {
+	while (entry = readdir(the_dir)) {
 		const char *name = entry->d_name;
 		/* skip over "." and ".." */
 		if (!(name[0] == '.' && (name[1] == 0 ||
@@ -221,7 +221,7 @@ snakeoil_readdir_read_dir(PyObject* self, PyObject* args)
 	}
 
 	struct dirent *entry;
-	while ((entry = readdir(the_dir))) {
+	while (entry = readdir(the_dir)) {
 		const char *name = entry->d_name;
 		/* skip over "." and ".." */
 		if (name[0] == '.' && (name[1] == 0 ||

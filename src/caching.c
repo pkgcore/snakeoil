@@ -135,10 +135,10 @@ snakeoil_WeakValCache_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	snakeoil_WeakValCache *self;
 	self = (snakeoil_WeakValCache *)type->tp_alloc(type, 0);
-	if(!self)
+	if (!self)
 		return NULL;
 	self->dict = PyDict_New();
-	if(!self->dict) {
+	if (!self->dict) {
 		Py_DECREF(self);
 		return NULL;
 	}
@@ -192,10 +192,10 @@ static int
 snakeoil_WeakValCache_setitem(snakeoil_WeakValCache *self, PyObject *key,
 	PyObject *val)
 {
-	if(!val) {
+	if (!val) {
 		return PyDict_SetItem(self->dict, (PyObject*)key, (PyObject*)val);
 	}
-	if(PyWeakref_Check(val)) {
+	if (PyWeakref_Check(val)) {
 		PyErr_SetString(PyExc_TypeError, "cannot set value to a weakref");
 		return -1;
 	}
@@ -219,13 +219,13 @@ snakeoil_WeakValCache_getitem(snakeoil_WeakValCache *self, PyObject *key)
 {
 	PyObject *resobj, *actual = NULL;
 	resobj = PyDict_GetItem(self->dict, key);
-	if(resobj) {
+	if (resobj) {
 		actual = PyWeakref_GetObject(resobj);
 		if (actual == Py_None) {
 			// PyWeakref_GetObject returns a borrowed reference, do not
 			// clear it
 			actual = NULL;
-			if(-1 == PyDict_DelItem(self->dict, key)) {
+			if (-1 == PyDict_DelItem(self->dict, key)) {
 				return NULL;
 			}
 		} else {
@@ -241,30 +241,30 @@ static PyObject *
 snakeoil_WeakValCache_get(snakeoil_WeakValCache *self, PyObject *args)
 {
 	Py_ssize_t size = PyTuple_Size(args);
-	if(-1 == size)
+	if (-1 == size)
 		return NULL;
 	PyObject *key, *resobj;
-	if(size < 1 || size > 2) {
+	if (size < 1 || size > 2) {
 		PyErr_SetString(PyExc_TypeError,
 			"get requires one arg (key), with optional default to return");
 		return NULL;
 	}
 	key = PyTuple_GET_ITEM(args, 0);
-	if(!key) {
+	if (!key) {
 		return NULL;
 	}
 
 	resobj = PyObject_GetItem((PyObject *)self, key);
-	if(resobj) {
+	if (resobj) {
 		return resobj;
 
-	} else if(PyErr_Occurred() && !PyErr_ExceptionMatches(PyExc_KeyError)) {
+	} else if (PyErr_Occurred() && !PyErr_ExceptionMatches(PyExc_KeyError)) {
 		// if the error wasn't that the key isn't found, return
 		return NULL;
 	}
 
 	PyErr_Clear();
-	if(size == 2) {
+	if (size == 2) {
 		resobj = PyTuple_GET_ITEM(args, 1);
 	} else {
 		resobj = Py_None;
@@ -536,7 +536,7 @@ snakeoil_WeakInstMeta_call(snakeoil_WeakInstMeta *self,
 			PyErr_Clear();
 			PyObject *format, *formatargs, *message;
 			if ((format = PyString_FromString(
-					 "caching for %s, key=%s is unhashable"))) {
+					"caching for %s, key=%s is unhashable"))) {
 				if ((formatargs = PyTuple_Pack(2, self, key))) {
 					if ((message = PyString_Format(format, formatargs))) {
 						/* Leave resobj NULL if PyErr_Warn raises. */

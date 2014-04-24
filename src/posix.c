@@ -31,63 +31,63 @@ static PyObject *snakeoil_native_readfile_shim = NULL;
 static PyObject *snakeoil_native_readlines_shim = NULL;
 
 
-#define SKIP_SLASHES(ptr) while('/' == *(ptr)) (ptr)++;
+#define SKIP_SLASHES(ptr) while ('/' == *(ptr)) (ptr)++;
 
 
 static PyObject *
 snakeoil_normpath(PyObject *self, PyObject *py_old_path)
 {
-	if(!PyString_CheckExact(py_old_path)) {
+	if (!PyString_CheckExact(py_old_path)) {
 		PyErr_SetString(PyExc_TypeError,
 			"old_path must be a str");
 		return NULL;
 	}
 	Py_ssize_t path_len = PyString_GET_SIZE(py_old_path);
-	if(!path_len)
+	if (!path_len)
 		return PyString_FromString(".");
 
 	char *path = PyString_AS_STRING(py_old_path);
 
 	PyObject *new_obj = PyString_FromStringAndSize(NULL, path_len);
-	if(!new_obj)
+	if (!new_obj)
 		return new_obj;
 	char *new_path = PyString_AS_STRING(new_obj);
 	char *write = new_path;
 	int depth=0;
 	int is_absolute = '/' == *path;
 
-	if(is_absolute) {
+	if (is_absolute) {
 		depth--;
 	}
 
-	while('\0' != *path) {
+	while ('\0' != *path) {
 			if ('/' == *path) {
 				*write = '/';
 				write++;
 				SKIP_SLASHES(path);
 				depth++;
-			} else if('.' == *path) {
-				if('.' == path[1] && ('/' == path[2] || '\0' == path[2])) {
-					if(1 == depth) {
-						if(is_absolute) {
+			} else if ('.' == *path) {
+				if ('.' == path[1] && ('/' == path[2] || '\0' == path[2])) {
+					if (1 == depth) {
+						if (is_absolute) {
 							write = new_path;
 						} else {
 							// why -2?  because write is at an empty char.
 							// we need to jump back past it and /
 							write-=2;
-							while('/' != *write)
+							while ('/' != *write)
 								write--;
 						}
 						write++;
 						depth = 0;
-					} else if(depth) {
+					} else if (depth) {
 						write-=2;
-						while('/' != *write)
+						while ('/' != *write)
 							write--;
 						write++;
 						depth--;
 					} else {
-						if(is_absolute) {
+						if (is_absolute) {
 							write = new_path + 1;
 						} else {
 							write[0] = '.';
@@ -98,10 +98,10 @@ snakeoil_normpath(PyObject *self, PyObject *py_old_path)
 					}
 					path+= 2;
 					SKIP_SLASHES(path);
-				} else if('/' == path[1]) {
+				} else if ('/' == path[1]) {
 					path += 2;
 					SKIP_SLASHES(path);
-				} else if('\0' == path[1]) {
+				} else if ('\0' == path[1]) {
 					path++;
 				} else {
 					*write = '.';
@@ -109,14 +109,14 @@ snakeoil_normpath(PyObject *self, PyObject *py_old_path)
 					write++;
 				}
 			} else {
-				while('/' != *path && '\0' != *path) {
+				while ('/' != *path && '\0' != *path) {
 					*write = *path;
 					write++;
 					path++;
 				}
 			}
 	}
-	if(write -1 > new_path && '/' == write[-1])
+	if (write -1 > new_path && '/' == write[-1])
 		write--;
 
 	_PyString_Resize(&new_obj, write - new_path);
@@ -126,15 +126,15 @@ snakeoil_normpath(PyObject *self, PyObject *py_old_path)
 static PyObject *
 snakeoil_join(PyObject *self, PyObject *args)
 {
-	if(!args) {
+	if (!args) {
 		PyErr_SetString(PyExc_TypeError, "requires at least one path");
 		return NULL;
 	}
 	PyObject *fast = PySequence_Fast(args, "arg must be a sequence");
-	if(!fast)
+	if (!fast)
 		return NULL;
 	Py_ssize_t end = PySequence_Fast_GET_SIZE(fast);
-	if(!end) {
+	if (!end) {
 		PyErr_SetString(PyExc_TypeError,
 			"join takes at least one argument (0 given)");
 		return NULL;
@@ -145,14 +145,14 @@ snakeoil_join(PyObject *self, PyObject *args)
 	char *s;
 	int leading_slash = 0;
 	// find the right most item with a prefixed '/', else 0.
-	for(; i < end; i++) {
-		if(!PyString_CheckExact(items[i])) {
+	for (; i < end; i++) {
+		if (!PyString_CheckExact(items[i])) {
 			PyErr_SetString(PyExc_TypeError, "all args must be strings");
 			Py_DECREF(fast);
 			return NULL;
 		}
 		s = PyString_AsString(items[i]);
-		if('/' == *s) {
+		if ('/' == *s) {
 			leading_slash = 1;
 			start = i;
 		}
@@ -160,24 +160,24 @@ snakeoil_join(PyObject *self, PyObject *args)
 	// know the relevant slice now; figure out the size.
 	len = 0;
 	char *s_start;
-	for(i = start; i < end; i++) {
+	for (i = start; i < end; i++) {
 		// this is safe because we're using CheckExact above.
 		s_start = s = PyString_AS_STRING(items[i]);
-		while('\0' != *s)
+		while ('\0' != *s)
 			s++;
-		if(s_start == s)
+		if (s_start == s)
 			continue;
 		len += s - s_start;
 		char *s_end = s;
-		if(i + 1 != end) {
+		if (i + 1 != end) {
 			// cut the length down for trailing duplicate slashes
-			while(s != s_start && '/' == s[-1])
+			while (s != s_start && '/' == s[-1])
 				s--;
 			// allocate for a leading slash if needed
-			if(s_end == s && (s_start != s ||
+			if (s_end == s && (s_start != s ||
 				(s_end == s_start && i != start))) {
 				len++;
-			} else if(s_start != s) {
+			} else if (s_start != s) {
 				len -= s_end - s -1;
 			}
 		}
@@ -185,37 +185,37 @@ snakeoil_join(PyObject *self, PyObject *args)
 
 	// ok... we know the length.  allocate a string, and copy it.
 	PyObject *ret = PyString_FromStringAndSize(NULL, len);
-	if(!ret)
+	if (!ret)
 		return NULL;
 	char *buf = PyString_AS_STRING(ret);
-	if(leading_slash) {
+	if (leading_slash) {
 		*buf = '/';
 		buf++;
 	}
-	for(i = start; i < end; i++) {
+	for (i = start; i < end; i++) {
 		s_start = s = PyString_AS_STRING(items[i]);
-		if(i == start && leading_slash) {
+		if (i == start && leading_slash) {
 			// a slash is inserted anywas, thus we skip one ahead
 			// so it doesn't gain an extra.
 			s_start++;
 			s = s_start;
 		}
 
-	   if('\0' == *s)
+	   if ('\0' == *s)
 			continue;
-		while('\0' != *s) {
+		while ('\0' != *s) {
 			*buf = *s;
 			buf++;
-			if('/' == *s) {
+			if ('/' == *s) {
 				char *tmp_s = s + 1;
 				SKIP_SLASHES(s);
-				if('\0' == *s) {
-					if(i + 1  != end) {
+				if ('\0' == *s) {
+					if (i + 1  != end) {
 						buf--;
 					} else {
 						// copy the cracked out trailing slashes on the
 						// last item
-						while(tmp_s < s) {
+						while (tmp_s < s) {
 							*buf = '/';
 							buf++;
 							tmp_s++;
@@ -224,7 +224,7 @@ snakeoil_join(PyObject *self, PyObject *args)
 					break;
 				} else {
 					// copy the cracked out intermediate slashes.
-					while(tmp_s < s) {
+					while (tmp_s < s) {
 						*buf = '/';
 						buf++;
 						tmp_s++;
@@ -233,7 +233,7 @@ snakeoil_join(PyObject *self, PyObject *args)
 			} else
 				s++;
 		}
-		if(i + 1 != end) {
+		if (i + 1 != end) {
 			*buf = '/';
 			buf++;
 		}
@@ -251,9 +251,9 @@ snakeoil_read_open_and_stat(PyObject *path,
 	int *fd, struct stat *st)
 {
 	errno = 0;
-	if((*fd = open(PyString_AsString(path), O_RDONLY)) >= 0) {
+	if ((*fd = open(PyString_AsString(path), O_RDONLY)) >= 0) {
 		int ret = fstat(*fd, st);
-		if(!ret) {
+		if (!ret) {
 			return 0;
 		}
 	}
@@ -263,11 +263,11 @@ snakeoil_read_open_and_stat(PyObject *path,
 static inline int
 handle_failed_open_stat(int fd, PyObject *path, PyObject *swallow_missing)
 {
-	if(fd < 0) {
-		if(errno == ENOENT || errno == ENOTDIR) {
-			if(swallow_missing) {
+	if (fd < 0) {
+		if (errno == ENOENT || errno == ENOTDIR) {
+			if (swallow_missing) {
 				int result = PyObject_IsTrue(swallow_missing);
-				if(result == -1) {
+				if (result == -1) {
 					return 1;
 				} else if (result) {
 					errno = 0;
@@ -279,7 +279,7 @@ handle_failed_open_stat(int fd, PyObject *path, PyObject *swallow_missing)
 		return 1;
 	}
 	PyErr_SetFromErrnoWithFilenameObject(PyExc_OSError, path);
-	if(close(fd))
+	if (close(fd))
 		PyErr_SetFromErrnoWithFilenameObject(PyExc_IOError, path);
 	return 1;
 }
@@ -288,7 +288,7 @@ static PyObject *
 snakeoil_readfile(PyObject *self, PyObject *args)
 {
 	PyObject *path, *swallow_missing = NULL;
-	if(!args || !PyArg_ParseTuple(args, "S|O:readfile", &path,
+	if (!args || !PyArg_ParseTuple(args, "S|O:readfile", &path,
 		&swallow_missing)) {
 		return NULL;
 	}
@@ -299,7 +299,7 @@ snakeoil_readfile(PyObject *self, PyObject *args)
 	ret = snakeoil_read_open_and_stat(path, &fd, &st);
 	Py_END_ALLOW_THREADS
 	if (ret) {
-		if(handle_failed_open_stat(fd, path, swallow_missing))
+		if (handle_failed_open_stat(fd, path, swallow_missing))
 			return NULL;
 		Py_RETURN_NONE;
 	}
@@ -429,7 +429,7 @@ snakeoil_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 	PyObject *path, *swallow_missing = NULL, *strip_whitespace = NULL;
 	PyObject *none_on_missing = NULL;
 	snakeoil_readlines *self = NULL;
-	if(kwargs && PyDict_Size(kwargs)) {
+	if (kwargs && PyDict_Size(kwargs)) {
 		PyErr_SetString(PyExc_TypeError,
 			"readlines.__new__ doesn't accept keywords");
 		return NULL;
@@ -445,14 +445,14 @@ snakeoil_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 	PyObject *fallback = NULL;
 	Py_BEGIN_ALLOW_THREADS
 	errno = 0;
-	if(snakeoil_read_open_and_stat(path, &fd, &st)) {
+	if (snakeoil_read_open_and_stat(path, &fd, &st)) {
 		Py_BLOCK_THREADS
 
-		if(handle_failed_open_stat(fd, path, swallow_missing))
+		if (handle_failed_open_stat(fd, path, swallow_missing))
 			return NULL;
 
 		// return an empty tuple, and let them iter over that.
-		if(none_on_missing && PyObject_IsTrue(none_on_missing)) {
+		if (none_on_missing && PyObject_IsTrue(none_on_missing)) {
 			Py_RETURN_NONE;
 		}
 
@@ -460,7 +460,7 @@ snakeoil_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 		return snakeoil_readlines_empty_iter_singleton;
 	}
 	size = st.st_size;
-	if(st.st_size == 0) {
+	if (st.st_size == 0) {
 		// procfs is known to lie; do a read check.
 		char buf[1];
 		int ret = read(fd, buf, 1);
@@ -478,10 +478,10 @@ snakeoil_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 		// no clue how it could happen, but handle it.
 		ptr = MAP_FAILED;
 
-	} else if(st.st_size >= 0x4000) {
+	} else if (st.st_size >= 0x4000) {
 		ptr = (char *)mmap(NULL, st.st_size, PROT_READ,
 			MAP_SHARED|MAP_NORESERVE, fd, 0);
-		if(ptr == MAP_FAILED) {
+		if (ptr == MAP_FAILED) {
 	        // for this to occur, either mmap isn't support, or it's sysfs and gave
 			// us bad stat data, or the file changed under our feet.  Either way,
 			// leave it for native to handle.
@@ -494,7 +494,7 @@ snakeoil_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 		Py_BLOCK_THREADS
 		fallback = PyString_FromStringAndSize(NULL, st.st_size);
 		Py_UNBLOCK_THREADS
-		if(fallback) {
+		if (fallback) {
 			errno = 0;
 			size_t actual_read = read(fd, PyString_AS_STRING(fallback), st.st_size);
 			if (actual_read != st.st_size) {
@@ -510,21 +510,21 @@ snakeoil_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 			}
 		}
 		int ret = close(fd);
-		if(ret) {
+		if (ret) {
 			Py_CLEAR(fallback);
 			PyErr_SetFromErrnoWithFilenameObject(PyExc_OSError, path);
 			Py_BLOCK_THREADS
 			return NULL;
-		} else if(!fallback) {
+		} else if (!fallback) {
 			Py_BLOCK_THREADS
 			return NULL;
 		}
 	}
 	Py_END_ALLOW_THREADS
 
-	if(ptr == MAP_FAILED) {
+	if (ptr == MAP_FAILED) {
 		PyErr_SetFromErrnoWithFilenameObject(PyExc_OSError, path);
-		if(close(fd))
+		if (close(fd))
 			PyErr_SetFromErrnoWithFilenameObject(PyExc_OSError, path);
 		Py_CLEAR(fallback);
 		return NULL;
@@ -538,16 +538,16 @@ snakeoil_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 	}
 
 	self = (snakeoil_readlines *)type->tp_alloc(type, 0);
-	if(!self) {
+	if (!self) {
 		// you've got to be kidding me...
-		if(ptr) {
+		if (ptr) {
 			munmap(ptr, st.st_size);
 			close(fd);
 			errno = 0;
 		} else {
 			Py_DECREF(fallback);
 		}
-		if(self) {
+		if (self) {
 			Py_DECREF(self);
 		}
 		return NULL;
@@ -569,13 +569,13 @@ snakeoil_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 	}
 	self->end = self->start + size;
 
-	if(strip_whitespace) {
-		if(strip_whitespace == Py_True) {
+	if (strip_whitespace) {
+		if (strip_whitespace == Py_True) {
 			self->strip_whitespace = 1;
 		} else if (strip_whitespace == Py_False) {
 			self->strip_whitespace = 0;
 		} else {
-			if(-1 == (self->strip_whitespace = PyObject_IsTrue(strip_whitespace))) {
+			if (-1 == (self->strip_whitespace = PyObject_IsTrue(strip_whitespace))) {
 				Py_DECREF(self);
 				return NULL;
 			}
@@ -588,13 +588,13 @@ snakeoil_readlines_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 static void
 snakeoil_readlines_dealloc(snakeoil_readlines *self)
 {
-	if(self->fallback) {
+	if (self->fallback) {
 		Py_DECREF(self->fallback);
-	} else if(self->map) {
-		if(munmap(self->map, self->end - self->map))
+	} else if (self->map) {
+		if (munmap(self->map, self->end - self->map))
 			// swallow it, no way to signal an error
 			errno = 0;
-		if(close(self->fd))
+		if (close(self->fd))
 			// swallow it, no way to signal an error
 			errno = 0;
 	}
@@ -604,7 +604,7 @@ snakeoil_readlines_dealloc(snakeoil_readlines *self)
 static PyObject *
 snakeoil_readlines_iternext(snakeoil_readlines *self)
 {
-	if(self->start == self->end) {
+	if (self->start == self->end) {
 		// at the end, thus return
 		return NULL;
 	}
@@ -615,27 +615,27 @@ snakeoil_readlines_iternext(snakeoil_readlines *self)
 	assert(self->end > self->start);
 
 	p = memchr(p, '\n', self->end - p);
-	if(!p)
+	if (!p)
 		p = self->end;
 
 	PyObject *ret;
-	if(self->strip_whitespace) {
+	if (self->strip_whitespace) {
 		char *real_start = self->start;
 		char *real_end = p;
-		while(real_start < p && isspace(*real_start)) {
+		while (real_start < p && isspace(*real_start)) {
 			real_start++;
 		}
-		while(real_start < real_end && isspace(real_end[-1])) {
+		while (real_start < real_end && isspace(real_end[-1])) {
 			real_end--;
 		}
 		ret = PyString_FromStringAndSize(real_start, real_end - real_start);
 	} else {
-		if(p == self->end)
+		if (p == self->end)
 			ret = PyString_FromStringAndSize(self->start, p - self->start);
 		else
 			ret = PyString_FromStringAndSize(self->start, p - self->start + 1);
 	}
-	if(p != self->end) {
+	if (p != self->end) {
 		p++;
 	}
 	self->start = p;
@@ -654,22 +654,22 @@ static PyObject *
 snakeoil_readlines_get_mtime(snakeoil_readlines *self)
 {
 	PyObject *ret = PyObject_CallFunctionObjArgs(snakeoil_stat_float_times, NULL);
-	if(!ret)
+	if (!ret)
 		return NULL;
 	int is_float;
-	if(ret == Py_True) {
+	if (ret == Py_True) {
 		is_float = 1;
 	} else if (ret == Py_False) {
 		is_float = 0;
 	} else {
 		is_float = PyObject_IsTrue(ret);
-		if(is_float == -1) {
+		if (is_float == -1) {
 			Py_DECREF(ret);
 			return NULL;
 		}
 	}
 	Py_DECREF(ret);
-	if(is_float)
+	if (is_float)
 		return PyFloat_FromDouble(self->mtime + 1e-9 * self->mtime_nsec);
 #if SIZEOF_TIME_T > SIZEOF_LONG
 	return PyLong_FromLong((Py_LONG_LONG)self->mtime);
@@ -741,7 +741,7 @@ void
 snakeoil_slow_closerange(int from, int to)
 {
 	int i;
-	for(i=from; i < to; i++)
+	for (i = from; i < to; i++)
 		close(i);
 }
 
@@ -770,7 +770,7 @@ snakeoil_closerange(PyObject *self, PyObject *args)
 
 	PyOS_snprintf(path, MAXPATHLEN, "/proc/%i/fd", getpid());
 
-	if(!(dir_handle = opendir(path))) {
+	if (!(dir_handle = opendir(path))) {
 		snakeoil_slow_closerange(from, to);
 		Py_RETURN_NONE;
 	}
@@ -782,7 +782,7 @@ snakeoil_closerange(PyObject *self, PyObject *args)
 		Py_RETURN_NONE;
 	}
 
-	while((entry = readdir(dir_handle))) {
+	while (entry = readdir(dir_handle)) {
 		if (!isdigit(entry->d_name[0])) {
 			continue;
 		}
@@ -822,7 +822,7 @@ init_posix(void)
 	snakeoil_LOAD_SINGLE_ATTR(snakeoil_stat_float_times, "os", "stat_float_times");
 
 	snakeoil_empty_tuple = PyTuple_New(0);
-	if(!snakeoil_empty_tuple)
+	if (!snakeoil_empty_tuple)
 		return;
 
 	PyObject *m = Py_InitModule3("_posix", snakeoil_posix_methods,

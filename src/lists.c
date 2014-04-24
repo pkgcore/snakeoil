@@ -73,13 +73,13 @@ snakeoil_iflatten_func_new(PyTypeObject *type,
 	}
 	// Py_(True|False) are singletons, thus we're trying to bypass
 	// the PyObject_IsTrue triggering __nonzero__ protocol.
-	if(tmp == Py_True) {
+	if (tmp == Py_True) {
 		res = 1;
 	} else if (tmp == Py_False) {
 		res = 0;
 	} else {
 		res = PyObject_IsTrue(tmp);
-		if(res == -1) {
+		if (res == -1) {
 			Py_DECREF(tmp);
 			return NULL;
 		}
@@ -130,7 +130,7 @@ snakeoil_iflatten_func_iternext(snakeoil_iflatten_func *self) {
 	self->in_iternext = 1;
 
 	/* Look at the final iterator on our stack: */
-	while ((n = PyList_GET_SIZE(self->iterables))) {
+	while (n = PyList_GET_SIZE(self->iterables)) {
 		tail = PyList_GET_ITEM(self->iterables, n - 1);
 
 		/* See if it has any results left: */
@@ -270,7 +270,7 @@ snakeoil_iflatten_instance_dealloc(snakeoil_iflatten_instance *self)
 
 static PyObject *
 snakeoil_iflatten_instance_new(PyTypeObject *type,
-								  PyObject *args, PyObject *kwargs)
+							   PyObject *args, PyObject *kwargs)
 {
 	snakeoil_iflatten_instance *self;
 	PyObject *l=NULL, *skip_flattening=(PyObject*)&PyBaseString_Type;
@@ -335,8 +335,7 @@ snakeoil_iflatten_instance_iternext(snakeoil_iflatten_instance *self) {
 	self->in_iternext = 1;
 
 	/* Look at the final iterator on our stack: */
-
-	while ((n = PyList_GET_SIZE(self->iterables))) {
+	while (n = PyList_GET_SIZE(self->iterables)) {
 		tail = PyList_GET_ITEM(self->iterables, n - 1);
 
 		/* See if it has any results left: */

@@ -21,8 +21,8 @@ static PyObject *snakeoil__new_attr = NULL;
 
 
 /* Note since the redirect target is a tuple of strings, we don't do
- GC on the object- it can only refer to noncyclic targets.
-*/
+ * GC on the object- it can only refer to noncyclic targets.
+ */
 
 typedef struct {
 	PyObject_HEAD
@@ -42,7 +42,7 @@ snakeoil_GetAttrProxy_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	snakeoil_GetAttrProxy *self;
 	PyObject *alias_attr;
 
-	if(!PyArg_ParseTuple(args, "S:__new__", &alias_attr))
+	if (!PyArg_ParseTuple(args, "S:__new__", &alias_attr))
 		return NULL;
 	self = (snakeoil_GetAttrProxy *)type->tp_alloc(type, 0);
 
@@ -59,11 +59,11 @@ snakeoil_GetAttrProxy_call(snakeoil_GetAttrProxy *self, PyObject *args,
 {
 	PyObject *attr, *real_obj, *tmp = NULL;
 
-	if(PyArg_ParseTuple(args, "OS:__call__", &real_obj, &attr)) {
-		if(Py_EnterRecursiveCall(" in GetAttrProxy.__call__ "))
+	if (PyArg_ParseTuple(args, "OS:__call__", &real_obj, &attr)) {
+		if (Py_EnterRecursiveCall(" in GetAttrProxy.__call__ "))
 			return NULL;
 		real_obj = PyObject_GenericGetAttr(real_obj, self->redirect_target);
-		if(real_obj) {
+		if (real_obj) {
 			tmp = PyObject_GetAttr(real_obj, attr);
 			Py_DECREF(real_obj);
 		}
@@ -125,9 +125,9 @@ static PyTypeObject snakeoil_GetAttrProxyType = {
 };
 
 /*
- Note since the hash_attr target is a string, we don't do
- GC on the object- it can only refer to noncyclic targets.
-*/
+ * Note since the hash_attr target is a string, we don't do
+ * GC on the object- it can only refer to noncyclic targets.
+ */
 
 typedef struct {
 	PyObject_HEAD
@@ -147,7 +147,7 @@ snakeoil_ReflectiveHash_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	snakeoil_ReflectiveHash *self;
 	PyObject *hash_attr;
 
-	if(!PyArg_ParseTuple(args, "S:__new__", &hash_attr))
+	if (!PyArg_ParseTuple(args, "S:__new__", &hash_attr))
 		return NULL;
 	self = (snakeoil_ReflectiveHash *)type->tp_alloc(type, 0);
 
@@ -164,7 +164,7 @@ snakeoil_ReflectiveHash_call(snakeoil_ReflectiveHash *self, PyObject *args,
 {
 	PyObject *val = NULL;
 
-	if(PyArg_ParseTuple(args, "O:__hash__", &val)) {
+	if (PyArg_ParseTuple(args, "O:__hash__", &val)) {
 		val = PyObject_GetAttr(val, self->hash_attr);
 	}
 	return val;
@@ -270,19 +270,19 @@ snakeoil_InternalJitAttr_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	static char *kwlist[] = {"func", "attr_name", "singleton", "use_cls_setattr",
 		"use_singleton", NULL};
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "OS|OOO:__new__",
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "OS|OOO:__new__",
 		kwlist,
 		&func, &attr, &singleton, &use_setattr_obj, &use_singleton_obj))
 		return NULL;
 
 	if (use_setattr_obj) {
-		if(-1 == (use_setattr = PyObject_IsTrue(use_setattr_obj))) {
+		if (-1 == (use_setattr = PyObject_IsTrue(use_setattr_obj))) {
 			return NULL;
 		}
 	}
 
 	if (use_singleton_obj) {
-		if(-1 == (use_singleton = PyObject_IsTrue(use_singleton_obj))) {
+		if (-1 == (use_singleton = PyObject_IsTrue(use_singleton_obj))) {
 			return NULL;
 		}
 	}
@@ -320,25 +320,25 @@ snakeoil_InternalJitAttr_get(PyObject *self_pyo, PyObject *obj,
 	PyObject *result = NULL;
 	snakeoil_InternalJitAttr *self = (snakeoil_InternalJitAttr *)self_pyo;
 	// mimic property behaviour.
-	if(!obj || obj == Py_None) {
+	if (!obj || obj == Py_None) {
 		Py_INCREF(self_pyo);
 		return self_pyo;
 	}
 
 	if (self->use_singleton) {
-		if(Py_EnterRecursiveCall(" in InternalJitAttr.__get__ "))
+		if (Py_EnterRecursiveCall(" in InternalJitAttr.__get__ "))
 			return NULL;
 
 		result = PyObject_GetAttr(obj, self->storage_attr);
 
 		Py_LeaveRecursiveCall();
 
-		if(!result) {
-			if(!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+		if (!result) {
+			if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
 				return result;
 			}
 			PyErr_Clear();
-		} else if(self->singleton != result) {
+		} else if (self->singleton != result) {
 			return result;
 		} else {
 			// got the singleton back...
@@ -348,13 +348,13 @@ snakeoil_InternalJitAttr_get(PyObject *self_pyo, PyObject *obj,
 
 	// generate the attr.
 	result = PyObject_CallFunctionObjArgs(self->function, obj, NULL);
-	if(result) {
-		if(self->use_setattr) {
-			if(-1 == PyObject_SetAttr(obj, self->storage_attr, result)) {
+	if (result) {
+		if (self->use_setattr) {
+			if (-1 == PyObject_SetAttr(obj, self->storage_attr, result)) {
 				Py_CLEAR(result);
 			}
 		} else {
-			if(-1 == PyObject_GenericSetAttr(obj, self->storage_attr, result)) {
+			if (-1 == PyObject_GenericSetAttr(obj, self->storage_attr, result)) {
 				Py_CLEAR(result);
 			}
 		}
@@ -411,22 +411,22 @@ static inline PyObject *
 internal_generic_equality(PyObject *inst1, PyObject *inst2,
 	int desired)
 {
-	if(!inst1) {
+	if (!inst1) {
 		PyErr_SetString(PyExc_TypeError,
 			"__eq__ or __ne__ method was invalidly assigned transferred across "
 				"classes");
 		return NULL;
 	}
-	if(inst1 == inst2) {
+	if (inst1 == inst2) {
 		PyObject *res = desired == Py_EQ ? Py_True : Py_False;
 		Py_INCREF(res);
 		return res;
 	}
 
 	PyObject *attrs = PyObject_GetAttr(inst1, snakeoil_equality_attr);
-	if(!attrs)
+	if (!attrs)
 		return NULL;
-	if(!PyTuple_CheckExact(attrs)) {
+	if (!PyTuple_CheckExact(attrs)) {
 		PyErr_SetString(PyExc_TypeError,
 			"__attr_comparison__ must be a tuple");
 		return NULL;
@@ -435,28 +435,28 @@ internal_generic_equality(PyObject *inst1, PyObject *inst2,
 	Py_ssize_t idx = 0;
 	PyObject *attr1, *attr2;
 	// if Py_EQ, break on not equal, else on equal
-	for(; idx < PyTuple_GET_SIZE(attrs); idx++) {
+	for (; idx < PyTuple_GET_SIZE(attrs); idx++) {
 
 		attr1 = PyObject_GetAttr(inst1, PyTuple_GET_ITEM(attrs, idx));
-		if(!attr1) {
-			if(!PyErr_ExceptionMatches(PyExc_AttributeError))
+		if (!attr1) {
+			if (!PyErr_ExceptionMatches(PyExc_AttributeError))
 				return NULL;
 			 PyErr_Clear();
 		}
 
 		attr2 = PyObject_GetAttr(inst2, PyTuple_GET_ITEM(attrs, idx));
-		if(!attr2) {
-			if(!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+		if (!attr2) {
+			if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
 				Py_XDECREF(attr1);
 				return NULL;
 			}
 			PyErr_Clear();
 		}
-		if(!attr1) {
-			if(attr2) {
+		if (!attr1) {
+			if (attr2) {
 				Py_DECREF(attr2);
 				Py_DECREF(attrs);
-				if(desired == Py_EQ) {
+				if (desired == Py_EQ) {
 					Py_RETURN_FALSE;
 				}
 				Py_RETURN_TRUE;
@@ -465,7 +465,7 @@ internal_generic_equality(PyObject *inst1, PyObject *inst2,
 		} else if (!attr2) {
 			Py_DECREF(attr1);
 			Py_DECREF(attrs);
-			if(desired == Py_EQ) {
+			if (desired == Py_EQ) {
 				Py_RETURN_FALSE;
 			}
 			Py_RETURN_TRUE;
@@ -473,21 +473,21 @@ internal_generic_equality(PyObject *inst1, PyObject *inst2,
 		int ret = PyObject_RichCompareBool(attr1, attr2, desired);
 		Py_DECREF(attr1);
 		Py_DECREF(attr2);
-		if(0 > ret) {
+		if (0 > ret) {
 			Py_DECREF(attrs);
 			return NULL;
 		} else if (0 == ret) {
-			if(desired == Py_EQ) {
+			if (desired == Py_EQ) {
 				Py_DECREF(attrs);
 				Py_RETURN_FALSE;
 			}
-		} else if(desired == Py_NE) {
+		} else if (desired == Py_NE) {
 			Py_DECREF(attrs);
 			Py_RETURN_TRUE;
 		}
 	}
 	Py_DECREF(attrs);
-	if(desired == Py_EQ) {
+	if (desired == Py_EQ) {
 		Py_RETURN_TRUE;
 	}
 	Py_RETURN_FALSE;
@@ -515,16 +515,16 @@ static PyObject *
 snakeoil_mapping_get(PyObject *self, PyObject *args)
 {
 	PyObject *key, *default_val = Py_None;
-	if(!self) {
+	if (!self) {
 		PyErr_SetString(PyExc_TypeError,
 			"need to be called with a mapping as the first arg");
 		return NULL;
 	}
-	if(!PyArg_UnpackTuple(args, "get", 1, 2, &key, &default_val))
+	if (!PyArg_UnpackTuple(args, "get", 1, 2, &key, &default_val))
 		return NULL;
 
 	PyObject *ret = PyObject_GetItem(self, key);
-	if(ret) {
+	if (ret) {
 		return ret;
 	} else if (!PyErr_ExceptionMatches(PyExc_KeyError)) {
 		return NULL;
@@ -585,14 +585,14 @@ static PyTypeObject snakeoil_GetType = {
 static PyObject *
 snakeoil_mapping_contains(PyObject *self, PyObject *key)
 {
-	if(!self) {
+	if (!self) {
 		PyErr_SetString(PyExc_TypeError,
 			"need to be called with a mapping as the first arg");
 		return NULL;
 	}
 
 	PyObject *ret = PyObject_GetItem(self, key);
-	if(ret) {
+	if (ret) {
 		Py_DECREF(ret);
 		ret = Py_True;
 	} else if (!PyErr_ExceptionMatches(PyExc_KeyError)) {
@@ -657,11 +657,11 @@ static PyObject *
 snakeoil_mapping_slot_getitem(PyObject *self, PyObject *key)
 {
 	PyObject *value = PyObject_GetAttr(self, key);
-	if(value)
+	if (value)
 		return value;
-	if(PyErr_ExceptionMatches(PyExc_TypeError)) {
+	if (PyErr_ExceptionMatches(PyExc_TypeError)) {
 		return NULL;
-	} else if(!PyErr_ExceptionMatches(PyExc_AttributeError) &&
+	} else if (!PyErr_ExceptionMatches(PyExc_AttributeError) &&
 		(PyString_Check(key) || PyUnicode_Check(key))) {
 		// only one potential we care about... TypeError if key wasn't a string.
 		// some form of bug in the __getattr__...
@@ -723,12 +723,12 @@ static PyObject *
 snakeoil_mapping_slot_setitem(PyObject *self, PyObject *args)
 {
 	PyObject *key, *value;
-	if(!PyArg_UnpackTuple(args, "snakeoil_attr_setitem", 2, 2, &key, &value)) {
+	if (!PyArg_UnpackTuple(args, "snakeoil_attr_setitem", 2, 2, &key, &value)) {
 		// should be impossible, but better safe then sorry.
 		return NULL;
 	}
 	int result = PyObject_SetAttr(self, key, value);
-	if(-1 == result) {
+	if (-1 == result) {
 		return (PyObject *)NULL;
 	}
 	Py_RETURN_NONE;
@@ -787,13 +787,13 @@ snakeoil_mapping_slot_delitem_slow(PyObject *self, PyObject *key)
 
 	// because pythons __slots__ is retarded (see python issue 7604),
 	// do a hasattr first.
-	if(PyObject_HasAttr(self, key)) {
-		if(0 == PyObject_DelAttr(self, key)) {
+	if (PyObject_HasAttr(self, key)) {
+		if (0 == PyObject_DelAttr(self, key)) {
 			Py_RETURN_NONE;
 		}
 		// convert AttributeError into KeyError... let the rest
 		// pass thru
-		if(PyErr_ExceptionMatches(PyExc_AttributeError)) {
+		if (PyErr_ExceptionMatches(PyExc_AttributeError)) {
 			PyErr_SetObject(PyExc_KeyError, key);
 		}
 	} else {
@@ -855,12 +855,12 @@ snakeoil_mapping_slot_delitem_fast(PyObject *self, PyObject *key)
 	// for use in python versions that don't have to do the double lookup.
 	// because pythons __slots__ is retarded (see python issue 7604),
 	// do a hasattr first.
-	if(0 == PyObject_DelAttr(self, key)) {
+	if (0 == PyObject_DelAttr(self, key)) {
 		Py_RETURN_NONE;
 	}
 	// convert AttributeError into KeyError... let the rest
 	// pass thru
-	if(PyErr_ExceptionMatches(PyExc_AttributeError)) {
+	if (PyErr_ExceptionMatches(PyExc_AttributeError)) {
 		PyErr_SetObject(PyExc_KeyError, key);
 	}
 	return NULL;
@@ -916,7 +916,7 @@ static PyTypeObject snakeoil_AttrDelItemFastType = {
 static PyObject *
 snakeoil_mapping_slot_contains(PyObject *self, PyObject *key)
 {
-	if(PyObject_HasAttr(self, key)) {
+	if (PyObject_HasAttr(self, key)) {
 		Py_RETURN_TRUE;
 	}
 	Py_RETURN_FALSE;
@@ -973,21 +973,21 @@ static PyObject *
 snakeoil_mapping_slot_pop(PyObject *self, PyObject *args)
 {
 	PyObject *key = NULL, *default_val = NULL;
-	if(!PyArg_UnpackTuple(args, "snakeoil_attr_pop", 1, 2, &key, &default_val)) {
+	if (!PyArg_UnpackTuple(args, "snakeoil_attr_pop", 1, 2, &key, &default_val)) {
 		// should be impossible, but better safe then sorry.
 		return NULL;
 	}
 	PyObject *result = PyObject_GetAttr(self, key);
-	if(result) {
-		if(0 != PyObject_DelAttr(self, key)) {
+	if (result) {
+		if (0 != PyObject_DelAttr(self, key)) {
 			Py_DECREF(result);
 			return NULL;
 		}
 	} else{
-		if(!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+		if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
 			return NULL;
 		}
-		if(default_val) {
+		if (default_val) {
 			Py_INCREF(default_val);
 			PyErr_Clear();
 			return default_val;
@@ -1048,17 +1048,17 @@ static PyObject *
 snakeoil_mapping_slot_get(PyObject *self, PyObject *args)
 {
 	PyObject *key = NULL, *default_val = NULL;
-	if(!PyArg_UnpackTuple(args, "snakeoil_attr_get", 1, 2, &key, &default_val)) {
+	if (!PyArg_UnpackTuple(args, "snakeoil_attr_get", 1, 2, &key, &default_val)) {
 		// should be impossible, but better safe then sorry.
 		return NULL;
 	}
 	PyObject *result = PyObject_GetAttr(self, key);
-	if(!result) {
-		if(!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+	if (!result) {
+		if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
 			return NULL;
 		}
 		PyErr_Clear();
-		if(!default_val) {
+		if (!default_val) {
 			result = Py_None;
 		} else {
 			result = default_val;
@@ -1123,13 +1123,13 @@ snakeoil_mapping_slot_update(PyObject *self, PyObject *sequence)
 	Py_ssize_t position = 0;
 	int result = 0;
 
-	if(!iterator)
+	if (!iterator)
 		return NULL;
 
-	while(item = PyIter_Next(iterator)) {
-		if(PyTuple_CheckExact(item)) {
+	while (item = PyIter_Next(iterator)) {
+		if (PyTuple_CheckExact(item)) {
 			// fast path this to avoid unpacking and other nasty checks
-			if(2 == PyTuple_GET_SIZE(item)) {
+			if (2 == PyTuple_GET_SIZE(item)) {
 				result = PyObject_SetAttr(self,
 					PyTuple_GET_ITEM(item, 0), PyTuple_GET_ITEM(item, 1));
 			} else {
@@ -1140,14 +1140,14 @@ snakeoil_mapping_slot_update(PyObject *self, PyObject *sequence)
 		} else {
 			// manually unpack the bugger.
 			Py_ssize_t size = PySequence_Size(item);
-			if(2 != size) {
+			if (2 != size) {
 				result = -2;
 			} else if (-1 != size) {
 				result = -1;
 				PyObject *key = PySequence_GetItem(item, 0);
-				if(key) {
+				if (key) {
 					PyObject *value = PySequence_GetItem(item, 1);
-					if(value) {
+					if (value) {
 						result = PyObject_SetAttr(self, key, value);
 						Py_DECREF(value);
 					}
@@ -1156,28 +1156,28 @@ snakeoil_mapping_slot_update(PyObject *self, PyObject *sequence)
 			}
 		}
 		Py_DECREF(item);
-		if(0 != result) {
+		if (0 != result) {
 			PyObject *errstr = NULL;
-			if(-2 == result) {
+			if (-2 == result) {
 				// wrong size.
 				errstr = PyString_FromFormat(
 					"attr dictionary update sequence element #%i has the wrong length",
 					(int)position);
-				if(errstr) {
+				if (errstr) {
 					PyErr_SetObject(PyExc_ValueError, errstr);
 				}
-			} else if(-3 == result) {
+			} else if (-3 == result) {
 				errstr = PyString_FromFormat(
 					"cannot convert attr dictionary update sequence element #%i to a sequence",
 					(int)position);
-				if(errstr) {
+				if (errstr) {
 					PyErr_SetObject(PyExc_TypeError, errstr);
 				}
-			} else if(-1 != result) {
+			} else if (-1 != result) {
 				errstr = PyString_FromFormat(
 					"unhandled result(%i) during update at position %i- constants changed?",
 						(int)result, (int)position);
-				if(errstr) {
+				if (errstr) {
 					PyErr_SetObject(PyExc_RuntimeError, errstr);
 				}
 			}
@@ -1187,7 +1187,7 @@ snakeoil_mapping_slot_update(PyObject *self, PyObject *sequence)
 		position++;
 	}
 	Py_DECREF(iterator);
-	if(0 == result) {
+	if (0 == result) {
 		Py_RETURN_NONE;
 	}
 	return NULL;
@@ -1246,11 +1246,11 @@ snakeoil_protectedset_contains(PyObject *self, PyObject *key)
 {
 	PyObject *set = NULL;
 	int result = -1;
-	if(!(set = PyObject_GetAttr(self, snakeoil__orig_attr))) {
+	if (!(set = PyObject_GetAttr(self, snakeoil__orig_attr))) {
 		return NULL;
 	}
 #if PY_MAJOR_VERSION > 2 || (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION >= 5)
-	if(PyAnySet_Check(set)) {
+	if (PyAnySet_Check(set)) {
 		result = PySet_Contains(set, key);
 	} else
 #endif
@@ -1259,13 +1259,13 @@ snakeoil_protectedset_contains(PyObject *self, PyObject *key)
 		result = PySequence_Contains(set, key);
 	}
 	Py_DECREF(set);
-	if(result == 0) {
-		if(!(set = PyObject_GetAttr(self, snakeoil__new_attr))) {
+	if (result == 0) {
+		if (!(set = PyObject_GetAttr(self, snakeoil__new_attr))) {
 			return NULL;
 		}
 
 #if PY_MAJOR_VERSION > 2 || (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION >= 5)
-		if(PyAnySet_Check(set)) {
+		if (PyAnySet_Check(set)) {
 			result = PySet_Contains(set, key);
 		} else
 #endif
@@ -1274,7 +1274,7 @@ snakeoil_protectedset_contains(PyObject *self, PyObject *key)
 		}
 		Py_DECREF(set);
 	}
-	if(-1 == result) {
+	if (-1 == result) {
 		return NULL;
 	} else if (0 == result) {
 		Py_RETURN_FALSE;
@@ -1395,13 +1395,13 @@ init_klass(void)
 	snakeoil_LOAD_STRING(snakeoil__new_attr, "_new");
 
 
-#define ADD_TYPE_INSTANCE(type_ptr, name)				   \
-{														   \
-	PyObject *tmp;										  \
+#define ADD_TYPE_INSTANCE(type_ptr, name)				\
+{														\
+	PyObject *tmp;										\
 	if (!(tmp = PyType_GenericNew((type_ptr), NULL, NULL))) \
-		return;											 \
-	if (PyModule_AddObject(m, name, tmp) == -1)			 \
-		return;											 \
+		return;											\
+	if (PyModule_AddObject(m, name, tmp) == -1)			\
+		return;											\
 }
 
 	ADD_TYPE_INSTANCE(&snakeoil_GetType, "get");

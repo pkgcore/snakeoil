@@ -79,12 +79,12 @@ static int
 PTF_set_first_prefix(PTF_object *self, PyObject *value, void *closure)
 {
 	PyObject *tmp;
-	if(!value) {
+	if (!value) {
 		PyErr_SetString(PyExc_TypeError, "first_prefix is not deletable");
 		return -1;
 	}
 
-	if(!PyList_CheckExact(value))
+	if (!PyList_CheckExact(value))
 		return PyList_SetSlice(self->first_prefix,
 			0, PyList_GET_SIZE(self->first_prefix),
 			value);
@@ -97,12 +97,12 @@ static int
 PTF_set_later_prefix(PTF_object *self, PyObject *value, void *closure)
 {
 	PyObject *tmp;
-	if(!value) {
+	if (!value) {
 		PyErr_SetString(PyExc_TypeError, "later_prefix is not deletable");
 		return -1;
 	}
 
-	if(!PyList_CheckExact(value))
+	if (!PyList_CheckExact(value))
 		return PyList_SetSlice(self->later_prefix,
 			0, PyList_GET_SIZE(self->later_prefix),
 			value);
@@ -121,10 +121,10 @@ static int
 PTF_set_encoding(PTF_object *self, PyObject *value, void *closure)
 {
 	PyObject *tmp;
-	if(!value) {
+	if (!value) {
 		PyErr_SetString(PyExc_TypeError, "encoding prefix is not deletable");
 		return -1;
-	} else if(!PyString_CheckExact(value)) {
+	} else if (!PyString_CheckExact(value)) {
 		PyErr_SetString(PyExc_TypeError, "encoding must be a string");
 		return -1;
 	}
@@ -136,7 +136,7 @@ static PyObject *
 PTF_get_encoding(PTF_object *self, void *closure)
 {
 	PyObject *tmp = self->encoding;
-	if(!tmp) {
+	if (!tmp) {
 		PyErr_SetString(PyExc_RuntimeError, "PTF instance has null encoding; this shouldn't be possible");
 		return tmp;
 	}
@@ -209,10 +209,10 @@ PTF_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	PTF_object *self;
 	PyObject *encoding;
-	if(!(encoding = PyString_FromString("ascii")))
+	if (!(encoding = PyString_FromString("ascii")))
 		return NULL;
 	self = (PTF_object *)type->tp_alloc(type, 0);
-	if(!self) {
+	if (!self) {
 		Py_DECREF(encoding);
 		return NULL;
 	}
@@ -225,15 +225,15 @@ PTF_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 	self->width = 79;
 	 /* this should pick up on the system default but i'm lazy. */
-	if(!(self->first_prefix = PyList_New(0))) {
+	if (!(self->first_prefix = PyList_New(0))) {
 		Py_DECREF(self);
 		return NULL;
 	}
-	if(!(self->later_prefix = PyList_New(0))) {
+	if (!(self->later_prefix = PyList_New(0))) {
 		Py_DECREF(self);
 		return NULL;
 	}
-	if(!(self->bold = PyString_FromString(""))) {
+	if (!(self->bold = PyString_FromString(""))) {
 		Py_DECREF(self);
 		return NULL;
 	}
@@ -255,11 +255,11 @@ PTF_init(PTF_object *self, PyObject *args, PyObject *kwds)
 		&stream, &width, &encoding))
 		return -1;
 
-	if(encoding == Py_None)
+	if (encoding == Py_None)
 		encoding = NULL;
 
-	if(encoding) {
-		if(!PyString_Check(encoding)) {
+	if (encoding) {
+		if (!PyString_Check(encoding)) {
 			PyErr_SetString(PyExc_TypeError,
 				"encoding must be None, or a str object");
 			return -1;
@@ -270,44 +270,45 @@ PTF_init(PTF_object *self, PyObject *args, PyObject *kwds)
 		Py_XDECREF(tmp);
 	} else {
 		/* try to pull it from the stream, else from the current settings */
-		if(!(encoding = PyObject_GetAttrString(stream, "encoding"))) {
+		if (!(encoding = PyObject_GetAttrString(stream, "encoding"))) {
 			PyErr_Clear();
 		} else if (!PyString_Check(encoding)) {
 			Py_CLEAR(encoding);
 		}
-		if(!encoding) {
+		if (!encoding) {
 			/* try system setting */
 			const char *p = PyUnicode_GetDefaultEncoding();
-			if(!p) {
+			if (!p) {
 				/* should check for locale error here instead of just wiping... */
 				PyErr_Clear();
-			} else if(!(encoding = PyString_FromString(p))) {
+			} else if (!(encoding = PyString_FromString(p))) {
 				/* can't do dick here. */
 				return -1;
 			}
 		}
-		if(encoding) {
+		if (encoding) {
 			tmp = self->encoding;
 			self->encoding = encoding;
 			Py_DECREF(tmp);
 		}
 	}
-	if(width > 0)
+	if (width > 0)
 		self->width = width;
 
 	return PTF_setstream(self, stream, NULL);
 }
 
-/* repeatedly reduce a callable invoking func(self), till it's no longer callable
-  steals the passed in ref, and returns a new reference.
-*/
+/*
+ * repeatedly reduce a callable invoking func(self), till it's no longer callable
+ * steals the passed in ref, and returns a new reference.
+ */
 static PyObject *
 reduce_callable(PTF_object *self, PyObject *arg)
 {
 	PyObject *tmp;
-	while(PyCallable_Check(arg)) {
+	while (PyCallable_Check(arg)) {
 		tmp = PyObject_CallFunctionObjArgs(arg, (PyObject *)self, NULL);
-		if(!tmp)
+		if (!tmp)
 			return tmp;
 		Py_DECREF(arg);
 		arg = tmp;
@@ -321,11 +322,11 @@ _flush_newline(PTF_object *self)
 	PyObject *tmp;
 	if (self->stream_callable) {
 		tmp = PyObject_CallFunction(self->stream_callable, "(s)", "\n");
-		if(!tmp)
+		if (!tmp)
 			return -1;
 		Py_DECREF(tmp);
 	} else {
-		if(PyFile_WriteString("\n", self->raw_stream))
+		if (PyFile_WriteString("\n", self->raw_stream))
 			return -1;
 	}
 	self->wrote_something = 0;
@@ -334,7 +335,8 @@ _flush_newline(PTF_object *self)
 }
 
 /* convert passed in object, stealing the reference, returning a new reference
-for the encoded version, else NULL with exception set */
+ * for the encoded version, else NULL with exception set
+ */
 static inline PyObject *
 PTF_convert_encoding(PTF_object *self, PyObject *data)
 {
@@ -352,11 +354,11 @@ _write_prefix(PTF_object *self, int wrap) {
 	int ret;
 
 	iter = self->in_first_line ? self->first_prefix : self->later_prefix;
-	if(!(iter = PyObject_GetIter(iter)))
+	if (!(iter = PyObject_GetIter(iter)))
 		return -1;
 
-	while ((arg = PyIter_Next(iter))) {
-		if(!(arg = reduce_callable(self, arg))) {
+	while (arg = PyIter_Next(iter)) {
+		if (!(arg = reduce_callable(self, arg))) {
 			Py_DECREF(iter);
 			return -1;
 		}
@@ -368,23 +370,23 @@ _write_prefix(PTF_object *self, int wrap) {
 
 		if (!PyString_Check(arg)) {
 			int is_unicode = PyUnicode_Check(arg);
-			if(!is_unicode) {
+			if (!is_unicode) {
 				tmp = PyObject_Str(arg);
 				Py_DECREF(arg);
-				if(!tmp) {
+				if (!tmp) {
 					Py_DECREF(iter);
 					return -1;
 				}
 				is_unicode = PyUnicode_Check(arg);
 			}
-			if(is_unicode) {
+			if (is_unicode) {
 				len = PyUnicode_GET_SIZE(arg);
-				if(!(arg = PTF_convert_encoding(self, arg))) {
+				if (!(arg = PTF_convert_encoding(self, arg))) {
 					Py_DECREF(iter);
 					return -1;
 				}
 			} else {
-				if(!(len = PyObject_Length(arg))) {
+				if (!(len = PyObject_Length(arg))) {
 					Py_DECREF(iter);
 					Py_DECREF(arg);
 					return -1;
@@ -402,7 +404,7 @@ _write_prefix(PTF_object *self, int wrap) {
 			ret = PyFile_WriteObject(arg, self->raw_stream, Py_PRINT_RAW);
 		}
 		Py_DECREF(arg);
-		if(ret) {
+		if (ret) {
 			Py_DECREF(iter);
 			return -1;
 		}
@@ -431,7 +433,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 
 #define getitem(ptr) ptr = PyDict_GetItemString(kwargs, #ptr);
 
-	if(kwargs) {
+	if (kwargs) {
 		getitem(prefix);
 		getitem(first_prefix);
 		getitem(later_prefix);
@@ -443,19 +445,19 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 	}
 #undef getitem
 
-	if(autoline) {
-		if(-1 == (i_autoline = PyObject_IsTrue(autoline))) {
+	if (autoline) {
+		if (-1 == (i_autoline = PyObject_IsTrue(autoline))) {
 			return NULL;
 		}
 	}
 
-	if(wrap) {
-		if(-1 == (i_wrap = PyObject_IsTrue(wrap))) {
+	if (wrap) {
+		if (-1 == (i_wrap = PyObject_IsTrue(wrap))) {
 			return NULL;
 		}
 	}
 
-	if(prefixes) {
+	if (prefixes) {
 		if (first_prefixes || later_prefixes) {
 			PyErr_SetString(PyExc_TypeError,
 				"do not pass first_prefixes or later_prefixes "
@@ -465,7 +467,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 		first_prefixes = later_prefixes = prefixes;
 	}
 
-	if(prefix) {
+	if (prefix) {
 		if (first_prefix || later_prefix) {
 			PyErr_SetString(PyExc_TypeError,
 				"do not pass first_prefix or later_prefix with prefix");
@@ -480,12 +482,12 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 				"do not pass both first_prefix and first_prefixes");
 			return NULL;
 		}
-		if(PyList_Append(self->first_prefix, first_prefix))
+		if (PyList_Append(self->first_prefix, first_prefix))
 			return NULL;
 		first_prune = 1;
 	} else if (first_prefixes) {
 		first_prune = PyList_GET_SIZE(self->first_prefix);
-		if(!(tmp = _PyList_Extend((PyListObject *)self->first_prefix, first_prefixes)))
+		if (!(tmp = _PyList_Extend((PyListObject *)self->first_prefix, first_prefixes)))
 			return NULL;
 		Py_DECREF(tmp);
 		first_prune = PyList_GET_SIZE(self->first_prefix) - first_prune;
@@ -497,12 +499,12 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 				"do not pass both later_prefix and later_prefixes");
 			goto finally;
 		}
-		if(PyList_Append(self->later_prefix, later_prefix))
+		if (PyList_Append(self->later_prefix, later_prefix))
 			goto finally;
 		later_prune = 1;
 	} else if (later_prefixes) {
 		later_prune = PyList_GET_SIZE(self->later_prefix);
-		if(!(tmp = _PyList_Extend((PyListObject *)self->later_prefix, later_prefixes))) {
+		if (!(tmp = _PyList_Extend((PyListObject *)self->later_prefix, later_prefixes))) {
 			later_prune = 0;
 			goto finally;
 		}
@@ -510,10 +512,10 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 		later_prune = PyList_GET_SIZE(self->later_prefix) - later_prune;
 	}
 
-	if(!(iterator = PyObject_GetIter(args)))
+	if (!(iterator = PyObject_GetIter(args)))
 		goto finally;
 
-	while ((arg = PyIter_Next(iterator))) {
+	while (arg = PyIter_Next(iterator)) {
 		/* If we're at the start of the line, write our prefix.
 		 * There is a deficiency here: if neither our arg nor our
 		 * prefix affect _pos (both are escape sequences or empty)
@@ -526,7 +528,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 			if (_write_prefix(self, i_wrap))
 				goto finally;
 
-		if(!(arg = reduce_callable(self, arg)))
+		if (!(arg = reduce_callable(self, arg)))
 			goto finally;
 
 		if (arg == Py_None) {
@@ -536,18 +538,18 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 
 		if (!PyString_Check(arg)) {
 			is_unicode = PyUnicode_Check(arg);
-			if(!is_unicode) {
+			if (!is_unicode) {
 				tmp = PyObject_Str(arg);
 				Py_CLEAR(arg);
-				if(!tmp)
+				if (!tmp)
 					goto finally;
 				arg = tmp;
 				is_unicode = PyUnicode_Check(arg);
 			}
-			if(is_unicode) {
+			if (is_unicode) {
 				arg_len = PyUnicode_GET_SIZE(arg);
 			} else {
-				if(!(arg_len = PyObject_Length(arg)))
+				if (!(arg_len = PyObject_Length(arg)))
 					goto finally;
 			}
 		} else {
@@ -555,7 +557,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 			is_unicode = 0;
 		}
 
-		if(!arg_len) {
+		if (!arg_len) {
 			/* There's nothing to write, so skip this bit... */
 			Py_CLEAR(arg);
 			continue;
@@ -569,14 +571,14 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 			// not so sure about the code flow following for when
 			// arg_len == max_len
 			int tmp_max = arg_len > maxlen ? maxlen : arg_len;
-			if(is_unicode) {
-				if(-2 == (space = PyUnicode_Find(arg, PTF_unic_space, 0, tmp_max, -1)))
+			if (is_unicode) {
+				if (-2 == (space = PyUnicode_Find(arg, PTF_unic_space, 0, tmp_max, -1)))
 					goto finally;
 			} else {
 				char *start, *p;
 				start = PyString_AS_STRING(arg);
 				p = start + tmp_max - 1;
-				while(p >= start && ' ' != *p)
+				while (p >= start && ' ' != *p)
 					p--;
 				space = start > p ? -1 : p - start;
 			}
@@ -584,24 +586,24 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 			if (space == -1) {
 				/* No space to split on.
 
-				* If we are on the first line we can simply go to
-				* the next (this helps if the "later" prefix is
-				* shorter and should not really matter if not).
+				 * If we are on the first line we can simply go to
+				 * the next (this helps if the "later" prefix is
+				 * shorter and should not really matter if not).
 
-				* If we are on the second line and have already
-				* written something we can also go to the next
-				* line.
-				*/
+				 * If we are on the second line and have already
+				 * written something we can also go to the next
+				 * line.
+				 */
 
 				if (self->in_first_line || self->wrote_something) {
-					if(!(bit = PyString_FromString(""))) {
+					if (!(bit = PyString_FromString(""))) {
 						goto finally;
 					}
 				} else {
 					/* Forcibly split this as far to the right as
 					 * possible.
 					 */
-					if(!(bit = PySequence_GetSlice(arg, 0, tmp_max)))
+					if (!(bit = PySequence_GetSlice(arg, 0, tmp_max)))
 						goto finally;
 					tmp = PySequence_GetSlice(arg, tmp_max, arg_len);
 					Py_CLEAR(arg);
@@ -614,7 +616,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 				}
 			} else {
 				/* Omit the space we split on.*/
-				if(!(bit = PySequence_GetSlice(arg, 0, space)))
+				if (!(bit = PySequence_GetSlice(arg, 0, space)))
 					goto finally;
 				tmp = PySequence_GetSlice(arg, space+1, arg_len);
 				Py_CLEAR(arg);
@@ -626,7 +628,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 				arg = tmp;
 			}
 
-			if(is_unicode && !(bit = PTF_convert_encoding(self, bit)))
+			if (is_unicode && !(bit = PTF_convert_encoding(self, bit)))
 				goto finally;
 
 			int ret = 0;
@@ -638,27 +640,27 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 				ret = PyFile_WriteObject(bit, self->raw_stream, Py_PRINT_RAW);
 			}
 			Py_DECREF(bit);
-			if(ret)
+			if (ret)
 				goto finally;
-			if(_flush_newline(self))
+			if (_flush_newline(self))
 				goto finally;
 
 			self->in_first_line = 0;
-			if(_write_prefix(self, i_wrap))
+			if (_write_prefix(self, i_wrap))
 				goto finally;
 
 		}
 
-		if(is_unicode && !(arg = PTF_convert_encoding(self, arg)))
+		if (is_unicode && !(arg = PTF_convert_encoding(self, arg)))
 			goto finally;
-		if(self->stream_callable) {
+		if (self->stream_callable) {
 			tmp = PyObject_CallFunctionObjArgs(self->stream_callable, arg, NULL);
 			Py_XDECREF(tmp);
-			if(!tmp) {
+			if (!tmp) {
 				goto finally;
 			}
 		} else {
-			if(PyFile_WriteObject(arg, self->raw_stream, Py_PRINT_RAW)) {
+			if (PyFile_WriteObject(arg, self->raw_stream, Py_PRINT_RAW)) {
 				goto finally;
 			}
 		}
@@ -668,7 +670,7 @@ PTF_write(PTF_object *self, PyObject *args, PyObject *kwargs) {
 	}
 
 	if (i_autoline) {
-		if(_flush_newline(self))
+		if (_flush_newline(self))
 			goto finally;
 		self->in_first_line = 1;
 	}
@@ -679,7 +681,7 @@ finally:
 	Py_XDECREF(iterator);
 	Py_XDECREF(arg);
 
-	if(first_prune) {
+	if (first_prune) {
 		PyList_SetSlice(self->first_prefix, -first_prune, PyList_GET_SIZE(self->first_prefix), NULL);
 	}
 	if (later_prune) {
@@ -694,7 +696,7 @@ finally:
 		return NULL;
 	}
 
-	if(failed)
+	if (failed)
 		return NULL;
 	Py_RETURN_NONE;
 }
@@ -827,8 +829,8 @@ init_formatters(void)
 	if (!m)
 		return;
 
-	if(!StreamClosed) {
-		if(!(StreamClosed = PyErr_NewException("snakeoil._formatters.StreamClosed",
+	if (!StreamClosed) {
+		if (!(StreamClosed = PyErr_NewException("snakeoil._formatters.StreamClosed",
 			PyExc_KeyboardInterrupt, NULL)))
 			return;
 	}
@@ -836,12 +838,12 @@ init_formatters(void)
 	if (PyModule_AddObject(m, "StreamClosed", StreamClosed))
 		return;
 
-	if(!PTF_unic_space) {
-		if(!(tmp = PyString_FromString(" ")))
+	if (!PTF_unic_space) {
+		if (!(tmp = PyString_FromString(" ")))
 			return;
 		PTF_unic_space = PyUnicode_FromObject(tmp);
 		Py_DECREF(tmp);
-		if(!PTF_unic_space)
+		if (!PTF_unic_space)
 			return;
 	}
 
