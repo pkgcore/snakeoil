@@ -60,6 +60,7 @@ except ImportError:
 # delay this... it's a 1ms hit, and not a lot of the consumers
 # force utf8 codepaths yet.
 from snakeoil import compatibility
+from snakeoil.klass import steal_docs
 from snakeoil.weakrefs import WeakRefFinalizer
 
 listdir = module.listdir
@@ -354,6 +355,7 @@ class FsLock(object):
                 os.close(self.fd)
 
 
+@steal_docs(os.access)
 def fallback_access(path, mode, root=0):
     try:
         st = os.lstat(path)
@@ -392,10 +394,7 @@ def fallback_access(path, mode, root=0):
         return mode == (mode & ((st.st_mode >> 3) & 0x7))
     return mode == (mode & (st.st_mode & 0x7))
 
-fallback_access.__doc__ = getattr(os.access, '__doc__', None)
-
-if 'sunos' == os.uname()[0].lower():
-    # XXX snakeoil needs to grow a "steal the docs from another function"
+if os.uname()[0].lower() == 'sunos':
     access = fallback_access
     access.__name__ = 'access'
 else:
