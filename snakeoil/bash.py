@@ -21,7 +21,7 @@ from shlex import shlex
 
 from snakeoil.mappings import ProtectedDict
 from snakeoil.compatibility import raise_from
-from snakeoil.osutils import readlines_utf8
+from snakeoil.fileutils import readlines_utf8
 
 def iter_read_bash(bash_source, allow_inline_comments=True):
     """

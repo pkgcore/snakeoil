@@ -49,13 +49,6 @@ import fcntl
 import os
 import stat
 
-# imported for compatibility.  Will be removed in 0.5
-from snakeoil.fileutils import (
-    readfile, readfile_ascii, readfile_ascii_strict, readfile_bytes, readfile_utf8,
-    readlines, readlines_ascii, readlines_ascii_strict,
-        readlines_bytes, readlines_utf8, readlines_utf8_strict
-)
-
 # No name '_readdir' in module osutils
 # pylint: disable-msg=E0611
 
