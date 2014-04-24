@@ -78,11 +78,8 @@ try to proxy builtin objects like tuples, lists, dicts, sets, etc.
 
 from __future__ import print_function
 
-__all__ = ("DelayedInstantiation", "DelayedInstantiation_kls", "make_SlottedDict_kls",
-    "make_kls",)
+__all__ = ("DelayedInstantiation", "DelayedInstantiation_kls", "make_kls",)
 
-# make_SlottedDict_kls is imported for compat till 0.5
-from snakeoil.mappings import make_SlottedDict_kls
 from snakeoil import compatibility, klass
 
 
