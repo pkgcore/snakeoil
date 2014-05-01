@@ -10,6 +10,7 @@ for chksum implementations, while also preferring the fastest implementation
 available.
 """
 
+import hashlib
 import threading
 import Queue
 
@@ -210,70 +211,35 @@ class Chksummer(object):
 # Hash function we use is:
 # - hashlib attr if available
 # - hashlib through new() if available.
-# - fchksum with python md5 fallback if possible
 # - PyCrypto
-# - python's md5 or sha1.
 
 chksum_types = {}
 
-try:
-    import hashlib
-except ImportError:
-    pass
-else:
-    # Always available according to docs.python.org:
-    # md5(), sha1(), sha224(), sha256(), sha384(), and sha512().
-    for hashlibname, chksumname, size in [
-            ('md5', 'md5', md5_size),
-            ('sha1', 'sha1', sha1_size),
-            ('sha256', 'sha256', sha256_size),
-            ('sha512', 'sha512', sha512_size),
-            ]:
-        chksum_types[chksumname] = Chksummer(chksumname,
-            getattr(hashlib, hashlibname), size)
+# Always available according to docs.python.org:
+# md5(), sha1(), sha224(), sha256(), sha384(), and sha512().
+for hashlibname, chksumname, size in [
+        ('md5', 'md5', md5_size),
+        ('sha1', 'sha1', sha1_size),
+        ('sha256', 'sha256', sha256_size),
+        ('sha512', 'sha512', sha512_size),
+        ]:
+    chksum_types[chksumname] = Chksummer(chksumname,
+        getattr(hashlib, hashlibname), size)
 
-    # May or may not be available depending on openssl. List
-    # determined through trial and error.
-    for hashlibname, chksumname, size in [
-            ('ripemd160', 'rmd160', rmd160_size),
-            ('whirlpool', 'whirlpool', whirlpool_size),
-            ]:
-        try:
-            hashlib.new(hashlibname)
-        except ValueError:
-            pass # This hash is not available.
-        else:
-            chksum_types[chksumname] = Chksummer(chksumname,
-                partial(hashlib.new, hashlibname), size)
-    del hashlibname, chksumname
-
-
-if 'md5' not in chksum_types:
-    import md5
-    fchksum = None
+# May or may not be available depending on openssl. List
+# determined through trial and error.
+for hashlibname, chksumname, size in [
+        ('ripemd160', 'rmd160', rmd160_size),
+        ('whirlpool', 'whirlpool', whirlpool_size),
+        ]:
     try:
-        import fchksum
-    except ImportError:
-        pass
+        hashlib.new(hashlibname)
+    except ValueError:
+        pass # This hash is not available.
     else:
-        class MD5Chksummer(Chksummer):
-            chf_type = "md5"
-            str_size = md5_size
-            __init__ = lambda s:None
-
-            def new(self):
-                return md5.new
-
-            def __call__(self, filename):
-                if isinstance(filename, base_data_source):
-                    if filename.path is not None:
-                        filename = filename.path
-                if isinstance(filename, basestring) and fchksum is not None:
-                    return long(fchksum.fmd5t(filename)[0], 16)
-                return chksum_loop_over_file(filename, md5.new)[0]
-
-        chksum_types["md5"] = MD5Chksummer()
-
+        chksum_types[chksumname] = Chksummer(chksumname,
+            partial(hashlib.new, hashlibname), size)
+del hashlibname, chksumname
 
 # expand this to load all available at some point
 for k, v, str_size in (
@@ -290,41 +256,6 @@ for k, v, str_size in (
     except modules.FailedImport:
         pass
 del k, v
-
-
-for modulename, chksumname, size in [
-        ('sha', 'sha1', sha1_size),
-        ('md5', 'md5', md5_size),
-        ]:
-    if chksumname not in chksum_types:
-        chksum_types[chksumname] = Chksummer(chksumname,
-            modules.load_attribute('%s.new' % (modulename,)), size)
-del modulename, chksumname
-
-try:
-    import mhash
-except ImportError:
-    pass
-else:
-    # Scan mhash for what we need next.
-    for chf in ('sha1', 'sha256', 'sha512', ('rmd160', 'ripemd160'),
-                'whirlpool', 'md5'):
-        target = chf
-        if not isinstance(chf, basestring):
-            chf, target = chf
-        if chf in chksum_types:
-            continue
-        target = 'MHASH_%s' % chf.upper()
-        if hasattr(mhash, target):
-            chksum_types[chf] = Chksummer(chf,
-                                    partial(mhash.MHASH, getattr(mhash, target)),
-                                    locals()['%s_size' % chf])
-
-if 'whirlpool' not in chksum_types:
-    # Fallback to the python implementation.
-    chksum_types['whirlpool'] = Chksummer('whirlpool',
-        modules.load_attribute('snakeoil.chksum._whirlpool.Whirlpool'),
-        whirlpool_size)
 
 
 class SizeUpdater(object):
