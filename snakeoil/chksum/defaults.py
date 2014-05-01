@@ -141,7 +141,7 @@ class Chksummer(object):
 #   of hashes) and use a c implementation from python itself otherwise
 #   (does not support as many hashes, slower).
 # - On older pythons we can use the sha and md5 module for sha1 and md5.
-#	On python 2.5 these are deprecated wrappers around hashlib.
+#   On python 2.5 these are deprecated wrappers around hashlib.
 # - On any python we can use the fchksum module (if available) which can
 #   hash an entire file faster than we can, probably just because it does the
 #   file-reading and hashing both in c.
@@ -224,20 +224,20 @@ else:
     # Always available according to docs.python.org:
     # md5(), sha1(), sha224(), sha256(), sha384(), and sha512().
     for hashlibname, chksumname, size in [
-        ('md5', 'md5', md5_size),
-        ('sha1', 'sha1', sha1_size),
-        ('sha256', 'sha256', sha256_size),
-        ('sha512', 'sha512', sha512_size),
-        ]:
+            ('md5', 'md5', md5_size),
+            ('sha1', 'sha1', sha1_size),
+            ('sha256', 'sha256', sha256_size),
+            ('sha512', 'sha512', sha512_size),
+            ]:
         chksum_types[chksumname] = Chksummer(chksumname,
             getattr(hashlib, hashlibname), size)
 
     # May or may not be available depending on openssl. List
     # determined through trial and error.
     for hashlibname, chksumname, size in [
-        ('ripemd160', 'rmd160', rmd160_size),
-        ('whirlpool', 'whirlpool', whirlpool_size),
-        ]:
+            ('ripemd160', 'rmd160', rmd160_size),
+            ('whirlpool', 'whirlpool', whirlpool_size),
+            ]:
         try:
             hashlib.new(hashlibname)
         except ValueError:
@@ -276,10 +276,12 @@ if 'md5' not in chksum_types:
 
 
 # expand this to load all available at some point
-for k, v, str_size in (("sha1", "SHA", sha1_size),
-    ("sha256", "SHA256", sha256_size),
-    ("sha512", "SHA512", sha512_size),
-    ("rmd160", "RIPEMD", rmd160_size)):
+for k, v, str_size in (
+        ("sha1", "SHA", sha1_size),
+        ("sha256", "SHA256", sha256_size),
+        ("sha512", "SHA512", sha512_size),
+        ("rmd160", "RIPEMD", rmd160_size),
+        ):
     if k in chksum_types:
         continue
     try:
@@ -291,9 +293,9 @@ del k, v
 
 
 for modulename, chksumname, size in [
-    ('sha', 'sha1', sha1_size),
-    ('md5', 'md5', md5_size),
-    ]:
+        ('sha', 'sha1', sha1_size),
+        ('md5', 'md5', md5_size),
+        ]:
     if chksumname not in chksum_types:
         chksum_types[chksumname] = Chksummer(chksumname,
             modules.load_attribute('%s.new' % (modulename,)), size)
