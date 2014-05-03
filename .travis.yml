@@ -3,6 +3,8 @@ python:
     - "2.7"
     - "3.2"
     - "3.3"
-install: pip install coverage coveralls
-script: coverage run --source=snakeoil setup.py test
+install: pip install pytest-cov coveralls
+script:
+    - python setup.py build_ext -i
+    - py.test -v --cov snakeoil
 after_success: coveralls
