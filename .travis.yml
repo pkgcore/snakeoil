@@ -6,5 +6,6 @@ python:
 install: pip install pytest-cov coveralls
 script:
     - python setup.py build_ext -i
+    - python setup.py build_py -i
     - py.test -v --cov snakeoil
 after_success: coveralls
