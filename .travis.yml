@@ -4,3 +4,4 @@ python:
     - "3.2"
     - "3.3"
 script: python setup.py test
+after_success: coveralls
