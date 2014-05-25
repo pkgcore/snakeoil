@@ -308,4 +308,4 @@ class SizeChksummer(Chksummer):
 
 
 chksum_types["size"] = SizeChksummer()
-chksum_types = dict((intern(k), v) for k, v in chksum_types.iteritems())
+chksum_types = {intern(k): v for k, v in chksum_types.iteritems()}

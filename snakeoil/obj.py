@@ -200,8 +200,8 @@ kls_descriptors = frozenset([
 if base_kls_descriptors_compat:
     kls_descriptors = kls_descriptors.difference(base_kls_descriptors_compat)
 
-descriptor_overrides = dict((k, klass.alias_method("__obj__.%s" % (k,)))
-    for k in kls_descriptors)
+descriptor_overrides = {k: klass.alias_method("__obj__.%s" % (k,))
+                        for k in kls_descriptors}
 
 
 _method_cache = {}

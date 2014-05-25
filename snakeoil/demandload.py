@@ -63,8 +63,7 @@ _allowed_chars = "".join((x.isalnum() or x in "_.") and " " or "a"
     for x in map(chr, xrange(256)))
 
 py3k_translate = {
-    "itertools": dict(("i%s" % k, k) for k in
-        ("filterfalse",)),
+    "itertools": {"i%s" % k: k for k in ("filterfalse",)},
     "ConfigParser": "configparser",
     "Queue":"queue",
     "StringIO":"io",

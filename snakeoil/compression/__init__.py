@@ -33,8 +33,7 @@ class _transform_source(object):
         return self.module.decompress_handle(handle, parallelize=parallelize)
 
 
-_transforms = dict((name, _transform_source(name))
-    for name in ('bzip2',))
+_transforms = {name: _transform_source(name) for name in ('bzip2',)}
 
 def compress_data(compressor_type, data, level=9, **kwds):
     return _transforms[compressor_type].compress_data(data, level, **kwds)

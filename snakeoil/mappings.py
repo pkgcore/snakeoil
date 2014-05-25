@@ -852,7 +852,7 @@ def make_SlottedDict_kls(keys):
     >>> print(sys.getsizeof(slotted_inst))
     72
     >>> # and now for an extreme example:
-    >>> raw = dict(("attribute%i" % (x,), x) for x in xrange(1000))
+    >>> raw = {"attribute%i" % (x,): x for x in xrange(1000)}
     >>> skls = make_SlottedDict_kls(raw.keys())
     >>> print(sys.getsizeof(raw))
     49432

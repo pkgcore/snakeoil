@@ -22,8 +22,7 @@ def _parse_cpuinfo():
                 current = []
         else:
             current.append(line.split(":", 1))
-    return [dict((k.strip(), v.strip()) for k,v in items)
-        for items in procs]
+    return [{k.strip(): v.strip() for k, v in items} for items in procs]
 
 def _get_linux_physical_proc_count():
     procs = _parse_cpuinfo()

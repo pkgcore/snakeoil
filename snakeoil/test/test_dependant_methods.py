@@ -29,16 +29,14 @@ class TestDependantMethods(TestCase):
     def test_return_checking(self):
         results = []
         o = self.generate_instance(
-            dict((str(x), currying.post_curry(func, results, x))
-                 for x in range(10)),
-            dict((str(x), str(x - 1)) for x in xrange(1, 10)))
+            {str(x): currying.post_curry(func, results, x) for x in range(10)},
+            {str(x): str(x - 1) for x in xrange(1, 10)})
         getattr(o, "9")()
         self.assertEqual(results, range(10))
         results = []
         o = self.generate_instance(
-            dict((str(x), currying.post_curry(func, results, x, False))
-                 for x in range(10)),
-            dict((str(x), str(x - 1)) for x in xrange(1, 10)))
+            {str(x): currying.post_curry(func, results, x, False) for x in range(10)},
+            {str(x): str(x - 1) for x in xrange(1, 10)})
         getattr(o, "9")()
         self.assertEqual(results, [0])
         getattr(o, "9")()
@@ -47,9 +45,8 @@ class TestDependantMethods(TestCase):
     def test_stage_awareness(self):
         results = []
         o = self.generate_instance(
-            dict((str(x), currying.post_curry(func, results, x))
-                 for x in range(10)),
-            dict((str(x), str(x - 1)) for x in xrange(1, 10)))
+            {str(x): currying.post_curry(func, results, x) for x in range(10)},
+            {str(x): str(x - 1) for x in xrange(1, 10)})
         getattr(o, "1")()
         self.assertEqual(results, [0, 1])
         getattr(o, "2")()
@@ -65,9 +62,8 @@ class TestDependantMethods(TestCase):
 
     def test_stage_depends(self):
         results = []
-        methods = dict((str(x), currying.post_curry(func, results, x))
-                       for x in range(10))
-        deps = dict((str(x), str(x - 1)) for x in xrange(1, 10))
+        methods = {str(x): currying.post_curry(func, results, x) for x in range(10)}
+        deps = {str(x): str(x - 1) for x in xrange(1, 10)}
         deps["1"] = ["0", "a"]
         methods["a"] = currying.post_curry(func, results, "a")
         o = self.generate_instance(methods, deps)
@@ -79,17 +75,15 @@ class TestDependantMethods(TestCase):
     def test_ignore_deps(self):
         results = []
         o = self.generate_instance(
-            dict((str(x), currying.post_curry(func, results, x))
-                 for x in range(10)),
-            dict((str(x), str(x - 1)) for x in xrange(1, 10)))
+            {str(x): currying.post_curry(func, results, x) for x in range(10)},
+            {str(x): str(x - 1) for x in xrange(1, 10)})
         getattr(o, '2')(ignore_deps=True)
         self.assertEqual([2], results)
 
     def test_no_deps(self):
         results = []
         o = self.generate_instance(
-            dict((str(x), currying.post_curry(func, results, x))
-                 for x in range(10)),
+            {str(x): currying.post_curry(func, results, x) for x in range(10)},
             {})
         getattr(o, '2')()
         self.assertEqual([2], results)
