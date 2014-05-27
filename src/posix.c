@@ -53,7 +53,7 @@ snakeoil_normpath(PyObject *self, PyObject *py_old_path)
 		return new_obj;
 	char *new_path = PyString_AS_STRING(new_obj);
 	char *write = new_path;
-	int depth=0;
+	int depth = 0;
 	int is_absolute = '/' == *path;
 
 	if (is_absolute) {
@@ -74,14 +74,14 @@ snakeoil_normpath(PyObject *self, PyObject *py_old_path)
 						} else {
 							// why -2?  because write is at an empty char.
 							// we need to jump back past it and /
-							write-=2;
+							write -= 2;
 							while ('/' != *write)
 								write--;
 						}
 						write++;
 						depth = 0;
 					} else if (depth) {
-						write-=2;
+						write -= 2;
 						while ('/' != *write)
 							write--;
 						write++;
@@ -96,7 +96,7 @@ snakeoil_normpath(PyObject *self, PyObject *py_old_path)
 							write += 3;
 						}
 					}
-					path+= 2;
+					path += 2;
 					SKIP_SLASHES(path);
 				} else if ('/' == path[1]) {
 					path += 2;
@@ -247,8 +247,7 @@ snakeoil_join(PyObject *self, PyObject *args)
 // if failure condition, appropriate exception is set.
 
 static inline int
-snakeoil_read_open_and_stat(PyObject *path,
-	int *fd, struct stat *st)
+snakeoil_read_open_and_stat(PyObject *path, int *fd, struct stat *st)
 {
 	errno = 0;
 	if ((*fd = open(PyString_AsString(path), O_RDONLY)) >= 0) {
