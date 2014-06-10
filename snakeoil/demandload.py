@@ -294,10 +294,6 @@ def demand_compile_regexp(scope, name, *args, **kwargs):
 
     Extra arguments are passed unchanged to :py:func:`re.compile`.
 
-    This returns the placeholder, which you *must* bind to C{name} in
-    the scope you pass as C{scope}. It is done this way to prevent
-    confusing code analysis tools like pylint.
-
     :param scope: the scope, just like for :py:func:`demandload`.
     :param name: the name of the compiled re object in that scope.
     """
