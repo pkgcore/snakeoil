@@ -201,7 +201,7 @@ class Placeholder(object):
     def _replace(self):
         """Replace ourself in C{scope} with the result of our C{replace_func}.
 
-        @returns: the result of calling C{replace_func}.
+        :return: the result of calling C{replace_func}.
         """
         replace_func = object.__getattribute__(self, '_replace_func')
         scope = object.__getattribute__(self, '_scope')
