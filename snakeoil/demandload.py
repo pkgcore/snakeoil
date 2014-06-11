@@ -34,22 +34,6 @@ have to be careful with:
 
 __all__ = ("demandload", "demand_compile_regexp")
 
-# TODO: the use of a curried func instead of subclassing needs more thought.
-
-# the replace_func used by Placeholder is currently passed in as an
-# external callable, with "partial" used to provide arguments to it.
-# This works, but has the disadvantage that calling
-# demand_compile_regexp needs to import re (to hand re.compile to
-# partial). One way to avoid that would be to add a wrapper function
-# that delays the import (well, triggers the demandload) at the time
-# the regexp is used, but that's a bit convoluted. A different way is
-# to make replace_func a method of Placeholder implemented through
-# subclassing instead of a callable passed to its __init__. The
-# current version does not do this because getting/setting attributes
-# of Placeholder is annoying because of the
-# __getattribute__/__setattr__ override.
-
-
 import os
 import sys
 
@@ -154,17 +138,14 @@ class Placeholder(object):
     See the module docstring for common problems with its use.
     """
 
-    def __init__(self, scope, name, replace_func):
+    def __init__(self, scope, name):
         """Initialize.
 
-        :param scope: the scope we live in, normally the result of
-          C{globals()}.
+        :param scope: the scope we live in, normally the result of C{globals()}.
         :param name: the name we have in C{scope}.
-        :param replace_func: callable returning the object to replace us with.
         """
         object.__setattr__(self, '_scope', scope)
         object.__setattr__(self, '_name', name)
-        object.__setattr__(self, '_replace_func', replace_func)
         object.__setattr__(self, '_replacing_tids', [])
 
     def _already_replaced(self):
@@ -199,9 +180,9 @@ class Placeholder(object):
         return scope[name]
 
     def _replace(self):
-        """Replace ourself in C{scope} with the result of our C{replace_func}.
+        """Replace ourself in C{scope} with the result of our C{_replace_func}.
 
-        :return: the result of calling C{replace_func}.
+        :return: the result of calling C{_replace_func}.
         """
         replace_func = object.__getattribute__(self, '_replace_func')
         scope = object.__getattribute__(self, '_scope')
@@ -224,6 +205,9 @@ class Placeholder(object):
 
         return result
 
+    def _replace_func(self):
+        raise NotImplementedError
+
     # Various methods proxied to our replacement.
 
     def __str__(self):
@@ -240,6 +224,22 @@ class Placeholder(object):
     def __call__(self, *args, **kwargs):
         result = object.__getattribute__(self, '_replace')()
         return result(*args, **kwargs)
+
+
+class StandardPlaceholder(Placeholder):
+    """Object that imports modules into scope when first used.
+
+    See the module docstring for common problems with its use; used by
+    :py:func:`demandload`.
+    """
+
+    def __init__(self, scope, name, source):
+        super(StandardPlaceholder, self).__init__(scope, name)
+        object.__setattr__(self, '_source', source)
+
+    def _replace_func(self):
+        source = object.__getattribute__(self, '_source')
+        return load_any(source)
 
 
 def demandload(scope, *imports):
@@ -260,7 +260,7 @@ def demandload(scope, *imports):
       foo:baz@quux   from foo import baz as quux
     """
     for source, target in parse_imports(imports):
-        scope[target] = Placeholder(scope, target, partial(load_any, source))
+        scope[target] = StandardPlaceholder(scope, target, source)
 
 
 # Extra name to make undoing monkeypatching demandload with
@@ -281,12 +281,15 @@ class RegexPlaceholder(Placeholder):
     See the module docstring for common problems with its use; used by
     :py:func:`demand_compile_regexp`.
     """
+    def __init__(self, scope, name, *args, **kwargs):
+        super(RegexPlaceholder, self).__init__(scope, name)
+        object.__setattr__(self, '_args', args)
+        object.__setattr__(self, '_kwargs', kwargs)
 
-    def _replace(self):
-        args, kwargs = object.__getattribute__(self, '_replace_func')
-        object.__setattr__(self, '_replace_func',
-            partial(re.compile, *args, **kwargs))
-        return Placeholder._replace(self)
+    def _replace_func(self):
+        args = object.__getattribute__(self, '_args')
+        kwargs = object.__getattribute__(self, '_kwargs')
+        return re.compile(*args, **kwargs)
 
 
 def demand_compile_regexp(scope, name, *args, **kwargs):
@@ -297,7 +300,7 @@ def demand_compile_regexp(scope, name, *args, **kwargs):
     :param scope: the scope, just like for :py:func:`demandload`.
     :param name: the name of the compiled re object in that scope.
     """
-    scope[name] = RegexPlaceholder(scope, name, (args, kwargs))
+    scope[name] = RegexPlaceholder(scope, name, *args, **kwargs)
 
 
 def disabled_demand_compile_regexp(scope, name, *args, **kwargs):
