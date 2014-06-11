@@ -124,6 +124,7 @@ def parse_imports(imports):
                 if compatibility.is_py3k:
                     split[0] = py3k_translate.get(base, {}).get(split[0], split[0])
                 yield base + '.' + split[0], split[-1]
+
 def _protection_enabled_disabled():
     return False
 
@@ -183,9 +184,9 @@ class Placeholder(object):
         # as for why we watch for the threading modules; if they're not there,
         # it's impossible for this pathway to accidentally be triggered twice-
         # meaning it is a misuse by the consuming client code.
-        if 'threading' in sys.modules or 'thread' in sys.modules:
+        if 'threading' in sys.modules:
             tids_to_complain_about = object.__getattribute__(self, '_replacing_tids')
-            complain = _get_thread_ident() in tids_to_complain_about
+            complain = threading.current_thread().ident in tids_to_complain_about
         else:
             complain = True
 
@@ -217,9 +218,9 @@ class Placeholder(object):
 
         # note this step *has* to follow scope modification; else it
         # will go maximum depth recursion.
-        if 'thread' in sys.modules or 'threading' in sys.modules:
+        if 'threading' in sys.modules:
             tids = object.__getattribute__(self, '_replacing_tids')
-            tids.append(_get_thread_ident())
+            tids.append(threading.current_thread().ident)
 
         return result
 
@@ -288,7 +289,6 @@ class RegexPlaceholder(Placeholder):
         return Placeholder._replace(self)
 
 
-
 def demand_compile_regexp(scope, name, *args, **kwargs):
     """Demandloaded version of :py:func:`re.compile`.
 
@@ -309,13 +309,8 @@ if os.environ.get("SNAKEOIL_DEMANDLOAD_DISABLED", 'n').lower() in ('y', 'yes' '1
     demandload = disabled_demandload
     demand_compile_regexp = disabled_demand_compile_regexp
 
-demandload(globals(), 're', 'logging')
-
-if compatibility.is_py3k:
-    demandload(globals(), 'threading')
-    def _get_thread_ident():
-        return threading.current_thread().ident
-else:
-    demandload(globals(), 'thread')
-    def _get_thread_ident():
-        return thread.get_ident()
+demandload(globals(),
+   'logging',
+   're',
+   'threading',
+)
