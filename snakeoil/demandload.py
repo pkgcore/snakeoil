@@ -252,12 +252,12 @@ def demandload(scope, *imports):
     Other args are strings listing module names.
     names are handled like this::
 
-      foo            import foo
-      foo@bar        import foo as bar
-      foo:bar        from foo import bar
-      foo:bar,quux   from foo import bar, quux
-      foo.bar:quux   from foo.bar import quux
-      foo:baz@quux   from foo import baz as quux
+    foo            import foo
+    foo@bar        import foo as bar
+    foo:bar        from foo import bar
+    foo:bar,quux   from foo import bar, quux
+    foo.bar:quux   from foo.bar import quux
+    foo:baz@quux   from foo import baz as quux
     """
     for source, target in parse_imports(imports):
         scope[target] = StandardPlaceholder(scope, target, source)
@@ -313,7 +313,7 @@ if os.environ.get("SNAKEOIL_DEMANDLOAD_DISABLED", 'n').lower() in ('y', 'yes' '1
     demand_compile_regexp = disabled_demand_compile_regexp
 
 demandload(globals(),
-   'logging',
-   're',
-   'threading',
+    'logging',
+    're',
+    'threading',
 )
