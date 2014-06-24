@@ -9,7 +9,7 @@ python 2to3 with caching support
 
 import lib2to3.main
 import lib2to3.refactor
-import os, hashlib, logging
+import os, hashlib, logging, sys
 
 def md5_hash_data(data):
     chf = hashlib.md5()
@@ -103,7 +103,9 @@ class RefactoringTool(caching_mixin, lib2to3.refactor.RefactoringTool):
 
 multiprocessing_available = False
 try:
-    if not hasattr(lib2to3.refactor, 'MultiprocessRefactoringTool'):
+    # multiprocessing semaphores require rwx permissions on shared memory for Linux
+    if not hasattr(lib2to3.refactor, 'MultiprocessRefactoringTool') or \
+            ('linux' in sys.platform and not os.access('/dev/shm', os.R_OK|os.W_OK|os.X_OK)):
         raise ImportError()
     import multiprocessing
     # this is to detect python upstream bug 3770
@@ -129,5 +131,4 @@ def StdoutRefactoringTool(*args):
 
 if __name__ == '__main__':
     lib2to3.main.StdoutRefactoringTool = StdoutRefactoringTool
-    import sys
     sys.exit(lib2to3.main.main("lib2to3.fixes"))
