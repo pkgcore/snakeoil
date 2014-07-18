@@ -81,8 +81,7 @@ def native_generic_attr_ne(inst1, inst2):
     if inst1 is inst2:
         return False
     for attr in _attrlist_getter(inst1):
-        if getattr(inst1, attr, _sentinel) != \
-            getattr(inst2, attr, _sentinel):
+        if getattr(inst1, attr, _sentinel) != getattr(inst2, attr, _sentinel):
             return True
     return False
 
@@ -152,7 +151,8 @@ class _native_internal_jit_attr(object):
 
 
 try:
-    from snakeoil._klass import (GetAttrProxy, contains, get,
+    from snakeoil._klass import (
+        GetAttrProxy, contains, get,
         generic_eq as generic_attr_eq, generic_ne as generic_attr_ne,
         reflective_hash, _internal_jit_attr)
 except ImportError:
@@ -373,7 +373,7 @@ def jit_attr(func, kls=_internal_jit_attr, uncached_val=_uncached_singleton):
     '_' + func.__name__ on the instance.
 
     :param func: function to wrap
-    :param kls: internal arg, overriden if you need a tweaked version of
+    :param kls: internal arg, overridden if you need a tweaked version of
         :py:class:`_internal_jit_attr`
     :param uncached_val: the value to treat as missing/force regeneration
         when accessing the instance.  Note this normally defaults to a singleton
@@ -449,7 +449,7 @@ def cached_property(func, kls=_internal_jit_attr, use_cls_setattr=False):
     1
     """
     return kls(func, func.__name__, None, use_singleton=False,
-        use_cls_setattr=use_cls_setattr)
+               use_cls_setattr=use_cls_setattr)
 
 def cached_property_named(name, kls=_internal_jit_attr, use_cls_setattr=False):
     """
@@ -504,7 +504,7 @@ def alias_attr(target_attr):
     True
     """
     return property(instance_attrgetter(target_attr),
-        doc="alias to %s" % (target_attr,))
+                    doc="alias to %s" % (target_attr,))
 
 
 def cached_hash(func):
