@@ -74,7 +74,7 @@ class _process_handle(object):
 
     def _setup_process(self, handle):
         self.position = 0
-        stderr = open("/dev/null", 'wb')
+        stderr = open(os.devnull, 'wb')
         kwds = dict(stderr=stderr)
         if self.is_read:
             kwds['stdin'] = handle
