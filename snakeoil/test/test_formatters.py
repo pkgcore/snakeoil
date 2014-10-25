@@ -244,13 +244,13 @@ class GetFormatterTest(TestCase):
 
     @issue7567
     def test_dumb_terminal(self):
-        master, out = _get_pty_pair()
+        master, _out = _get_pty_pair()
         formatter = _with_term('dumb', formatters.get_formatter, master)
         self.failUnless(isinstance(formatter, formatters.PlainTextFormatter))
 
     @issue7567
     def test_smart_terminal(self):
-        master, out = _get_pty_pair()
+        master, _out = _get_pty_pair()
         formatter = _with_term('xterm', formatters.get_formatter, master)
         self.failUnless(isinstance(formatter, formatters.TerminfoFormatter))
 

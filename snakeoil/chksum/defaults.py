@@ -71,7 +71,7 @@ def loop_over_file(handle, callbacks, parallelize=True):
 
     try:
         if parallelize:
-            queues = [Queue.Queue(8) for x in callbacks]
+            queues = [Queue.Queue(8) for _ in callbacks]
 
             threads = [threading.Thread(target=chf_thread, args=(queue, functor))
                 for queue, functor in zip(queues, callbacks)]

@@ -88,7 +88,6 @@ class PlaceholderTest(TestCase):
         scope = {}
         placeholder = demandload.Placeholder(scope, 'foo', Struct)
         placeholder.val = 7
-        orig = demandload._protection_enabled
         demandload._protection_enabled = lambda:True
         self.assertRaises(ValueError, getattr, placeholder, 'val')
         self.assertEqual(7, scope['foo'].val)

@@ -232,12 +232,12 @@ class DictMixin(object):
 
     def __len__(self):
         c = 0
-        for x in self:
+        for _ in self:
             c += 1
         return c
 
     def __nonzero__(self):
-        for x in self:
+        for _ in self:
             return True
         return False
 

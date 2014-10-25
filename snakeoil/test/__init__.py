@@ -330,7 +330,7 @@ def protect_process(functor, name=None):
             args = [sys.executable, unittest_extensions.__file__, name]
             p = subprocess.Popen(args, shell=False, env=os.environ.copy(), stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT)
-            stdout, stderr = p.communicate()
+            stdout, _stderr = p.communicate()
             ret = p.wait()
             self.assertEqual(0, ret,
                 msg="subprocess run: %r\nnon zero exit: %s\nstdout:%s\n" % (args, ret, stdout))
