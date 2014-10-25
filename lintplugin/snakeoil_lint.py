@@ -17,9 +17,9 @@ except ImportError:
           'installed: dev-python/astng', file=sys.stderr)
     raise
 
-from snakeoil.lists import iflatten_func
 
 class SnakeoilChecker(checkers.BaseChecker):
+    """Custom snakeoil linter checks."""
 
     __implements__ = (interfaces.IRawChecker, interfaces.IAstroidChecker)
 
@@ -98,6 +98,7 @@ class SnakeoilChecker(checkers.BaseChecker):
 
 
 class SnakeoilASTRewrites(utils.ASTWalker):
+    """Handle some of the magic imports snakeoil injects."""
 
     # Wipe the shadowing we still allow for >=py2.5 compat.
     ignore_shadowing = frozenset(
@@ -159,14 +160,14 @@ class SnakeoilASTRewrites(utils.ASTWalker):
                 # (not entirely sure though, have not found documentation.
                 # The asname/importedname might be the other way around fex).
                 new_node = nodes.Import()
-                rebuilder._set_infos(node, new_node, node.parent)
+                rebuilder._set_infos(node, new_node, node.parent) # pylint: disable=protected-access
                 new_node.names = [(mod, mod)]
                 #node.frame().add_local_node(new_node, mod)
                 node.set_local(mod, new_node)
             else:
                 for name in mod[col+1:].split(','):
                     new_node = nodes.From(mod[:col], ((name, None),), 0)
-                    rebuilder._set_infos(node, new_node, node.parent)
+                    rebuilder._set_infos(node, new_node, node.parent) # pylint: disable=protected-access
                     #node.frame().add_local_node(newstuff, name)
                     node.set_local(name, new_node)
 
@@ -204,4 +205,3 @@ def register(linter):
 
     # Finally, register our custom checks.
     linter.register_checker(SnakeoilChecker(linter))
-

@@ -1,15 +1,14 @@
-# First cut at a pylintrc to match snakeoil's (and pkgcore's) coding style.
+# pylintrc to match snakeoil's (and pkgcore's) coding style.
 #
-# Use like "pylint --rcfile=lintplugin/pylintrc snakeoil".
-#
-# This version was written by marienz, which means it is probably not
-# accurate.
+# Use "./pylint" helper to load things sanely.
 
 
-[master]
+[MASTER]
 
 # Ignore external modules.
 ignore=demandload.py,bundled_elementtree.py,native_readdir.py
+
+# Load our custom lint modules.
 load-plugins=snakeoil_lint
 
 
@@ -89,6 +88,7 @@ good-names=d,e,i,j,ex,_,setUp,tearDown,force_True,force_False,f
 # "bad" builtins.
 # Was: map,filter,apply,input
 bad-functions=filter,apply,input
+
 
 [VARIABLES]
 
