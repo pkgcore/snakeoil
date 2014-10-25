@@ -41,8 +41,8 @@ class intercept_import(object):
 
     def disable(self):
         if __builtin__.__import__ != self:
-            raise RuntimeError("either not active, or a different intercept "
-                "is in use")
+            raise RuntimeError(
+                "either not active, or a different intercept is in use")
         __builtin__.__import__ = self.orig_import
         del self.orig_import
 

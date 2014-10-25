@@ -114,7 +114,8 @@ class Test_native_generic_equality(TestCase):
     op_prefix = "native_"
 
     kls = currying.partial(klass.generic_equality,
-        ne=klass.native_generic_attr_ne, eq=klass.native_generic_attr_eq)
+                           ne=klass.native_generic_attr_ne,
+                           eq=klass.native_generic_attr_eq)
 
     def test_it(self):
         class c(object):
@@ -210,10 +211,10 @@ class Test_chained_getter(TestCase):
 
     def test_eq(self):
         self.assertEqual(self.kls("asdf", disable_inst_caching=True),
-            self.kls("asdf", disable_inst_caching=True))
+                         self.kls("asdf", disable_inst_caching=True))
 
         self.assertNotEqual(self.kls("asdf2", disable_inst_caching=True),
-            self.kls("asdf", disable_inst_caching=True))
+                            self.kls("asdf", disable_inst_caching=True))
 
     def test_it(self):
         class maze(object):
@@ -251,7 +252,8 @@ class Test_native_jit_attr(TestCase):
         return currying.partial(klass.jit_attr_ext_method, kls=self.kls)
 
     def mk_inst(self, attrname='_attr', method_lookup=False,
-        use_cls_setattr=False, func=None, singleton=klass._uncached_singleton):
+                use_cls_setattr=False, func=None,
+                singleton=klass._uncached_singleton):
 
         f = func
         if not func:
@@ -267,9 +269,7 @@ class Test_native_jit_attr(TestCase):
                 sf('_reflects', [])
                 sf('_invokes', [])
 
-            attr = self.kls(f, attrname,
-                singleton,
-                use_cls_setattr)
+            attr = self.kls(f, attrname, singleton, use_cls_setattr)
 
             def __setattr__(self, attr, value):
                 self._sets.append(self)
@@ -287,14 +287,16 @@ class Test_native_jit_attr(TestCase):
         reflects = [instance] * reflects
         invokes = [instance] * invokes
         msg = ("checking %s: got(%r), expected(%r); state was sets=%r, "
-            "reflects=%r, invokes=%r" % (
-            "%s", "%s", "%s", instance._sets, instance._reflects, instance._invokes))
+               "reflects=%r, invokes=%r" % (
+                   "%s", "%s", "%s", instance._sets, instance._reflects,
+                   instance._invokes))
         self.assertEqual(instance._sets, sets,
-            msg=(msg % ("sets", instance._sets, sets,)))
+                         msg=(msg % ("sets", instance._sets, sets,)))
         self.assertEqual(instance._reflects, reflects,
-            msg=(msg % ("reflects", instance._reflects, reflects,)))
+                         msg=(msg % ("reflects", instance._reflects,
+                                     reflects,)))
         self.assertEqual(instance._invokes, invokes,
-            msg=(msg % ("invokes", instance._invokes, invokes,)))
+                         msg=(msg % ("invokes", instance._invokes, invokes,)))
 
     def test_implementation(self):
         obj = self.mk_inst()
@@ -560,8 +562,8 @@ class test_cpy_reflective_hash(test_native_reflective_hash):
         skip = "cpython extension isn't available"
 
 
-cpy_loaded_Test = mk_cpy_loadable_testcase("snakeoil._klass",
-    "snakeoil.klass", "reflective_hash", "reflective_hash")
+cpy_loaded_Test = mk_cpy_loadable_testcase(
+    "snakeoil._klass", "snakeoil.klass", "reflective_hash", "reflective_hash")
 
 
 class TestImmutableInstance(TestCase):

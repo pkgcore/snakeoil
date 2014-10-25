@@ -92,8 +92,7 @@ class LimitedChangeSetTest(TestCase):
         def f(val):
             self.assertTrue(isinstance(val, int))
             return val
-        self.set = containers.LimitedChangeSet(range(12),
-            key_validator=f)
+        self.set = containers.LimitedChangeSet(range(12), key_validator=f)
         self.set.add(13)
         self.set.add(14)
         self.set.remove(11)
@@ -192,7 +191,7 @@ class LimitedChangeSetTest(TestCase):
         c.add(99)
         self.assertEqual(c, containers.LimitedChangeSet(xrange(100)))
         self.assertEqual(containers.LimitedChangeSet(xrange(100)),
-            set(xrange(100)))
+                         set(xrange(100)))
         self.assertNotEqual(containers.LimitedChangeSet([]), object())
 
 

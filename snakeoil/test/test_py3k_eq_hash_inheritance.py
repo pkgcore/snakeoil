@@ -38,10 +38,10 @@ class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker, TestCase):
         else:
             return
 
-        self.assertNotEqual(getattr(cls, '__hash__'), None, msg=
+        self.assertNotEqual(getattr(cls, '__hash__'), None, msg=(
             "class '%s.%s' had it's __hash__ reset, while it would've inherited "
             "__hash__ from parent '%s.%s'; this occurs in py3k when __eq__ is "
             "defined alone.  If this is desired behaviour, set "
             "__hash__intentionally_disabled__ to True to explicitly ignore this"
             " class" % (cls.__module__, cls.__name__, parent.__module__,
-                parent.__name__))
+                        parent.__name__)))

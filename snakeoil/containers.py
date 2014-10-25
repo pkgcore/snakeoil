@@ -6,12 +6,15 @@ Container classes and functionality for implementing them
 
 """
 
-__all__ = ("InvertedContains", "SetMixin", "LimitedChangeSet", "Unchangable",
-    "ProtectedSet", "RefCountingSet")
+__all__ = (
+    "InvertedContains", "SetMixin", "LimitedChangeSet", "Unchangable",
+    "ProtectedSet", "RefCountingSet"
+)
 
 from snakeoil import compatibility
 from snakeoil.demandload import demandload
-demandload(globals(),
+demandload(
+    globals(),
     'itertools:chain,ifilterfalse',
 )
 
@@ -43,7 +46,7 @@ class InvertedContains(set):
 
 def steal_set_doc(method):
     method.__doc__ = getattr(getattr(set, method.__name__, None),
-        '__doc__', None)
+                             '__doc__', None)
     return method
 
 
@@ -79,8 +82,9 @@ class SetMixin(object):
 
     @steal_set_doc
     def __xor__(self, other, kls=None):
-        return (kls or self.__class__)(chain((x for x in self if x not in other),
-                         (x for x in other if x not in self)))
+        return (kls or self.__class__)(chain(
+            (x for x in self if x not in other),
+            (x for x in other if x not in self)))
 
     @steal_set_doc
     def __rxor__(self, other):
@@ -129,7 +133,7 @@ class LimitedChangeSet(SetMixin):
         return val
 
     def __init__(self, initial_keys, unchangable_keys=None,
-        key_validator=None):
+                 key_validator=None):
         """
         :param initial_keys: iterable holding the initial values to set
         :param unchangable_keys: container holding keys that cannot be changed
@@ -271,7 +275,7 @@ class ProtectedSet(SetMixin):
 
     def __iter__(self):
         return chain(iter(self._new),
-            ifilterfalse(self._new.__contains__, self._orig))
+                     ifilterfalse(self._new.__contains__, self._orig))
 
     def __len__(self):
         return len(self._new.union(self._orig))

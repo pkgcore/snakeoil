@@ -19,8 +19,8 @@ def gen_segment(name, targets):
 def generate_rst(modpath, module, handle=None):
     if handle is None:
         handle = sys.stdout
-    target_names = [x for x in dir(module) if not (x.startswith("_")
-        or inspect.ismodule(getattr(module, x)))]
+    target_names = [x for x in dir(module)
+                    if not (x.startswith("_") or inspect.ismodule(getattr(module, x)))]
     target_names = getattr(module, '__all__', target_names)
     klasses, funcs, exceptions, others = [], [], [], []
     modules = []
@@ -30,7 +30,7 @@ def generate_rst(modpath, module, handle=None):
             obj = getattr(module, target)
         except AttributeError as a:
             sys.stderr.write("failed processing %s, accessing %s: %s\n" %
-                (modpath, target, a))
+                             (modpath, target, a))
             raise
         if inspect.isclass(obj):
             if issubclass(obj, base_exception):
@@ -65,7 +65,7 @@ def generate_rst(modpath, module, handle=None):
 def regen_if_needed(src, out_path):
     module = load_module(src)
     cur_time = max([int(os.stat(module.__file__).st_mtime),
-        int(os.stat(__file__).st_mtime)])
+                    int(os.stat(__file__).st_mtime)])
     try:
         trg_time = int(os.stat(out_path).st_mtime)
     except EnvironmentError as e:

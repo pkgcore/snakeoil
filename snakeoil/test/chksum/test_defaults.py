@@ -52,7 +52,7 @@ class ChksumTest(base):
 
     def test_str2long(self):
         self.assertEqual(self.chf.str2long(self.expected_str),
-            self.expected_long)
+                         self.expected_long)
         if self.chf_type == 'size':
             return
         for x in extra_chksums.get(self.chf_type, ()):
@@ -60,7 +60,7 @@ class ChksumTest(base):
 
     def test_long2str(self):
         self.assertEqual(self.chf.long2str(self.expected_long),
-            self.expected_str)
+                         self.expected_str)
         if self.chf_type == 'size':
             return
         for x in extra_chksums.get(self.chf_type, ()):

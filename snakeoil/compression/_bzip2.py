@@ -62,19 +62,19 @@ except process.CommandNotFound:
 def compress_data(data, level=9, parallelize=False):
     if parallelize and parallelizable:
         return _util.compress_data(lbzip2_path, data, level=level,
-            extra_args=lbzip2_compress_args)
+                                   extra_args=lbzip2_compress_args)
     return _compress_data(data, compresslevel=level)
 
 def decompress_data(data, parallelize=False):
     if parallelize and parallelizable:
         return _util.decompress_data(lbzip2_path, data,
-            extra_args=lbzip2_decompress_args)
+                                     extra_args=lbzip2_decompress_args)
     return _decompress_data(data)
 
 def compress_handle(handle, level=9, parallelize=False):
     if parallelize and parallelizable:
         return _util.compress_handle(lbzip2_path, handle, level=level,
-            extra_args=lbzip2_compress_args)
+                                     extra_args=lbzip2_compress_args)
     elif native and isinstance(handle, basestring):
         return BZ2File(handle, mode='w', compresslevel=level)
     return _compress_handle(handle, level=level)
@@ -82,9 +82,9 @@ def compress_handle(handle, level=9, parallelize=False):
 def decompress_handle(handle, parallelize=False):
     if parallelize and parallelizable:
         return _util.decompress_handle(lbzip2_path, handle,
-            extra_args=lbzip2_decompress_args)
-    elif native and isinstance(handle, basestring) \
-        and sys.version_info[:3] >= (3,3):
+                                       extra_args=lbzip2_decompress_args)
+    elif (native and isinstance(handle, basestring)
+          and sys.version_info[:3] >= (3, 3)):
         # note that <3.3, bz2file doesn't handle multiple streams.
         # thus don't use it.
         return BZ2File(handle, mode='r')

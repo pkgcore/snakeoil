@@ -174,8 +174,8 @@ class caching_iter(object):
 
     def __iter__(self):
         if (self.sorter is not None and
-            self.iterable is not None and
-            len(self.cached_list) == 0):
+                self.iterable is not None and
+                len(self.cached_list) == 0):
             self.cached_list = tuple(self.sorter(self.iterable))
             self.iterable = self.sorter = None
 

@@ -8,7 +8,7 @@
 import errno
 import os
 from stat import (S_IFDIR, S_IFREG, S_IFCHR, S_IFBLK, S_IFIFO, S_IFLNK, S_IFSOCK,
-    S_IFMT, S_ISDIR, S_ISREG)
+                  S_IFMT, S_ISDIR, S_ISREG)
 
 from snakeoil.mappings import ProtectedDict
 
@@ -41,10 +41,10 @@ def listdir_dirs(path, followSymlinks=True):
     lstat = os.lstat
     if followSymlinks:
         return [x for x in os.listdir(path) if
-            stat_swallow_enoent(pjf(path, x), scheck)]
+                stat_swallow_enoent(pjf(path, x), scheck)]
     lstat = os.lstat
     return [x for x in os.listdir(path) if
-        scheck(lstat(pjf(path, x)).st_mode)]
+            scheck(lstat(pjf(path, x)).st_mode)]
 
 def listdir_files(path, followSymlinks=True):
     """
@@ -61,10 +61,10 @@ def listdir_files(path, followSymlinks=True):
     pjf = pjoin
     if followSymlinks:
         return [x for x in os.listdir(path) if
-            stat_swallow_enoent(pjf(path, x), scheck)]
+                stat_swallow_enoent(pjf(path, x), scheck)]
     lstat = os.lstat
     return [x for x in os.listdir(path) if
-        scheck(lstat(pjf(path, x)).st_mode)]
+            scheck(lstat(pjf(path, x)).st_mode)]
 
 # we store this outside the function to ensure that
 # the strings used are reused, thus avoiding unneeded

@@ -129,8 +129,8 @@ class LazyValDictTestMixin(object):
         self.assertEqual(self.negate_calls, [11])
 
 
-class LazyValDictWithListTest(
-    TestCase, LazyValDictTestMixin, RememberingNegateMixin):
+class LazyValDictWithListTest(TestCase, LazyValDictTestMixin,
+                              RememberingNegateMixin):
 
     def setUp(self):
         RememberingNegateMixin.setUp(self)
@@ -154,8 +154,8 @@ class LazyValDictWithListTest(
     def test_has_key(self):
         self.assertEqual(True, self.dict.has_key(1))
 
-class LazyValDictWithFuncTest(
-    TestCase, LazyValDictTestMixin, RememberingNegateMixin):
+class LazyValDictWithFuncTest(TestCase, LazyValDictTestMixin,
+                              RememberingNegateMixin):
 
     def setUp(self):
         RememberingNegateMixin.setUp(self)
@@ -267,7 +267,7 @@ class StackedDictTest(TestCase):
 
     def test_len(self):
         self.assertEqual(sum(map(len, (self.orig_dict, self.new_dict))),
-            len(mappings.StackedDict(self.orig_dict, self.new_dict)))
+                         len(mappings.StackedDict(self.orig_dict, self.new_dict)))
 
     def test_setattr(self):
         self.assertRaises(TypeError, mappings.StackedDict().__setitem__, (1, 2))
@@ -297,10 +297,16 @@ class IndeterminantDictTest(TestCase):
 
     def test_disabled_methods(self):
         d = mappings.IndeterminantDict(lambda *a: None)
-        for x in ("clear", ("update", {}), ("setdefault", 1),
-            "__iter__", "__len__", "__hash__", ("__delitem__", 1),
-            ("__setitem__", 2), ("popitem", 2), "iteritems", "iterkeys",
-            "keys", "items", "itervalues", "values"):
+        for x in (
+                "clear",
+                ("update", {}),
+                ("setdefault", 1),
+                "__iter__", "__len__", "__hash__",
+                ("__delitem__", 1),
+                ("__setitem__", 2),
+                ("popitem", 2),
+                "iteritems", "iterkeys", "keys", "items", "itervalues", "values",
+            ):
             if isinstance(x, tuple):
                 self.assertRaises(TypeError, getattr(d, x[0]), x[1])
             else:
@@ -348,19 +354,19 @@ class TestOrderedDict(TestCase):
 
     def test_items(self):
         self.assertEqual(list(self.gen_dict().iteritems()),
-            list(enumerate(xrange(100))))
+                         list(enumerate(xrange(100))))
         self.assertEqual(self.gen_dict().items(),
-            list(enumerate(xrange(100))))
+                         list(enumerate(xrange(100))))
 
     def test_values(self):
         self.assertEqual(list(self.gen_dict().itervalues()),
-            list(xrange(100)))
+                         list(xrange(100)))
         l = ["asdf", "fdsa", "Dawefa", "3419", "pas", "1"]
         l = [s + "12" for s in l] + l
         l = ["1231adsfasdfagqwer" + s for s in l] + l
         self.assertEqual(
             list(mappings.OrderedDict(
-                    (v, k) for k, v in enumerate(l)).itervalues()),
+                (v, k) for k, v in enumerate(l)).itervalues()),
             list(xrange(len(l))))
 
     def test_keys(self):
@@ -472,12 +478,10 @@ class Test_attr_to_item_mapping(TestCase):
         o.g = 4
         self.assertBoth(o, 'g', 4)
         del o.g
-        self.assertRaises(KeyError, operator.__getitem__,
-            o, 'g')
+        self.assertRaises(KeyError, operator.__getitem__, o, 'g')
         self.assertRaises(AttributeError, getattr, o, 'g')
         del o['f']
-        self.assertRaises(KeyError, operator.__getitem__,
-            o, 'f')
+        self.assertRaises(KeyError, operator.__getitem__, o, 'f')
         self.assertRaises(AttributeError, getattr, o, 'f')
 
     def test_inject(self):

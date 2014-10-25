@@ -28,18 +28,19 @@ class TestDelayedInstantiation(TestCase):
         self.assertFalse(t != o)
 
     def test_descriptor_awareness(self):
-        def assertKls(cls, ignores=[],
-            default_ignores=["__new__", "__init__",
-                "__getattribute__", "__class__", "__getnewargs__", "__doc__"]):
-            required = set(x for x in dir(cls) if
-                x.startswith("__") and x.endswith("__"))
+        def assertKls(cls, ignores=(),
+                      default_ignores=("__new__", "__init__",
+                                       "__getattribute__", "__class__",
+                                       "__getnewargs__", "__doc__")):
+            required = set(x for x in dir(cls)
+                           if x.startswith("__") and x.endswith("__"))
             missing = required.difference(obj.kls_descriptors)
             missing.difference_update(obj.base_kls_descriptors)
             missing.difference_update(default_ignores)
             missing.difference_update(ignores)
-            self.assertFalse(missing,
-                msg="object %r potentially has unsupported special "
-                "attributes: %s" % (cls, ', '.join(missing)))
+            self.assertFalse(missing, msg=(
+                "object %r potentially has unsupported special "
+                "attributes: %s" % (cls, ', '.join(missing))))
 
         assertKls(object)
         assertKls(1)
@@ -51,14 +52,13 @@ class TestDelayedInstantiation(TestCase):
     def test_BaseDelayedObject(self):
         # assert that all methods/descriptors of object
         # are covered via the base.
-        o = set(dir(object)).difference("__%s__" % x for x in
-            ["class", "getattribute", "new", "init", "doc"])
+        o = set(dir(object)).difference("__%s__" % x for x in [
+            "class", "getattribute", "new", "init", "doc"])
         diff = o.difference(obj.base_kls_descriptors)
-        self.assertFalse(diff, msg="base delayed instantiation class "
-            "should cover all of object, but %r was spotted" % (
-                ",".join(sorted(diff)),))
-        self.assertEqual(obj.DelayedInstantiation_kls(int, "1")
-            + 2, 3)
+        self.assertFalse(diff, msg=(
+            "base delayed instantiation class should cover all of object, but "
+            "%r was spotted" % (",".join(sorted(diff)),)))
+        self.assertEqual(obj.DelayedInstantiation_kls(int, "1") + 2, 3)
 
 
     def test_klass_choice_optimization(self):
@@ -68,7 +68,7 @@ class TestDelayedInstantiation(TestCase):
         # it must always be a custom
         o = make_DI(object, object)
         self.assertNotIdentical(object.__getattribute__(o, '__class__'),
-            obj.BaseDelayedObject)
+                                obj.BaseDelayedObject)
         class foon(object):
             pass
         o = make_DI(foon, foon)
@@ -95,7 +95,7 @@ class TestDelayedInstantiation(TestCase):
         o = make_DI(bool, f)
         self.assertTrue(isinstance(o, bool))
         self.assertFalse(l, "accessing __class__ shouldn't trigger "
-            "instantiation")
+                            "instantiation")
 
     def test__doc__(self):
         l = []
@@ -107,6 +107,7 @@ class TestDelayedInstantiation(TestCase):
 
         o = make_DI(foon, f)
         self.assertEqual(o.__doc__, 'monkey')
-        self.assertFalse(l, "in accessing __doc__, the instance"
-            " was generated- this is a class level attribute, thus"
-            " shouldn't trigger instantiation")
+        self.assertFalse(l,
+                         "in accessing __doc__, the instance was generated- "
+                         "this is a class level attribute, thus shouldn't "
+                         "trigger instantiation")

@@ -34,7 +34,7 @@ class TestLoader(unittest.TestLoader):
         for path in paths:
             for child in os.listdir(path):
                 if (child != '__init__.py' and child.endswith('.py') and
-                    child.startswith('test')):
+                        child.startswith('test')):
                     # Child module.
                     childname = '%s.%s' % (module.__name__, child[:-3])
                 else:
@@ -68,7 +68,7 @@ def protect_env(functor):
 
 @protect_env
 def run_tests(namespaces, disable_fork=False, pythonpath=None,
-    modules_to_wipe=(), blacklist=()):
+              modules_to_wipe=(), blacklist=()):
     """a simple wrapper around unittest.main
 
     Primary benefit of this is wrapping unittest.main to protect
@@ -97,8 +97,7 @@ def run_tests(namespaces, disable_fork=False, pythonpath=None,
 
         args = ['setup.py', '-v']
         args.extend(namespaces)
-        unittest.main(None, argv=args,
-            testLoader=TestLoader(blacklist))
+        unittest.main(None, argv=args, testLoader=TestLoader(blacklist))
         if not disable_fork:
             os._exit(1)
         return

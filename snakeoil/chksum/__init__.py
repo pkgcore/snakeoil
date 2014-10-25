@@ -7,7 +7,9 @@ chksum verification/generation subsystem
 
 from snakeoil import klass, compatibility
 from snakeoil.demandload import demandload
-demandload(globals(), "os",
+demandload(
+    globals(),
+    "os",
     "sys",
     "snakeoil.chksum.defaults:chksum_loop_over_file",
     "snakeoil.modules:load_module",
@@ -67,7 +69,7 @@ def init(additional_handlers=None):
     global __inited__ # pylint: disable=global-statement
 
     if additional_handlers is not None and not isinstance(
-        additional_handlers, dict):
+            additional_handlers, dict):
         raise TypeError("additional handlers must be a dict!")
 
     chksum_types.clear()
@@ -124,7 +126,7 @@ def get_chksums(location, *chksums, **kwds):
     else:
         parallelize = kwds.get("parallelize", True)
     return chksum_loop_over_file(location, [handlers[k].new() for k in chksums],
-        parallelize=parallelize)
+                                 parallelize=parallelize)
 
 
 class LazilyHashedPath(object):

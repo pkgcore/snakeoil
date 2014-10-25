@@ -133,7 +133,7 @@ class WeakRefFinalizer(type):
         elif not '__finalizer__' in d and not \
             any(hasattr(parent, "__finalizer__") for parent in bases):
             raise TypeError("cls %s doesn't have either __del__ nor a __finalizer__"
-                % (name,))
+                            % (name,))
 
         if not '__disable_finalization__' in d and not \
             any(hasattr(parent, "__disable_finalization__") for parent in bases):

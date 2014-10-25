@@ -4,8 +4,8 @@
 from snakeoil.test import mixins, TestCase
 
 
-
-class Test_slot_shadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker, TestCase):
+class Test_slot_shadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker,
+                          TestCase):
 
     target_namespace = 'snakeoil'
     err_if_slots_is_str = True
@@ -55,8 +55,9 @@ class Test_slot_shadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker,
 
         if isinstance(slots, str) or isinstance(slots, unicode):
             if self.err_if_slots_is_str:
-                raise self.failureException("cls %r; slots is %r "
-                    "(should be a tuple or list)" % (kls, slots))
+                raise self.failureException(
+                    "cls %r; slots is %r (should be a tuple or list)" %
+                    (kls, slots))
             slots = (slots,)
 
         if slots is None:
@@ -64,17 +65,18 @@ class Test_slot_shadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker,
 
         if not isinstance(slots, tuple):
             if self.err_if_slots_is_mutable:
-                raise self.failureException("cls %r; slots is %r- "
-                    "- should be a tuple" % (kls, slots))
+                raise self.failureException(
+                    "cls %r; slots is %r- - should be a tuple" % (kls, slots))
             slots = tuple(slots)
 
         if slots is None or (slots and slots in raw_slottings):
             # we do a bool on slots to ignore (); that's completely valid
             # this means that the child either didn't define __slots__, or
             # daftly copied the parents... thus defeating the purpose.
-            raise self.failureException("cls %r; slots is %r, seemingly "
-                "inherited from %r; the derivative class should be "
-                "__slots__ = ()" % (kls, slots, raw_slottings[slots]))
+            raise self.failureException(
+                "cls %r; slots is %r, seemingly inherited from %r; the "
+                "derivative class should be __slots__ = ()" %
+                (kls, slots, raw_slottings[slots]))
 
         for slot in slots:
             if slot in slotting:

@@ -86,11 +86,11 @@ if is_py3k:
 
     def sorted_cmp(sequence, func, key=None, reverse=False):
         return sorted(sequence, reverse=reverse,
-            key=sorted_key_from_cmp(func, key_func=key))
+                      key=sorted_key_from_cmp(func, key_func=key))
 
     def sort_cmp(list_inst, func, key=None, reverse=False):
         list_inst.sort(reverse=reverse,
-            key=sorted_key_from_cmp(func, key_func=key))
+                       key=sorted_key_from_cmp(func, key_func=key))
 
     def force_bytes(string):
         return string.encode()

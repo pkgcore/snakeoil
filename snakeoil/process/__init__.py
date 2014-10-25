@@ -5,7 +5,8 @@ import os
 import sys
 
 from snakeoil.demandload import demandload
-demandload(globals(),
+demandload(
+    globals(),
     'subprocess',
     'snakeoil.osutils:access',
     'snakeoil.fileutils:readlines_ascii',
@@ -52,7 +53,8 @@ def _get_linux_proc_count():
         return len(procs)
 
 def _get_bsd_proc_count():
-    p = subprocess.Popen(["sysctl", "-n", "hw.cpu"],
+    p = subprocess.Popen(
+        ["sysctl", "-n", "hw.cpu"],
         env={"PATH": "/sbin:/bin:/usr/sbin:/usr/bin"}, close_fds=True, shell=False,
         stdout=subprocess.PIPE, stdin=None, stderr=subprocess.STDOUT)
     p.communicate()

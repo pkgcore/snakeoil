@@ -15,8 +15,10 @@ from snakeoil.currying import partial
 demandload(globals(), 'locale')
 
 
-__all__ = ("Formatter", "PlainTextFormatter", "get_formatter",
-    "decorate_forced_wrapping")
+__all__ = (
+    "Formatter", "PlainTextFormatter", "get_formatter",
+    "decorate_forced_wrapping",
+)
 
 
 class native_StreamClosed(KeyboardInterrupt):
@@ -107,12 +109,12 @@ class Formatter(object):
     def error(self, message):
         """Format a string as an error message."""
         self.write(message, prefixes=(
-                self.fg('red'), self.bold, '!!! ', self.reset))
+            self.fg('red'), self.bold, '!!! ', self.reset))
 
     def warn(self, message):
         """Format a string as a warning message."""
         self.write(message, prefixes=(
-                self.fg('yellow'), self.bold, '*** ', self.reset))
+            self.fg('yellow'), self.bold, '*** ', self.reset))
 
     def title(self, string):
         """Set the title to string"""
@@ -412,7 +414,7 @@ else:
 
         def __setattr__(self, key, val):
             raise AttributeError("%s instances are immutable" %
-                (self.__class__.__name__,))
+                                 (self.__class__.__name__,))
 
 
     class TerminfoCode(object):
@@ -432,7 +434,7 @@ else:
 
         def __setattr__(self, key, value):
             raise AttributeError("%s instances are immutable" %
-                (self.__class__.__name__,))
+                                 (self.__class__.__name__,))
 
 
     class TerminfoMode(TerminfoCode):
@@ -475,7 +477,7 @@ else:
         term_alternates = {
             'xterm': 'xterm+sl',
             'screen': 'screen-s',
-            }
+        }
 
         def __init__(self, stream, term=None, forcetty=False, encoding=None):
             """Initialize.

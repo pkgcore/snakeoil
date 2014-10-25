@@ -113,8 +113,9 @@ def __wrap_stage_dependencies__(cls):
         try:
             f = getattr(cls, x)
         except AttributeError:
-            raise TypeError("class %r stage_depends specifies "
-                "%r, which doesn't exist" % (cls, x))
+            raise TypeError(
+                "class %r stage_depends specifies %r, which doesn't exist" %
+                (cls, x))
         f2 = pre_curry(_ensure_deps, cls_id, x, f)
         f2.sd_raw_func = f
         setattr(cls, x, f2)
@@ -126,8 +127,9 @@ def __unwrap_stage_dependencies__(cls):
         try:
             f = getattr(cls, x)
         except AttributeError:
-            raise TypeError("class %r stage_depends specifies "
-                "%r, which doesn't exist" % (cls, x))
+            raise TypeError(
+                "class %r stage_depends specifies %r, which doesn't exist" %
+                (cls, x))
         setattr(cls, x, getattr(f, 'sd_raw_func', f))
 
 

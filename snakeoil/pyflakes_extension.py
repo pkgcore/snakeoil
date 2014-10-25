@@ -67,8 +67,7 @@ class DemandloadChecker(_Checker):
                     value.is_demandload_regex = True
         elif isinstance(value, _checker.UnBinding):
             if isinstance(self.scope.get(value.name), DemandloadImportation):
-                self.report(UnBindingDemandload, lineno,
-                    value.name)
+                self.report(UnBindingDemandload, lineno, value.name)
 
     def CALL(self, tree):
         is_demandload = is_demandload_regex = False
@@ -104,7 +103,7 @@ class DemandloadChecker(_Checker):
             else:
                 code = "%s = re.compile(%r)\n" % (tree.args[1].s, tree.args[2].s)
                 fakenode = _ast.copy_location(compile(code, self.filename, "exec", _ast.PyCF_ONLY_AST).body[0],
-                    tree)
+                                              tree)
                 self.addBinding(tree.lineno, _checker.Assignment(tree.args[1].s, fakenode))
 
         if is_demandload:
@@ -116,7 +115,7 @@ class DemandloadChecker(_Checker):
                 chunk_cls = chunk.__class__.__name__
                 if chunk_cls.upper() not in ('STR', 'UNICODE'):
                     self.report(BadDemandloadCall, chunk.lineno,
-                        "invoked with non string/unicode arg: %r" % (chunk_cls,))
+                                "invoked with non string/unicode arg: %r" % (chunk_cls,))
                     continue
                 s = chunk.s
                 try:
@@ -125,11 +124,12 @@ class DemandloadChecker(_Checker):
                     self.report(BadDemandloadCall, chunk.lineno, ve)
                     continue
                 for src, asname in targets:
-                    fakenode = _ast.copy_location(compile("import %s as %s\n" % (src, asname),
-                        self.filename, "exec", _ast.PyCF_ONLY_AST).body[0],
+                    fakenode = _ast.copy_location(
+                        compile("import %s as %s\n" % (src, asname),
+                                self.filename, "exec", _ast.PyCF_ONLY_AST).body[0],
                         chunk)
                     self.addBinding(chunk.lineno,
-                        DemandloadImportation(asname, fakenode))
+                                    DemandloadImportation(asname, fakenode))
         return self.handleChildren(tree)
 
 

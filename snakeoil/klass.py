@@ -11,12 +11,14 @@ involved in writing classes.
 
 from __future__ import print_function
 
-__all__ = ("generic_equality", "reflective_hash", "inject_richcmp_methods_from_cmp",
+__all__ = (
+    "generic_equality", "reflective_hash", "inject_richcmp_methods_from_cmp",
     "static_attrgetter", "instance_attrgetter", "jit_attr", "jit_attr_none",
     "jit_attr_named", "jit_attr_ext_method", "alias_attr", "cached_hash",
     "cached_property", "cached_property_named",
     "steal_docs", "immutable_instance", "inject_immutable_instance",
-    "alias_method")
+    "alias_method",
+)
 
 from collections import deque
 from operator import attrgetter
@@ -193,7 +195,7 @@ def generic_equality(name, bases, scope, real_type=type,
     for x in attrlist:
         if not isinstance(x, str):
             raise TypeError("all members of attrlist must be strings- "
-                " got %r %s" % (type(x), repr(x)))
+                            " got %r %s" % (type(x), repr(x)))
 
     scope["__attr_comparison__"] = tuple(attrlist)
     scope.setdefault("__eq__", eq)
@@ -402,7 +404,7 @@ def jit_attr_ext_method(func_name, stored_attr_name,
     """
 
     return kls(alias_method(func_name), stored_attr_name,
-        uncached_val, use_cls_setattr)
+               uncached_val, use_cls_setattr)
 
 
 def cached_property(func, kls=_internal_jit_attr, use_cls_setattr=False):

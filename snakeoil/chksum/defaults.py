@@ -19,7 +19,8 @@ from snakeoil.currying import partial
 from snakeoil import modules
 from snakeoil.compatibility import intern, is_py3k
 from snakeoil.demandload import demandload
-demandload(globals(),
+demandload(
+    globals(),
     'os',
     'snakeoil.process:get_proc_count',
     'snakeoil.fileutils:mmap_or_open_for_read',
@@ -74,7 +75,7 @@ def loop_over_file(handle, callbacks, parallelize=True):
             queues = [Queue.Queue(8) for _ in callbacks]
 
             threads = [threading.Thread(target=chf_thread, args=(queue, functor))
-                for queue, functor in zip(queues, callbacks)]
+                       for queue, functor in zip(queues, callbacks)]
 
             for thread in threads:
                 thread.start()
@@ -222,23 +223,23 @@ for hashlibname, chksumname, size in [
         ('sha1', 'sha1', sha1_size),
         ('sha256', 'sha256', sha256_size),
         ('sha512', 'sha512', sha512_size),
-        ]:
-    chksum_types[chksumname] = Chksummer(chksumname,
-        getattr(hashlib, hashlibname), size)
+    ]:
+    chksum_types[chksumname] = Chksummer(
+        chksumname, getattr(hashlib, hashlibname), size)
 
 # May or may not be available depending on openssl. List
 # determined through trial and error.
 for hashlibname, chksumname, size in [
         ('ripemd160', 'rmd160', rmd160_size),
         ('whirlpool', 'whirlpool', whirlpool_size),
-        ]:
+    ]:
     try:
         hashlib.new(hashlibname)
     except ValueError:
         pass # This hash is not available.
     else:
-        chksum_types[chksumname] = Chksummer(chksumname,
-            partial(hashlib.new, hashlibname), size)
+        chksum_types[chksumname] = Chksummer(
+            chksumname, partial(hashlib.new, hashlibname), size)
 del hashlibname, chksumname
 
 # expand this to load all available at some point
@@ -247,7 +248,7 @@ for k, v, str_size in (
         ("sha256", "SHA256", sha256_size),
         ("sha512", "SHA512", sha512_size),
         ("rmd160", "RIPEMD", rmd160_size),
-        ):
+    ):
     if k in chksum_types:
         continue
     try:

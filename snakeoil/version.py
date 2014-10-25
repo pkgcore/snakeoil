@@ -18,7 +18,7 @@ def _run(cwd, cmd):
 
     with open(os.devnull, 'wb') as null:
         r = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=env,
-            stderr=null, cwd=cwd)
+                             stderr=null, cwd=cwd)
 
     stdout = r.communicate()[0]
     return stdout, r.returncode
@@ -74,7 +74,7 @@ def format_version(project, file_in_the_repo, api_version):
         s = 'released %s' % (version_info['date'],)
     else:
         s = ('vcs version %s, date %s' %
-            (version_info['rev'], version_info['date']))
+             (version_info['rev'], version_info['date']))
 
     return '%s %s\n%s' % (project, api_version, s)
 

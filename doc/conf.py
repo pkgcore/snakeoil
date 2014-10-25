@@ -23,12 +23,13 @@ needs_sphinx = '1.0'
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary', 'sphinx.ext.doctest',
+extensions = [
+    'sphinx.ext.autodoc', 'sphinx.ext.autosummary', 'sphinx.ext.doctest',
     'sphinx.ext.extlinks',
     'sphinx.ext.intersphinx', 'sphinx.ext.todo', 'sphinx.ext.coverage',
     'sphinx.ext.ifconfig', 'sphinx.ext.graphviz',
     'sphinx.ext.viewcode',
-    ]
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -182,8 +183,8 @@ htmlhelp_basename = 'snakeoildoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'snakeoil.tex', u'snakeoil Documentation',
-   u'Brian Harring', 'manual'),
+    ('index', 'snakeoil.tex', u'snakeoil Documentation',
+     u'Brian Harring', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -233,5 +234,5 @@ rst_epilog = """
 extlinks = {
     'git_tag': ('https://github.com/pkgcore/snakeoil/releases/tag/%s', 'git log '),
     'git_release': ('https://github.com/pkgcore/snakeoil/archive/%s.tar.gz',
-        'release download ')
+                    'release download '),
 }

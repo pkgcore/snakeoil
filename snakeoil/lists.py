@@ -7,8 +7,10 @@ sequence related operations and classes
 
 from __future__ import print_function
 
-__all__ = ("unstable_unique", "stable_unique", "iter_stable_unique",
-    "iflatten_instance", "iflatten_func", "ChainedLists", "predicate_split")
+__all__ = (
+    "unstable_unique", "stable_unique", "iter_stable_unique",
+    "iflatten_instance", "iflatten_func", "ChainedLists", "predicate_split"
+)
 
 from snakeoil.compatibility import is_py3k
 from snakeoil.iterables import expandable_chain
@@ -113,8 +115,9 @@ def native_iflatten_instance(l, skip_flattening=_str_kls):
     try:
         while True:
             x = iters.next()
-            if hasattr(x, '__iter__') and not (isinstance(x, skip_flattening)
-                or (isinstance(x, _str_kls) and len(x) == 1)):
+            if (hasattr(x, '__iter__') and not (
+                    isinstance(x, skip_flattening) or (
+                        isinstance(x, _str_kls) and len(x) == 1))):
                 iters.appendleft(x)
             else:
                 yield x

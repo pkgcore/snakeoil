@@ -37,7 +37,8 @@ reading files, scanning directories, etc, these optimizations start adding up
 pretty quickly.
 """
 
-__all__ = ('abspath', 'abssymlink', 'ensure_dirs', 'join', 'pjoin',
+__all__ = (
+    'abspath', 'abssymlink', 'ensure_dirs', 'join', 'pjoin',
     'listdir_files', 'listdir_dirs', 'listdir',
     'readdir', 'normpath', 'unlink_if_exists',
     'FsLock', 'GenericFailed',
@@ -121,7 +122,7 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0777, minimal=True):
 
                     # if it's a subdir, we need +wx at least
                     if apath != base:
-                        if ((st.st_mode & 0300) != 0300):
+                        if (st.st_mode & 0300) != 0300:
                             try:
                                 os.chmod(base, (st.st_mode | 0300))
                             except OSError:
@@ -160,7 +161,7 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0777, minimal=True):
     else:
         try:
             if ((gid != -1 and gid != st.st_gid) or
-                (uid != -1 and uid != st.st_uid)):
+                    (uid != -1 and uid != st.st_uid)):
                 os.chown(path, uid, gid)
             if minimal:
                 if mode != (st.st_mode & mode):

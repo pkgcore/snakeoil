@@ -59,7 +59,7 @@ def read_bash(bash_source, allow_inline_comments=True):
 
     """
     return list(iter_read_bash(bash_source,
-        allow_inline_comments=allow_inline_comments))
+                               allow_inline_comments=allow_inline_comments))
 
 
 def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
@@ -112,7 +112,7 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
                 eq = s.get_token()
                 if eq != '=':
                     raise BashParseError(bash_source, s.lineno,
-                        "got token %r, was expecting '='" % eq)
+                                         "got token %r, was expecting '='" % eq)
                 val = s.get_token()
                 if val is None:
                     val = ''
@@ -154,7 +154,7 @@ def read_dict(bash_source, splitter="=", source_isiter=False,
     if not source_isiter:
         filename = bash_source
         i = iter_read_bash(bash_source,
-            allow_inline_comments=allow_inline_comments)
+                           allow_inline_comments=allow_inline_comments)
     else:
         if filename is None:
             # XXX what to do?
@@ -225,7 +225,7 @@ class bash_parser(shlex):
     def __setattr__(self, attr, val):
         if attr == "state":
             if (self.state, val) in (
-                ('"', 'a'), ('a', '"'), ('a', ' '), ("'", 'a')):
+                    ('"', 'a'), ('a', '"'), ('a', ' '), ("'", 'a')):
                 strl = len(self.token)
                 if self.__pos != strl:
                     self.changed_state.append(

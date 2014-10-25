@@ -33,11 +33,11 @@ class ParserTest(TestCase):
     @reset_globals
     def test_parse(self):
         for input, output in [
-            ('foo', [('foo', 'foo')]),
-            ('foo:bar', [('foo.bar', 'bar')]),
-            ('foo:bar,baz@spork', [('foo.bar', 'bar'), ('foo.baz', 'spork')]),
-            ('foo@bar', [('foo', 'bar')]),
-            ('foo_bar', [('foo_bar', 'foo_bar')]),
+                ('foo', [('foo', 'foo')]),
+                ('foo:bar', [('foo.bar', 'bar')]),
+                ('foo:bar,baz@spork', [('foo.bar', 'bar'), ('foo.baz', 'spork')]),
+                ('foo@bar', [('foo', 'bar')]),
+                ('foo_bar', [('foo_bar', 'foo_bar')]),
             ]:
             self.assertEqual(output, list(demandload.parse_imports([input])))
         self.assertRaises(ValueError, list, demandload.parse_imports(['a.b']))

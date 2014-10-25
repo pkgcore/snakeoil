@@ -16,7 +16,8 @@ from snakeoil.weakrefs import WeakRefFinalizer
 from snakeoil import klass, compatibility
 from snakeoil.currying import partial, pretty_docs
 from snakeoil.demandload import demandload
-demandload(globals(),
+demandload(
+    globals(),
     'codecs',
     'mmap',
     'snakeoil:data_source',
@@ -53,8 +54,8 @@ def mmap_or_open_for_read(path):
     fd = None
     try:
         fd = os.open(path, os.O_RDONLY)
-        return (_fileutils.mmap_and_close(fd, size,
-            mmap.MAP_SHARED, mmap.PROT_READ), None)
+        return (_fileutils.mmap_and_close(
+            fd, size, mmap.MAP_SHARED, mmap.PROT_READ), None)
     except compatibility.IGNORED_EXCEPTIONS:
         raise
     except:
@@ -174,8 +175,7 @@ if not compatibility.is_py3k:
         __doc__ = AtomicWriteFile_mixin.__doc__
 
         def _actual_init(self):
-            file.__init__(self, self._temp_fp,
-                mode=self._computed_mode)
+            file.__init__(self, self._temp_fp, mode=self._computed_mode)
 
         _real_close = file.close
 
@@ -200,24 +200,24 @@ def _mk_pretty_derived_func(func, name_base, name, *args, **kwds):
     if name:
         name = '_' + name
     return pretty_docs(partial(func, *args, **kwds),
-        name='%s%s' % (name_base, name))
+                       name='%s%s' % (name_base, name))
 
 _mk_readfile = partial(_mk_pretty_derived_func, _fileutils.native_readfile,
-    'readfile')
+                       'readfile')
 
 native_readfile_ascii = _mk_readfile('ascii', 'rt')
 native_readfile = native_readfile_ascii
-native_readfile_ascii_strict = _mk_readfile('ascii_strict', 'r',
-    encoding='ascii', strict=True)
+native_readfile_ascii_strict = _mk_readfile(
+    'ascii_strict', 'r', encoding='ascii', strict=True)
 native_readfile_bytes = _mk_readfile('bytes', 'rb')
-native_readfile_utf8 = _mk_readfile('utf8', 'r',
-    encoding='utf8', strict=False)
-native_readfile_utf8_strict = _mk_readfile('utf8_strict', 'r',
-    encoding='utf8', strict=True)
+native_readfile_utf8 = _mk_readfile(
+    'utf8', 'r', encoding='utf8', strict=False)
+native_readfile_utf8_strict = _mk_readfile(
+    'utf8_strict', 'r', encoding='utf8', strict=True)
 
 
 _mk_readlines = partial(_mk_pretty_derived_func, _fileutils.native_readlines,
-    'readlines')
+                        'readlines')
 
 try:
     from snakeoil._posix import readfile, readlines
@@ -230,11 +230,11 @@ except ImportError:
     readlines = readlines_ascii
 
 readlines_bytes = _mk_readlines('bytes', 'rb')
-readlines_ascii_strict = _mk_readlines('ascii_strict', 'r',
-    encoding='ascii', strict=True)
+readlines_ascii_strict = _mk_readlines(
+    'ascii_strict', 'r', encoding='ascii', strict=True)
 readlines_utf8 = _mk_readlines('utf8', 'r', encoding='utf8')
-readlines_utf8_strict = _mk_readlines('utf8_strict', 'r',
-    encoding='utf8', strict=True)
+readlines_utf8_strict = _mk_readlines(
+    'utf8_strict', 'r', encoding='utf8', strict=True)
 
 readfile_ascii_strict = native_readfile_ascii_strict
 readfile_bytes = native_readfile_bytes

@@ -43,7 +43,7 @@ from snakeoil import compatibility
 # There are some demandloaded imports below the definition of demandload.
 
 _allowed_chars = "".join((x.isalnum() or x in "_.") and " " or "a"
-    for x in map(chr, xrange(256)))
+                         for x in map(chr, xrange(256)))
 
 py3k_translate = {
     "itertools": {"i%s" % k: k for k in ("filterfalse",)},
@@ -175,7 +175,7 @@ class Placeholder(object):
                 raise ValueError('Placeholder for %r was triggered twice' % (name,))
             elif _noisy_protection():
                 logging.warning('Placeholder for %r was triggered multiple times '
-                    'in file %r' % (name, scope.get("__file__", "unknown")))
+                                'in file %r', name, scope.get("__file__", "unknown"))
         return scope[name]
 
     def _replace(self):
@@ -311,7 +311,8 @@ if os.environ.get("SNAKEOIL_DEMANDLOAD_DISABLED", 'n').lower() in ('y', 'yes' '1
     demandload = disabled_demandload
     demand_compile_regexp = disabled_demand_compile_regexp
 
-demandload(globals(),
+demandload(
+    globals(),
     'logging',
     're',
     'threading',

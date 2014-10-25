@@ -175,11 +175,12 @@ class build_py(dst_build_py.build_py):
         from lib2to3 import refactor as ref_mod
         from snakeoil import caching_2to3
 
-        if (sys.version_info >= (3,0) and sys.version_info < (3,1,2)) or \
-            (sys.version_info >=  (2,6) and sys.version_info < (2,6,5)):
+        if ((sys.version_info >= (3, 0) and sys.version_info < (3, 1, 2)) or
+                (sys.version_info >= (2, 6) and sys.version_info < (2, 6, 5))):
             if proc_count not in (0, 1):
-                log.warn("disabling parallelization: you're running a python "
-                    "version with a broken multiprocessing.queue.JoinableQueue.put "
+                log.warn(
+                    "disabling parallelization: you're running a python version "
+                    "with a broken multiprocessing.queue.JoinableQueue.put "
                     "(python bug 4660).")
             proc_count = 1
         elif proc_count == 0:
@@ -232,8 +233,8 @@ class build_ext(dst_build_ext.build_ext):
 
     user_options = dst_build_ext.build_ext.user_options + [
         ("build-optional=", "o", "build optional C modules"),
-        ("disable-distutils-flag-fixing", None, "disable fixing of issue "
-            "969718 in python, adding missing -fno-strict-aliasing"),
+        ("disable-distutils-flag-fixing", None,
+         "disable fixing of issue 969718 in python, adding missing -fno-strict-aliasing"),
     ]
 
     boolean_options = dst_build.build.boolean_options + ["build-optional"]
@@ -274,16 +275,17 @@ class test(core.Command):
 
     blacklist = frozenset()
 
-    user_options = [("inplace", "i", "do building/testing in place"),
+    user_options = [
+        ("inplace", "i", "do building/testing in place"),
         ("skip-rebuilding", "s", "skip rebuilds. primarily for development"),
         ("disable-fork", None, "disable forking of the testloader; primarily for debugging.  "
-            "Automatically set in jython, disabled for cpython/unladen-swallow."),
+                               "Automatically set in jython, disabled for cpython/unladen-swallow."),
         ("namespaces=", "t", "run only tests matching these namespaces.  "
-            "comma delimited"),
+                             "comma delimited"),
         ("pure-python", None, "disable building of extensions.  Enabled for jython, disabled elsewhere"),
         ("force", "f", "force build_py/build_ext as needed"),
         ("include-dirs=", "I", "include dirs for build_ext if needed"),
-        ]
+    ]
 
     default_test_namespace = None
 
@@ -336,9 +338,10 @@ class test(core.Command):
         if not self.namespaces:
             namespaces = [self.default_test_namespace]
 
-        retval = unittest_extensions.run_tests(namespaces,
-            disable_fork=self.disable_fork, blacklist=self.blacklist,
-            pythonpath=syspath, modules_to_wipe=mods_to_wipe)
+        retval = unittest_extensions.run_tests(
+            namespaces, disable_fork=self.disable_fork,
+            blacklist=self.blacklist, pythonpath=syspath,
+            modules_to_wipe=mods_to_wipe)
         if retval:
             raise errors.DistutilsExecError("tests failed; return %i" % (retval,))
 

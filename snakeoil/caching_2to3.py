@@ -76,26 +76,26 @@ class caching_mixin(object):
 
         try:
             if not write or cache_data is None:
-                return super(caching_mixin, self).refactor_file(filename, write=write,
-                    doctests_only=doctests_only)
+                return super(caching_mixin, self).refactor_file(
+                    filename, write=write, doctests_only=doctests_only)
             else:
                 self.processed_file(cache_data, filename, write=write,
-                    encoding=encoding, old_text=input)
+                                    encoding=encoding, old_text=input)
         except Exception:
             logging.exception("Failed processing %s", filename)
             raise
 
     def processed_file(self, new_text, filename, old_text=None, write=False,
-        encoding=None):
+                       encoding=None):
         if write:
             if old_text is None:
                 cache_key = self.compute_cache_key(*self._read_python_source(filename))
             else:
                 cache_key = self.compute_cache_key(old_text, encoding)
             self.update_cache_from_file(cache_key, filename, encoding,
-                new_text=new_text)
-        return super(caching_mixin, self).processed_file(new_text, filename,
-            old_text=old_text, write=write, encoding=encoding)
+                                        new_text=new_text)
+        return super(caching_mixin, self).processed_file(
+            new_text, filename, old_text=old_text, write=write, encoding=encoding)
 
 
 class RefactoringTool(caching_mixin, lib2to3.refactor.RefactoringTool):

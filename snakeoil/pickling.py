@@ -8,9 +8,10 @@ Instead of writing your own try/except ImportError code for trying to access
 cPickle, just import this instead- it does exactly that internally
 """
 
-__all__ = ("iter_stream", "dump_stream", "PickleError", "PicklingError",
+__all__ = (
+    "iter_stream", "dump_stream", "PickleError", "PicklingError",
     "UnpicklingError", "Pickler", "Unpickler", "dump", "dumps", "load", "loads",
-    )
+)
 
 # pylint: disable=wildcard-import,unused-wildcard-import
 try:

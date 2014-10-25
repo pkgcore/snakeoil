@@ -92,20 +92,21 @@ from snakeoil import compatibility, klass
 
 base_kls_descriptors_compat = []
 if compatibility.is_py3k:
-    base_kls_descriptors_compat.extend(["__%s__" % x for x in
+    base_kls_descriptors_compat.extend([
+        "__%s__" % x for x in
         ("le", "lt", "ge", "gt", "eq", "ne")])
 
 base_kls_descriptors = frozenset(
     ('__delattr__', '__hash__', '__reduce__',
-        '__reduce_ex__', '__repr__', '__setattr__', '__str__'))
+     '__reduce_ex__', '__repr__', '__setattr__', '__str__'))
 if base_kls_descriptors_compat:
     base_kls_descriptors = base_kls_descriptors.union(
         base_kls_descriptors_compat)
 
 if hasattr(object, '__sizeof__'):
     # python 2.6/3.0
-    base_kls_descriptors = base_kls_descriptors.union(['__sizeof__',
-        '__format__', '__subclasshook__'])
+    base_kls_descriptors = base_kls_descriptors.union([
+        '__sizeof__', '__format__', '__subclasshook__'])
 
 if hasattr(object, '__dir__'):
     # python 3.3
@@ -159,42 +160,44 @@ class BaseDelayedObject(object):
 
     # special case the normal descriptors
     for x in base_kls_descriptors:
-        locals()[x] = klass.alias_method("__obj__.%s" % (x,),
+        locals()[x] = klass.alias_method(
+            "__obj__.%s" % (x,),
             doc=getattr(getattr(object, x), '__doc__', None))
     del x
 
 
 # note that we ignore __getattribute__; we already handle it.
 kls_descriptors = frozenset([
-        # simple comparison protocol...
-        '__cmp__',
-        # rich comparison protocol...
-        '__le__', '__lt__', '__eq__', '__ne__', '__gt__', '__ge__',
-        # unicode conversion
-        '__unicode__',
-        # truth...
-        '__nonzero__', '__bool__',
-        # container protocol...
-        '__len__', '__getitem__', '__setitem__', '__delitem__',
-        '__iter__', '__contains__', '__index__', '__reversed__',
-        # deprecated sequence protocol bits...
-        '__getslice__', '__setslice__', '__delslice__',
-        # numeric...
-        '__add__', '__sub__', '__mul__', '__floordiv__', '__mod__',
-        '__divmod__', '__pow__', '__lshift__', '__rshift__',
-        '__and__', '__xor__', '__or__', '__div__', '__truediv__',
-        '__rad__', '__rsub__', '__rmul__', '__rdiv__', '__rtruediv__',
-        '__rfloordiv__', '__rmod__', '__rdivmod__', '__rpow__',
-        '__rlshift__', '__rrshift__', '__rand__', '__rxor__', '__ror__',
-        '__iadd__', '__isub__', '__imul__', '__idiv__', '__itruediv__',
-        '__ifloordiv__', '__imod__', '__ipow__', '__ilshift__',
-        '__irshift__', '__iand__', '__ixor__', '__ior__',
-        '__neg__', '__pos__', '__abs__', '__invert__', '__complex__',
-        '__int__', '__long__', '__float__', '__oct__', '__hex__',
-        '__coerce__', '__trunc__', '__radd__', '__floor__', '__ceil__',
-        '__round__',
-        # remaining...
-        '__call__'])
+    # simple comparison protocol...
+    '__cmp__',
+    # rich comparison protocol...
+    '__le__', '__lt__', '__eq__', '__ne__', '__gt__', '__ge__',
+    # unicode conversion
+    '__unicode__',
+    # truth...
+    '__nonzero__', '__bool__',
+    # container protocol...
+    '__len__', '__getitem__', '__setitem__', '__delitem__',
+    '__iter__', '__contains__', '__index__', '__reversed__',
+    # deprecated sequence protocol bits...
+    '__getslice__', '__setslice__', '__delslice__',
+    # numeric...
+    '__add__', '__sub__', '__mul__', '__floordiv__', '__mod__',
+    '__divmod__', '__pow__', '__lshift__', '__rshift__',
+    '__and__', '__xor__', '__or__', '__div__', '__truediv__',
+    '__rad__', '__rsub__', '__rmul__', '__rdiv__', '__rtruediv__',
+    '__rfloordiv__', '__rmod__', '__rdivmod__', '__rpow__',
+    '__rlshift__', '__rrshift__', '__rand__', '__rxor__', '__ror__',
+    '__iadd__', '__isub__', '__imul__', '__idiv__', '__itruediv__',
+    '__ifloordiv__', '__imod__', '__ipow__', '__ilshift__',
+    '__irshift__', '__iand__', '__ixor__', '__ior__',
+    '__neg__', '__pos__', '__abs__', '__invert__', '__complex__',
+    '__int__', '__long__', '__float__', '__oct__', '__hex__',
+    '__coerce__', '__trunc__', '__radd__', '__floor__', '__ceil__',
+    '__round__',
+    # remaining...
+    '__call__',
+])
 
 
 if base_kls_descriptors_compat:
@@ -215,7 +218,7 @@ def make_kls(kls, proxy_base=BaseDelayedObject):
     if o is None:
         class CustomDelayedObject(proxy_base):
             locals().update((k, descriptor_overrides[k])
-                for k in special_descriptors)
+                            for k in special_descriptors)
             __doc__ = doc
 
         o = CustomDelayedObject

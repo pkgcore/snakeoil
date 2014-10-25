@@ -63,14 +63,13 @@ class sorted_cmp_test(TestCase):
         l = self.get_list()
         cmp = compatibility.cmp
         self.assertEqual(sorted(l, reverse=True),
-            f(l, lambda x, y:-cmp(x,y)))
+                         f(l, lambda x, y: -cmp(x, y)))
 
         if self.unchanging:
             self.assertEqual(self.get_list(), l)
 
         l = list(reversed(self.get_list()))
-        self.assertEqual(sorted(l),
-            f(l, cmp))
+        self.assertEqual(sorted(l), f(l, cmp))
 
         if self.unchanging:
             self.assertEqual(list(reversed(self.get_list())), l)
@@ -81,8 +80,8 @@ class sorted_cmp_test(TestCase):
         mangled = [incomparable_obj([x]) for x in l]
         # finally, verify it combines key w/ cmp properly.
         self.assertEqual(sorted(l, reverse=True),
-            map(zeroth, f(mangled, (lambda x, y:cmp(x,y)), key=zeroth,
-                reverse=True)))
+                         map(zeroth, f(mangled, (lambda x, y: cmp(x, y)),
+                                       key=zeroth, reverse=True)))
 
         if self.unchanging:
             self.assertEqual(self.get_list(), map(zeroth, mangled))

@@ -61,7 +61,7 @@ class PreCurryTest(TestCase):
 class pretty_docs_Test(TestCase):
 
     currying_targets = (currying.native_partial, currying.partial,
-        currying.pre_curry, currying.post_curry)
+                        currying.pre_curry, currying.post_curry)
 
     def test_module_magic(self):
         for target in self.currying_targets:
@@ -203,7 +203,7 @@ class Test_wrap_exception(TestCase):
                 self.kwds = kwds
 
         func = currying.wrap_exception(my_exception, 1, 3, 2, monkey='bone',
-            ignores=ValueError)(throwing_func)
+                                       ignores=ValueError)(throwing_func)
         self.assertEqual(func.__name__, 'throwing_func')
         self.assertRaises(ValueError, func)
         throw_kls = IndexError
@@ -216,7 +216,8 @@ class Test_wrap_exception(TestCase):
             self.assertEqual(e.kwds, {'monkey': 'bone'})
 
         # finally, verify that the exception can be pased in.
-        func = currying.wrap_exception(my_exception, 1, 3, 2, monkey='bone',
+        func = currying.wrap_exception(
+            my_exception, 1, 3, 2, monkey='bone',
             ignores=ValueError, pass_error="the_exception")(throwing_func)
         self.assertEqual(func.__name__, 'throwing_func')
         self.assertRaises(my_exception, func)

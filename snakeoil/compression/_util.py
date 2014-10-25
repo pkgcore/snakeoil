@@ -11,13 +11,14 @@ from snakeoil.weakrefs import WeakRefFinalizer
 
 def _drive_process(args, mode, data):
     p = subprocess.Popen(args,
-        stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE, close_fds=True)
+                         stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE, close_fds=True)
     try:
         stdout, stderr = p.communicate(data)
         if p.returncode != 0:
-            raise ValueError("%s returned %i exitcode from '%s'"
-                ", stderr=%r" % (mode, p.returncode, ' '.join(args), stderr))
+            raise ValueError(
+                "%s returned %i exitcode from '%s', stderr=%r" %
+                (mode, p.returncode, ' '.join(args), stderr))
         return stdout
     finally:
         if p is not None and p.returncode is None:
@@ -57,8 +58,9 @@ class _process_handle(object):
             close = True
         elif not isinstance(handle, (long, int)):
             if not hasattr(handle, 'fileno'):
-                raise TypeError("handle %r isn't a string, integer, and "
-                    "lacks a fileno method" % (handle,))
+                raise TypeError(
+                    "handle %r isn't a string, integer, and lacks a fileno "
+                    "method" % (handle,))
             handle = handle.fileno()
 
         try:
@@ -79,8 +81,8 @@ class _process_handle(object):
             kwds['stdin'] = subprocess.PIPE
 
         try:
-            self._process = subprocess.Popen(self.args,
-                close_fds=True, **kwds)
+            self._process = subprocess.Popen(
+                self.args, close_fds=True, **kwds)
         finally:
             stderr.close()
 
@@ -109,8 +111,9 @@ class _process_handle(object):
         fwd_seek = position - self.position
         if fwd_seek < 0:
             if self._allow_reopen is None:
-                raise TypeError("instance %s can't do negative seeks: asked for "
-                    "%i, was at %i" % (self, position, self.position))
+                raise TypeError(
+                    "instance %s can't do negative seeks: asked for %i, "
+                    "was at %i" % (self, position, self.position))
             self._terminate()
             self._open_handle(self._allow_reopen)
             return self.seek(position)
@@ -152,7 +155,7 @@ class _process_handle(object):
         if self._process.returncode is not None:
             if self._process.returncode != 0:
                 raise Exception("%s invocation had non zero exit: %i" %
-                    (self.args, self._process.returncode))
+                                (self.args, self._process.returncode))
             return
 
         self.handle.close()

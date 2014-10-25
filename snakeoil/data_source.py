@@ -41,14 +41,17 @@ TypeError:
 we caught the exception.
 """
 
-__all__ = ("base", "bz2_source", "data_source", "local_source", "text_data_source",
-    "bytes_data_source", "invokable_data_source")
+__all__ = (
+    "base", "bz2_source", "data_source", "local_source", "text_data_source",
+    "bytes_data_source", "invokable_data_source",
+)
 
 import errno
 
 from snakeoil.currying import post_curry, partial
 from snakeoil import compatibility, demandload, stringio, klass
-demandload.demandload(globals(),
+demandload.demandload(
+    globals(),
     'codecs',
     'snakeoil:compression,fileutils',
 )
@@ -230,7 +233,7 @@ class local_source(base):
             if not compatibility.is_py3k:
                 opener = codecs.open
             opener = post_curry(opener, buffering=self.buffering_window,
-                encoding=self.encoding)
+                                encoding=self.encoding)
         else:
             opener = post_curry(open_file, self.buffering_window)
         if not writable:
@@ -275,8 +278,8 @@ class bz2_source(base):
         self.mutable = mutable
 
     def text_fileobj(self, writable=False):
-        data = compression.decompress_data('bzip2',
-            fileutils.readfile_bytes(self.path)).decode()
+        data = compression.decompress_data(
+            'bzip2', fileutils.readfile_bytes(self.path)).decode()
         if writable:
             if not self.mutable:
                 raise TypeError("data source %s is not mutable" % (self,))
@@ -284,8 +287,8 @@ class bz2_source(base):
         return text_ro_StringIO(data)
 
     def bytes_fileobj(self, writable=False):
-        data = compression.decompress_data('bzip2',
-            fileutils.readfile_bytes(self.path))
+        data = compression.decompress_data(
+            'bzip2', fileutils.readfile_bytes(self.path))
         if writable:
             if not self.mutable:
                 raise TypeError("data source %s is not mutable" % (self,))
@@ -345,7 +348,7 @@ class data_source(base):
             if not self.mutable:
                 raise TypeError("data source %s is not mutable" % (self,))
             return text_wr_StringIO(self._reset_data,
-                self._convert_data('text'))
+                                    self._convert_data('text'))
         return text_ro_StringIO(self._convert_data('text'))
 
     if compatibility.is_py3k:
@@ -366,7 +369,7 @@ class data_source(base):
             if not self.mutable:
                 raise TypeError("data source %s is not mutable" % (self,))
             return bytes_wr_StringIO(self._reset_data,
-                self._convert_data('bytes'))
+                                     self._convert_data('bytes'))
         return bytes_ro_StringIO(self._convert_data('bytes'))
 
 

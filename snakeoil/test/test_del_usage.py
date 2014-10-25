@@ -30,16 +30,16 @@ class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker, TestCase):
 
         name = "%s.%s" % (cls.__module__, cls.__name__)
 
-        self.assertTrue(issubclass(cls, WeakRefFinalizer),
-            msg="class %s has a __del__ method, but should be using "
+        self.assertTrue(issubclass(cls, WeakRefFinalizer), msg=(
+            "class %s has a __del__ method, but should be using "
             "weakrefs.WeakRefFinalizer to avoid gc cycle issues.  If "
             "WeakRefFinalizer isn't an option, set __allow_del__ in the cls "
-            "namespace to True" % (name,))
-        self.assertFalse(hasattr(cls, '__del__'),
-            msg="class %s uses metaclass WeakRefFinalizer but still somehow "
+            "namespace to True" % (name,)))
+        self.assertFalse(hasattr(cls, '__del__'), msg=(
+            "class %s uses metaclass WeakRefFinalizer but still somehow "
             "has a __del__ method rather than a __finalizer__; this shouldn't "
-            "be possible.")
-        self.assertTrue(hasattr(cls, '__finalizer__'),
-            msg="class %s uses metaclass WeakRefFinalizer but has no "
+            "be possible."))
+        self.assertTrue(hasattr(cls, '__finalizer__'), msg=(
+            "class %s uses metaclass WeakRefFinalizer but has no "
             "__finalizer__ method; this means the class doesn't need "
-            "finalizing.  Likely shouldn't be using WeakRefFinalizer")
+            "finalizing.  Likely shouldn't be using WeakRefFinalizer"))

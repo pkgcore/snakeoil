@@ -20,22 +20,20 @@ class TestDataSource(TestCase):
         handle = getattr(obj, attr)()
         self.assertEqual(handle.read(), converter("foonani"))
         self.assertRaises(handle.exceptions, handle.write,
-            converter("monkey"))
+                          converter("monkey"))
         handle.close()
 
     def _test_fileobj_wr(self, attr, converter=str):
         obj = self.get_obj(mutable=True)
         handle_f = getattr(obj, attr)
         f = handle_f()
-        self.assertEqual(f.read(),
-            converter("foonani"))
+        self.assertEqual(f.read(), converter("foonani"))
         f.close()
         f = handle_f(True)
         f.write(converter("dar"))
         f.close()
         f = handle_f(True)
-        self.assertEqual(f.read(),
-            converter("darnani"))
+        self.assertEqual(f.read(), converter("darnani"))
         f.close()
 
     def test_text_fileobj(self):
@@ -44,11 +42,10 @@ class TestDataSource(TestCase):
             self._test_fileobj_wr("text_fileobj", str)
 
     def test_bytes_fileobj(self):
-        self._test_fileobj_ro("bytes_fileobj",
-            compatibility.force_bytes)
+        self._test_fileobj_ro("bytes_fileobj", compatibility.force_bytes)
         if self.supports_mutable:
             self._test_fileobj_wr("bytes_fileobj",
-                compatibility.force_bytes)
+                                  compatibility.force_bytes)
 
     def assertContents(self, reader, writer):
         reader_f = reader.bytes_fileobj()
@@ -61,7 +58,7 @@ class TestDataSource(TestCase):
 
     def _mk_data(self, size=(100000)):
         return ''.join("%s" % (x % 10)
-            for x in xrange(size))
+                       for x in xrange(size))
 
     def test_transfer_to_data_source(self):
         data = self._mk_data()

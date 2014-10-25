@@ -29,7 +29,7 @@ def namedtuple(typename, field_names):
         _fields = tuple(field_names)
 
         locals().update((k, property(itemgetter(idx)))
-            for idx, k in enumerate(field_names))
+                        for idx, k in enumerate(field_names))
 
     kls.__name__ = typename
     return kls

@@ -138,7 +138,7 @@ def force_epydoc_partial_awareness(only_if_loaded=True):
         if 'epydoc' in sys.modules or not only_if_loaded:
             import epydoc.docintrospecter as mod
             mod.register_introspecter(_epydoc_isroutine_override,
-                mod.introspect_routine, priority=26)
+                                      mod.introspect_routine, priority=26)
 
 
 force_inspect_partial_awareness()
@@ -195,10 +195,10 @@ def wrap_exception(recast_exception, *args, **kwds):
     try:
         if not issubclass(recast_exception, Exception):
             raise ValueError("recast_exception must be an %s derivative: got %r" %
-                (Exception, recast_exception))
+                             (Exception, recast_exception))
     except TypeError as e:
         raise TypeError("recast_exception must be an %s derivative; got %r, failed %r",
-            (Exception.__name__, recast_exception, e))
+                        (Exception.__name__, recast_exception, e))
     ignores = kwds.pop("ignores", (recast_exception,))
     pass_error = kwds.pop("pass_error", None)
     return wrap_exception_complex(partial(_simple_throw, recast_exception, args, kwds, pass_error), ignores)
@@ -216,10 +216,10 @@ def wrap_exception_complex(creation_func, ignores):
         ignores = tuple(ignores)
     except TypeError as e:
         raise TypeError("ignores must be either a tuple of %s, or a %s: got %r, error %r"
-            % (Exception.__name__, Exception.__name__, ignores, e))
+                        % (Exception.__name__, Exception.__name__, ignores, e))
     if not all(issubclass(x, Exception) for x in ignores):
         raise TypeError("ignores has a non %s derivative in it: %r" %
-            (Exception.__name__, ignores))
+                        (Exception.__name__, ignores))
     return partial(_inner_wrap_exception, creation_func, ignores)
 
 def _inner_wrap_exception(exception_maker, ignores, functor):

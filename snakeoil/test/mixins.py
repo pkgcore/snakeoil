@@ -76,10 +76,10 @@ class PythonNamespaceWalker(object):
         location = os.path.abspath(os.path.dirname(
             self.poor_mans_load(namespace).__file__))
         return self.get_modules(self.recurse(location), namespace=namespace,
-            **kwds)
+                                **kwds)
 
     def get_modules(self, feed, namespace=None, blacklist_func=None,
-        ignore_failed_imports=None):
+                    ignore_failed_imports=None):
         if ignore_failed_imports is None:
             ignore_failed_imports = self.ignore_all_import_failures
         if namespace is None:
@@ -126,13 +126,13 @@ class PythonNamespaceWalker(object):
                 # trial can cause this.  ignore.
                 import logging
                 logging.debug("file %r disappeared under our feet, ignoring" %
-                    (os.path.join(location, x)))
+                              (os.path.join(location, x)))
 
         seen = set(['__init__'])
         for (x, st) in stats:
             if not (x.startswith(".") or x.endswith("~")) and stat.S_ISREG(st):
                 if (x.endswith(".py") or x.endswith(".pyc")
-                    or x.endswith(".pyo") or x.endswith(".so")):
+                        or x.endswith(".pyo") or x.endswith(".so")):
                     y = x.rsplit(".", 1)[0]
                     # Ensure we're not looking at a >=py3k .so which injects
                     # the version name in...
@@ -171,7 +171,7 @@ class PythonNamespaceWalker(object):
                 raise AssertionError("failed importing target %s" % namespace)
             except Exception as e:
                 raise AssertionError("failed importing target %s; error %s"
-                    % (namespace, e))
+                                     % (namespace, e))
         return obj
 
 

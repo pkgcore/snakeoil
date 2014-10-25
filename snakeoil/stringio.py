@@ -42,7 +42,7 @@ def _make_ro_cls(base_cls, name):
     class kls(base_cls):
         __slots__ = ()
         locals().update((k, currying.pre_curry(_generic_immutable_method, k))
-            for k in ["write", "writelines", "truncate"])
+                        for k in ["write", "writelines", "truncate"])
     kls.__name__ = name
     return kls
 

@@ -7,8 +7,10 @@ compatibility module to break an import cycle, do not directly use this
 Access this functionality from :py:module:`snakeoil.osutils` instead
 """
 
-__all__ = ("mmap_and_close", "readlines_iter", "native_readlines",
-    "native_readfile")
+__all__ = (
+    "mmap_and_close", "readlines_iter", "native_readlines",
+    "native_readfile",
+)
 
 import errno
 import itertools
@@ -16,7 +18,8 @@ import mmap
 import os
 
 from snakeoil import compatibility, demandload
-demandload.demandload(globals(),
+demandload.demandload(
+    globals(),
     'codecs',
 )
 

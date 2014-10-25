@@ -101,8 +101,8 @@ class TestCase(unittest.TestCase, object):
         unittest.TestCase.__init__(self, methodName)
 
     def assertLen(self, obj, length, msg=None):
-        self.assertTrue(len(obj) == length,
-            msg or '%r needs to be len %i, is %i' % (obj, length, len(obj)))
+        exp_msg = '%r needs to be len %i, is %i' % (obj, length, len(obj))
+        self.assertTrue(len(obj) == length, msg or exp_msg)
 
     assertInstance = klass.alias_method("assertIsInstance")
 
@@ -111,17 +111,17 @@ class TestCase(unittest.TestCase, object):
             """
             assert that obj is an instance of kls
             """
-            self.assertTrue(isinstance(obj, kls),
-                msg or '%r needs to be an instance of %r, is %r' % (obj, kls,
-                    getattr(obj, '__class__', "__class__ wasn't pullable")))
+            exp_msg = '%r needs to be an instance of %r, is %r' % (
+                obj, kls, getattr(obj, '__class__', "__class__ wasn't pullable"))
+            self.assertTrue(isinstance(obj, kls), msg or exp_msg)
 
     def assertNotInstance(self, obj, kls, msg=None):
         """
         assert that obj is not an instance of kls
         """
-        self.assertFalse(isinstance(obj, kls),
-            msg or '%r must not be an instance of %r, is %r' % (obj, kls,
-                getattr(obj, '__class__', "__class__ wasn't pullable")))
+        exp_msg = '%r must not be an instance of %r, is %r' % (
+            obj, kls, getattr(obj, '__class__', "__class__ wasn't pullable"))
+        self.assertFalse(isinstance(obj, kls), msg or exp_msg)
 
     assertIdentical = klass.alias_method("assertIs")
     if not hasattr(unittest.TestCase, 'assertIs'):
@@ -142,18 +142,16 @@ class TestCase(unittest.TestCase, object):
             needle not in haystack, reason or '%r in %r' % (needle, haystack))
 
     def assertEqual(self, obj1, obj2, msg=None, reflective=True):
-        self.assertTrue(obj1 == obj2,
-            msg or '%r != %r' % (obj1, obj2))
+        self.assertTrue(obj1 == obj2, msg or '%r != %r' % (obj1, obj2))
         if reflective:
             self.assertTrue(not (obj1 != obj2),
-                msg or 'not (%r != %r)' % (obj1, obj2))
+                            msg or 'not (%r != %r)' % (obj1, obj2))
 
     def assertNotEqual(self, obj1, obj2, msg=None, reflective=True):
-        self.assertTrue(obj1 != obj2,
-            msg or '%r == %r' % (obj1, obj2))
+        self.assertTrue(obj1 != obj2, msg or '%r == %r' % (obj1, obj2))
         if reflective:
             self.assertTrue(not (obj1 == obj2),
-                msg or 'not (%r == %r)' % (obj1, obj2))
+                            msg or 'not (%r == %r)' % (obj1, obj2))
 
     def assertRaises(self, excClass, callableObj, *args, **kwargs):
         try:
@@ -165,9 +163,10 @@ class TestCase(unittest.TestCase, object):
         except Exception as e:
             tb = traceback.format_exc()
 
-            new_exc = AssertionError("expected an exception of %r type from invocation of-\n"
-                "%s(*%r, **%r)\n\ninstead, got the following traceback:\n%s" % (excClass, callableObj, args,
-                kwargs, tb))
+            new_exc = AssertionError(
+                "expected an exception of %r type from invocation of-\n"
+                "%s(*%r, **%r)\n\ninstead, got the following traceback:\n%s" %
+                (excClass, callableObj, args, kwargs, tb))
             new_exc.__cause__ = e
             new_exc.__traceback__ = tb
             raise new_exc
@@ -277,7 +276,7 @@ class TestCase(unittest.TestCase, object):
 
 
 def mk_cpy_loadable_testcase(extension_namespace, trg_namespace=None,
-    trg_attr=None, src_attr=None):
+                             trg_attr=None, src_attr=None):
 
     class TestCPY_Loaded(TestCase):
         ext_namespace = extension_namespace
@@ -292,7 +291,7 @@ def mk_cpy_loadable_testcase(extension_namespace, trg_namespace=None,
             fp = os.path.join(os.path.dirname(dir_mod.__file__), '%s.so' % (bname,))
             if not os.path.exists(fp):
                 raise SkipTest("for extension %r, path %r doesn't exist" %
-                    (self.ext_namespace, fp))
+                               (self.ext_namespace, fp))
             extension = modules.load_module(self.ext_namespace)
             if self.trg_attribute is None:
                 return
@@ -305,11 +304,10 @@ def mk_cpy_loadable_testcase(extension_namespace, trg_namespace=None,
                 ext_full_name += '.%s' % (self.src_attribute,)
 
             trg_obj = getattr(target_scope, self.trg_attribute)
-            self.assertIdentical(ext_obj, trg_obj,
-                "expected to find object from %r at '%s.%s', but what's there "
-                    "isn't from the extension" %
-                    (ext_full_name, self.namespace, self.trg_attribute)
-                )
+            exp_msg = ("expected to find object from %r at '%s.%s', but "
+                       "what's there isn't from the extension" %
+                       (ext_full_name, self.namespace, self.trg_attribute))
+            self.assertIdentical(ext_obj, trg_obj, exp_msg)
 
     return TestCPY_Loaded
 
@@ -328,12 +326,14 @@ def protect_process(functor, name=None):
         try:
             os.environ[_PROTECT_ENV_VAR] = "yes"
             args = [sys.executable, unittest_extensions.__file__, name]
-            p = subprocess.Popen(args, shell=False, env=os.environ.copy(), stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT)
+            p = subprocess.Popen(args, shell=False, env=os.environ.copy(),
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT)
             stdout, _stderr = p.communicate()
             ret = p.wait()
             self.assertEqual(0, ret,
-                msg="subprocess run: %r\nnon zero exit: %s\nstdout:%s\n" % (args, ret, stdout))
+                             msg="subprocess run: %r\nnon zero exit: %s\n"
+                                 "stdout:%s\n" % (args, ret, stdout))
         finally:
             if wipe:
                 os.environ.pop(_PROTECT_ENV_VAR, None)

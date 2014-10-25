@@ -8,7 +8,8 @@ import re
 import sys
 
 
-def regenerate_if_needed(project, src, out, release_extlink=None, git_extlink=None):
+def regenerate_if_needed(project, src, out, release_extlink=None,
+                         git_extlink=None):
     cut_off = int(max(os.stat(x).st_mtime for x in [src, __file__]))
     try:
         if int(os.stat(out).st_mtime) >= cut_off:
@@ -82,7 +83,7 @@ def convert_news(text, project_name, release_extlink=None, git_extlink=None):
         l.append('')
         return '\n'.join(l)
     text = re.sub(r'(?:\n|^)%s +(\d+\.\d+[^:\s]*|trunk):?([^\n]*)(?:\n|$)' % (project_name,),
-        f, text)
+                  f, text)
     return ".. _releases:\n\n%s" % (text,)
 
 

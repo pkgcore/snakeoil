@@ -85,9 +85,7 @@ def cpy_setup_class(scope, func_name):
 class native_readfile_Test(TempDirMixin):
     func = staticmethod(fileutils.native_readfile)
 
-    test_cases = ['asdf\nfdasswer\1923',
-        '',
-        '987234']
+    test_cases = ['asdf\nfdasswer\1923', '', '987234']
 
     default_encoding = 'ascii'
     none_on_missing_ret_data = 'dar'
@@ -113,7 +111,7 @@ class native_readfile_Test(TempDirMixin):
                     encoding = expected[1]
                 expected = expected[0]
             self.write_file(fp, 'wb',
-                self.convert_data(expected, encoding))
+                            self.convert_data(expected, encoding))
             if raised:
                 self.assertRaises(raised, self.assertFunc, fp, expected)
             else:
@@ -127,8 +125,7 @@ class native_readfile_Test(TempDirMixin):
         self.assertRaises(EnvironmentError, self.func, fp)
         self.assertEqual(self.func(fp, True), None)
         self.write_file(fp, 'wb', self.convert_data('dar', 'ascii'))
-        self.assertEqual(self.func(fp, True),
-            self.none_on_missing_ret_data)
+        self.assertEqual(self.func(fp, True), self.none_on_missing_ret_data)
 
         # ensure it handles paths that go through files-
         # still should be suppress
@@ -194,8 +191,7 @@ class readlines_mixin(object):
             expected = ()
 
         if 'utf8' not in self.encoding_mode:
-            self.assertEqual(tuple(self.func(path)),
-                expected)
+            self.assertEqual(tuple(self.func(path)), expected)
             return
         data = tuple(self.func(path))
         if 'strict' not in self.encoding_mode and not compatibility.is_py3k:
@@ -208,7 +204,7 @@ class readlines_mixin(object):
         self.assertEqual(tuple(self.func(fp, False, True)), ())
         self.write_file(fp, 'wb', self.convert_data('dar', 'ascii'))
         self.assertEqual(tuple(self.func(fp, True)),
-            (self.none_on_missing_ret_data,))
+                         (self.none_on_missing_ret_data,))
 
         self.assertEqual(tuple(self.func(pjoin(fp, 'missing'), False, True)), ())
 
@@ -217,7 +213,7 @@ class readlines_mixin(object):
         fp = pjoin(self.dir, 'data')
 
         self.write_file(fp, 'wb', self.convert_data(' dar1 \ndar2 \n dar3\n',
-            'ascii'))
+                                                    'ascii'))
         results = tuple(self.func(fp, True))
         expected = ('dar1', 'dar2', 'dar3')
         if self.encoding_mode == 'bytes' and compatibility.is_py3k:
@@ -226,7 +222,7 @@ class readlines_mixin(object):
 
         # this time without the trailing newline...
         self.write_file(fp, 'wb', self.convert_data(' dar1 \ndar2 \n dar3',
-            'ascii'))
+                                                    'ascii'))
         results = tuple(self.func(fp, True))
         self.assertEqual(results, expected)
 
@@ -266,9 +262,7 @@ def mk_readlines_test(scope, mode):
     kls.__name__ = "%s_Test" % func_name
     scope["%s_Test" % func_name] = kls
 
-for case in ("ascii", "ascii_strict", "bytes",
-    "utf8"):
-
+for case in ("ascii", "ascii_strict", "bytes", "utf8"):
     name = 'readlines_%s' % case
     mk_readlines_test(locals(), case)
 
@@ -334,11 +328,10 @@ class Test_mmap_and_close(TempDirMixin):
         fd, m = None, None
         try:
             fd = os.open(path, os.O_RDONLY)
-            m = _fileutils.mmap_and_close(fd, len(data),
-                mmap.MAP_PRIVATE, mmap.PROT_READ)
+            m = _fileutils.mmap_and_close(
+                fd, len(data), mmap.MAP_PRIVATE, mmap.PROT_READ)
             # and ensure it closed the fd...
-            self.assertRaises(EnvironmentError,
-                os.read, fd, 1)
+            self.assertRaises(EnvironmentError, os.read, fd, 1)
             fd = None
             self.assertEqual(len(m), len(data))
             self.assertEqual(m.read(len(data)), data)

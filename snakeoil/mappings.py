@@ -7,10 +7,12 @@ Miscellanious mapping related classes and functionality
 
 from __future__ import print_function
 
-__all__ = ("autoconvert_py3k_methods_metaclass", "DictMixin", "LazyValDict",
+__all__ = (
+    "autoconvert_py3k_methods_metaclass", "DictMixin", "LazyValDict",
     "LazyFullValLoadDict", "ProtectedDict", "ImmutableDict", "IndeterminantDict",
     "OrderedDict", "defaultdict", "defaultdictkey", "AttrAccessible", "StackedDict",
-    "make_SlottedDict_kls")
+    "make_SlottedDict_kls",
+)
 
 from collections import deque
 from itertools import imap, chain, ifilterfalse, izip
@@ -718,12 +720,9 @@ def inject_getitem_as_getattr(scope):
     :param scope: the scope of a class to modify, adding methods as needed
     """
 
-    scope.setdefault('__getattr__',
-        _KeyError_to_Attr(operator.__getitem__))
-    scope.setdefault('__delattr__',
-        _KeyError_to_Attr(operator.__delitem__))
-    scope.setdefault('__setattr__',
-        _KeyError_to_Attr(operator.__setitem__))
+    scope.setdefault('__getattr__', _KeyError_to_Attr(operator.__getitem__))
+    scope.setdefault('__delattr__', _KeyError_to_Attr(operator.__delitem__))
+    scope.setdefault('__setattr__', _KeyError_to_Attr(operator.__setitem__))
 
 
 class AttrAccessible(dict):
@@ -804,8 +803,9 @@ def native_attr_get(self, key, default=None):
     return getattr(self, key, default)
 
 try:
-    from snakeoil._klass import (attr_getitem, attr_setitem,
-        attr_update, attr_contains, attr_pop, attr_get)
+    from snakeoil._klass import (
+        attr_getitem, attr_setitem, attr_update, attr_contains, attr_pop,
+        attr_get)
     if _use_slow_delitem:
         from snakeoil._klass import attr_delitem_slow as attr_delitem
     else:

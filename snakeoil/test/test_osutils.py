@@ -102,7 +102,7 @@ class EnsureDirsTest(TempDirMixin):
         self.assertTrue(os.path.isdir(path))
         st = os.stat(path)
         self.assertEqual(stat.S_IMODE(st.st_mode), mode,
-                             '0%o != 0%o' % (stat.S_IMODE(st.st_mode), mode))
+                         '0%o != 0%o' % (stat.S_IMODE(st.st_mode), mode))
         self.assertEqual(st.st_uid, uid)
         self.assertEqual(st.st_gid, gid)
 
@@ -179,8 +179,8 @@ class Native_NormPathTest(TestCase):
         f = self.func
         def check(src, val):
             got = f(src)
-            self.assertEqual(got, val, msg="%r: expected %r, got %r" %
-                (src, val, got))
+            self.assertEqual(got, val, msg=(
+                "%r: expected %r, got %r" % (src, val, got)))
 
         check('/foo/', '/foo')
         check('//foo/', '/foo')
@@ -213,20 +213,22 @@ class Cpy_JoinTest(TestCase):
         skip = "etension isn't compiled"
 
     def assertSame(self, val):
-        self.assertEqual(osutils.native_join(*val),
+        self.assertEqual(
+            osutils.native_join(*val),
             osutils.join(*val),
-            msg="for %r, expected %r, got %r" % (val,
+            msg="for %r, expected %r, got %r" % (
+                val,
                 osutils.native_join(*val),
                 osutils.join(*val)))
 
     def test_reimplementation(self):
         for vals in [
-            ["", "foo"],
-            ["foo", "dar"],
-            ["foo", "/bar"],
-            ["/bar", "dar"],
-            ["/bar", "../dar"],
-            ["", "../dar"]
+                ["", "foo"],
+                ["foo", "dar"],
+                ["foo", "/bar"],
+                ["/bar", "dar"],
+                ["/bar", "../dar"],
+                ["", "../dar"]
             ]:
             self.assertSame(vals)
 
@@ -237,7 +239,7 @@ class FsLockTest(TempDirMixin):
 
     def test_nonexistent(self):
         self.assertRaises(osutils.NonExistent, osutils.FsLock,
-            pjoin(self.dir, 'missing'))
+                          pjoin(self.dir, 'missing'))
 
     def test_locking(self):
         path = pjoin(self.dir, 'lockfile')
@@ -312,7 +314,7 @@ class Test_unlink_if_exists(TempDirMixin):
         # and once more for good measure...
         f(path)
 
-cpy_readdir_loaded_Test = mk_cpy_loadable_testcase("snakeoil.osutils._readdir",
-    "snakeoil.osutils", "listdir", "listdir")
-cpy_posix_loaded_Test = mk_cpy_loadable_testcase("snakeoil._posix",
-    "snakeoil.osutils", "normpath", "normpath")
+cpy_readdir_loaded_Test = mk_cpy_loadable_testcase(
+    "snakeoil.osutils._readdir", "snakeoil.osutils", "listdir", "listdir")
+cpy_posix_loaded_Test = mk_cpy_loadable_testcase(
+    "snakeoil._posix", "snakeoil.osutils", "normpath", "normpath")

@@ -142,7 +142,7 @@ def gen_test(WeakInstMeta):
                 def __hash__(self):
                     return 1
             self.assertNotIdentical(weak_inst(BrokenHash()),
-                                weak_inst(BrokenHash()))
+                                    weak_inst(BrokenHash()))
 
         def test_weak_slot(self):
             weak_slotted()
@@ -190,5 +190,5 @@ else:
     CPY_TestWeakInstMeta = gen_test(type)
     CPY_TestWeakInstMeta.skip = "cpython extension isn't available"
 
-cpy_loaded_Test = mk_cpy_loadable_testcase("snakeoil._caching",
-    "snakeoil.caching", "WeakInstMeta", "WeakInstMeta")
+cpy_loaded_Test = mk_cpy_loadable_testcase(
+    "snakeoil._caching", "snakeoil.caching", "WeakInstMeta", "WeakInstMeta")
