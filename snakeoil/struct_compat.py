@@ -12,11 +12,13 @@ __all__ = ("Struct", "error", "pack", "pack", "calcsize")
 
 # since we're trying to be usable in struct's place, we do a start import;
 # sucks, but is what it is.
+# pylint: disable=wildcard-import,unused-wildcard-import
 from struct import *
 
 base_struct = Struct
 
 
+# pylint: disable=function-redefined
 class Struct(base_struct):
 
     """

@@ -89,6 +89,7 @@ class DemandloadChecker(_Checker):
                 elif tree.func.attr == 'demand_compile_regexp':
                     is_demandload_regex = True
         elif hasattr(tree.func, 'id'):
+            # pylint: disable=bad-whitespace
             is_demandload       = getattr(self.scope.get(tree.func.id), 'is_demandload_func', False)
             is_demandload_regex = getattr(self.scope.get(tree.func.id), 'is_demandload_regex', False)
 
