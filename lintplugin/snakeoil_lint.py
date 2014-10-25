@@ -1,73 +1,100 @@
 
 """Pylint plugin checking for trailing whitespace."""
 
-
+from __future__ import print_function
 import sys
 import __builtin__
 
 from pylint import interfaces, checkers
-from logilab.astng import (nodes, raw_building, utils,
-    Name, Getattr, CallFunc, rebuilder)
+if hasattr(interfaces, 'IASTNGChecker'):
+    print('ERROR: please install >=pylint-1.0', file=sys.stderr)
+    exit(1)
+
+try:
+    from logilab.astng import nodes, utils, Getattr, CallFunc, rebuilder
+except ImportError:
+    print('ERROR: could not import logilab.astng; make sure that package is '
+          'installed: dev-python/astng', file=sys.stderr)
+    raise
 
 from snakeoil.lists import iflatten_func
 
 class SnakeoilChecker(checkers.BaseChecker):
 
-    __implements__ = (interfaces.IRawChecker, interfaces.IASTNGChecker)
+    __implements__ = (interfaces.IRawChecker, interfaces.IAstroidChecker)
 
     name = 'snakeoil'
 
     # XXX move some of those over to RewriteDemandload somehow
     # (current monkey patch running the rewriter does not support that)
 
+    # pylint: disable=too-few-public-methods,multiple-statements
+    class _MessageCPC01(object): pass
+    class _MessageCPC02(object): pass
+    class _MessageWPC01(object): pass
+    class _MessageWPC02(object): pass
+    class _MessageWPC03(object): pass
+    class _MessageWPC04(object): pass
+    class _MessageWPC06(object): pass
+    class _MessageWPC08(object): pass
+    # pylint: enable=too-few-public-methods,multiple-statements
+
     msgs = {
         'CPC01': ('line too long: length %d',
-                  'More complete version of the standard line too long check.'),
-        'CPC02': ('trailing whitespace', 'trailing whitespace sucks.'),
+                  'More complete version of the standard line too long check.',
+                  _MessageCPC01),
+        'CPC02': ('trailing whitespace', 'trailing whitespace sucks.',
+                  _MessageCPC02),
         'WPC01': ('demandload with arglen < 2 ignored',
                   'A call which is probably a demandload has too little'
-                  'arguments.'),
+                  'arguments.',
+                  _MessageWPC01),
         'WPC02': ('demandload with non-string-constant arg ignored',
                   'A call which is probably a demandload has a second arg '
                   'that is not a string constant. Fix the code to cooperate '
-                  'with the dumb checker.'),
+                  'with the dumb checker.',
+                  _MessageWPC02),
         'WPC03': ('old-style demandload call',
                   'A call which uses the old way of callling demandload,'
-                  'with spaces.'),
+                  'with spaces.',
+                  _MessageWPC03),
         'WPC04': ('non new-style class',
-                  'All classes should be new-style classes.'),
+                  'All classes should be new-style classes.',
+                  _MessageWPC04),
         'WPC06': ('raise of Exception base class',
                   'A raise statement in which Exception is raised- make a '
-                  'subclass of it and raise that instead.'),
+                  'subclass of it and raise that instead.',
+                  _MessageWPC06),
         'WPC08': ('Iterating over dict.keys()',
                   'Iterating over dict.keys()- use `for x in dict` or '
-                  '`for x in d.iteritems()` if you need the vals too'),
+                  '`for x in d.iteritems()` if you need the vals too',
+                  _MessageWPC08),
         }
 
     def process_module(self, stream):
         for linenr, line in enumerate(stream):
             line = line.rstrip('\r\n')
             if len(line) > 80:
-                self.add_message('CPC01', linenr, args=len(line))
+                self.add_message('CPC01', line=linenr, args=len(line))
             if line.endswith(' ') or line.endswith('\t'):
-                self.add_message('CPC02', linenr)
+                self.add_message('CPC02', line=linenr)
 
     def visit_class(self, node):
         if not node.bases:
-            self.add_message('WPC04', node=node)
+            self.add_message('WPC04', line=node.fromlineno)
 
     def visit_raise(self, node):
         if node.exc is None or not hasattr(node.exc, 'func'):
             return
         elif getattr(node.exc.func, 'name', None) == 'Exception':
-            self.add_message('WPC06', node=node)
+            self.add_message('WPC06', line=node.fromlineno)
 
     def visit_for(self, node):
         expr = node.iter
         if isinstance(expr, CallFunc):
             expr = list(expr.get_children())[0]
             if isinstance(expr, Getattr) and expr.attrname == 'keys':
-                self.add_message('WPC08', node=node)
+                self.add_message('WPC08', line=node.fromlineno)
 
 
 class SnakeoilASTRewrites(utils.ASTWalker):
@@ -111,18 +138,18 @@ class SnakeoilASTRewrites(utils.ASTWalker):
             return
         # sanity check.
         if len(node.args) < 2:
-            self.linter.add_message('WPC01', node=node)
+            self.linter.add_message('WPC01', line=node.fromlineno)
             return
         if not isinstance(node.args[1], nodes.Const):
-            self.linter.add_message('WPC02', node=node)
+            self.linter.add_message('WPC02', line=node.fromlineno)
             return
         if node.args[1].value.find(" ") != -1:
-            self.linter.add_message('WPC03', node=node)
+            self.linter.add_message('WPC03', line=node.fromlineno)
             return
         # Ignore the first arg since it's gloals()
         for mod in (module.value for module in node.args[1:]):
             if not isinstance(mod, str):
-                self.linter.add_message('WPC02', node=node)
+                self.linter.add_message('WPC02', line=node.fromlineno)
                 continue
             col = mod.find(':')
             if col == -1:
@@ -167,13 +194,13 @@ def register(linter):
     # Perhaps give those preprocessors a priority attribute too.
     # Definitely give them a msgs attribute.
 
-    original_check_astng_module = linter.check_astng_module
-    def snakeoil_check_astng_module(astng, checkers, rawcheckers):
+    original_check_astroid_module = linter.check_astroid_module
+    def snakeoil_check_astroid_module(astroid, *args):
         # Rewrite the ast for demandload awareness, then let the normal
         # checks work with that tree.
-        rewriter.walk(astng)
-        return original_check_astng_module(astng, checkers, rawcheckers)
-    linter.check_astng_module = snakeoil_check_astng_module
+        rewriter.walk(astroid)
+        return original_check_astroid_module(astroid, *args)
+    linter.check_astroid_module = snakeoil_check_astroid_module
 
     # Finally, register our custom checks.
     linter.register_checker(SnakeoilChecker(linter))
