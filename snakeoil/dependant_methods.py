@@ -169,7 +169,7 @@ class ForcedDepends(type):
     """
 
     def __new__(cls, name, bases, d):
-        obj = super(ForcedDepends, cls).__new__(cls, name, bases,d)
+        obj = super(ForcedDepends, cls).__new__(cls, name, bases, d)
         if not hasattr(obj, 'stage_depends'):
             obj.stage_depends = {}
         for x in ("wrap", "unwrap"):

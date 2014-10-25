@@ -9,7 +9,7 @@ import sys
 
 
 def regenerate_if_needed(project, src, out, release_extlink=None, git_extlink=None):
-    cut_off = int(max(os.stat(x).st_mtime for x in [src,__file__]))
+    cut_off = int(max(os.stat(x).st_mtime for x in [src, __file__]))
     try:
         if int(os.stat(out).st_mtime) >= cut_off:
             return

@@ -184,7 +184,7 @@ def abssymlink(path):
     mylink = os.readlink(path)
     if mylink[0] != '/':
         mydir = os.path.dirname(path)
-        mylink = mydir+"/"+mylink
+        mylink = mydir + '/' + mylink
     return normpath(mylink)
 
 

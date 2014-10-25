@@ -121,9 +121,8 @@ class LimitedChangeSet(SetMixin):
 
     """
 
-    _removed    = 0
-    _added      = 1
-
+    _removed = 0
+    _added = 1
 
     @staticmethod
     def _default_key_validator(val):

@@ -162,8 +162,8 @@ class ReadBashDictTest(TestCase):
             {'x':'y asdf'})
 
     def test_eof_without_newline(self):
-        self.assertEqual(self.invoke_and_close(StringIO("x=y")), {'x':'y'})
-        self.assertEqual(self.invoke_and_close(StringIO("x='y'a")), {'x':'ya'})
+        self.assertEqual(self.invoke_and_close(StringIO("x=y")), {'x': 'y'})
+        self.assertEqual(self.invoke_and_close(StringIO("x='y'a")), {'x': 'ya'})
 
     def test_sourcing(self):
         self.assertEqual(
@@ -207,4 +207,4 @@ class ReadBashDictTest(TestCase):
         self.assertRaises(BashParseError, self.invoke_and_close, self.unclosed_file.name)
 
     def test_wordchards(self):
-        self.assertEqual(self.invoke_and_close(StringIO("x=-*")), {"x":"-*"})
+        self.assertEqual(self.invoke_and_close(StringIO("x=-*")), {"x": "-*"})

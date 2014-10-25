@@ -80,7 +80,7 @@ class Test_native_contains(TestCase):
     def test_it(self):
         class c(dict):
             __contains__ = self.func
-        d = c({"1":2})
+        d = c({"1": 2})
         self.assertIn("1", d)
         self.assertNotIn(1, d)
 
@@ -98,7 +98,7 @@ class Test_native_get(TestCase):
     def test_it(self):
         class c(dict):
             get = self.func
-        d = c({"1":2})
+        d = c({"1": 2})
         self.assertEqual(d.get("1"), 2)
         self.assertEqual(d.get("1", 3), 2)
         self.assertEqual(d.get(1), None)
@@ -133,7 +133,7 @@ class Test_native_generic_equality(TestCase):
         c1 = c(1, 3)
         self.assertEqual(c1, c1)
         del c1
-        self.assertNotEqual(c(2,1), c(1,2))
+        self.assertNotEqual(c(2, 1), c(1, 2))
         c1 = c(1, 2)
         del c1.foo
         c2 = c(1, 2)
@@ -615,5 +615,5 @@ class TestAliasMethod(TestCase):
 
         c = kls()
         self.assertEqual(c.__len__(), c.lfunc())
-        c.__len__ = lambda : 4
+        c.__len__ = lambda: 4
         self.assertEqual(c.__len__(), c.lfunc())

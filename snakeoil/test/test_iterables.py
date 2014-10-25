@@ -140,5 +140,5 @@ class iter_sortTest(TestCase):
             return sorted(l, key=operator.itemgetter(0))
         self.assertEqual(
             list(iter_sort(
-                    f, *[iter(xrange(x, x+10)) for x in (30, 20, 0, 10)])),
+                    f, *[iter(xrange(x, x + 10)) for x in (30, 20, 0, 10)])),
             list(xrange(40)))

@@ -53,7 +53,7 @@ def _get_linux_proc_count():
 
 def _get_bsd_proc_count():
     p = subprocess.Popen(["sysctl", "-n", "hw.cpu"],
-        env={"PATH":"/sbin:/bin:/usr/sbin:/usr/bin"}, close_fds=True, shell=False,
+        env={"PATH": "/sbin:/bin:/usr/sbin:/usr/bin"}, close_fds=True, shell=False,
         stdout=subprocess.PIPE, stdin=None, stderr=subprocess.STDOUT)
     p.communicate()
     if p.returncode == 0:

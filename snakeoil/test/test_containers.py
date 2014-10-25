@@ -276,6 +276,6 @@ class TestRefCountingSet(TestCase):
 
     def test_init(self):
         self.assertEqual(self.kls(xrange(5))[4], 1)
-        c = self.kls([1,2,3,1])
+        c = self.kls([1, 2, 3, 1])
         self.assertEqual(c[2], 1)
         self.assertEqual(c[1], 2)

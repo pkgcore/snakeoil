@@ -83,7 +83,7 @@ class PythonNamespaceWalker(object):
         if ignore_failed_imports is None:
             ignore_failed_imports = self.ignore_all_import_failures
         if namespace is None:
-            mangle = lambda x:x
+            mangle = lambda x: x
         else:
             orig_namespace = namespace
             mangle = lambda x: "%s.%s" % (orig_namespace, x)

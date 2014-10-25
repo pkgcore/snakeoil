@@ -27,10 +27,10 @@ class UniqueTest(TestCase):
         self.assertEqual(list(set([1,2,3])), [1,2,3],
             "this test is reliant on the interpretter hasing 1,2,3 into a specific ordering- "
             "for whatever reason, ordering differs, thus this test can't verify it")
-        self.assertEqual(func([3,2,1]), [3,2,1])
+        self.assertEqual(func([3, 2, 1]), [3, 2, 1])
 
     def test_iter_stable_unique(self):
-        self.test_stable_unique(lambda x:list(lists.iter_stable_unique(x)))
+        self.test_stable_unique(lambda x: list(lists.iter_stable_unique(x)))
         o = UnhashableComplex()
         l = [1, 2, 3, o, UnhashableComplex(), 4, 3, UnhashableComplex()]
         self.assertEqual(list(lists.iter_stable_unique(l)),
@@ -144,7 +144,7 @@ class Test_iflatten_func(TestCase):
             ("fds", ["fds"], basestring),
             (1, [1], int),
             ]:
-            iterator = self.func(l, lambda x:isinstance(x, skip))
+            iterator = self.func(l, lambda x: isinstance(x, skip))
             self.assertEqual(list(iterator), correct)
             self.assertEqual(list(iterator), [])
         # There is a small difference between the cpython and native
@@ -181,7 +181,7 @@ class predicate_split_Test(TestCase):
     kls = staticmethod(lists.predicate_split)
 
     def test_simple(self):
-        false_l, true_l = self.kls(lambda x:x % 2 == 0, xrange(100))
+        false_l, true_l = self.kls(lambda x: x % 2 == 0, xrange(100))
         self.assertEqual(false_l, range(1, 100, 2))
         self.assertEqual(true_l, range(0, 100, 2))
 

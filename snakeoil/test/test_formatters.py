@@ -131,7 +131,7 @@ class native_PlainTextFormatterTest(TestCase):
         formatter.autoline = False
         formatter.wrap = True
         formatter.stream = stream = StringIO()
-        input = ("     description: ","The Portage")
+        input = ("     description: ", "The Portage")
         formatter.write(*input)
         output = ''.join(input).rsplit(" ", 1)
         output[1] = '                  %s' % output[1]

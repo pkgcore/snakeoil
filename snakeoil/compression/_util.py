@@ -54,7 +54,7 @@ class _process_handle(object):
             if self.is_read:
                 self._allow_reopen = handle
             handle = open(handle, mode=self.mode)
-            close =  True
+            close = True
         elif not isinstance(handle, (long, int)):
             if not hasattr(handle, 'fileno'):
                 raise TypeError("handle %r isn't a string, integer, and "

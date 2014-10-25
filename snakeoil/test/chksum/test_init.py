@@ -23,12 +23,12 @@ class Test_funcs(test.TestCase):
         chksum.init = f
 
     def test_get_handlers(self):
-        expected = {"x":1, "y":2}
+        expected = {"x": 1, "y": 2}
         chksum.chksum_types.update(expected)
         self.assertEqual(expected, chksum.get_handlers())
         self.assertEqual(self._inited_count, 1)
         self.assertEqual(expected, chksum.get_handlers(None))
-        self.assertEqual({"x":1}, chksum.get_handlers(["x"]))
+        self.assertEqual({"x": 1}, chksum.get_handlers(["x"]))
         self.assertEqual(expected, chksum.get_handlers(["x", "y"]))
         self.assertEqual(self._inited_count, 1)
 

@@ -90,7 +90,7 @@ class native_WeakInstMeta(type):
     def __new__(cls, name, bases, d):
         if d.get("__inst_caching__", False):
             d["__inst_caching__"] = True
-            d["__inst_dict__"]  = WeakValueDictionary()
+            d["__inst_dict__"] = WeakValueDictionary()
         else:
             d["__inst_caching__"] = False
         slots = d.get('__slots__')

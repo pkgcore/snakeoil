@@ -81,7 +81,7 @@ def init(additional_handlers=None):
             if i != -1:
                 f = f[:i]
             del i
-            m = load_module(__name__+"."+f)
+            m = load_module(__name__ + "." + f)
         except ImportError:
             continue
         try:

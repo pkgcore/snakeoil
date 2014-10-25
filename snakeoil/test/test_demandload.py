@@ -56,7 +56,7 @@ class PlaceholderTest(TestCase):
         self.assertEqual({}, scope)
         self.assertEqual(placeholder.__doc__, [].__doc__)
         self.assertEqual(scope['foo'], [])
-        demandload._protection_enabled = lambda:True
+        demandload._protection_enabled = lambda: True
         self.assertRaises(ValueError, getattr, placeholder, '__doc__')
 
     @reset_globals
@@ -88,7 +88,7 @@ class PlaceholderTest(TestCase):
         scope = {}
         placeholder = demandload.Placeholder(scope, 'foo', Struct)
         placeholder.val = 7
-        demandload._protection_enabled = lambda:True
+        demandload._protection_enabled = lambda: True
         self.assertRaises(ValueError, getattr, placeholder, 'val')
         self.assertEqual(7, scope['foo'].val)
 

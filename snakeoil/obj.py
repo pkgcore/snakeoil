@@ -45,7 +45,7 @@ This proxying however cannot cover up certain cpython internal issues- specifica
 builtins.
 
 >>> from snakeoil.obj import DelayedInstantiation
->>> delayed_tuple = DelayedInstantiation(tuple, lambda x:tuple(x), xrange(5))
+>>> delayed_tuple = DelayedInstantiation(tuple, lambda x: tuple(x), xrange(5))
 >>> print(delayed_tuple + (5, 6, 7))
 (0, 1, 2, 3, 4, 5, 6, 7)
 >>> print((5, 6, 7) + delayed_tuple)

@@ -57,7 +57,7 @@ def pre_curry(func, *args, **kwargs):
         def callit(*moreargs, **morekwargs):
             kw = kwargs.copy()
             kw.update(morekwargs)
-            return func(*(args+moreargs), **kw)
+            return func(*(args + moreargs), **kw)
 
     callit.func = func
     return callit
@@ -151,7 +151,7 @@ def post_curry(func, *args, **kwargs):
 
     if not kwargs:
         def callit(*moreargs, **morekwargs):
-            return func(*(moreargs+args), **morekwargs)
+            return func(*(moreargs + args), **morekwargs)
     elif not args:
         def callit(*moreargs, **morekwargs):
             kw = morekwargs.copy()
@@ -161,7 +161,7 @@ def post_curry(func, *args, **kwargs):
         def callit(*moreargs, **morekwargs):
             kw = morekwargs.copy()
             kw.update(kwargs)
-            return func(*(moreargs+args), **kw)
+            return func(*(moreargs + args), **kw)
 
     callit.func = func
     return callit

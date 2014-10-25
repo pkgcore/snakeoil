@@ -40,7 +40,7 @@ def get_git_version(cwd):
     date = [x.split(":", 1)[-1].lstrip()
             for x in data if x.lower().startswith("date")][0]
 
-    return {"rev":commit, "date":date, 'tag':_get_git_tag(cwd, commit)}
+    return {"rev": commit, "date": date, 'tag': _get_git_tag(cwd, commit)}
 
 
 def _get_git_tag(cwd, rev):

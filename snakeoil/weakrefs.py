@@ -146,7 +146,7 @@ class WeakRefFinalizer(type):
         d['__finalizer_weakrefs__'] = mappings.defaultdict(dict)
 
         new_cls = super(WeakRefFinalizer, cls).__new__(cls, name, bases, d)
-        new_cls.__proxy_class__ = partial(make_kls(new_cls, WeakRefProxy), cls, lambda x:x)
+        new_cls.__proxy_class__ = partial(make_kls(new_cls, WeakRefProxy), cls, lambda x: x)
         new_cls.__proxy_class__.__name__ = name
         cls.__known_classes__[new_cls] = True
         return new_cls

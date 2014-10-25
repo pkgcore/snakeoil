@@ -13,7 +13,7 @@ class TestDelayedInstantiation(TestCase):
 
     def test_simple(self):
         t = tuple([1, 2, 3])
-        o = make_DI(tuple, lambda:t)
+        o = make_DI(tuple, lambda: t)
         objs = [o, t]
         self.assertEqual(*map(str, objs))
         self.assertEqual(*map(repr, objs))

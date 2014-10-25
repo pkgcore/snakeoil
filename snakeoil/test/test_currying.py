@@ -162,13 +162,13 @@ class Test_wrap_exception(TestCase):
             self.assertIsInstance(exception, inner_exception)
             self.assertIs(functor, throwing_func)
             self.assertEqual(fargs, (False,))
-            self.assertEqual(fkwds, {'monkey':'bone'})
+            self.assertEqual(fkwds, {'monkey': 'bone'})
             outer.append(True)
             raise wrapping_exception()
 
         def throwing_func(*args, **kwds):
             self.assertEqual(args, (False,))
-            self.assertEqual(kwds, {'monkey':'bone'})
+            self.assertEqual(kwds, {'monkey': 'bone'})
             inner.append(True)
             raise inner_exception()
 
@@ -212,8 +212,8 @@ class Test_wrap_exception(TestCase):
             func()
             raise AssertionError("shouldn't have been able to reach here")
         except my_exception as e:
-            self.assertEqual(e.args, (1,3,2))
-            self.assertEqual(e.kwds, {'monkey':'bone'})
+            self.assertEqual(e.args, (1, 3, 2))
+            self.assertEqual(e.kwds, {'monkey': 'bone'})
 
         # finally, verify that the exception can be pased in.
         func = currying.wrap_exception(my_exception, 1, 3, 2, monkey='bone',
@@ -224,5 +224,5 @@ class Test_wrap_exception(TestCase):
             func()
             raise AssertionError("shouldn't have been able to reach here")
         except my_exception as e:
-            self.assertEqual(e.args, (1,3,2))
-            self.assertEqual(e.kwds, {'monkey':'bone', 'the_exception':e.__cause__})
+            self.assertEqual(e.args, (1, 3, 2))
+            self.assertEqual(e.kwds, {'monkey': 'bone', 'the_exception': e.__cause__})

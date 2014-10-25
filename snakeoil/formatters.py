@@ -276,7 +276,7 @@ class native_PlainTextFormatter(Formatter):
                         else:
                             bit = arg[:space]
                             # Omit the space we split on.
-                            arg = arg[space+1:]
+                            arg = arg[space + 1:]
                         if conversion_needed:
                             bit = self._force_encoding(bit)
                         self.stream.write(bit)
@@ -459,14 +459,15 @@ else:
         """Formatter writing to a tty, using terminfo to do colors."""
 
         _colors = dict(
-            black = curses.COLOR_BLACK,
-            red = curses.COLOR_RED,
-            green = curses.COLOR_GREEN,
-            yellow = curses.COLOR_YELLOW,
-            blue = curses.COLOR_BLUE,
-            magenta = curses.COLOR_MAGENTA,
-            cyan = curses.COLOR_CYAN,
-            white = curses.COLOR_WHITE)
+            black=curses.COLOR_BLACK,
+            red=curses.COLOR_RED,
+            green=curses.COLOR_GREEN,
+            yellow=curses.COLOR_YELLOW,
+            blue=curses.COLOR_BLUE,
+            magenta=curses.COLOR_MAGENTA,
+            cyan=curses.COLOR_CYAN,
+            white=curses.COLOR_WHITE,
+        )
 
         # Remapping of TERM setting to more capable equivalent.
         # Mainly used to force on the hardstatus (aka title bar updates)

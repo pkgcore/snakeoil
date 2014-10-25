@@ -99,11 +99,11 @@ if __name__ == "__main__":
     sys.argv = args[:]
     i = intercept_import(callback)
     i.enable()
-    print("starting\n",time.time(),"\n")
+    print("starting\n", time.time(), "\n")
     try:
         with open(args[0]) as f:
             imp.load_module("__main__", f, args[0], ("", "r", imp.PY_SOURCE))
     finally:
         i.disable()
-        print("\nfinished\n",time.time(),"\n")
+        print("\nfinished\n", time.time(), "\n")
     sys.exit(0)
