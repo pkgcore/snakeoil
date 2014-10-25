@@ -77,7 +77,8 @@ class TestDelayedInstantiation(TestCase):
 
         # now ensure we always get the same kls back for derivatives
         class foon(object):
-            def __nonzero__(self): return True
+            def __nonzero__(self):
+                return True
 
         o = make_DI(foon, foon)
         cls = object.__getattribute__(o, '__class__')

@@ -13,31 +13,36 @@ Compatibility code, preferring cElementTree, falling back as necessary.
 etree = None
 try:
     import cElementTree as etree
-except ImportError: pass
+except ImportError:
+    pass
 
 if etree is None:
     try:
         from xml.etree import cElementTree as etree
         if not hasattr(etree, 'parse'):
             etree = None
-    except ImportError: pass
+    except ImportError:
+        pass
 
 if etree is None:
     try:
         from elementtree import ElementTree as etree
-    except ImportError: pass
+    except ImportError:
+        pass
 
 if etree is None:
     try:
         from xml.etree import cElementTree as etree
         if not hasattr(etree, 'parse'):
             etree = None
-    except ImportError: pass
+    except ImportError:
+        pass
 
 if etree is None:
     try:
         from xml.etree import ElementTree as etree
-    except ImportError: pass
+    except ImportError:
+        pass
 
 
 def escape(string):
