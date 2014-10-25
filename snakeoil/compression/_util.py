@@ -3,6 +3,7 @@
 
 __all__ = ("compress_data", "decompress_data")
 
+import errno
 import os
 import signal
 import subprocess
@@ -17,8 +18,8 @@ def _drive_process(args, mode, data):
     try:
         stdout, stderr = p.communicate(data)
         if p.returncode != 0:
-            raise ValueError("%s returned %i exitcode from %s"
-                ", stderr=%r" % (mode, p.returncode, binary, stderr))
+            raise ValueError("%s returned %i exitcode from '%s'"
+                ", stderr=%r" % (mode, p.returncode, ' '.join(args), stderr))
         return stdout
     finally:
         if p is not None and p.returncode is None:
