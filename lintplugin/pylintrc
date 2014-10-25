@@ -15,6 +15,12 @@ load-plugins=snakeoil_lint
 
 [REPORTS]
 
+include-ids=yes
+reports=no
+
+
+[MESSAGES CONTROL]
+
 # Disable a bunch of silly checkers.
 #
 # To add to this list run pylint with --include-ids=y so you can see
@@ -28,7 +34,8 @@ load-plugins=snakeoil_lint
 # not enough pub methods: R0903
 # too many pub methods: R0904
 # method could be a function: R0201
-# mention what is locally disabled (I0011)
+# mention what is locally disabled: I0011
+# mention what is locally enabled: I0012
 # abstract method not overridden: W0223
 # Metaclass should have "mcs" as first argument (we use "cls", string
 # is hardcoded): C0203
@@ -42,15 +49,8 @@ load-plugins=snakeoil_lint
 # Abstract class only referenced n times: R0922
 # Line too long: C0301
 # Invalid name: C0303
-disable-msg=W0142,W0613,R0901,R0903,R0904,R0201,I0011,W0223,C0203,W0704,C0111,R0911,R0912,R0914,R0915,R0921,R0922,C0301,W0621,W0622,C0103
+disable=W0142,W0613,R0901,R0903,R0904,R0201,I0011,I0012,W0223,C0203,W0704,C0111,R0911,R0912,R0914,R0915,R0921,R0922,C0301,W0621,W0622,C0103
 
-include-ids=yes
-reports=no
-
-
-[MESSAGES CONTROL]
-# Newer pylints use this one. Keep both locations in sync for now.
-disable-msg=W0142,W0613,R0901,R0903,R0904,R0201,I0011,W0223,C0203,W0704,C0111,R0911,R0912,R0914,R0915,R0921,R0922,C0301,W0621,W0622,C0103
 
 [BASIC]
 
