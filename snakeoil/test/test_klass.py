@@ -3,7 +3,7 @@
 
 from time import time
 
-from snakeoil.test import TestCase, mk_cpy_loadable_testcase, test_currying
+from snakeoil.test import TestCase, mk_cpy_loadable_testcase
 from snakeoil import klass, currying
 from snakeoil.compatibility import cmp, is_py3k
 

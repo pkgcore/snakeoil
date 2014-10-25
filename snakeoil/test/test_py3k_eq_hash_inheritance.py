@@ -1,9 +1,8 @@
 # Copyright: 2010-2011 Brian Harring <ferringb@gmail.com>
 # License: GPL2/BSD 3 clause
 
-import sys
+from snakeoil.test import mixins, TestCase
 
-from snakeoil.test import mixins, TestCase, test_demandload_usage
 
 class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker, TestCase):
 

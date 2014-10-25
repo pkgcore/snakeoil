@@ -10,7 +10,7 @@ from __future__ import print_function
 __all__ = ("expandable_chain", "caching_iter", "iter_sort")
 
 from collections import deque
-from itertools import islice, chain
+from itertools import islice
 
 
 class expandable_chain(object):

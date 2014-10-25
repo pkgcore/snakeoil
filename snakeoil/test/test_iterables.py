@@ -1,9 +1,7 @@
 # Copyright: 2006 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
-import itertools
 import operator
-import sys
 
 from snakeoil.test import TestCase
 from snakeoil.iterables import expandable_chain, caching_iter, iter_sort

@@ -38,7 +38,6 @@ import os
 import sys
 
 from snakeoil.modules import load_any
-from snakeoil.currying import partial
 from snakeoil import compatibility
 
 # There are some demandloaded imports below the definition of demandload.

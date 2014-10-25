@@ -20,7 +20,6 @@ __all__ = ("generic_equality", "reflective_hash", "inject_richcmp_methods_from_c
 
 from collections import deque
 from operator import attrgetter
-import sys
 
 from snakeoil import caching, compatibility
 from snakeoil.currying import partial, post_curry

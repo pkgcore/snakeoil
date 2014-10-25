@@ -32,7 +32,6 @@ should be identical. Because :py:func:`partial` has an implementation in c
 while :py:func:`pre_curry` is python you should use :py:func:`partial` if possible.
 """
 
-from operator import attrgetter
 import sys
 
 from snakeoil import compatibility
