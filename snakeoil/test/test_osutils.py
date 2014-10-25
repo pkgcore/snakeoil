@@ -78,7 +78,7 @@ class NativeReaddirTest(ReaddirCommon):
 
 try:
     # No name "readdir" in module osutils
-    # pylint: disable-msg=E0611
+    # pylint: disable=E0611
     from snakeoil.osutils import _readdir
 except ImportError:
     _readdir = None

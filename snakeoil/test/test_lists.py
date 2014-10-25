@@ -74,7 +74,7 @@ class ChainedListsTest(TestCase):
         cl = self.gen_cl()
         for x in (1, 2, 4, 98, -1, -99, 0):
             # "Statement seems to have no effect"
-            # pylint: disable-msg=W0104
+            # pylint: disable=W0104
             cl[x]
         self.assertRaises(IndexError, cl.__getitem__, 100)
         self.assertRaises(IndexError, cl.__getitem__, -101)

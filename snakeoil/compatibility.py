@@ -44,7 +44,7 @@ if hasattr(sys, 'getPlatform'):
 
 
 # using variable before assignment
-# pylint: disable-msg=E0601
+# pylint: disable=E0601
 
 is_py3k = int(sys.version[0]) == 3
 is_py3k_like = is_py3k or float(sys.version[:3]) >= 2.7

@@ -184,7 +184,7 @@ def gen_test(WeakInstMeta):
     return TestWeakInstMeta
 
 # "Invalid name"
-# pylint: disable-msg=C0103
+# pylint: disable=C0103
 
 TestNativeWeakInstMeta = gen_test(caching.native_WeakInstMeta)
 

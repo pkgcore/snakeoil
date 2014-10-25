@@ -50,7 +50,7 @@ import os
 import stat
 
 # No name '_readdir' in module osutils
-# pylint: disable-msg=E0611
+# pylint: disable=E0611
 
 try:
     from snakeoil.osutils import _readdir as module

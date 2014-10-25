@@ -148,7 +148,7 @@ def native_iflatten_func(l, skip_func):
 
 try:
     # No name "readdir" in module osutils
-    # pylint: disable-msg=E0611
+    # pylint: disable=E0611
     from snakeoil._lists import iflatten_instance, iflatten_func
     cpy_builtin = True
 except ImportError:
