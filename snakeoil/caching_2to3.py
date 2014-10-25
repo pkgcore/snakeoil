@@ -107,6 +107,7 @@ try:
     if not hasattr(lib2to3.refactor, 'MultiprocessRefactoringTool') or \
             ('linux' in sys.platform and not os.access('/dev/shm', os.R_OK|os.W_OK|os.X_OK)):
         raise ImportError()
+    # pylint: disable=unused-import
     import multiprocessing
     # this is to detect python upstream bug 3770
     from _multiprocessing import SemLock
