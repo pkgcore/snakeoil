@@ -1,19 +1,16 @@
 #!/usr/bin/env python
 
-import os
-import sys
-import errno
-import subprocess
-import unittest
+"""Python setuptools modules for building/installing/distributing"""
 
-from distutils import core, ccompiler, log, errors
-from distutils.command import build, sdist, build_ext, build_py, build_scripts
+import os
+
+from distutils import core
 
 from snakeoil import distutils_extensions as snk_distutils
 OptionalExtension = snk_distutils.OptionalExtension
 
-class mysdist(snk_distutils.sdist):
 
+class mysdist(snk_distutils.sdist):
     """sdist command specifying the right files and generating ChangeLog."""
 
     package_namespace = 'snakeoil'
@@ -41,7 +38,6 @@ class snakeoil_build_py(snk_distutils.build_py):
             os.chmod(path, ((mode | 365) & 4095))
 
 
-
 class test(snk_distutils.test):
 
     default_test_namespace = 'snakeoil.test'
@@ -50,17 +46,18 @@ class test(snk_distutils.test):
 packages = [
     root.replace(os.path.sep, '.')
     for root, dirs, files in os.walk('snakeoil')
-    if '__init__.py' in files]
+    if '__init__.py' in files
+]
 
-common_includes=[
+common_includes = [
     'include/snakeoil/heapdef.h',
     'include/snakeoil/common.h',
-    ]
+]
 
 extra_kwargs = dict(
     depends=common_includes,
     include_dirs=['include'],
-    )
+)
 
 extensions = []
 
@@ -80,8 +77,7 @@ if not snk_distutils.is_py3k:
             'snakeoil._formatters', ['src/formatters.c'], **extra_kwargs),
         OptionalExtension(
             'snakeoil.chksum._whirlpool_cdo', ['src/whirlpool_cdo.c'], **extra_kwargs),
-        ]
-    )
+        ])
 
 from snakeoil.version import __version__ as VERSION
 name = 'snakeoil'
@@ -126,4 +122,4 @@ core.setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
     ],
-    )
+)
