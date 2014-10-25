@@ -5,10 +5,8 @@ __all__ = ("compress_data", "decompress_data")
 
 import errno
 import os
-import signal
 import subprocess
 
-from snakeoil import klass
 from snakeoil.weakrefs import WeakRefFinalizer
 
 def _drive_process(args, mode, data):

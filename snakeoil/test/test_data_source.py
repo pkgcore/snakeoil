@@ -1,9 +1,7 @@
 # Copyright: 2006-2011 Brian Harring <ferringb@gmail.com>
 # License: GPL2/BSD
 
-import os
-
-from snakeoil import compatibility, compression, currying, data_source, stringio
+from snakeoil import compatibility, compression, currying, data_source
 from snakeoil.test import TestCase, mixins
 from snakeoil.osutils import pjoin
 

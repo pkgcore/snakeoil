@@ -10,7 +10,6 @@
 import curses
 import os
 import pty
-import sys
 from tempfile import TemporaryFile
 
 from snakeoil.test import SkipTest, TestCase, mk_cpy_loadable_testcase, protect_process

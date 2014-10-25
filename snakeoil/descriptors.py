@@ -4,8 +4,6 @@
 
 """Classes implementing the descriptor protocol."""
 
-from __future__ import print_function
-
 __all__ = ("classproperty",)
 
 

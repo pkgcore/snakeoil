@@ -6,7 +6,6 @@
 import errno
 import mmap
 import os
-from StringIO import StringIO
 
 pjoin = os.path.join
 

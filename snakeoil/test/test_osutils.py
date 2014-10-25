@@ -7,7 +7,7 @@ import grp
 import os
 import stat
 
-from snakeoil import compatibility, osutils
+from snakeoil import osutils
 from snakeoil.test import TestCase, SkipTest, mk_cpy_loadable_testcase
 from snakeoil.osutils import native_readdir
 from snakeoil.test.mixins import TempDirMixin

@@ -1,8 +1,6 @@
 # Copyright: 2010-2011 Brian Harring <ferringb@gmail.com>
 # License: GPL2/BSD 3 clause
 
-import sys
-
 from snakeoil.test import TestCase, mixins
 
 class Test_modules(mixins.PythonNamespaceWalker, TestCase):
