@@ -228,12 +228,12 @@ autodoc_default_flags = ['members', 'show-inheritance', 'inherited-members'] # +
 autosummary_generate = False
 
 rst_epilog = """
-.. |homepage| replace:: http://snakeoil.googlecode.com/
-.. |release_url| replace:: http://code.google.com/p/snakeoil/downloads/
+.. |homepage| replace:: https://github.com/pkgcore/snakeoil
+.. |release_url| replace:: https://github.com/pkgcore/snakeoil/releases
 """ % {"release":release}
 
 extlinks = {
-    'git_tag':('http://code.google.com/p/snakeoil/source/list?name=%s', 'git log '),
-    'git_release':('http://code.google.com/p/snakeoil/downloads/detail?name=snakeoil-%s.tar.bz2',
+    'git_tag':('https://github.com/pkgcore/snakeoil/releases/tag/%s', 'git log '),
+    'git_release':('https://github.com/pkgcore/snakeoil/archive/%s.tar.gz',
         'release download ')
 }

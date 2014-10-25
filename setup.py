@@ -81,7 +81,7 @@ if not snk_distutils.is_py3k:
 
 from snakeoil.version import __version__ as VERSION
 name = 'snakeoil'
-url = 'http://snakeoil.googlecode.com'
+url = 'https://github.com/pkgcore/snakeoil'
 cmdclass = {
     'sdist': mysdist,
     'build_ext': snk_distutils.build_ext,
