@@ -130,11 +130,11 @@ class native_WeakInstMeta(type):
         return instance
 
 # "Invalid name"
-# pylint: disable-msg=C0103
+# pylint: disable=C0103
 
 try:
     # No name in module
-    # pylint: disable-msg=E0611
+    # pylint: disable=E0611
     from snakeoil._caching import WeakInstMeta
     cpy_WeakInstMeta = WeakInstMeta
 except ImportError:

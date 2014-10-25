@@ -10,7 +10,7 @@ from __future__ import print_function
 __all__ = ("WeakValCache", "WeakRefFinalizer")
 
 # Unused import
-# pylint: disable-msg=W0611
+# pylint: disable=W0611
 
 import atexit
 import os
@@ -18,7 +18,7 @@ import sys
 
 try:
     # No name in module
-    # pylint: disable-msg=E0611
+    # pylint: disable=E0611
     from snakeoil._caching import WeakValCache
     from weakref import ref, WeakKeyDictionary
 except ImportError:

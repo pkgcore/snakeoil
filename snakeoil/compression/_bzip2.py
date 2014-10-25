@@ -19,7 +19,7 @@ from snakeoil import process, currying
 from snakeoil.compression import _util
 
 # Unused import
-# pylint: disable-msg=W0611
+# pylint: disable=W0611
 
 # if Bzip2 can't be found, throw an error.
 bz2_path = process.find_binary("bzip2")

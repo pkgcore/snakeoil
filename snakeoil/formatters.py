@@ -31,7 +31,7 @@ class native_StreamClosed(KeyboardInterrupt):
 
 
 # "Invalid name" (for fg and bg methods, too short)
-# pylint: disable-msg=C0103
+# pylint: disable=C0103
 
 
 class Formatter(object):
