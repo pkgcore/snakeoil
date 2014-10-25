@@ -3,7 +3,7 @@ Snakeoil Release Notes
 
 snakeoil trunk:
 
-* Remove pre-python2.6 compat support including iterables.chain_from_iterables
+* Remove pre-python2.7 compat support including iterables.chain_from_iterables
   (use chain.from_iterable from itertools), is_disjoint (use
   isdisjoint), and built-in backports for all, any, and next.
 

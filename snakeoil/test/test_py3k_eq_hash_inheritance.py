@@ -9,10 +9,6 @@ class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker, TestCase):
 
     target_namespace = 'snakeoil'
 
-    if sys.version_info[:2] < (2, 6):
-        skip = "this check doesn't work for pre2.6 python due to differences " \
-            "in object dir results"
-
     singleton = object()
 
     def setUp(self):

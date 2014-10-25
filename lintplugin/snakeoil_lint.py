@@ -138,10 +138,7 @@ class SnakeoilASTRewrites(utils.ASTWalker):
                 node.set_local(mod, new_node)
             else:
                 for name in mod[col+1:].split(','):
-                    if sys.version_info < (2, 5):
-                        new_node = nodes.From(mod[:col], ((name, None),))
-                    else:
-                        new_node = nodes.From(mod[:col], ((name, None),), 0)
+                    new_node = nodes.From(mod[:col], ((name, None),), 0)
                     rebuilder._set_infos(node, new_node, node.parent)
                     #node.frame().add_local_node(newstuff, name)
                     node.set_local(name, new_node)

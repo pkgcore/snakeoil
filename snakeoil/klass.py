@@ -326,7 +326,7 @@ class chained_getter(object):
         :param namespace: python namespace path to try and resolve on target objects
         """
         self.namespace = namespace
-        self.getter = self._mk_getter(namespace)
+        self.getter = attrgetter(namespace)
         if len(self.__fifo_cache__) > 10:
             self.__fifo_cache__.popleft()
         self.__fifo_cache__.append(self)
@@ -336,24 +336,11 @@ class chained_getter(object):
         # via the __eq__, it won't invalidly be the same, but stil..
         return hash(self.namespace)
 
-    if sys.version_info >= (2,6):
-        _mk_getter = attrgetter
-    else:
-        def _mk_getter(namespace):
-            def f(obj, attrs=tuple(attrgetter(x) for x in namespace.split("."))):
-                o = obj
-                for attr in attrs:
-                    o = attr(o)
-                return o
-            return f
-    _mk_getter = staticmethod(_mk_getter)
-
     def __call__(self, obj):
         return self.getter(obj)
 
-static_attrgetter = instance_attrgetter = chained_getter
-if sys.version_info >= (2,6):
-    static_attrgetter = attrgetter
+static_attrgetter = attrgetter
+instance_attrgetter = chained_getter
 
 
 # we suppress the repr since if it's unmodified, it'll expose the id;
