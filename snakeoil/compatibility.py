@@ -2,7 +2,7 @@
 # License: BSD/GPL2
 
 """
-Compatibility functionality for python 2.6 through 3.4
+Compatibility functionality for python 2.7 through 3.4
 
 For those of us still supporting older python versions, we're in a bit of a
 bind- we'd *love* to use the newer python functions but cannot without
@@ -21,7 +21,7 @@ For easing py3k compatibility:
    or py3k
 * :py:data:`is_py3k_like` is a boolean you can rely on to indicate if you're not running
   py3k, but will encounter py3k behaviour- primarily useful for instances where backports
-  of py3k bits into py2.6 and py2.7 have broken previous stdlib behaviour.
+  of py3k bits into py2.7 have broken previous stdlib behaviour.
 * :py:func:`intern` is accessible from here
 * :py:func:`sorted_cmp`, :py:func:`sort_cmp`, :py:func:`cmp` are available for easing
   compatibility across py2k/py3k for comparison and sorting args; these implementations by
