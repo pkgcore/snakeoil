@@ -227,8 +227,7 @@ def make_kls(kls, proxy_base=BaseDelayedObject):
 
 
 def DelayedInstantiation_kls(kls, *a, **kwd):
-    """
-    Wrapper for DelayedInstantiation
+    r"""Wrapper for DelayedInstantiation
 
     This just invokes DelayedInstantiation(kls, kls \*a, \*\*kwd)
 

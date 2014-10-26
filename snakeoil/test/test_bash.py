@@ -100,8 +100,8 @@ class ReadBashDictTest(TestCase):
         self.escaped_file = mk_named_tempfile()
         self.escaped_file.write(
             'end=bye\n'
-            'quoteddollar="\${dollar}"\n'
-            'quotedexpansion="\${${end}}"\n'
+            'quoteddollar="\\${dollar}"\n'
+            'quotedexpansion="\\${${end}}"\n'
             )
         self.escaped_file.flush()
         self.unclosed_file = mk_named_tempfile()

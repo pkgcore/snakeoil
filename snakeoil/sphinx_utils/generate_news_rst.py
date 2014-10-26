@@ -32,7 +32,7 @@ def convert_news(text, project_name, release_extlink=None, git_extlink=None):
     # ReST syntax.
     text = re.sub("\\\\", "\\\\", text)
     def f(match):
-        return match.group(0).replace('_', '\_')
+        return match.group(0).replace('_', '\\_')
     #text = re.sub('((?:[^_]+_)+)(?=[;:.])', f, text)
     text = re.sub('_', '\\_', text)
     text = re.sub('(?<!\n)\*', '\\*', text)
