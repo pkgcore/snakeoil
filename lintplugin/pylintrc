@@ -14,18 +14,12 @@ load-plugins=snakeoil_lint
 
 [REPORTS]
 
-include-ids=yes
 reports=no
 
 
 [MESSAGES CONTROL]
 
 # Disable a bunch of silly checkers.
-#
-# To add to this list run pylint with --include-ids=y so you can see
-# what id the message you want to disable has. To disable a message
-# temporarily pass --disable-msg=id1,id2 (useful for things like
-# docstrings (C0111)).
 
 # * or ** magic: W0142
 # unused argument: W0613
