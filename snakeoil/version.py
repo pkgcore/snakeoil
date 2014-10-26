@@ -44,7 +44,7 @@ def get_git_version(cwd):
 
 
 def _get_git_tag(cwd, rev):
-    stdout, ret = _run(cwd, ['git', 'name-rev', '--tag', rev])
+    stdout, _ret = _run(cwd, ['git', 'name-rev', '--tag', rev])
     tag = stdout.decode("ascii").split()
     if len(tag) != 2:
         return None

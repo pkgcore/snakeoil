@@ -37,7 +37,7 @@ TypeError:
 >>> try:
 ...   handle.write("You wouldn't answer your phone.")
 ... except handle.exceptions as e:
-...   print "we caught the exception."
+...   print("we caught the exception.")
 we caught the exception.
 """
 
@@ -64,8 +64,7 @@ def _mk_writable_cls(base, name):
     """
 
     class kls(base):
-
-        """
+        __doc__ = """
         writable %s StringIO instance suitable for usage as a data_source filehandle
 
         This adds a callback for updating the original data source, and appropriate

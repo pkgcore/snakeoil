@@ -126,7 +126,6 @@ class native_readfile_Test(TempDirMixin):
         fp = pjoin(self.dir, 'nonexistent')
         self.assertRaises(EnvironmentError, self.func, fp)
         self.assertEqual(self.func(fp, True), None)
-        data = self.test_cases[0]
         self.write_file(fp, 'wb', self.convert_data('dar', 'ascii'))
         self.assertEqual(self.func(fp, True),
             self.none_on_missing_ret_data)
@@ -207,7 +206,6 @@ class readlines_mixin(object):
         fp = pjoin(self.dir, 'nonexistent')
         self.assertRaises(EnvironmentError, self.func, fp)
         self.assertEqual(tuple(self.func(fp, False, True)), ())
-        data = self.test_cases[0]
         self.write_file(fp, 'wb', self.convert_data('dar', 'ascii'))
         self.assertEqual(tuple(self.func(fp, True)),
             (self.none_on_missing_ret_data,))

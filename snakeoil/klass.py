@@ -625,7 +625,7 @@ def alias_method(attr, name=None, doc=None):
         return grab_attr(self)(*a, **kw)
 
     if doc is None:
-      doc = "Method alias to invoke :py:meth:`%s`." % (attr,)
+        doc = "Method alias to invoke :py:meth:`%s`." % (attr,)
 
     _asecond_level_call.__doc__ = doc
     if name:

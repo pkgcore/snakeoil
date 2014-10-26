@@ -49,7 +49,7 @@ class readlines_iter(object):
         # we explicitly write this to force this method to be
         # a generator; we intend to return nothing, but close
         # the file on the way out.
-        for x in ():
+        for _ in ():
             yield None
         self.source.close()
         raise StopIteration()

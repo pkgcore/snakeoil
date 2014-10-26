@@ -158,11 +158,6 @@ def gen_test(WeakInstMeta):
                 __inst_caching__ = True
                 __slots__ = ('one', '__weakref__')
 
-            class Cached(ExistingWeakrefSlot):
-                __metaclass__ = WeakInstMeta
-                __inst_caching__ = True
-                __slots__ = ()
-
             self.assertTrue(ExistingWeakrefSlot())
 
         def test_weakref(self):
@@ -172,7 +167,7 @@ def gen_test(WeakInstMeta):
             # make sure it's only strong reffed
             self.assertEqual(weak_inst.counter, 1)
             self.assertLen(gc.get_referrers(o), 1)
-            myid = id(o)
+            _myid = id(o)
             del o
             o = weak_inst(unique)
             self.assertEqual(weak_inst.counter, 2)
