@@ -17,8 +17,9 @@ import itertools
 import mmap
 import os
 
-from snakeoil import compatibility, demandload
-demandload.demandload(
+from snakeoil import compatibility
+from snakeoil.demandload import demandload
+demandload(
     globals(),
     'codecs',
 )
