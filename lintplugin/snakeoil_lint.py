@@ -3,7 +3,7 @@
 
 from __future__ import print_function
 import sys
-import __builtin__
+import __builtin__ as builtins
 
 from pylint import interfaces, checkers
 if hasattr(interfaces, 'IASTNGChecker'):
@@ -103,7 +103,7 @@ class SnakeoilASTRewrites(utils.ASTWalker):
     # Wipe the shadowing we still allow for >=py2.5 compat.
     ignore_shadowing = frozenset(
         x for x in ('intern', 'cmp', 'next')
-        if x not in dir(__builtin__))
+        if x not in dir(builtins))
 
     def __init__(self, linter):
         utils.ASTWalker.__init__(self, self)
