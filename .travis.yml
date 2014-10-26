@@ -1,3 +1,5 @@
+# config linter: https://lint.travis-ci.org/
+
 language: python
 python:
     - 2.7
@@ -7,12 +9,13 @@ python:
 install: pip install pytest-cov coveralls pylint logilab-astng
 script:
     - python setup.py install --install-headers "${VIRTUAL_ENV}"/include/snakeoil
-    - export PYTHONPATH="$(ls -d build/lib*):${PYTHONPATH}"
+    - pushd build/lib*
     - py.test -v --cov-config .coveragerc --cov snakeoil snakeoil
+    - popd
 after_success:
     # upload coverage data to coveralls.io
     - coveralls
 
     # run pylint checks
     - if [[ ${TRAVIS_PYTHON_VERSION} == 3* ]]; then 2to3 -wn lintplugin/*.py; fi
-    - ./pylint -f colorized --reports y snakeoil
+    - ./pylint -f colorized --reports y build/lib*/snakeoil
