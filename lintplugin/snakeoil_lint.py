@@ -17,6 +17,13 @@ except ImportError:
           'installed: dev-python/astng', file=sys.stderr)
     raise
 
+try:
+    import astroid
+except ImportError:
+    print('ERROR: could not import astroid; make sure that package is '
+          'installed: dev-python/astroid', file=sys.stderr)
+    raise
+
 
 class SnakeoilChecker(checkers.BaseChecker):
     """Custom snakeoil linter checks."""
@@ -141,7 +148,8 @@ class SnakeoilASTRewrites(utils.ASTWalker):
         if len(node.args) < 2:
             self.linter.add_message('WPC01', line=node.fromlineno)
             return
-        if not isinstance(node.args[1], nodes.Const):
+        if (not isinstance(node.args[1], nodes.Const) and
+                not isinstance(node.args[1], astroid.Const)):
             self.linter.add_message('WPC02', line=node.fromlineno)
             return
         if node.args[1].value.find(" ") != -1:
