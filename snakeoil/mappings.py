@@ -746,7 +746,7 @@ def native_attr_update(self, iterable):
         setattr(self, k, v)
 
 def native_attr_contains(self, key):
-     return hasattr(self, key)
+    return hasattr(self, key)
 
 # python issue 7604; depending on the python version, delattr'ing an empty slot
 # doesn't throw AttributeError; we vary our implementation for efficiency
@@ -774,13 +774,13 @@ except AttributeError:
 else:
     # doesn't throw the exception; double lookup, getattr, than delattr.
     def native_attr_delitem(self, key):
-         # Python does not raise anything if you delattr an
-         # unset slot (works ok if __slots__ is not involved).
-         try:
-             getattr(self, key)
-         except AttributeError:
-             raise KeyError(key)
-         delattr(self, key)
+        # Python does not raise anything if you delattr an
+        # unset slot (works ok if __slots__ is not involved).
+        try:
+            getattr(self, key)
+        except AttributeError:
+            raise KeyError(key)
+        delattr(self, key)
 
 # cleanup the test class.
 del foo

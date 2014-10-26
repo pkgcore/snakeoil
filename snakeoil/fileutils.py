@@ -113,7 +113,7 @@ class AtomicWriteFile_mixin(object):
         """
         self._is_finalized = True
         if binary:
-           file_mode = "wb"
+            file_mode = "wb"
         else:
             file_mode = "w"
         self._computed_mode = file_mode
