@@ -34,6 +34,7 @@ reports=no
 # is hardcoded): C0203
 # Except doesn't do anything (just "pass" in an except clause): W0704
 # Missing docstring: C0111
+# Similar lines in files: R0801
 # Too many return statements: R0911
 # Too many branches: R0912
 # Too many local variables: R0914
@@ -42,7 +43,7 @@ reports=no
 # Abstract class only referenced n times: R0922
 # Line too long: C0301
 # Invalid name: C0303
-disable=W0142,W0613,R0901,R0903,R0904,R0201,I0011,I0012,W0223,C0203,W0704,C0111,R0911,R0912,R0914,R0915,R0921,R0922,C0301,W0621,W0622,C0103
+disable=W0142,W0613,R0901,R0903,R0904,R0201,I0011,I0012,W0223,C0203,W0704,C0111,R0801,R0911,R0912,R0914,R0915,R0921,R0922,C0301,W0621,W0622,C0103
 
 
 [BASIC]
