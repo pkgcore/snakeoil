@@ -11,5 +11,9 @@ script:
     - py.test -v --cov-config ../../.coveragerc --cov snakeoil snakeoil
     - popd
 after_success:
+    # upload coverage data to coveralls.io
     - coveralls
-    - ./pylint -f colorized --reports y snakeoil
+
+    # run pylint checks
+    - [[ ${TRAVIS_PYTHON_VERSION} == 3* ]] && 2to3 -wn lintplugin/*.py
+    - PYTHONPATH="$(ls -d build/lib*):${PYTHONPATH}" ./pylint -f colorized --reports y snakeoil
