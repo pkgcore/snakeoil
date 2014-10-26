@@ -57,7 +57,7 @@ class ModulesTest(TestCase):
             modules.FailedImport, modules.load_module, '__not_there')
 
         # "Unable to import"
-        # pylint: disable-msg=F0401
+        # pylint: disable=F0401
 
         # unimported toplevel module
         modtest1 = modules.load_module('mod_test1')
@@ -75,7 +75,7 @@ class ModulesTest(TestCase):
         myfoo = modules.load_attribute('mod_testpack.mod_test2.foo')
 
         # "Unable to import"
-        # pylint: disable-msg=F0401
+        # pylint: disable=F0401
 
         from mod_testpack.mod_test2 import foo
         self.assertIdentical(foo, myfoo)
@@ -106,7 +106,7 @@ class ModulesTest(TestCase):
         myfoo = modules.load_any('mod_testpack.mod_test2.foo')
 
         # "Unable to import"
-        # pylint: disable-msg=F0401
+        # pylint: disable=F0401
 
         from mod_testpack.mod_test2 import foo
         self.assertIdentical(foo, myfoo)

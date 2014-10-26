@@ -442,7 +442,7 @@ class _sphinx_missing(cmd.Command):
 
 def sphinx_build_docs():
     try:
-        import sphinx
+        import sphinx # pylint: disable=unused-variable
     except ImportError:
         return _sphinx_missing
 

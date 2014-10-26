@@ -7,7 +7,7 @@ import grp
 import os
 import stat
 
-from snakeoil import compatibility, osutils
+from snakeoil import osutils
 from snakeoil.test import TestCase, SkipTest, mk_cpy_loadable_testcase
 from snakeoil.osutils import native_readdir
 from snakeoil.test.mixins import TempDirMixin
@@ -78,7 +78,7 @@ class NativeReaddirTest(ReaddirCommon):
 
 try:
     # No name "readdir" in module osutils
-    # pylint: disable-msg=E0611
+    # pylint: disable=E0611
     from snakeoil.osutils import _readdir
 except ImportError:
     _readdir = None

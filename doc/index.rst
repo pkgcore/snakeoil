@@ -17,7 +17,7 @@ Snakeoil's naming was chosen partially as a python analog of `liboil <http://lib
 on the common meaning of `Snake Oil <http://en.wikipedia.org/wiki/Snake_oil>`_; specifically
 a supposed miracle cure that has no effect.  To be clear, this package `does` have some
 very powerful functionality and optimizations available, and its usage is well known to speed
-things up: the `pkgcore <http://pkgcore.googlecode.com>`_ package manager from which this
+things up: the `pkgcore <https://github.com/pkgcore/pkgcore>`_ package manager from which this
 library was derived, makes heavy usage of these optimizations- further in a simple test usage
 of :py:class:`snakeoil.caching.WeakInstMeta` to `portage <http://www.gentoo.org/proj/en/portage/>`_'s Atom class,
 ``emerge -ep system`` was sped up by 7% with a 20% memory reduction- specifically via just adding
@@ -51,7 +51,7 @@ For IRC, the core developers are generally accessible for bugs/questions via `th
 Getting the source (downloading releases or trunk)
 --------------------------------------------------
 
-Snakeoil vcs of choice is `git <http://git.scm.org/>`_, and our source can be checked out at https://code.google.com/p/snakeoil
+Snakeoil vcs of choice is `git <http://git.scm.org/>`_, and our source can be checked out at https://github.com/pkgcore/snakeoil
 
 All releases are available at |release_url|\., with release news available at :ref:`releases`\.
 
@@ -104,14 +104,10 @@ Supporting multiple python versions can be a pain
 
 Another facet of snakeoil functionality is python compatibility- already mentioned was
 :py:class:`snakeoil.mappings.autoconvert_py3k_methods_metaclass`, :py:mod:`snakeoil.compatibility`
-is a separate module that exists to address compatibility issues across py2.4 to py3.4- whether it
-be intern moving to sys.intern, needing to specify that a string must be bytes in py3k (but
-supporting python 2.4/2.5, which lack the bytes syntax) via
-:py:func:`snakeoil.compatibility.force_bytes`, there is a significant amount of functionality in
+is a separate module that exists to address compatibility issues across py2.7 to py3.4- whether it
+be intern moving to sys.intern, there is a significant amount of functionality in
 there to help with these issues.  Note that compatibility functionality that goes into that module
-isn't the only compatibility bits- that's just the general grab bag for it.  :py:class:`defaultdict`
-for example lives in mappings, a fallback version of :py:func:`operator.attrgetter` that provides
-dotted namespace lookup in py2.4/py2.5 is available at :py:func:`static_attrgetter`.
+isn't the only compatibility bits- that's just the general grab bag for it.
 :py:mod:`snakeoil.currying` is another example (primarily targeting :py:class:`functools.partial`,
 although providing more functionality than just that limited usage).
 

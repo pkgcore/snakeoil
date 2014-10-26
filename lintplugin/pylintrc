@@ -1,19 +1,24 @@
-# First cut at a pylintrc to match snakeoil's (and pkgcore's) coding style.
+# pylintrc to match snakeoil's (and pkgcore's) coding style.
 #
-# Use like "pylint --rcfile=lintplugin/pylintrc snakeoil".
-#
-# This version was written by marienz, which means it is probably not
-# accurate.
+# Use "./pylint" helper to load things sanely.
 
 
-[master]
+[MASTER]
 
 # Ignore external modules.
 ignore=demandload.py,bundled_elementtree.py,native_readdir.py
+
+# Load our custom lint modules.
 load-plugins=snakeoil_lint
 
 
 [REPORTS]
+
+include-ids=yes
+reports=no
+
+
+[MESSAGES CONTROL]
 
 # Disable a bunch of silly checkers.
 #
@@ -28,7 +33,8 @@ load-plugins=snakeoil_lint
 # not enough pub methods: R0903
 # too many pub methods: R0904
 # method could be a function: R0201
-# mention what is locally disabled (I0011)
+# mention what is locally disabled: I0011
+# mention what is locally enabled: I0012
 # abstract method not overridden: W0223
 # Metaclass should have "mcs" as first argument (we use "cls", string
 # is hardcoded): C0203
@@ -42,15 +48,8 @@ load-plugins=snakeoil_lint
 # Abstract class only referenced n times: R0922
 # Line too long: C0301
 # Invalid name: C0303
-disable-msg=W0142,W0613,R0901,R0903,R0904,R0201,I0011,W0223,C0203,W0704,C0111,R0911,R0912,R0914,R0915,R0921,R0922,C0301,W0621,W0622,C0103
+disable=W0142,W0613,R0901,R0903,R0904,R0201,I0011,I0012,W0223,C0203,W0704,C0111,R0911,R0912,R0914,R0915,R0921,R0922,C0301,W0621,W0622,C0103
 
-include-ids=yes
-reports=no
-
-
-[MESSAGES CONTROL]
-# Newer pylints use this one. Keep both locations in sync for now.
-disable-msg=W0142,W0613,R0901,R0903,R0904,R0201,I0011,W0223,C0203,W0704,C0111,R0911,R0912,R0914,R0915,R0921,R0922,C0301,W0621,W0622,C0103
 
 [BASIC]
 
@@ -89,6 +88,7 @@ good-names=d,e,i,j,ex,_,setUp,tearDown,force_True,force_False,f
 # "bad" builtins.
 # Was: map,filter,apply,input
 bad-functions=filter,apply,input
+
 
 [VARIABLES]
 

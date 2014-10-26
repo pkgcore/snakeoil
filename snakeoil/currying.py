@@ -32,7 +32,6 @@ should be identical. Because :py:func:`partial` has an implementation in c
 while :py:func:`pre_curry` is python you should use :py:func:`partial` if possible.
 """
 
-from operator import attrgetter
 import sys
 
 from snakeoil import compatibility
@@ -79,7 +78,7 @@ class native_partial(object):
         return self.func(*(self.args + moreargs), **kw)
 
 # Unused import, unable to import
-# pylint: disable-msg=W0611,F0401
+# pylint: disable=W0611,F0401
 try:
     from functools import partial
 except ImportError:

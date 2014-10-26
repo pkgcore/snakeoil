@@ -25,6 +25,8 @@
 ##
 ## This Python implementation is therefore also placed in the public domain.
 
+# pylint: disable=bad-continuation,bad-whitespace
+
 import sys
 if sys.hexversion >= 0x3000000:
     xrange = range

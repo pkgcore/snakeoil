@@ -64,7 +64,7 @@ def init(additional_handlers=None):
     :param additional_handlers: None, or pass in a dict of type:func
     """
 
-    global __inited__
+    global __inited__ # pylint: disable=global-statement
 
     if additional_handlers is not None and not isinstance(
         additional_handlers, dict):

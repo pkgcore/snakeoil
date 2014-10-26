@@ -6,7 +6,7 @@ from operator import itemgetter
 
 from snakeoil.test import TestCase
 from snakeoil import compatibility
-from snakeoil.currying import post_curry
+
 
 class override_mixin(object):
 

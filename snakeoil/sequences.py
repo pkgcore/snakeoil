@@ -3,6 +3,7 @@
 
 from operator import itemgetter
 
+# pylint: disable=wildcard-import,unused-wildcard-import
 from snakeoil.lists import *
 
 

@@ -123,7 +123,7 @@ class LazyValDictTestMixin(object):
 
     def test_caching(self):
         # "Statement seems to have no effect"
-        # pylint: disable-msg=W0104
+        # pylint: disable=W0104
         self.dict[11]
         self.dict[11]
         self.assertEqual(self.negate_calls, [11])

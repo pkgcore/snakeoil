@@ -1,17 +1,12 @@
 # Copyright: 2010-2011 Brian Harring <ferringb@gmail.com>
 # License: GPL2/BSD 3 clause
 
-import sys
+from snakeoil.test import mixins, TestCase
 
-from snakeoil.test import mixins, TestCase, test_demandload_usage
 
 class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker, TestCase):
 
     target_namespace = 'snakeoil'
-
-    if sys.version_info[:2] < (2, 6):
-        skip = "this check doesn't work for pre2.6 python due to differences " \
-            "in object dir results"
 
     singleton = object()
 

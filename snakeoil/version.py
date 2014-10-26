@@ -81,7 +81,7 @@ def format_version(project, file_in_the_repo, api_version):
 
 def get_version():
     """:return: a string describing the snakeoil version."""
-    global _ver
+    global _ver # pylint: disable=global-statement
     if _ver is None:
         _ver = format_version('snakeoil', __file__, __version__)
     return _ver

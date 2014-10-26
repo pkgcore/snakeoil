@@ -1,9 +1,6 @@
 # Copyright: 2006-2011 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
-
-import operator
-
 from snakeoil.test import TestCase
 from snakeoil import obj
 

@@ -6,7 +6,6 @@
 import errno
 import mmap
 import os
-from StringIO import StringIO
 
 pjoin = os.path.join
 
@@ -174,7 +173,7 @@ class native_readfile_utf8_strict_Test(native_readfile_Test):
         u'\ua000fa',
         ]
 
-class cpy_readfile_utf8_Test(native_readfile_utf8_Test):
+class cpy_readfile_utf8_strict_Test(native_readfile_utf8_Test):
     cpy_setup_class(locals(), 'readfile_utf8_strict')
 
 class native_readfile_bytes_Test(native_readfile_Test):

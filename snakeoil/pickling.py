@@ -12,6 +12,7 @@ __all__ = ("iter_stream", "dump_stream", "PickleError", "PicklingError",
     "UnpicklingError", "Pickler", "Unpickler", "dump", "dumps", "load", "loads",
     )
 
+# pylint: disable=wildcard-import,unused-wildcard-import
 try:
     from cPickle import *
 except ImportError:
