@@ -11,14 +11,7 @@ if hasattr(interfaces, 'IASTNGChecker'):
     exit(1)
 
 try:
-    from logilab.astng import nodes, utils, Getattr, CallFunc, rebuilder
-except ImportError:
-    print('ERROR: could not import logilab.astng; make sure that package is '
-          'installed: dev-python/astng', file=sys.stderr)
-    raise
-
-try:
-    import astroid
+    from astroid import nodes, utils, Getattr, CallFunc, rebuilder
 except ImportError:
     print('ERROR: could not import astroid; make sure that package is '
           'installed: dev-python/astroid', file=sys.stderr)
@@ -148,8 +141,7 @@ class SnakeoilASTRewrites(utils.ASTWalker):
         if len(node.args) < 2:
             self.linter.add_message('WPC01', line=node.fromlineno)
             return
-        if (not isinstance(node.args[1], nodes.Const) and
-                not isinstance(node.args[1], astroid.Const)):
+        if not isinstance(node.args[1], nodes.Const):
             self.linter.add_message('WPC02', line=node.fromlineno)
             return
         if node.args[1].value.find(" ") != -1:
@@ -185,10 +177,10 @@ def register(linter):
 
     rewriter = SnakeoilASTRewrites(linter)
     # XXX HACK: monkeypatch the linter to transform the tree before
-    # the astng checkers get at it.
+    # the astroid checkers get at it.
     #
     # Why do we do this? Because a whole bunch of places work with
-    # copies of astng data, not the data itself, by the time a normal
+    # copies of astroid data, not the data itself, by the time a normal
     # checker runs it is too late to manipulate the data reliably. And
     # pylint does not provide a hook that gets run at the right point
     # to do this tree rewriting. So we monkeypatch in the hook.
@@ -197,11 +189,11 @@ def register(linter):
     #
     # linter.register_preprocessor(rewriter)
     #
-    # and the linter would call walk(astng) on everything registered
-    # that way before the IASTNGCheckers run (not sure if it should be
-    # before or after the raw checkers run, probably does not matter).
-    # Perhaps give those preprocessors a priority attribute too.
-    # Definitely give them a msgs attribute.
+    # and the linter would call walk(astroid) on everything registered that way
+    # before the internal astroid checkers run (not sure if it should be before
+    # or after the raw checkers run, probably does not matter). Perhaps give
+    # those preprocessors a priority attribute too. Definitely give them a msgs
+    # attribute.
 
     original_check_astroid_module = linter.check_astroid_module
     def snakeoil_check_astroid_module(astroid, *args):
