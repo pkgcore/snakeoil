@@ -91,7 +91,7 @@ if __name__ == "__main__":
                 print("import %s " % args[0])
             print(time.time())
             #traceback.print_stack(file=sys.stdout)
-            print
+            print()
 
 
     path = args[0]

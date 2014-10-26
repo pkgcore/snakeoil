@@ -37,7 +37,7 @@ TypeError:
 >>> try:
 ...   handle.write("You wouldn't answer your phone.")
 ... except handle.exceptions as e:
-...   print "we caught the exception."
+...   print("we caught the exception.")
 we caught the exception.
 """
 
