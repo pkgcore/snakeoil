@@ -4,9 +4,12 @@ python:
     - 3.2
     - 3.3
     - 3.4
-install: pip install pytest-cov coveralls
+install: pip install pytest-cov coveralls pylint
 script:
     - python setup.py install --install-headers "${VIRTUAL_ENV}"/include/snakeoil
-    - cd build/lib*
+    - pushd build/lib*
     - py.test -v --cov-config ../../.coveragerc --cov snakeoil snakeoil
-after_success: coveralls
+    - popd
+after_success:
+    - coveralls
+    - ./pylint -f colorized --reports y snakeoil
