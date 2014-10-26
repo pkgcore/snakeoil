@@ -102,7 +102,7 @@ class SnakeoilASTRewrites(utils.ASTWalker):
 
     # Wipe the shadowing we still allow for >=py2.5 compat.
     ignore_shadowing = frozenset(
-        x for x in ('intern', 'cmp', 'next')
+        x for x in ('intern', 'cmp')
         if x not in dir(builtins))
 
     def __init__(self, linter):
