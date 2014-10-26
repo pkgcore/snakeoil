@@ -14,5 +14,5 @@ after_success:
     - coveralls
 
     # run pylint checks
-    - [[ ${TRAVIS_PYTHON_VERSION} == 3* ]] && 2to3 -wn lintplugin/*.py
+    - if [[ ${TRAVIS_PYTHON_VERSION} == 3* ]]; then 2to3 -wn lintplugin/*.py; fi
     - ./pylint -f colorized --reports y snakeoil
