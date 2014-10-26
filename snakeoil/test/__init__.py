@@ -343,11 +343,3 @@ def protect_process(functor, name=None):
             setattr(_inner_run, x, getattr(functor, x))
     method_name = getattr(functor, '__name__', None)
     return _inner_run
-
-def protect_process2(test_name):
-    def f(functor):
-        return protect_process(functor, test_name)
-    for x in "skip todo __doc__ __name__".split():
-        if hasattr(functor, x):
-            setattr(f, x, getattr(functor, x))
-    return f
