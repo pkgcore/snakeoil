@@ -12,12 +12,14 @@ Compatibility code, preferring cElementTree, falling back as necessary.
 
 etree = None
 try:
+    # pylint: disable=import-error
     import cElementTree as etree
 except ImportError:
     pass
 
 if etree is None:
     try:
+        # pylint: disable=import-error
         from xml.etree import cElementTree as etree
         if not hasattr(etree, 'parse'):
             etree = None
@@ -26,12 +28,14 @@ if etree is None:
 
 if etree is None:
     try:
+        # pylint: disable=import-error
         from elementtree import ElementTree as etree
     except ImportError:
         pass
 
 if etree is None:
     try:
+        # pylint: disable=import-error
         from xml.etree import cElementTree as etree
         if not hasattr(etree, 'parse'):
             etree = None
@@ -40,6 +44,7 @@ if etree is None:
 
 if etree is None:
     try:
+        # pylint: disable=import-error
         from xml.etree import ElementTree as etree
     except ImportError:
         pass

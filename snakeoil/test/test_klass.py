@@ -433,6 +433,7 @@ class Test_native_jit_attr(TestCase):
         obj = self.mk_inst(singleton=puker_singleton)
         obj._attr = puker_singleton
         # force attr access. if it's done wrong, it'll puke.
+        # pylint: disable=pointless-statement
         obj.attr
 
     def test_cached_property(self):

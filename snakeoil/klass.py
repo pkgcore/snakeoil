@@ -40,6 +40,7 @@ def native_contains(self, key):
     return True if key is in self, False otherwise
     """
     try:
+        # pylint: disable=pointless-statement
         self[key]
         return True
     except KeyError:
@@ -152,6 +153,7 @@ class _native_internal_jit_attr(object):
 
 
 try:
+    # pylint: disable=unused-import
     from snakeoil._klass import (
         GetAttrProxy, contains, get,
         generic_eq as generic_attr_eq, generic_ne as generic_attr_ne,
