@@ -46,7 +46,7 @@ class SnakeoilChecker(checkers.BaseChecker):
         'CPC02': ('trailing whitespace', 'trailing whitespace sucks.',
                   _MessageCPC02),
         'WPC01': ('demandload with arglen < 2 ignored',
-                  'A call which is probably a demandload has too little'
+                  'A call which is probably a demandload has too little '
                   'arguments.',
                   _MessageWPC01),
         'WPC02': ('demandload with non-string-constant arg ignored',
@@ -55,7 +55,7 @@ class SnakeoilChecker(checkers.BaseChecker):
                   'with the dumb checker.',
                   _MessageWPC02),
         'WPC03': ('old-style demandload call',
-                  'A call which uses the old way of callling demandload,'
+                  'A call which uses the old way of callling demandload, '
                   'with spaces.',
                   _MessageWPC03),
         'WPC04': ('non new-style class',
