@@ -7,13 +7,12 @@ python:
 install: pip install pytest-cov coveralls pylint logilab-astng
 script:
     - python setup.py install --install-headers "${VIRTUAL_ENV}"/include/snakeoil
-    - pushd build/lib*
-    - py.test -v --cov-config ../../.coveragerc --cov snakeoil snakeoil
-    - popd
+    - export PYTHONPATH="$(ls -d build/lib*):${PYTHONPATH}"
+    - py.test -v --cov-config .coveragerc --cov snakeoil snakeoil
 after_success:
     # upload coverage data to coveralls.io
     - coveralls
 
     # run pylint checks
     - [[ ${TRAVIS_PYTHON_VERSION} == 3* ]] && 2to3 -wn lintplugin/*.py
-    - PYTHONPATH="$(ls -d build/lib*):${PYTHONPATH}" ./pylint -f colorized --reports y snakeoil
+    - ./pylint -f colorized --reports y snakeoil
