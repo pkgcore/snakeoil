@@ -213,8 +213,7 @@ class ChainedLists(object):
             if idx < l2:
                 return l[idx]
             idx -= l2
-        else:
-            raise IndexError
+        raise IndexError
 
     def __setitem__(self, idx, val):
         raise TypeError("not mutable")
