@@ -64,8 +64,7 @@ def _mk_writable_cls(base, name):
     """
 
     class kls(base):
-
-        """
+        __doc__ = """
         writable %s StringIO instance suitable for usage as a data_source filehandle
 
         This adds a callback for updating the original data source, and appropriate
