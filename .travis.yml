@@ -11,10 +11,10 @@ script:
     - python setup.py install --install-headers "${VIRTUAL_ENV}"/include/snakeoil
     - pushd build/lib*
     - py.test -v --cov-config .coveragerc --cov snakeoil snakeoil
-    - popd
 after_success:
     # upload coverage data to coveralls.io
     - coveralls
+    - popd
 
     # run pylint checks
     - if [[ ${TRAVIS_PYTHON_VERSION} == 3* ]]; then 2to3 -wn lintplugin/*.py; fi
