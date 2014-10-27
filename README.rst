@@ -1,3 +1,10 @@
+.. image:: https://travis-ci.org/pkgcore/snakeoil.svg?branch=master
+    :target: https://travis-ci.org/pkgcore/snakeoil
+
+.. image:: https://coveralls.io/repos/pkgcore/snakeoil/badge.png?branch=master
+    :target: https://coveralls.io/r/pkgcore/snakeoil?branch=master
+
+
 ========
 snakeoil
 ========
