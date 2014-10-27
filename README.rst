@@ -4,6 +4,9 @@
 .. image:: https://coveralls.io/repos/pkgcore/snakeoil/badge.png?branch=master
     :target: https://coveralls.io/r/pkgcore/snakeoil?branch=master
 
+.. image:: https://landscape.io/github/pkgcore/snakeoil/master/landscape.png
+   :target: https://landscape.io/github/pkgcore/snakeoil/master
+
 
 ========
 snakeoil
