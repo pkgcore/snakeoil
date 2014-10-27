@@ -16,9 +16,6 @@ after_success:
     # upload coverage data to coveralls.io
     - coveralls
 
-    # force pylint testing against the installed module
-    - rm -rf build snakeoil
-
     # run pylint checks
     - if [[ ${TRAVIS_PYTHON_VERSION} == 3* ]]; then 2to3 -wn lintplugin/*.py; fi
-    - ./pylint -f colorized --reports y snakeoil
+    - ./pylint -f colorized --reports y build/lib*/snakeoil
