@@ -163,6 +163,7 @@ class BaseDelayedObject(object):
         locals()[x] = klass.alias_method(
             "__obj__.%s" % (x,),
             doc=getattr(getattr(object, x), '__doc__', None))
+    # pylint: disable=undefined-loop-variable
     del x
 
 

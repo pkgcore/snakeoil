@@ -256,6 +256,7 @@ for k, v, str_size in (
             "Crypto.Hash.%s.new" % v), str_size)
     except modules.FailedImport:
         pass
+# pylint: disable=undefined-loop-variable
 del k, v
 
 

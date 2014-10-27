@@ -113,4 +113,5 @@ tarfile.TarFile.tarinfo = TarInfo
 
 for x in tarfile.__all__:
     locals()[x] = getattr(tarfile, x)
+# pylint: disable=undefined-loop-variable
 del x

@@ -94,6 +94,7 @@ for chf_type, expected in checksums.iteritems():
         (ChksumTest, TestCase),
         dict(chf_type=chf_type, expected_long=expectedsum, expected_str=expectedstr))
 
+# pylint: disable=undefined-loop-variable
 del chf_type, expected
 
 
