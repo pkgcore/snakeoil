@@ -17,9 +17,8 @@ __all__ = (
 from collections import deque
 from itertools import imap, chain, ifilterfalse, izip
 import operator
-import sys
 
-from snakeoil.klass import get, contains, steal_docs, alias_method
+from snakeoil.klass import get, contains, steal_docs
 from snakeoil import compatibility
 cmp = compatibility.cmp
 
