@@ -7,14 +7,14 @@ from snakeoil.test import TestCase, mk_cpy_loadable_testcase
 from snakeoil import caching
 
 
-def gen_test(caching.WeakInstMeta):
+def gen_test(WeakInstMeta):
     class weak_slotted(object):
-        __metaclass__ = caching.WeakInstMeta
+        __metaclass__ = WeakInstMeta
         __inst_caching__ = True
         __slots__ = ('one',)
 
     class weak_inst(object):
-        __metaclass__ = caching.WeakInstMeta
+        __metaclass__ = WeakInstMeta
         __inst_caching__ = True
         counter = 0
         def __new__(cls, *args, **kwargs):
