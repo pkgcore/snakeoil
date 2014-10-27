@@ -41,7 +41,7 @@ help:
 clean:
 	-rm -rf $(BUILDDIR) api
 
-generated: api news
+generated: api
 
 api:
 	@echo "autogenerating api rsts..."
@@ -50,10 +50,6 @@ api:
 	@for fn in `cat public_modules.txt`; \
 		do echo $${fn} api/$${fn}.rst; \
 	done | $(PYTHON) -m snakeoil.sphinx_utils.generate_api_rsts
-
-news:
-	@echo "autogenerating news.rst..."
-	$(PYTHON) -m snakeoil.sphinx_utils.generate_news_rst snakeoil ../NEWS news.rst 'git_release' 'git_tag'
 
 html: generated
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html

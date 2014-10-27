@@ -8,4 +8,3 @@ snakeoil/osutils/*.so
 _trial_temp
 /doc/_build
 /doc/api
-/doc/news.rst
