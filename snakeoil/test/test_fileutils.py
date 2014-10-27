@@ -291,8 +291,8 @@ class TestBrokenStats(TestCase):
         func_data = func(path)
         if split_it:
             func_data = list(func_data)
-            data = filter(None, data.split('\n'))
-            func_data = filter(None, func_data)
+            data = [x for x in data.split('\n') if x]
+            func_data = [x for x in func_data if x]
 
         self.assertEqual(func_data, data)
 
