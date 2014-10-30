@@ -1,3 +1,5 @@
+|test| |coverage| |docs|
+
 ========
 snakeoil
 ========
@@ -49,11 +51,10 @@ python setup.py install
 
 .. _`issue tracker`: https://github.com/pkgcore/snakeoil/issues
 
-
-.. image:: https://travis-ci.org/pkgcore/snakeoil.svg?branch=master
+.. |test| image:: https://travis-ci.org/pkgcore/snakeoil.svg?branch=master
     :target: https://travis-ci.org/pkgcore/snakeoil
 
-.. image:: https://coveralls.io/repos/pkgcore/snakeoil/badge.png?branch=master
+.. |coverage| image:: https://coveralls.io/repos/pkgcore/snakeoil/badge.png?branch=master
     :target: https://coveralls.io/r/pkgcore/snakeoil?branch=master
 
 .. |docs| image:: https://readthedocs.org/projects/docs/badge/?version=latest
