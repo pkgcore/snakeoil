@@ -1,13 +1,3 @@
-.. image:: https://travis-ci.org/pkgcore/snakeoil.svg?branch=master
-    :target: https://travis-ci.org/pkgcore/snakeoil
-
-.. image:: https://coveralls.io/repos/pkgcore/snakeoil/badge.png?branch=master
-    :target: https://coveralls.io/r/pkgcore/snakeoil?branch=master
-
-.. image:: https://landscape.io/github/pkgcore/snakeoil/master/landscape.png
-   :target: https://landscape.io/github/pkgcore/snakeoil/master
-
-
 ========
 snakeoil
 ========
@@ -58,3 +48,15 @@ python setup.py install
 
 
 .. _`issue tracker`: https://github.com/pkgcore/snakeoil/issues
+
+
+.. image:: https://travis-ci.org/pkgcore/snakeoil.svg?branch=master
+    :target: https://travis-ci.org/pkgcore/snakeoil
+
+.. image:: https://coveralls.io/repos/pkgcore/snakeoil/badge.png?branch=master
+    :target: https://coveralls.io/r/pkgcore/snakeoil?branch=master
+
+.. |docs| image:: https://readthedocs.org/projects/docs/badge/?version=latest
+    :alt: Documentation Status
+    :scale: 100%
+    :target: https://readthedocs.org/projects/docs/
