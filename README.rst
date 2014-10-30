@@ -20,9 +20,9 @@ Tests
 
 A standalone test runner is integrated in setup.py; to run, just execute
 setup.py test
-Aside from that, our runner of choice is twisteds trial; ran via-
+Aside from that, our runner of choice is twisteds trial; ran via::
 
-trial snakeoil
+    trial snakeoil
 
 if you're doing development, trial is significantly friendlier; the
 standalone runner is designed to be used mainly for installations of
@@ -32,21 +32,21 @@ snakeoil, where all tests must pass, else installation is aborted.
 Installing
 ==========
 
-pretty simple-
+pretty simple::
 
-tar jxf snakeoil-0.XX.tar.bz2
-cd snakeoil-0.XX
-python setup.py build
+    tar jxf snakeoil-0.XX.tar.bz2
+    cd snakeoil-0.XX
+    python setup.py build
 
-if after running tests,
+if after running tests::
 
-cd snakeoil-0.xx
-python setup.py test
+    cd snakeoil-0.xx
+    python setup.py test
 
-finally, installing-
+finally, installing::
 
-cd snakeoil-0.xx
-python setup.py install
+    cd snakeoil-0.xx
+    python setup.py install
 
 
 .. _`issue tracker`: https://github.com/pkgcore/snakeoil/issues
