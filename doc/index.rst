@@ -154,7 +154,7 @@ General Contents:
 .. toctree::
    :maxdepth: 2
 
-   api
+   api/modules
    news
 
 Indices and tables

@@ -41,15 +41,8 @@ help:
 clean:
 	-rm -rf $(BUILDDIR) api
 
-generated: api
-
-api:
-	@echo "autogenerating api rsts..."
-	@mkdir -p api
-	@echo "pythonpath=${PYTHONPATH}"
-	@for fn in `cat public_modules.txt`; \
-		do echo $${fn} api/$${fn}.rst; \
-	done | $(PYTHON) -m snakeoil.sphinx_utils.generate_api_rsts
+generated:
+	sphinx-apidoc -ef -o api ../snakeoil ../snakeoil/test
 
 html: generated
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
