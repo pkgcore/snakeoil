@@ -1,4 +1,4 @@
-|test| |coverage| |docs|
+|test| |coverage|
 
 ========
 snakeoil
