@@ -261,13 +261,13 @@ snakeoil 0.4 (2011-04-24)
   function a fair bit useless for doing $PATH lookups for example, so we bundle
   a native python implementation that is fallen back to for userlands
   (opensolaris for example) that choose to implement that broken posix option.
-  Linux/*BSDs don't have this issue, so os.access is used for those userlands.
+  Linux/\*BSDs don't have this issue, so os.access is used for those userlands.
 
 - pkgcore ticket 13; data_source.get* functions return handles that have
   .exceptions holding the exceptions they can throw, and that are caused by
   underlying implementation issues (versus caused by bad usage of the object).
 
-- snakeoil data_source's will loose their get_ methods in the next major
+- snakeoil data_source's will loose their get\_ methods in the next major
   version- they're kept strictly for compatibility.
 
 - fix_copy.inject_copy will be removed after the next major version.  What
