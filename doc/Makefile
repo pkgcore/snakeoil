@@ -17,7 +17,7 @@ export SNAKEOIL_DEMANDLOAD_WARN = no
 export SNAKEOIL_DEMANDLOAD_PROTECTION = no
 export PYTHONPATH
 
-.PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest generated api
+.PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest generated
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -40,9 +40,6 @@ help:
 
 clean:
 	-rm -rf $(BUILDDIR) api
-
-generated:
-	sphinx-apidoc -ef -o api ../snakeoil ../snakeoil/test
 
 html: generated
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
