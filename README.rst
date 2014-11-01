@@ -1,4 +1,4 @@
-|test| |coverage|
+|test| |coverage| |docs|
 
 ========
 snakeoil
@@ -57,7 +57,6 @@ finally, installing::
 .. |coverage| image:: https://coveralls.io/repos/pkgcore/snakeoil/badge.png?branch=master
     :target: https://coveralls.io/r/pkgcore/snakeoil?branch=master
 
-.. |docs| image:: https://readthedocs.org/projects/docs/badge/?version=latest
+.. |docs| image:: https://readthedocs.org/projects/snakeoil/badge/?version=latest
+    :target: https://readthedocs.org/projects/snakeoil/?badge=latest
     :alt: Documentation Status
-    :scale: 100%
-    :target: https://readthedocs.org/projects/docs/
