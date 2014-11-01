@@ -1,16 +1,9 @@
 # Copyright: 2008-2011 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
-"""
-collection of distutils extensions adding things like automatic 2to3 translation,
-a test runner, basic bzr changelog generation, and working around broken stdlib
-extensions CFLAG passing in distutils.
-
-Generally speaking, you should flip through this modules src.
-"""
-
 import os
 import sys
+
 import unittest
 
 
