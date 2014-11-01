@@ -2,9 +2,9 @@
 # License: BSD/GPL2
 
 """
-collection of distutils extensions adding things like automatic 2to3 translation,
-a test runner, basic bzr changelog generation, and working around broken stdlib
-extensions CFLAG passing in distutils.
+A collection of distutils extensions adding things like automatic 2to3
+translation, a test runner, and working around broken stdlib extensions CFLAG
+passing in distutils.
 
 Generally speaking, you should flip through this modules src.
 """
@@ -35,12 +35,6 @@ class OptionalExtension(core.Extension):
     be built vs what would be nice to have built.
     """
     pass
-
-
-if os.name == "nt":
-    bzrbin = "bzr.bat"
-else:
-    bzrbin = "bzr"
 
 
 class sdist(dst_sdist.sdist):
