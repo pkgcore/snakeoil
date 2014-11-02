@@ -3,13 +3,12 @@
 
 import sys
 
-from snakeoil.test import mixins, TestCase, SkipTest, test_demandload_usage
+from snakeoil.test import mixins, TestCase, SkipTest
 from snakeoil.weakrefs import WeakRefFinalizer
 
 class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker, TestCase):
 
     target_namespace = 'snakeoil'
-    module_blacklist = test_demandload_usage.TestDemandLoadTargets.module_blacklist
 
     def setUp(self):
         self._ignore_set = frozenset(self.iter_builtin_targets())
