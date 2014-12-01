@@ -39,6 +39,11 @@ class snakeoil_build_py(snk_distutils.build_py):
             os.chmod(path, ((mode | 365) & 4095))
 
 
+class test(snk_distutils.test):
+
+    default_test_namespace = 'snakeoil.test'
+
+
 packages = [
     root.replace(os.path.sep, '.')
     for root, dirs, files in os.walk('snakeoil')
@@ -79,7 +84,7 @@ cmdclass = {
     'sdist': mysdist,
     'build_ext': snk_distutils.build_ext,
     'build_py': snakeoil_build_py,
-    'test': snk_distutils.test,
+    'test': test,
 }
 
 command_options = {}

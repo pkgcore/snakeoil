@@ -281,7 +281,7 @@ class test(core.Command):
         ("include-dirs=", "I", "include dirs for build_ext if needed"),
     ]
 
-    default_test_namespace = '%s.%s' % (__name__.split('.')[0], 'test')
+    default_test_namespace = None
 
     def initialize_options(self):
         self.inplace = False
