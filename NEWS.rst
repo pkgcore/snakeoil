@@ -5,6 +5,21 @@ Release Notes
 snakeoil trunk
 --------------
 
+snakeoil 0.6 (2014-12-01)
+-------------------------
+
+- Make sure shared memory has the right rwx permissions for multiprocessing
+  semaphores.
+
+- Fix race condition for demand compiled regexps which solves various threading
+  issues including running a parallelized `pmaint regen` in pkgcore. 
+
+- Remove old compat snakeoil.fileutils imports from snakeoil.osutils and
+  make_SlottedDict_kls from snakeoil.obj. 
+
+- Drop python2.4 any/all built-ins compat, python2.6 is_disjoint compat, and
+  pre-python2.6 next built-in compat.
+
 - Remove pre-python2.7 compat support including iterables.chain_from_iterables
   (use chain.from_iterable from itertools), is_disjoint (use
   isdisjoint), and built-in backports for all, any, and next.
