@@ -7,6 +7,7 @@ import os
 from distutils import core
 
 from snakeoil import distutils_extensions as snk_distutils
+from snakeoil.version import __version__
 OptionalExtension = snk_distutils.OptionalExtension
 
 
@@ -79,9 +80,6 @@ if not snk_distutils.is_py3k:
             'snakeoil.chksum._whirlpool_cdo', ['src/whirlpool_cdo.c'], **extra_kwargs),
         ])
 
-from snakeoil.version import __version__ as VERSION
-name = 'snakeoil'
-url = 'https://github.com/pkgcore/snakeoil'
 cmdclass = {
     'sdist': mysdist,
     'build_ext': snk_distutils.build_ext,
@@ -95,15 +93,15 @@ BuildDoc = snk_distutils.sphinx_build_docs()
 if BuildDoc:
     cmdclass['build_docs'] = BuildDoc
     command_options['build_docs'] = {
-        'version': ('setup.py', VERSION),
+        'version': ('setup.py', __version__),
         'source_dir': ('setup.py', 'doc'),
     }
 
 core.setup(
-    name=name,
-    version=VERSION,
+    name='snakeoil',
+    version=__version__,
     description='misc common functionality, and useful optimizations',
-    url=url,
+    url='https://github.com/pkgcore/snakeoil',
     license='BSD',
     author='Brian Harring',
     author_email='ferringb@gmail.com',
