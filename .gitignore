@@ -1,4 +1,5 @@
 build
+cache
 dist
 *.pyo
 *.pyc
@@ -8,3 +9,7 @@ snakeoil/osutils/*.so
 _trial_temp
 /doc/_build
 /doc/api
+
+# unit testing / coverage
+.coverage
+.tox
