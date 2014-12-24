@@ -144,3 +144,7 @@ try:
 except ImportError:
     closerange = getattr(os, 'closerange', _native_closerange)
 
+
+# provide access to Linux specific namespace unsharing
+if 'linux' in sys.platform:
+    from snakeoil.process._unshare import unshare
