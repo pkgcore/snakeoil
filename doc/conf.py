@@ -50,7 +50,9 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'snakeoil'
-copyright = u'2010, Brian Harring'
+authors_list = ['Brian Harring', 'Tim Harder']
+authors = ', '.join(authors_list)
+copyright = u'2010-2015, ' + authors
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -189,7 +191,7 @@ htmlhelp_basename = 'snakeoildoc'
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
     ('index', 'snakeoil.tex', u'snakeoil Documentation',
-     u'Brian Harring', 'manual'),
+     authors, 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -221,8 +223,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'snakeoil', u'snakeoil Documentation',
-     [u'Brian Harring'], 1)
+    ('index', 'snakeoil', u'snakeoil Documentation', authors_list, 1)
 ]
 
 
