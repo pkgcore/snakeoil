@@ -443,7 +443,7 @@ snakeoil 0.3.3 (2009-10-26)
 
 - optimization in snakeoil.osutils.readlines; for small files, it's
   roughly a 4-8% speedup, for larger files (over half a meg) growing
-  past 25%.  This puts it's performance at roughly 2x over the open
+  past 25%.  This puts its performance at roughly 2x over the open
   equivalent for small files, and near 10-15% faster for larger files.
 
 - snakeoil.klass grew new properties to ease common tasks;
@@ -471,7 +471,7 @@ snakeoil 0.3.3 (2009-10-26)
   speed up from this- uncached, setup.py test is ~32s.  cached, ~1.9s.
   That said, this is experimental- bug reports welcome however.
 
-- setup.py test has been heavily enhanced- now it does it's testing
+- setup.py test has been heavily enhanced- now it does its testing
   against a standalone install of the source, should have zero
   side affects on the underlying source.
 
@@ -479,14 +479,14 @@ snakeoil 0.3.3 (2009-10-26)
   doesn't raise ImportError.  This address upstream python bug 3475.
 
 - snakeoil no longer installs a bundled copy of elementtree if the
-  python version is 2.5 or higher (no need, python bundles it's own).
+  python version is 2.5 or higher (no need, python bundles its own).
 
 - snakeoil.test.test_demandload_usage now supports blacklisting- this
   is primarily useful for blocking py3k specific modules from being checked
   under py2k, and vice versa.
 
 - in test_demandload_usage helper functionality it's possible for
-  a file to disappear under it's feet- ignore it, lock files from
+  a file to disappear under its feet- ignore it, lock files from
   trial can trigger this.  Note it via logging.warn, and continue.
 
 

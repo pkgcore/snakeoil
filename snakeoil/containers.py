@@ -288,7 +288,7 @@ class ProtectedSet(SetMixin):
 class RefCountingSet(dict):
 
     """
-    Set implementation that implements refcounting for add/remove, removing the key only when it's refcount is 0.
+    Set implementation that implements refcounting for add/remove, removing the key only when its refcount is 0.
 
     This is particularly useful for essentially summing sequences that are a stream of additions/removals
 

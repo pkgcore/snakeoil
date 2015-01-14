@@ -483,7 +483,7 @@ class invokable_data_source(data_source):
                 if returns_handle:
                     data = data.read()
                 if encoding_hint:
-                    # we have an encoding, it's bytes data, and text is wanted
+                    # we have an encoding, its bytes data, and text is wanted
                     data = data.decode(encoding_hint)
                 else:
                     data = data.decode()

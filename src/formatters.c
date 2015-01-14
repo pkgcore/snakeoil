@@ -11,7 +11,7 @@
  * Known bugs:
  *   encoding isn't modifiable after the fact.  should be.
  * optimizations:
- *   PyUnicode_Find internally makes it's own objs when doing subranges- inline the lookup.
+ *   PyUnicode_Find internally makes its own objs when doing subranges- inline the lookup.
  *   currently creates 2n strings on slicing; leftbit, remaining- use windowing instead, just
  *   pullng the window as needed.
  */

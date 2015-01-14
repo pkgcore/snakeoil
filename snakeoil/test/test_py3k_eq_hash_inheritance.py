@@ -41,7 +41,7 @@ class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker, TestCase):
         # pylint: disable=undefined-loop-variable
         # 'parent' is guaranteed to be defined due to the 'else' clause above
         self.assertNotEqual(getattr(cls, '__hash__'), None, msg=(
-            "class '%s.%s' had it's __hash__ reset, while it would've inherited "
+            "class '%s.%s' had its __hash__ reset, while it would've inherited "
             "__hash__ from parent '%s.%s'; this occurs in py3k when __eq__ is "
             "defined alone.  If this is desired behaviour, set "
             "__hash__intentionally_disabled__ to True to explicitly ignore this"

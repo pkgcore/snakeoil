@@ -69,7 +69,7 @@ are used, passed to, etc.  If you're trying to proxy a builtin, it's possible, b
 do need to keep an eye on where that instance is passed to since it's not fully transparent.
 
 As demonstrated above, if you're trying to proxy a builtin object, the consuming code
-will have to order it's operations appropriately- prefering the proxy's methods
+will have to order its operations appropriately- prefering the proxy's methods
 over builtin methods (essentially have the proxy on the left for general ops).
 
 If that doesn't make sense to the reader, it's probably best that the reader not

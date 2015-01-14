@@ -77,7 +77,7 @@ class WeakRefFinalizer(type):
     without the issues of __del__; the sole thing you cannot do in __del__ in this
     usage is resurrect the instance.
 
-    This metaclass modifies the target class, renaming it's __del__ to __finalizer__
+    This metaclass modifies the target class, renaming its __del__ to __finalizer__
     and modifying instance generation to return a proxy to the target instance.  This proxy
     is detailed in :mod:`snakeoil.obj`, but suffice it to say it's pretty much
     transparent to all consumers.  When the proxy object is collected, a weakref callback

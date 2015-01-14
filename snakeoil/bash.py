@@ -9,7 +9,7 @@ Please note that while this functionality can do variable interpolation,
 it strictly treats the source as non-executable code.  It cannot parse
 subshells, variable additions, etc.
 
-It's primary usage is for reading things like gentoo make.conf's, or
+Its primary usage is for reading things like gentoo make.conf's, or
 libtool .la files that are bash compatible, but non executable.
 """
 

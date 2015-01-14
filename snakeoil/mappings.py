@@ -824,7 +824,7 @@ def make_SlottedDict_kls(keys):
     """
     Create a space efficient mapping class with a limited set of keys
 
-    Specifically, this function returns a class with it's __slots__ locked
+    Specifically, this function returns a class with its __slots__ locked
     to the passed in keys- this eliminates the allocation of a dict for the
     instance thus avoiding the wasted memory common to dictionary overallocation-
     for small mappings that waste is roughly 75%, for 100 item mappings it's roughly

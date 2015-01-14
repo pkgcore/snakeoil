@@ -12,7 +12,7 @@ class classproperty(object):
     """Like the builtin :py:func:`property` but takes a single classmethod.
 
     Essentially, it allows you to use a property on a class itself- not
-    just on it's instances.
+    just on its instances.
 
     Used like this:
 
