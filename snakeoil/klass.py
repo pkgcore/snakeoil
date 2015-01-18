@@ -26,7 +26,7 @@ from operator import attrgetter
 from snakeoil import caching, compatibility
 from snakeoil.currying import partial, post_curry
 from snakeoil.demandload import demandload
-demandload(globals(), 'inspect')
+demandload('inspect')
 
 
 def native_GetAttrProxy(target):

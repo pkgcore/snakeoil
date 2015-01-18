@@ -19,10 +19,8 @@ import os
 
 from snakeoil import compatibility
 from snakeoil.demandload import demandload
-demandload(
-    globals(),
-    'codecs',
-)
+demandload('codecs')
+
 
 def mmap_and_close(fd, *args, **kwargs):
     """

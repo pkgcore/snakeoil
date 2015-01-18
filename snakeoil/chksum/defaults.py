@@ -20,7 +20,6 @@ from snakeoil import modules
 from snakeoil.compatibility import intern, is_py3k
 from snakeoil.demandload import demandload
 demandload(
-    globals(),
     'os',
     'snakeoil.process:get_proc_count',
     'snakeoil.fileutils:mmap_or_open_for_read',

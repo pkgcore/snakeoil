@@ -17,7 +17,6 @@ from snakeoil import klass, compatibility
 from snakeoil.currying import partial, pretty_docs
 from snakeoil.demandload import demandload
 demandload(
-    globals(),
     'codecs',
     'mmap',
     'snakeoil:data_source',

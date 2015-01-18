@@ -52,7 +52,6 @@ from snakeoil.currying import post_curry, partial
 from snakeoil import compatibility, stringio, klass
 from snakeoil.demandload import demandload
 demandload(
-    globals(),
     'codecs',
     'snakeoil:compression,fileutils',
 )

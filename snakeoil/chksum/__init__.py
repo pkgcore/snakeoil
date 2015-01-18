@@ -8,7 +8,6 @@ chksum verification/generation subsystem
 from snakeoil import klass, compatibility
 from snakeoil.demandload import demandload
 demandload(
-    globals(),
     "os",
     "sys",
     "snakeoil.chksum.defaults:chksum_loop_over_file",

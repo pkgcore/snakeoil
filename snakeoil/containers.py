@@ -14,7 +14,6 @@ __all__ = (
 from snakeoil import compatibility
 from snakeoil.demandload import demandload
 demandload(
-    globals(),
     'itertools:chain,ifilterfalse',
 )
 

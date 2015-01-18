@@ -34,11 +34,12 @@ have to be careful with:
 
 __all__ = ("demandload", "demand_compile_regexp")
 
+import inspect
 import os
 import sys
 
-from snakeoil.modules import load_any
 from snakeoil import compatibility
+from snakeoil.modules import load_any
 
 # There are some demandloaded imports below the definition of demandload.
 
@@ -140,7 +141,8 @@ class Placeholder(object):
     def __init__(self, scope, name):
         """Initialize.
 
-        :param scope: the scope we live in, normally the result of C{globals()}.
+        :param scope: the scope we live in, normally the global namespace of
+            the caller (C{globals()}).
         :param name: the name we have in C{scope}.
         """
         object.__setattr__(self, '_scope', scope)
@@ -241,12 +243,8 @@ class StandardPlaceholder(Placeholder):
         return load_any(source)
 
 
-def demandload(scope, *imports):
-    """Import modules into scope when each is first used.
-
-    scope should be the value of C{globals()} in the module calling
-    this function. (using C{locals()} may work but is not recommended
-    since mutating that is not safe).
+def demandload(*imports):
+    """Import modules into the caller's global namespace when each is first used.
 
     Other args are strings listing module names.
     names are handled like this::
@@ -258,6 +256,10 @@ def demandload(scope, *imports):
     foo.bar:quux   from foo.bar import quux
     foo:baz@quux   from foo import baz as quux
     """
+
+    # pull the caller's global namespace
+    scope = inspect.stack()[1][0].f_globals
+
     for source, target in parse_imports(imports):
         scope[target] = StandardPlaceholder(scope, target, source)
 
@@ -267,8 +269,9 @@ def demandload(scope, *imports):
 enabled_demandload = demandload
 
 
-def disabled_demandload(scope, *imports):
+def disabled_demandload(*imports):
     """Exactly like :py:func:`demandload` but does all imports immediately."""
+    scope = inspect.stack()[1][0].f_globals
     for source, target in parse_imports(imports):
         scope[target] = load_any(source)
 
@@ -291,19 +294,20 @@ class RegexPlaceholder(Placeholder):
         return re.compile(*args, **kwargs)
 
 
-def demand_compile_regexp(scope, name, *args, **kwargs):
+def demand_compile_regexp(name, *args, **kwargs):
     """Demandloaded version of :py:func:`re.compile`.
 
     Extra arguments are passed unchanged to :py:func:`re.compile`.
 
-    :param scope: the scope, just like for :py:func:`demandload`.
     :param name: the name of the compiled re object in that scope.
     """
+    scope = inspect.stack()[1][0].f_globals
     scope[name] = RegexPlaceholder(scope, name, *args, **kwargs)
 
 
-def disabled_demand_compile_regexp(scope, name, *args, **kwargs):
+def disabled_demand_compile_regexp(name, *args, **kwargs):
     """Exactly like :py:func:`demand_compile_regexp` but does all imports immediately."""
+    scope = inspect.stack()[1][0].f_globals
     scope[name] = re.compile(*args, **kwargs)
 
 
@@ -312,7 +316,6 @@ if os.environ.get("SNAKEOIL_DEMANDLOAD_DISABLED", 'n').lower() in ('y', 'yes' '1
     demand_compile_regexp = disabled_demand_compile_regexp
 
 demandload(
-    globals(),
     'logging',
     're',
     'threading',

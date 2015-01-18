@@ -51,21 +51,19 @@ class PlaceholderTest(TestCase):
 
     @reset_globals
     def test_getattr(self):
-        scope = {}
-        placeholder = demandload.Placeholder(scope, 'foo', list)
-        self.assertEqual({}, scope)
+        placeholder = demandload.Placeholder('foo', list)
+        self.assertEqual(globals(), placeholder._scope)
         self.assertEqual(placeholder.__doc__, [].__doc__)
-        self.assertEqual(scope['foo'], [])
+        self.assertEqual(globals['foo'], [])
         demandload._protection_enabled = lambda: True
         self.assertRaises(ValueError, getattr, placeholder, '__doc__')
 
     @reset_globals
     def test__str__(self):
-        scope = {}
-        placehold = demandload.Placeholder(scope, 'foo', list)
-        self.assertEqual({}, scope)
-        self.assertEqual(str(placehold), str([]))
-        self.assertEqual(scope['foo'], [])
+        placeholder = demandload.Placeholder('foo', list)
+        self.assertEqual(globals(), placeholder._scope)
+        self.assertEqual(str(placeholder), str([]))
+        self.assertEqual(globals()['foo'], [])
 
     @reset_globals
     def test_call(self):
@@ -73,57 +71,52 @@ class PlaceholderTest(TestCase):
             return args, kwargs
         def get_func():
             return passthrough
-        scope = {}
-        placeholder = demandload.Placeholder(scope, 'foo', get_func)
-        self.assertEqual({}, scope)
+        placeholder = demandload.Placeholder('foo', get_func)
+        self.assertEqual(globals(), placeholder._scope)
         self.assertEqual(
             (('arg',), {'kwarg': 42}), placeholder('arg', kwarg=42))
-        self.assertIdentical(passthrough, scope['foo'])
+        self.assertIdentical(passthrough, globals()['foo'])
 
     @reset_globals
     def test_setattr(self):
         class Struct(object):
             pass
 
-        scope = {}
-        placeholder = demandload.Placeholder(scope, 'foo', Struct)
+        placeholder = demandload.Placeholder('foo', Struct)
         placeholder.val = 7
         demandload._protection_enabled = lambda: True
         self.assertRaises(ValueError, getattr, placeholder, 'val')
-        self.assertEqual(7, scope['foo'].val)
+        self.assertEqual(7, globals()['foo'].val)
 
 
 class ImportTest(TestCase):
 
     @reset_globals
     def test_demandload(self):
-        scope = {}
-        demandload.demandload(scope, 'snakeoil:demandload')
-        self.assertNotIdentical(demandload, scope['demandload'])
+        demandload.demandload('snakeoil:demandload')
+        self.assertNotIdentical(demandload, globals()['demandload'])
         self.assertIdentical(
-            demandload.demandload, scope['demandload'].demandload)
-        self.assertIdentical(demandload, scope['demandload'])
+            demandload.demandload, globals()['demandload'].demandload)
+        self.assertIdentical(demandload, globals()['demandload'])
 
     @reset_globals
     def test_disabled_demandload(self):
-        scope = {}
-        demandload.disabled_demandload(scope, 'snakeoil:demandload')
-        self.assertIdentical(demandload, scope['demandload'])
+        demandload.disabled_demandload('snakeoil:demandload')
+        self.assertIdentical(demandload, globals()['demandload'])
 
 
 class DemandCompileRegexpTest(TestCase):
 
     @reset_globals
     def test_demand_compile_regexp(self):
-        scope = {}
-        demandload.demand_compile_regexp(scope, 'foo', 'frob')
-        self.assertEqual(scope.keys(), ['foo'])
-        self.assertEqual('frob', scope['foo'].pattern)
-        self.assertEqual('frob', scope['foo'].pattern)
+        demandload.demand_compile_regexp('foo', 'frob')
+        self.assertEqual(globals().keys(), ['foo'])
+        self.assertEqual('frob', globals()['foo'].pattern)
+        self.assertEqual('frob', globals()['foo'].pattern)
 
         # verify it's delayed via a bad regex.
-        demandload.demand_compile_regexp(scope, 'foo', 'f(')
-        self.assertEqual(scope.keys(), ['foo'])
+        demandload.demand_compile_regexp('foo', 'f(')
+        self.assertEqual(globals().keys(), ['foo'])
         # should blow up on accessing an attribute.
-        obj = scope['foo']
+        obj = globals()['foo']
         self.assertRaises(sre_constants.error, getattr, obj, 'pattern')

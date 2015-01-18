@@ -12,7 +12,7 @@ from snakeoil.demandload import demandload
 from snakeoil import compatibility
 from snakeoil.mappings import defaultdictkey
 from snakeoil.currying import partial
-demandload(globals(), 'locale')
+demandload('locale')
 
 
 __all__ = (

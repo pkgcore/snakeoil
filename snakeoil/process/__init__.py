@@ -6,7 +6,6 @@ import sys
 
 from snakeoil.demandload import demandload
 demandload(
-    globals(),
     'subprocess',
     'snakeoil.osutils:access',
     'snakeoil.fileutils:readlines_ascii',

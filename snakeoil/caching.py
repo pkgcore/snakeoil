@@ -60,7 +60,6 @@ __all__ = ("WeakInstMeta",)
 
 from snakeoil.demandload import demandload
 demandload(
-    globals(),
     'warnings',
     'weakref:WeakValueDictionary',
 )
