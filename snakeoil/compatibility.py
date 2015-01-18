@@ -34,6 +34,7 @@ For easing py3k compatibility:
 
 __all__ = ("is_py3k", "is_py3k_like", "intern", "cmp", "sorted_cmp", "sort_cmp")
 
+import ConfigParser as configparser
 import sys
 
 
@@ -108,6 +109,9 @@ else:
 
     force_bytes = str
 
+    # provide access to old method without having to conditionalize elsewhere-
+    # note that read_file actually was added in 3.2, but we don't support 3.1
+    configparser.ConfigParser.read_file = configparser.ConfigParser.readfp
 
 if is_py3k:
     def raise_from(new_exception, exc_info=None):
