@@ -1,8 +1,8 @@
 # Copyright: 2005 Marien Zwart <marienz@gentoo.org>
 # License: BSD/GPL2
 
-from snakeoil.test import TestCase
 from snakeoil import currying
+from snakeoil.test import TestCase
 
 
 def passthrough(*args, **kwargs):
@@ -12,6 +12,7 @@ def passthrough(*args, **kwargs):
 
 def documented():
     """original docstring"""
+
 
 class PreCurryTest(TestCase):
 
@@ -174,7 +175,7 @@ class Test_wrap_exception(TestCase):
 
         func = currying.wrap_exception_complex(f, IndexError)(throwing_func)
 
-        #basic behaviour
+        # basic behaviour
         self.assertRaises(IndexError, func, False, monkey='bone')
         self.assertLen(inner, 1)
         self.assertLen(outer, 1)
@@ -194,6 +195,7 @@ class Test_wrap_exception(TestCase):
 
     def test_wrap_exception(self):
         throw_kls = ValueError
+
         def throwing_func(*args, **kwds):
             raise throw_kls()
 

@@ -4,7 +4,7 @@
 """
 Function currying, generating a functor with a set of args/defaults pre bound.
 
-:py:func:`pre_curry` and :py:func:`post_curry` return "normal" python functions.
+:py:func:`pre_curry` and :py:func:`post_curry` return "normal" python functions
 :py:func:`partial` returns a callable object. The difference between
 :py:func:`pre_curry` and :py:func:`partial` is this
 
@@ -27,9 +27,9 @@ Function currying, generating a functor with a set of args/defaults pre bound.
 >>> Test().part()
 (True, None)
 
-If your curried function is not used as a class attribute the results
-should be identical. Because :py:func:`partial` has an implementation in c
-while :py:func:`pre_curry` is python you should use :py:func:`partial` if possible.
+If your curried function is not used as a class attribute the results should be
+identical. Because :py:func:`partial` has an implementation in c while
+:py:func:`pre_curry` is python you should use :py:func:`partial` if possible.
 """
 
 import sys
@@ -166,18 +166,19 @@ def post_curry(func, *args, **kwargs):
     callit.func = func
     return callit
 
+
 def pretty_docs(wrapped, extradocs=None, name=None):
     """
     Modify wrapped, so that it 'looks' like what it's wrapping.
 
-    This is primarily useful for introspection reasons- doc generators, direct user
-    interaction with an object in the interpretter, etc.
+    This is primarily useful for introspection reasons- doc generators, direct
+    user interaction with an object in the interpretter, etc.
 
     :param wrapped: functor to modify
     :param extradocs: ``__doc__`` override for wrapped; else it pulls from
         wrapped's target functor
-    :param name: ``__name__`` override for wrapped; else it pulls from wrapped's
-        target functor for the name.
+    :param name: ``__name__`` override for wrapped; else it pulls from
+        wrapped's target functor for the name.
     """
     wrapped.__module__ = wrapped.func.__module__
     doc = wrapped.func.__doc__
@@ -203,11 +204,13 @@ def wrap_exception(recast_exception, *args, **kwds):
     pass_error = kwds.pop("pass_error", None)
     return wrap_exception_complex(partial(_simple_throw, recast_exception, args, kwds, pass_error), ignores)
 
+
 def _simple_throw(recast_exception, recast_args, recast_kwds, pass_error,
                   exception, functor, args, kwds):
     if pass_error:
         recast_kwds[pass_error] = exception
     return recast_exception(*recast_args, **recast_kwds)
+
 
 def wrap_exception_complex(creation_func, ignores):
     try:
@@ -221,6 +224,7 @@ def wrap_exception_complex(creation_func, ignores):
         raise TypeError("ignores has a non %s derivative in it: %r" %
                         (Exception.__name__, ignores))
     return partial(_inner_wrap_exception, creation_func, ignores)
+
 
 def _inner_wrap_exception(exception_maker, ignores, functor):
     def _wrap_exception(*args, **kwargs):
