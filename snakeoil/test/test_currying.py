@@ -61,7 +61,7 @@ class PreCurryTest(TestCase):
 
 class pretty_docs_Test(TestCase):
 
-    currying_targets = (currying.native_partial, currying.partial,
+    currying_targets = (currying.partial,
                         currying.pre_curry, currying.post_curry)
 
     def test_module_magic(self):
@@ -86,24 +86,15 @@ class pretty_docs_Test(TestCase):
                     func.__doc__)
 
 
+class CPyPartialTest(PreCurryTest):
 
-class NativePartialTest(PreCurryTest):
-
-    pre_curry = staticmethod(currying.native_partial)
+    pre_curry = staticmethod(currying.partial)
 
     def test_instancemethod(self):
         class Test(object):
             method = self.pre_curry(passthrough, 'test')
         test = Test()
         self.assertEqual((('test',), {}), test.method())
-
-
-class CPyPartialTest(NativePartialTest):
-
-    pre_curry = staticmethod(currying.partial)
-
-    if currying.native_partial is currying.partial:
-        skip = 'cpy partial not available.'
 
 
 class PostCurryTest(TestCase):

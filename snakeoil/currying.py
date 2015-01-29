@@ -32,6 +32,7 @@ identical. Because :py:func:`partial` has an implementation in c while
 :py:func:`pre_curry` is python you should use :py:func:`partial` if possible.
 """
 
+from functools import partial
 import sys
 
 from snakeoil import compatibility
@@ -63,28 +64,6 @@ def pre_curry(func, *args, **kwargs):
     return callit
 
 
-class native_partial(object):
-
-    """Like pre_curry, but is a staticmethod by default."""
-
-    def __init__(self, func, *args, **kwargs):
-        self.func = func
-        self.args = args
-        self.kwargs = kwargs
-
-    def __call__(self, *moreargs, **morekwargs):
-        kw = self.kwargs.copy()
-        kw.update(morekwargs)
-        return self.func(*(self.args + moreargs), **kw)
-
-# Unused import, unable to import
-# pylint: disable=W0611,F0401
-try:
-    from functools import partial
-except ImportError:
-    partial = native_partial
-
-
 def _pydoc_isdata_override(object):
     # yes, import in function is evil.
     # so is this function...
@@ -105,25 +84,23 @@ def _inspect_isroutine_override(object):
 
 
 def force_inspect_partial_awareness(only_if_loaded=True):
-    if native_partial is not partial:
-        if only_if_loaded:
-            mod = sys.modules.get('inspect', None)
-        else:
-            import inspect as mod
-        if mod:
-            mod.isroutine = _inspect_isroutine_override
+    if only_if_loaded:
+        mod = sys.modules.get('inspect', None)
+    else:
+        import inspect as mod
+    if mod:
+        mod.isroutine = _inspect_isroutine_override
 
 
 def force_pydoc_partial_awareness(only_if_loaded=True):
     # this is probably redundant due to inspect_partial overrides
     # better safe then sorry however.
-    if native_partial is not partial:
-        if only_if_loaded:
-            mod = sys.modules.get('pydoc', None)
-        else:
-            import pydoc as mod
-        if mod:
-            mod.isdata = _pydoc_isdata_override
+    if only_if_loaded:
+        mod = sys.modules.get('pydoc', None)
+    else:
+        import pydoc as mod
+    if mod:
+        mod.isdata = _pydoc_isdata_override
 
 
 def _epydoc_isroutine_override(object):
@@ -134,11 +111,10 @@ def _epydoc_isroutine_override(object):
 
 
 def force_epydoc_partial_awareness(only_if_loaded=True):
-    if native_partial is not partial:
-        if 'epydoc' in sys.modules or not only_if_loaded:
-            import epydoc.docintrospecter as mod
-            mod.register_introspecter(_epydoc_isroutine_override,
-                                      mod.introspect_routine, priority=26)
+    if 'epydoc' in sys.modules or not only_if_loaded:
+        import epydoc.docintrospecter as mod
+        mod.register_introspecter(_epydoc_isroutine_override,
+                                  mod.introspect_routine, priority=26)
 
 
 force_inspect_partial_awareness()
