@@ -1,7 +1,10 @@
 # Copyright: 2011 Brian Harring <ferringb@gmail.com>
 # License: GPL2/BSD 3 clause
 
-from snakeoil import modules, klass
+from importlib import import_module
+
+from snakeoil import klass
+
 
 class _transform_source(object):
 
@@ -10,7 +13,7 @@ class _transform_source(object):
 
     @klass.jit_attr
     def module(self):
-        return modules.load_module('snakeoil.compression._%s' % (self.name,))
+        return import_module('snakeoil.compression._%s' % (self.name,))
 
     @klass.jit_attr
     def parallelizable(self):

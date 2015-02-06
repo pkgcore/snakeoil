@@ -1,11 +1,11 @@
 #!/usr/bin/python
 
 import errno
+from importlib import import_module
 import inspect
 import os
 import sys
 
-from snakeoil.modules import load_module
 
 def gen_segment(name, targets):
     l = ["    .. rubric:: %s" % (name,)]
@@ -63,7 +63,7 @@ def generate_rst(modpath, module, handle=None):
         handle.write("\n")
 
 def regen_if_needed(src, out_path):
-    module = load_module(src)
+    module = import_module(src)
     cur_time = max([int(os.stat(module.__file__).st_mtime),
                     int(os.stat(__file__).st_mtime)])
     try:

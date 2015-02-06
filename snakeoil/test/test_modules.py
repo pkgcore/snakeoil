@@ -1,7 +1,6 @@
 # Copyright: 2005 Marien Zwart <marienz@gentoo.org>
 # License: BSD/GPL2
 
-
 import os
 import shutil
 import sys

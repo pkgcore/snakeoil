@@ -7,9 +7,11 @@ dynamic import functionality
 
 __all__ = ("FailedImport", "load_module", "load_attribute", "load_any")
 
+from importlib import import_module
 import sys
 
 from snakeoil.compatibility import raise_from, IGNORED_EXCEPTIONS
+
 
 class FailedImport(ImportError):
     """
@@ -24,6 +26,8 @@ class FailedImport(ImportError):
 def load_module(name):
     """load a module
 
+    Deprecated, use ``importlib.import_module`` instead.
+
     :param name: python dotted namespace path of the module to import
     :raise: FailedImport if importing fails
     :return: imported module
@@ -31,11 +35,7 @@ def load_module(name):
     if name in sys.modules:
         return sys.modules[name]
     try:
-        m = __import__(name)
-        # __import__('foo.bar') returns foo, so...
-        for bit in name.split('.')[1:]:
-            m = getattr(m, bit)
-        return m
+        return import_module(name)
     except IGNORED_EXCEPTIONS:
         raise
     except Exception as e:
@@ -56,9 +56,7 @@ def load_attribute(name):
     if len(chunks) == 1:
         raise FailedImport(name, "it isn't an attribute, it's a module")
     try:
-        m = load_module(chunks[0])
-        m = getattr(m, chunks[1])
-        return m
+        return getattr(import_module(chunks[0]), chunks[1])
     except (AttributeError, ImportError) as e:
         raise_from(FailedImport(name, e))
 
@@ -75,8 +73,8 @@ def load_any(name):
     """
 
     try:
-        return load_module(name)
-    except FailedImport as fi:
-        if not isinstance(fi.e, ImportError):
-            raise
+        return import_module(name)
+    except Exception as e:
+        if not isinstance(e, ImportError):
+            raise_from(FailedImport(name, e))
     return load_attribute(name)

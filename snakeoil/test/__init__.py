@@ -9,6 +9,7 @@
 __all__ = ('SkipTest', 'TestCase')
 
 
+from importlib import import_module
 import os
 import subprocess
 import sys
@@ -16,7 +17,7 @@ import traceback
 import unittest
 import warnings
 
-from snakeoil import fileutils, klass, modules, unittest_extensions
+from snakeoil import fileutils, klass, unittest_extensions
 from snakeoil.compatibility import is_py3k_like, IGNORED_EXCEPTIONS, is_py3k
 
 def _tryResultCall(result, methodname, *args):
@@ -287,16 +288,16 @@ def mk_cpy_loadable_testcase(extension_namespace, trg_namespace=None,
 
         def test_it(self):
             dname, bname = self.ext_namespace.rsplit(".", 1)
-            dir_mod = modules.load_module(dname)
+            dir_mod = import_module(dname)
             fp = os.path.join(os.path.dirname(dir_mod.__file__), '%s.so' % (bname,))
             if not os.path.exists(fp):
                 raise SkipTest("for extension %r, path %r doesn't exist" %
                                (self.ext_namespace, fp))
-            extension = modules.load_module(self.ext_namespace)
+            extension = import_module(self.ext_namespace)
             if self.trg_attribute is None:
                 return
 
-            target_scope = modules.load_module(self.namespace)
+            target_scope = import_module(self.namespace)
             ext_obj = extension
             ext_full_name = self.ext_namespace
             if self.src_attribute is not None:

@@ -8,10 +8,10 @@ chksum verification/generation subsystem
 from snakeoil import klass, compatibility
 from snakeoil.demandload import demandload
 demandload(
+    "importlib:import_module",
     "os",
     "sys",
     "snakeoil.chksum.defaults:chksum_loop_over_file",
-    "snakeoil.modules:load_module",
     "snakeoil:osutils",
 )
 
@@ -82,7 +82,7 @@ def init(additional_handlers=None):
             if i != -1:
                 f = f[:i]
             del i
-            m = load_module(__name__ + "." + f)
+            m = import_module(__name__ + "." + f)
         except ImportError:
             continue
         try:
