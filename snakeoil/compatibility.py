@@ -109,9 +109,11 @@ else:
 
     force_bytes = str
 
-    # provide access to old method without having to conditionalize elsewhere-
-    # note that read_file actually was added in 3.2, but we don't support 3.1
+    # provide access to old method/class names without having to conditionalize
+    # elsewhere- note that read_file actually was added in 3.2, but we don't
+    # support 3.1
     configparser.ConfigParser.read_file = configparser.ConfigParser.readfp
+    configparser.ConfigParser = configparser.SafeConfigParser
 
 if is_py3k:
     def raise_from(new_exception, exc_info=None):
