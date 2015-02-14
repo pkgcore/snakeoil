@@ -13,6 +13,7 @@ __all__ = ("WeakValCache", "WeakRefFinalizer")
 # pylint: disable=W0611
 
 import atexit
+from functools import partial
 import os
 import sys
 
@@ -24,9 +25,8 @@ try:
 except ImportError:
     from weakref import WeakValueDictionary as WeakValCache, ref, WeakKeyDictionary
 
-from snakeoil.obj import make_kls, BaseDelayedObject
-from snakeoil.currying import partial
 from snakeoil import mappings
+from snakeoil.obj import make_kls, BaseDelayedObject
 
 
 def finalize_instance(obj, weakref_inst):

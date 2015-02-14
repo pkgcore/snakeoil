@@ -21,11 +21,13 @@ __all__ = (
 )
 
 from collections import deque
+from functools import partial
 from operator import attrgetter
 
 from snakeoil import caching, compatibility
-from snakeoil.currying import partial, post_curry
+from snakeoil.currying import post_curry
 from snakeoil.demandload import demandload
+
 demandload('inspect')
 
 
@@ -446,7 +448,7 @@ def cached_property_named(name, kls=_internal_jit_attr, use_cls_setattr=False):
     variation of `cached_property`, just with the ability to explicitly set the attribute name
 
     Primarily of use for when the functor it's wrapping has a generic name (
-    `snakeoil.currying.partial` instances for example).
+    `functools.partial` instances for example).
     Example Usage:
 
     >>> from snakeoil.klass import cached_property_named

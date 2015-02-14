@@ -1,11 +1,13 @@
 # Copyright: 2006-2007 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
+from functools import partial
 from time import time
 
-from snakeoil.test import TestCase, mk_cpy_loadable_testcase
-from snakeoil import klass, currying
+from snakeoil import klass
 from snakeoil.compatibility import cmp, is_py3k
+from snakeoil.test import TestCase, mk_cpy_loadable_testcase
+
 
 class Test_native_GetAttrProxy(TestCase):
     kls = staticmethod(klass.native_GetAttrProxy)
@@ -113,9 +115,10 @@ class Test_CPY_get(Test_native_get):
 class Test_native_generic_equality(TestCase):
     op_prefix = "native_"
 
-    kls = currying.partial(klass.generic_equality,
-                           ne=klass.native_generic_attr_ne,
-                           eq=klass.native_generic_attr_eq)
+    kls = partial(
+        klass.generic_equality,
+        ne=klass.native_generic_attr_ne,
+        eq=klass.native_generic_attr_eq)
 
     def test_it(self):
         class c(object):
@@ -241,15 +244,15 @@ class Test_native_jit_attr(TestCase):
 
     @property
     def jit_attr(self):
-        return currying.partial(klass.jit_attr, kls=self.kls)
+        return partial(klass.jit_attr, kls=self.kls)
 
     @property
     def jit_attr_named(self):
-        return currying.partial(klass.jit_attr_named, kls=self.kls)
+        return partial(klass.jit_attr_named, kls=self.kls)
 
     @property
     def jit_attr_ext_method(self):
-        return currying.partial(klass.jit_attr_ext_method, kls=self.kls)
+        return partial(klass.jit_attr_ext_method, kls=self.kls)
 
     def mk_inst(self, attrname='_attr', method_lookup=False,
                 use_cls_setattr=False, func=None,
@@ -264,7 +267,7 @@ class Test_native_jit_attr(TestCase):
         class cls(object):
 
             def __init__(self):
-                sf = currying.partial(object.__setattr__, self)
+                sf = partial(object.__setattr__, self)
                 sf('_sets', [])
                 sf('_reflects', [])
                 sf('_invokes', [])

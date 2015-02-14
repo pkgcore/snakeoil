@@ -61,8 +61,7 @@ class PreCurryTest(TestCase):
 
 class pretty_docs_Test(TestCase):
 
-    currying_targets = (currying.partial,
-                        currying.pre_curry, currying.post_curry)
+    currying_targets = (currying.pre_curry, currying.post_curry)
 
     def test_module_magic(self):
         for target in self.currying_targets:
@@ -84,17 +83,6 @@ class pretty_docs_Test(TestCase):
                 self.assertIdentical(
                     currying.pretty_docs(target(func)).__doc__,
                     func.__doc__)
-
-
-class CPyPartialTest(PreCurryTest):
-
-    pre_curry = staticmethod(currying.partial)
-
-    def test_instancemethod(self):
-        class Test(object):
-            method = self.pre_curry(passthrough, 'test')
-        test = Test()
-        self.assertEqual((('test',), {}), test.method())
 
 
 class PostCurryTest(TestCase):

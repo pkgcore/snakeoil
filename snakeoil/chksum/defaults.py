@@ -10,12 +10,12 @@ for chksum implementations, while also preferring the fastest implementation
 available.
 """
 
+from functools import partial
 import hashlib
 import threading
 import Queue
 
 from snakeoil.data_source import base as base_data_source
-from snakeoil.currying import partial
 from snakeoil import modules
 from snakeoil.compatibility import intern, is_py3k
 from snakeoil.demandload import demandload

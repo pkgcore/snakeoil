@@ -10,12 +10,14 @@ types = [""] + list("_%s" % x for x in ("ascii", "ascii_strict", "utf8", "utf8_s
 __all__ += tuple("readfile%s" % x for x in types) + tuple("readlines%s" % x for x in types)
 del types
 
+from functools import partial
 import os
 
-from snakeoil.weakrefs import WeakRefFinalizer
 from snakeoil import klass, compatibility
-from snakeoil.currying import partial, pretty_docs
+from snakeoil.currying import pretty_docs
 from snakeoil.demandload import demandload
+from snakeoil.weakrefs import WeakRefFinalizer
+
 demandload(
     'codecs',
     'mmap',

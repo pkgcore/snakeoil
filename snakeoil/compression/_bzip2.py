@@ -13,9 +13,10 @@ Should use this module unless its absolutely critical that bz2 module be used
 
 __all__ = ("compress_data", "decompress_data")
 
+from functools import partial
 import sys
 
-from snakeoil import process, currying
+from snakeoil import process
 from snakeoil.compression import _util
 
 # Unused import
@@ -36,11 +37,11 @@ except ImportError:
     # (and some code needs to be able to check that).
     native = False
 
-    _compress_data = currying.partial(_util.compress_data, bz2_path)
-    _decompress_data = currying.partial(_util.decompress_data, bz2_path)
+    _compress_data = partial(_util.compress_data, bz2_path)
+    _decompress_data = partial(_util.decompress_data, bz2_path)
 
-_compress_handle = currying.partial(_util.compress_handle, bz2_path)
-_decompress_handle = currying.partial(_util.decompress_handle, bz2_path)
+_compress_handle = partial(_util.compress_handle, bz2_path)
+_decompress_handle = partial(_util.decompress_handle, bz2_path)
 
 lbzip2_path = None
 parallelizable = False

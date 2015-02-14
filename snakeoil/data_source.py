@@ -47,10 +47,12 @@ __all__ = (
 )
 
 import errno
+from functools import partial
 
-from snakeoil.currying import post_curry, partial
 from snakeoil import compatibility, stringio, klass
+from snakeoil.currying import post_curry
 from snakeoil.demandload import demandload
+
 demandload(
     'codecs',
     'snakeoil:compression,fileutils',

@@ -5,10 +5,11 @@
 Function currying, generating a functor with a set of args/defaults pre bound.
 
 :py:func:`pre_curry` and :py:func:`post_curry` return "normal" python functions
-:py:func:`partial` returns a callable object. The difference between
-:py:func:`pre_curry` and :py:func:`partial` is this
+The difference between :py:func:`pre_curry` and :py:func:`functools.partial`
+is this
 
->>> from snakeoil.currying import pre_curry, partial
+>>> from functools import partial
+>>> from snakeoil.currying import pre_curry
 >>> def func(arg=None, self=None):
 ...   return arg, self
 >>> curry = pre_curry(func, True)
@@ -28,8 +29,9 @@ Function currying, generating a functor with a set of args/defaults pre bound.
 (True, None)
 
 If your curried function is not used as a class attribute the results should be
-identical. Because :py:func:`partial` has an implementation in c while
-:py:func:`pre_curry` is python you should use :py:func:`partial` if possible.
+identical. Because :py:func:`functools.partial` has an implementation in C
+while :py:func:`pre_curry` is python you should use :py:func:`functools.partial`
+if possible.
 """
 
 from functools import partial
@@ -37,7 +39,7 @@ import sys
 
 from snakeoil import compatibility
 
-__all__ = ("pre_curry", "partial", "post_curry", "pretty_docs")
+__all__ = ("pre_curry", "post_curry", "pretty_docs")
 
 
 def pre_curry(func, *args, **kwargs):
@@ -62,64 +64,6 @@ def pre_curry(func, *args, **kwargs):
 
     callit.func = func
     return callit
-
-
-def _pydoc_isdata_override(object):
-    # yes, import in function is evil.
-    # so is this function...
-    import inspect
-    return not (isinstance(object, partial) or
-                inspect.ismodule(object) or inspect.isclass(object) or
-                inspect.isroutine(object) or inspect.isframe(object) or
-                inspect.istraceback(object) or inspect.iscode(object))
-
-
-def _inspect_isroutine_override(object):
-    import inspect
-    return (isinstance(object, partial)
-            or inspect.isbuiltin(object)
-            or inspect.isfunction(object)
-            or inspect.ismethod(object)
-            or inspect.ismethoddescriptor(object))
-
-
-def force_inspect_partial_awareness(only_if_loaded=True):
-    if only_if_loaded:
-        mod = sys.modules.get('inspect', None)
-    else:
-        import inspect as mod
-    if mod:
-        mod.isroutine = _inspect_isroutine_override
-
-
-def force_pydoc_partial_awareness(only_if_loaded=True):
-    # this is probably redundant due to inspect_partial overrides
-    # better safe then sorry however.
-    if only_if_loaded:
-        mod = sys.modules.get('pydoc', None)
-    else:
-        import pydoc as mod
-    if mod:
-        mod.isdata = _pydoc_isdata_override
-
-
-def _epydoc_isroutine_override(object):
-    # yes, import in function is evil.
-    # so is this function...
-    import inspect
-    return isinstance(object, partial) or inspect.isroutine(object)
-
-
-def force_epydoc_partial_awareness(only_if_loaded=True):
-    if 'epydoc' in sys.modules or not only_if_loaded:
-        import epydoc.docintrospecter as mod
-        mod.register_introspecter(_epydoc_isroutine_override,
-                                  mod.introspect_routine, priority=26)
-
-
-force_inspect_partial_awareness()
-force_pydoc_partial_awareness()
-force_epydoc_partial_awareness()
 
 
 def post_curry(func, *args, **kwargs):

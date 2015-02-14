@@ -5,13 +5,14 @@
 """Classes wrapping a file-like object to do fancy output on it."""
 
 import errno
+from functools import partial
 import os
 
-from snakeoil.klass import GetAttrProxy, steal_docs
-from snakeoil.demandload import demandload
 from snakeoil import compatibility
+from snakeoil.demandload import demandload
+from snakeoil.klass import GetAttrProxy, steal_docs
 from snakeoil.mappings import defaultdictkey
-from snakeoil.currying import partial
+
 demandload('locale')
 
 

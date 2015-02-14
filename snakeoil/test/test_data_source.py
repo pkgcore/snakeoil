@@ -1,7 +1,9 @@
 # Copyright: 2006-2011 Brian Harring <ferringb@gmail.com>
 # License: GPL2/BSD
 
-from snakeoil import compatibility, compression, currying, data_source
+from functools import partial
+
+from snakeoil import compatibility, compression, data_source
 from snakeoil.test import TestCase, mixins
 from snakeoil.osutils import pjoin
 
@@ -164,7 +166,7 @@ class Test_invokable_data_source(TestDataSource):
         if isinstance(data, basestring):
             data = data.encode("utf8")
         return data_source.invokable_data_source(
-            currying.partial(self._get_data, data))
+            partial(self._get_data, data))
 
     @staticmethod
     def _get_data(data, is_text=False):
@@ -181,7 +183,7 @@ class Test_invokable_data_source_wrapper_text(Test_invokable_data_source):
 
     def get_obj(self, mutable=False, data="foonani"):
         return data_source.invokable_data_source.wrap_function(
-            currying.partial(self._get_data, data),
+            partial(self._get_data, data),
             self.text_mode)
 
     def _get_data(self, data='foonani'):
