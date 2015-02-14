@@ -28,19 +28,14 @@ def get_git_version(cwd):
     """:return: git sha1 rev"""
 
     cwd = os.path.abspath(cwd)
-    stdout, ret = _run(cwd, ["git", "log", "HEAD^..HEAD"])
+    stdout, ret = _run(cwd, ["git", "log", "--format=%H\n%ad", "HEAD^..HEAD"])
 
     if ret != 0:
         return {}
 
     data = stdout.decode("ascii").splitlines()
-    commit = [x.split()[-1]
-              for x in data if x.startswith("commit")][0]
 
-    date = [x.split(":", 1)[-1].lstrip()
-            for x in data if x.lower().startswith("date")][0]
-
-    return {"rev": commit, "date": date, 'tag': _get_git_tag(cwd, commit)}
+    return {"rev": data[0], "date": data[1], 'tag': _get_git_tag(cwd, data[0])}
 
 
 def _get_git_tag(cwd, rev):
