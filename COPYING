@@ -1,2 +1,9 @@
-snakeoil is available under BSD 3 clause (see BSD file adjacent to this file) or GPL2 (just v2) with the following exemptions-
-snakeoil/demandload.py is GPL2 only
+snakeoil is available under the BSD 3 clause (see BSD file adjacent to this
+file) or the GPL2 (just v2) with the following exemptions:
+
+# GPL2 only
+from snakeoil import demandload
+
+# BSD3 only
+from snakeoil.process import get_exit_status, exit_as_status
+from snakeoil import namespaces
