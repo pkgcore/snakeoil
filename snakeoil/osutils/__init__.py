@@ -42,7 +42,7 @@ __all__ = (
     'listdir_files', 'listdir_dirs', 'listdir',
     'readdir', 'normpath', 'unlink_if_exists',
     'FsLock', 'GenericFailed',
-    'LockException', 'NonExistent',
+    'LockException', 'NonExistent', 'mount',
 )
 
 import errno
@@ -61,8 +61,11 @@ except ImportError:
 # delay this... it's a 1ms hit, and not a lot of the consumers
 # force utf8 codepaths yet.
 from snakeoil import compatibility
+from snakeoil.demandload import demandload
 from snakeoil.klass import steal_docs
 from snakeoil.weakrefs import WeakRefFinalizer
+
+demandload('ctypes')
 
 listdir = module.listdir
 listdir_dirs = module.listdir_dirs
@@ -422,3 +425,43 @@ def lstat_mtime_long(path, st=None):
 
 def fstat_mtime_long(fd, st=None):
     return (os.fstat(fd) if st is None else st)[stat.ST_MTIME]
+
+
+# Flags synced from sys/mount.h, see mount(2) for details.
+MS_RDONLY = 1
+MS_NOSUID = 2
+MS_NODEV = 4
+MS_NOEXEC = 8
+MS_SYNCHRONOUS = 16
+MS_REMOUNT = 32
+MS_MANDLOCK = 64
+MS_DIRSYNC = 128
+MS_NOATIME = 1024
+MS_NODIRATIME = 2048
+MS_BIND = 4096
+MS_MOVE = 8192
+MS_REC = 16384
+MS_SILENT = 32768
+MS_POSIXACL = 1 << 16
+MS_UNBINDABLE = 1 << 17
+MS_PRIVATE = 1 << 18
+MS_SLAVE = 1 << 19
+MS_SHARED = 1 << 20
+MS_RELATIME = 1 << 21
+MS_KERNMOUNT = 1 << 22
+MS_I_VERSION = 1 << 23
+MS_STRICTATIME = 1 << 24
+MS_ACTIVE = 1 << 30
+MS_NOUSER = 1 << 31
+
+
+def mount(source, target, fstype, flags, data=None):
+    """Call mount(2); see the man page for details."""
+    libc = ctypes.CDLL(ctypes.util.find_library('c'), use_errno=True)
+    if compatibility.is_py3k:
+        for arg in ('source', 'target', 'fstype'):
+            if isinstance(arg, str):
+                arg = arg.encode()
+    if libc.mount(source, target, fstype, ctypes.c_ulong(flags), data) != 0:
+        e = ctypes.get_errno()
+        raise OSError(e, os.strerror(e))
