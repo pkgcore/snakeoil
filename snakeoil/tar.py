@@ -106,8 +106,6 @@ tarfile.fileobject = ExFileObject
 
 
 tarfile.TarInfo = TarInfo
-# python 2.6
-tarfile.TarFile.tarinfo = TarInfo
 # finished monkey patching. now to lift things out of our tarfile
 # module into this scope so from/import behaves properly.
 
