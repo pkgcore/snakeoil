@@ -39,7 +39,7 @@ def get_git_version(cwd):
         data = stdout.decode("ascii").splitlines()
 
         return {"rev": data[0], "date": data[1], 'tag': _get_git_tag(cwd, data[0])}
-    except EnvironmentError, e:
+    except EnvironmentError as e:
         # ENOENT is thrown when the git binary can't be found.
         if e.errno != errno.ENOENT:
             raise
