@@ -491,6 +491,35 @@ class Test_attr_to_item_mapping(TestCase):
         self.test_AttrAccessible(foon)
 
 
+class Test_ProxiedAttrs(TestCase):
+
+    kls = mappings.ProxiedAttrs
+
+    def test_it(self):
+        class foo(object):
+            def __init__(self, **kwargs):
+                for attr, val in kwargs.iteritems():
+                    setattr(self, attr, val)
+        obj = foo()
+        d = self.kls(obj)
+        self.assertRaises(KeyError, operator.__getitem__, d, 'x')
+        self.assertRaises(KeyError, operator.__delitem__, d, 'x')
+        self.assertNotIn('x', d)
+        d['x'] = 1
+        self.assertEqual(d['x'], 1)
+        self.assertIn('x', d)
+        self.assertEqual(['x'], list(x for x in d if not x.startswith("__")))
+        del d['x']
+        self.assertNotIn('x', d)
+        self.assertRaises(KeyError, operator.__delitem__, d, 'x')
+        self.assertRaises(KeyError, operator.__getitem__, d, 'x')
+
+        # Finally, verify that immutable attribute errors are handled correctly.
+        d = self.kls(object())
+        self.assertRaises(KeyError, operator.__setitem__, d, 'x', 1)
+        self.assertRaises(KeyError, operator.__delitem__, d, 'x')
+
+
 class SlottedDictTest(TestCase):
 
     kls = staticmethod(mappings.make_SlottedDict_kls)

@@ -733,6 +733,53 @@ class AttrAccessible(dict):
     inject_getitem_as_getattr(locals())
 
 
+class ProxiedAttrs(DictMixin):
+
+    """Proxy mapping protocol to an objects attributes
+
+    Example usage:
+
+    >>> class foo(object):
+    ...     pass
+    >>> obj = foo()
+    >>> obj.x, obj.y = 1, 2
+    >>> d = ProxiedAttrs(obj)
+    >>> print(d['x'])
+    1
+    >>> del d['x']
+    >>> print(hasattr(obj, 'x'))
+    False
+
+    :param target: The object to wrap.
+    """
+
+    __slots__ = ('__target__',)
+
+    def __init__(self, target):
+        self.__target__ = target
+
+    def __getitem__(self, key):
+        try:
+            return getattr(self.__target__, key)
+        except AttributeError:
+            raise KeyError(key)
+
+    def __setitem__(self, key, value):
+        try:
+            return setattr(self.__target__, key, value)
+        except AttributeError:
+            raise KeyError(key)
+
+    def __delitem__(self, key):
+        try:
+            return delattr(self.__target__, key)
+        except AttributeError:
+            raise KeyError(key)
+
+    def iterkeys(self):
+        return iter(dir(self.__target__))
+
+
 def native_attr_getitem(self, key):
     try:
         return getattr(self, key)
