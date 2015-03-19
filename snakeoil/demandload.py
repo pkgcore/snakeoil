@@ -242,7 +242,7 @@ class StandardPlaceholder(Placeholder):
         return load_any(source)
 
 
-def demandload(*imports):
+def demandload(*imports, **kwargs):
     """Import modules into the caller's global namespace when each is first used.
 
     Other args are strings listing module names.
@@ -256,8 +256,8 @@ def demandload(*imports):
     foo:baz@quux   from foo import baz as quux
     """
 
-    # pull the caller's global namespace
-    scope = sys._getframe(1).f_globals
+    # pull the caller's global namespace if undefined
+    scope = kwargs.pop('scope', sys._getframe(1).f_globals)
 
     for source, target in parse_imports(imports):
         scope[target] = StandardPlaceholder(scope, target, source)
@@ -268,9 +268,9 @@ def demandload(*imports):
 enabled_demandload = demandload
 
 
-def disabled_demandload(*imports):
+def disabled_demandload(*imports, **kwargs):
     """Exactly like :py:func:`demandload` but does all imports immediately."""
-    scope = sys._getframe(1).f_globals
+    scope = kwargs.pop('scope', sys._getframe(1).f_globals)
     for source, target in parse_imports(imports):
         scope[target] = load_any(source)
 
@@ -300,13 +300,13 @@ def demand_compile_regexp(name, *args, **kwargs):
 
     :param name: the name of the compiled re object in that scope.
     """
-    scope = sys._getframe(1).f_globals
+    scope = kwargs.pop('scope', sys._getframe(1).f_globals)
     scope[name] = RegexPlaceholder(scope, name, *args, **kwargs)
 
 
 def disabled_demand_compile_regexp(name, *args, **kwargs):
     """Exactly like :py:func:`demand_compile_regexp` but does all imports immediately."""
-    scope = sys._getframe(1).f_globals
+    scope = kwargs.pop('scope', sys._getframe(1).f_globals)
     scope[name] = re.compile(*args, **kwargs)
 
 

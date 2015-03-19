@@ -51,19 +51,21 @@ class PlaceholderTest(TestCase):
 
     @reset_globals
     def test_getattr(self):
-        placeholder = demandload.Placeholder('foo', list)
-        self.assertEqual(globals(), placeholder._scope)
-        self.assertEqual(placeholder.__doc__, [].__doc__)
-        self.assertEqual(globals['foo'], [])
-        demandload._protection_enabled = lambda: True
-        self.assertRaises(ValueError, getattr, placeholder, '__doc__')
+        for kwargs, scope in (({}, globals()), ({'scope': {}}, {})):
+            placeholder = demandload.Placeholder('foo', list, **kwargs)
+            self.assertEqual(scope, placeholder._scope)
+            self.assertEqual(placeholder.__doc__, [].__doc__)
+            self.assertEqual(scope['foo'], [])
+            demandload._protection_enabled = lambda: True
+            self.assertRaises(ValueError, getattr, placeholder, '__doc__')
 
     @reset_globals
     def test__str__(self):
-        placeholder = demandload.Placeholder('foo', list)
-        self.assertEqual(globals(), placeholder._scope)
-        self.assertEqual(str(placeholder), str([]))
-        self.assertEqual(globals()['foo'], [])
+        for kwargs, scope in (({}, globals()), ({'scope': {}}, {})):
+            placeholder = demandload.Placeholder('foo', list, **kwargs)
+            self.assertEqual(scope, placeholder._scope)
+            self.assertEqual(str(placeholder), str([]))
+            self.assertEqual(scope['foo'], [])
 
     @reset_globals
     def test_call(self):
@@ -71,52 +73,58 @@ class PlaceholderTest(TestCase):
             return args, kwargs
         def get_func():
             return passthrough
-        placeholder = demandload.Placeholder('foo', get_func)
-        self.assertEqual(globals(), placeholder._scope)
-        self.assertEqual(
-            (('arg',), {'kwarg': 42}), placeholder('arg', kwarg=42))
-        self.assertIdentical(passthrough, globals()['foo'])
+        for kwargs, scope in (({}, globals()), ({'scope': {}}, {})):
+            placeholder = demandload.Placeholder('foo', get_func, **kwargs)
+            self.assertEqual(scope, placeholder._scope)
+            self.assertEqual(
+                (('arg',), {'kwarg': 42}), placeholder('arg', kwarg=42))
+            self.assertIdentical(passthrough, scope['foo'])
 
     @reset_globals
     def test_setattr(self):
         class Struct(object):
             pass
 
-        placeholder = demandload.Placeholder('foo', Struct)
-        placeholder.val = 7
-        demandload._protection_enabled = lambda: True
-        self.assertRaises(ValueError, getattr, placeholder, 'val')
-        self.assertEqual(7, globals()['foo'].val)
+        for kwargs, scope in (({}, globals()), ({'scope': {}}, {})):
+            placeholder = demandload.Placeholder('foo', Struct, **kwargs)
+            placeholder.val = 7
+            demandload._protection_enabled = lambda: True
+            self.assertRaises(ValueError, getattr, placeholder, 'val')
+            self.assertEqual(7, scope['foo'].val)
 
 
 class ImportTest(TestCase):
 
     @reset_globals
     def test_demandload(self):
-        demandload.demandload('snakeoil:demandload')
-        self.assertNotIdentical(demandload, globals()['demandload'])
-        self.assertIdentical(
-            demandload.demandload, globals()['demandload'].demandload)
-        self.assertIdentical(demandload, globals()['demandload'])
+        for kwargs, scope in (({}, globals()), ({'scope': {}}, {})):
+            demandload.demandload('snakeoil:demandload', **kwargs)
+            self.assertNotIdentical(demandload, scope['demandload'])
+            self.assertIdentical(
+                demandload.demandload, scope['demandload'].demandload)
+            self.assertIdentical(demandload, scope['demandload'])
+
 
     @reset_globals
     def test_disabled_demandload(self):
-        demandload.disabled_demandload('snakeoil:demandload')
-        self.assertIdentical(demandload, globals()['demandload'])
+        for kwargs, scope in (({}, globals()), ({'scope': {}}, {})):
+            demandload.disabled_demandload('snakeoil:demandload', **kwargs)
+            self.assertIdentical(demandload, scope['demandload'])
 
 
 class DemandCompileRegexpTest(TestCase):
 
     @reset_globals
     def test_demand_compile_regexp(self):
-        demandload.demand_compile_regexp('foo', 'frob')
-        self.assertEqual(globals().keys(), ['foo'])
-        self.assertEqual('frob', globals()['foo'].pattern)
-        self.assertEqual('frob', globals()['foo'].pattern)
+        for kwargs, scope in (({}, globals()), ({'scope': {}}, {})):
+            demandload.demand_compile_regexp('foo', 'frob', **kwargs)
+            self.assertEqual(scope.keys(), ['foo'])
+            self.assertEqual('frob', scope['foo'].pattern)
+            self.assertEqual('frob', scope['foo'].pattern)
 
-        # verify it's delayed via a bad regex.
-        demandload.demand_compile_regexp('foo', 'f(')
-        self.assertEqual(globals().keys(), ['foo'])
-        # should blow up on accessing an attribute.
-        obj = globals()['foo']
-        self.assertRaises(sre_constants.error, getattr, obj, 'pattern')
+            # verify it's delayed via a bad regex.
+            demandload.demand_compile_regexp('foo', 'f(', **kwargs)
+            self.assertEqual(scope.keys(), ['foo'])
+            # should blow up on accessing an attribute.
+            obj = scope['foo']
+            self.assertRaises(sre_constants.error, getattr, obj, 'pattern')
