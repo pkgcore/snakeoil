@@ -5,6 +5,25 @@ Release Notes
 snakeoil trunk
 --------------
 
+
+snakeoil 0.6.1 (2015-03-24)
+---------------------------
+
+- Add ProxiedAttrs mappings class used as a proxy mapping protocol to an
+  object's attributes.
+
+- Update namespace support and move it into snakeoil.namespaces.
+
+- Add ctypes-based mount(2) wrapper in snakeoil.osutils.
+
+- Deprecate snakeoil.modules.load_module, importlib.import_module should be
+  used instead.
+
+- Downgrade scope from a required argument to a optional keyword argument for
+  demandload, the caller's global scope is used by default when no argument is
+  passed.
+
+
 snakeoil 0.6 (2014-12-01)
 -------------------------
 
@@ -12,10 +31,10 @@ snakeoil 0.6 (2014-12-01)
   semaphores.
 
 - Fix race condition for demand compiled regexps which solves various threading
-  issues including running a parallelized `pmaint regen` in pkgcore. 
+  issues including running a parallelized `pmaint regen` in pkgcore.
 
 - Remove old compat snakeoil.fileutils imports from snakeoil.osutils and
-  make_SlottedDict_kls from snakeoil.obj. 
+  make_SlottedDict_kls from snakeoil.obj.
 
 - Drop python2.4 any/all built-ins compat, python2.6 is_disjoint compat, and
   pre-python2.6 next built-in compat.
@@ -38,6 +57,7 @@ snakeoil 0.6 (2014-12-01)
 
 - Add support to klass.steal_docs to clone docstrings from regular functions in
   addition to class functions.
+
 
 snakeoil 0.5.3 (2013-09-26)
 ---------------------------
