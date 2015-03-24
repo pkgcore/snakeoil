@@ -11,7 +11,7 @@ __all__ = (
     "autoconvert_py3k_methods_metaclass", "DictMixin", "LazyValDict",
     "LazyFullValLoadDict", "ProtectedDict", "ImmutableDict", "IndeterminantDict",
     "OrderedDict", "defaultdict", "defaultdictkey", "AttrAccessible", "StackedDict",
-    "make_SlottedDict_kls",
+    "make_SlottedDict_kls", "ProxiedAttrs",
 )
 
 from collections import deque
@@ -697,7 +697,7 @@ def inject_getitem_as_getattr(scope):
     """modify a given class scope proxying attr access to dict access
 
     If the given scope already has __getattr__, __setattr__, or __delattr__,
-    the pre-existing method will not be overriden.
+    the pre-existing method will not be overridden.
 
     Example usage:
 

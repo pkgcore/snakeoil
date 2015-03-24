@@ -55,7 +55,7 @@ Snakeoil vcs of choice is `git <http://git.scm.org/>`_, and our source can be ch
 
 All releases are available at |release_url|\., with release news available at :ref:`releases`\.
 
-As for dependencies, snakeoil basically just requires python2.6 and up.
+As for dependencies, snakeoil basically just requires python2.7 and up.
 
 
 Snakeoil intentions
