@@ -735,7 +735,7 @@ class AttrAccessible(dict):
 
 class ProxiedAttrs(DictMixin):
 
-    """Proxy mapping protocol to an objects attributes
+    """Proxy mapping protocol to an object's attributes
 
     Example usage:
 
