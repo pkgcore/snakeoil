@@ -39,46 +39,12 @@ class OptionalExtension(core.Extension):
 
 class sdist(dst_sdist.sdist):
 
-    """sdist command specifying the right files and generating ChangeLog."""
+    """sdist command wrapper to generate version info file"""
 
     default_format = dict(dst_sdist.sdist.default_format)
     default_format["posix"] = "bztar"
 
     package_namespace = None
-    old_verinfo = True
-
-    def get_file_list(self):
-        """Get a filelist without doing anything involving MANIFEST files."""
-        # This is copied from the "Recreate manifest" bit of sdist.
-        self.filelist.findall()
-        if self.use_defaults:
-            self.add_defaults()
-
-        # This bit is roughly equivalent to a MANIFEST.in template file.
-        for key, globs in self.distribution.package_data.items():
-            for pattern in globs:
-                self.filelist.include_pattern(os.path.join(key, pattern))
-
-        self.filelist.append("AUTHORS")
-        self.filelist.append("NOTES")
-        self.filelist.append("NEWS")
-        self.filelist.append("COPYING")
-
-        self.filelist.include_pattern('.[ch]', prefix='src')
-
-        self.filelist.exclude_pattern('build')
-        self.filelist.exclude_pattern('dist')
-        self._add_to_file_list()
-
-        if self.prune:
-            self.prune_file_list()
-
-        # This is not optional: remove_duplicates needs sorted input.
-        self.filelist.sort()
-        self.filelist.remove_duplicates()
-
-    def _add_to_file_list(self):
-        pass
 
     def generate_verinfo(self, base_dir):
         log.info('generating _verinfo')
@@ -86,15 +52,9 @@ class sdist(dst_sdist.sdist):
         data = get_git_version(base_dir)
         if not data:
             return
-        if self.old_verinfo:
-            content = 'git rev %s, date %s' % (data['rev'],
-                                               data['date'])
-            content = 'version_info="%s"' % content
-        else:
-            content = 'version_info=%r' % (data,)
         path = os.path.join(base_dir, self.package_namespace, '_verinfo.py')
         with open(path, 'w') as f:
-            f.write(content)
+            f.write('version_info=%r' % (data,))
 
     def make_release_tree(self, base_dir, files):
         """Create and populate the directory tree that is put in source tars.
