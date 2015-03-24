@@ -97,10 +97,14 @@ if BuildDoc:
         'source_dir': ('setup.py', 'doc'),
     }
 
+with open('README.rst', 'r') as f:
+    readme = f.read()
+
 core.setup(
     name='snakeoil',
     version=__version__,
     description='misc common functionality and useful optimizations',
+    long_description=readme,
     url='https://github.com/pkgcore/snakeoil',
     license='BSD',
     author='Brian Harring, Tim Harder',
