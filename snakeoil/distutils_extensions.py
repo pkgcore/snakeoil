@@ -65,13 +65,6 @@ class sdist(dst_sdist.sdist):
         """
         dst_sdist.sdist.make_release_tree(self, base_dir, files)
         self.generate_verinfo(base_dir)
-        self.cleanup_post_release_tree(base_dir)
-
-    def cleanup_post_release_tree(self, base_dir):
-        for base, dirs, files in os.walk(base_dir):
-            for x in files:
-                if x.endswith(".pyc") or x.endswith(".pyo"):
-                    os.unlink(os.path.join(base, x))
 
 
 class build_py(dst_build_py.build_py):
