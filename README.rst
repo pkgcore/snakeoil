@@ -1,4 +1,4 @@
-|test| |coverage| |docs|
+|pypi| |test| |coverage| |docs|
 
 ========
 snakeoil
@@ -50,6 +50,9 @@ finally, installing::
 
 
 .. _`issue tracker`: https://github.com/pkgcore/snakeoil/issues
+
+.. |pypi| image:: https://img.shields.io/pypi/v/snakeoil.svg
+    :target: https://pypi.python.org/pypi/snakeoil
 
 .. |test| image:: https://travis-ci.org/pkgcore/snakeoil.svg?branch=master
     :target: https://travis-ci.org/pkgcore/snakeoil
