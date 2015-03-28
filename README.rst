@@ -12,8 +12,10 @@ but they all have native python implementations too.
 Contact
 =======
 
-Please create an issue in the `issue tracker`_.
+For support and development inquiries a `mailing list`_ is available or you can
+also stop by at `#pkgcore`_ on Freenode.
 
+For bugs and feature requests please create an issue in the `issue tracker`_.
 
 Tests
 =====
@@ -42,6 +44,8 @@ To install::
     python setup.py install
 
 
+.. _`mailing list`: https://groups.google.com/forum/#!forum/python-snakeoil
+.. _#pkgcore: https://webchat.freenode.net?channels=%23pkgcore&uio=d4
 .. _`issue tracker`: https://github.com/pkgcore/snakeoil/issues
 
 .. |pypi| image:: https://img.shields.io/pypi/v/snakeoil.svg
