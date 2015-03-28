@@ -8,12 +8,11 @@ snakeoil is a python library that implements optimized versions of common
 python functionality. Some classes and functions have cpython equivalents,
 but they all have native python implementations too.
 
-
 Contact
 =======
 
 For support and development inquiries a `mailing list`_ is available or you can
-also stop by at `#pkgcore`_ on Freenode.
+join `#pkgcore`_ on Freenode.
 
 For bugs and feature requests please create an issue in the `issue tracker`_.
 
@@ -28,7 +27,6 @@ In addition, a tox config is provided so snakeoil can be tested against all
 versions of Python it currently supports. Just run **tox** in the root
 directory of the repo or an unpacked tarball to run the testsuite.
 
-
 Installing
 ==========
 
@@ -42,7 +40,6 @@ To install::
 
     cd snakeoil-0.xx
     python setup.py install
-
 
 .. _`mailing list`: https://groups.google.com/forum/#!forum/python-snakeoil
 .. _#pkgcore: https://webchat.freenode.net?channels=%23pkgcore&uio=d4
