@@ -1,4 +1,4 @@
-include AUTHORS BSD GPL2 LICENSE *.rst
+include AUTHORS BSD GPL2 LICENSE *.rst tox.ini
 recursive-include doc *
 recursive-include include/snakeoil *.h
 recursive-include src *.[ch]
