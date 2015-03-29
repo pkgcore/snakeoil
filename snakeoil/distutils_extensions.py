@@ -41,9 +41,6 @@ class sdist(dst_sdist.sdist):
 
     """sdist command wrapper to generate version info file"""
 
-    default_format = dict(dst_sdist.sdist.default_format)
-    default_format["posix"] = "bztar"
-
     package_namespace = None
 
     def generate_verinfo(self, base_dir):
