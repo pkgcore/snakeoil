@@ -5,6 +5,10 @@ Release Notes
 snakeoil trunk
 --------------
 
+- Add tox-based testsuite support.
+
+- Drop distutils sdist filelist workaround and respect MANIFEST.in instead.
+
 
 snakeoil 0.6.1 (2015-03-24)
 ---------------------------
