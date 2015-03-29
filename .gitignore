@@ -1,11 +1,13 @@
+*.py[co]
+.*.swp
+.*.un~
+
+# C extensions
+*.so
+
 build
 cache
 dist
-*.pyo
-*.pyc
-snakeoil/*.so
-snakeoil/chksum/*.so
-snakeoil/osutils/*.so
 _trial_temp
 /doc/_build
 /doc/api
@@ -13,3 +15,6 @@ _trial_temp
 # unit testing / coverage
 .coverage
 .tox
+
+# distutils/setuptools
+MANIFEST
