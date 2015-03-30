@@ -459,9 +459,9 @@ def mount(source, target, fstype, flags, data=None):
     """Call mount(2); see the man page for details."""
     libc = ctypes.CDLL(ctypes.util.find_library('c'), use_errno=True)
     if compatibility.is_py3k:
-        for arg in ('source', 'target', 'fstype'):
-            if isinstance(arg, str):
-                arg = arg.encode()
+        source = source.encode() if isinstance(source, str) else source
+        target = target.encode() if isinstance(target, str) else target
+        fstype = fstype.encode() if isinstance(fstype, str) else fstype
     if libc.mount(source, target, fstype, ctypes.c_ulong(flags), data) != 0:
         e = ctypes.get_errno()
         raise OSError(e, os.strerror(e))
