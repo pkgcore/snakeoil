@@ -5,15 +5,11 @@ python:
     - 2.7
     - 3.3
     - 3.4
-install:
-    - pip install coverage coveralls pylint
-    - python setup.py install --install-headers "${VIRTUAL_ENV}"/include/snakeoil
-script:
-    - pushd build/lib*
-    - coverage run --source snakeoil --omit "snakeoil/test/*" -m py.test snakeoil/test
-    - coverage report
+install: pip install tox coveralls pylint
+script: tox -e py
 after_success:
     # upload coverage data to coveralls.io
+    - pushd .tox/py/lib/python${TRAVIS_PYTHON_VERSION}/site-packages
     - coveralls
     - popd
 
