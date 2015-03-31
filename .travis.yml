@@ -3,7 +3,7 @@ python:
     - 2.7
     - 3.3
     - 3.4
-install: pip install tox coveralls pylint
+install: pip install tox coveralls
 script: tox -e py
 after_success:
     # convert pylint plugins as necessary for py3k
@@ -13,5 +13,5 @@ after_success:
     # upload coverage data to coveralls.io
     - coveralls
     # run pylint checks
-    - ${TRAVIS_BUILD_DIR}/pylint -f colorized --reports y snakeoil
+    #- ${TRAVIS_BUILD_DIR}/pylint -f colorized --reports y snakeoil
     - popd
