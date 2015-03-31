@@ -31,6 +31,9 @@ the following::
 
     tox -e py27
 
+Note that mock_ is required for tests if you're using anything less than python
+3.3.
+
 Installing
 ==========
 
@@ -48,6 +51,7 @@ To install::
 .. _`mailing list`: https://groups.google.com/forum/#!forum/python-snakeoil
 .. _#pkgcore: https://webchat.freenode.net?channels=%23pkgcore&uio=d4
 .. _`issue tracker`: https://github.com/pkgcore/snakeoil/issues
+.. _mock: https://pypi.python.org/pypi/mock
 
 .. |pypi| image:: https://img.shields.io/pypi/v/snakeoil.svg
     :target: https://pypi.python.org/pypi/snakeoil

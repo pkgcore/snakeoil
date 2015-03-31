@@ -2,10 +2,17 @@
 # Copyright: 2006 Marien Zwart <marienz@gentoo.org>
 # License: BSD/GPL2
 
+import errno
 import fcntl
 import grp
 import os
 import stat
+import unittest
+
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 from snakeoil import osutils
 from snakeoil.test import TestCase, SkipTest, mk_cpy_loadable_testcase
@@ -313,6 +320,32 @@ class Test_unlink_if_exists(TempDirMixin):
         self.assertFalse(os.path.exists(path))
         # and once more for good measure...
         f(path)
+
+
+class Mount(unittest.TestCase):
+
+    def test_args_bytes(self):
+        # The initial source, target, and fstype arguments to mount(2) must be
+        # byte strings; if they are unicode strings the arguments get mangled
+        # leading to errors when the syscall is run. This confirms mount() from
+        # snakeoil.osutils always converts the arguments into byte strings.
+        with mock.patch('snakeoil.osutils.ctypes') as mock_ctypes:
+            with self.assertRaises(OSError):
+                osutils.mount('source', 'target', 'fstype', osutils.MS_BIND)
+            mount_call = next(x for x in mock_ctypes.mock_calls if x[0] == 'CDLL().mount')
+            for arg in mount_call[1][0:3]:
+                self.assertIsInstance(arg, bytes)
+
+    def test_missing_dirs(self):
+        with self.assertRaises(OSError) as cm:
+            osutils.mount('source', 'target', 'fstype', osutils.MS_BIND)
+        self.assertEqual(cm.exception.errno, errno.ENOENT)
+
+    def test_no_perms(self):
+        with self.assertRaises(OSError) as cm:
+            osutils.mount('/proc', '/tmp', 'fstype', osutils.MS_BIND)
+        self.assertEqual(cm.exception.errno, errno.EPERM)
+
 
 cpy_readdir_loaded_Test = mk_cpy_loadable_testcase(
     "snakeoil.osutils._readdir", "snakeoil.osutils", "listdir", "listdir")
