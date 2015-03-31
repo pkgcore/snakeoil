@@ -1,15 +1,16 @@
 language: python
-python:
-    - 2.7
-    - 3.3
-    - 3.4
+python: 3.4
+env:
+    - TOXENV=py27
+    - TOXENV=py33
+    - TOXENV=py34
 install: pip install tox coveralls pylint
-script: tox -e py
+script: tox
 after_success:
     # convert pylint plugins as necessary for py3k
     - if [[ ${TRAVIS_PYTHON_VERSION} == 3* ]]; then 2to3 -wn lintplugin/*.py; fi
 
-    - pushd .tox/py/lib/python${TRAVIS_PYTHON_VERSION}/site-packages
+    - pushd .tox/${TOXENV}/lib/python*/site-packages
     # upload coverage data to coveralls.io
     - coveralls
     # run pylint checks
