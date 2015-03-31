@@ -7,6 +7,7 @@ import fcntl
 import grp
 import os
 import stat
+import tempfile
 import unittest
 
 try:
@@ -324,6 +325,14 @@ class Test_unlink_if_exists(TempDirMixin):
 
 class Mount(unittest.TestCase):
 
+    def setUp(self):
+        self.source = tempfile.mkdtemp()
+        self.target = tempfile.mkdtemp()
+
+    def tearDown(self):
+        os.rmdir(self.source)
+        os.rmdir(self.target)
+
     def test_args_bytes(self):
         # The initial source, target, and fstype arguments to mount(2) must be
         # byte strings; if they are unicode strings the arguments get mangled
@@ -343,7 +352,7 @@ class Mount(unittest.TestCase):
 
     def test_no_perms(self):
         with self.assertRaises(OSError) as cm:
-            osutils.mount('/proc', '/tmp', 'fstype', osutils.MS_BIND)
+            osutils.mount(self.source, self.target, 'fstype', osutils.MS_BIND)
         self.assertEqual(cm.exception.errno, errno.EPERM)
 
 
