@@ -241,6 +241,12 @@ for hashlibname, chksumname, size in [
             chksumname, partial(hashlib.new, hashlibname), size)
 del hashlibname, chksumname
 
+if 'whirlpool' not in chksum_types:
+    # Fallback to the python implementation.
+    chksum_types['whirlpool'] = Chksummer(
+        'whirlpool', modules.load_attribute('snakeoil.chksum._whirlpool.Whirlpool'),
+        whirlpool_size)
+
 # expand this to load all available at some point
 for k, v, str_size in (
         ("sha1", "SHA", sha1_size),
