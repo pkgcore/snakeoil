@@ -65,7 +65,10 @@ from snakeoil.demandload import demandload
 from snakeoil.klass import steal_docs
 from snakeoil.weakrefs import WeakRefFinalizer
 
-demandload('ctypes')
+demandload(
+    'ctypes',
+    'ctypes.util:find_library',
+)
 
 listdir = module.listdir
 listdir_dirs = module.listdir_dirs
@@ -457,7 +460,7 @@ MS_NOUSER = 1 << 31
 
 def mount(source, target, fstype, flags, data=None):
     """Call mount(2); see the man page for details."""
-    libc = ctypes.CDLL(ctypes.util.find_library('c'), use_errno=True)
+    libc = ctypes.CDLL(find_library('c'), use_errno=True)
     if compatibility.is_py3k:
         source = source.encode() if isinstance(source, str) else source
         target = target.encode() if isinstance(target, str) else target
