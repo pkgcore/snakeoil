@@ -5,6 +5,18 @@ Release Notes
 snakeoil trunk
 --------------
 
+
+snakeoil 0.6.2 (2015-04-01)
+---------------------------
+
+- Add locking for demandload replace operations during the scope modification
+  phase, fixing threaded access.
+
+- Fix fd leak during highly-threaded pmaint regen runs due to a cyclic
+  reference issue in readlines_iter from snakeoil.fileutils.
+
+- Fix py3k argument encoding for mount() from snakeoil.osutils.
+
 - Add tox-based testsuite support.
 
 - Drop distutils sdist filelist workaround and respect MANIFEST.in instead.
