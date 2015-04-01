@@ -43,17 +43,22 @@ class readlines_iter(object):
             source = iterable
         self.source = source
         if close:
-            iterable = itertools.chain(iterable, self._close_on_stop())
+            iterable = itertools.chain(iterable, self._close_on_stop(source))
         self.iterable = iterable
         self.mtime = mtime
 
-    def _close_on_stop(self):
+    @staticmethod
+    def _close_on_stop(source):
         # we explicitly write this to force this method to be
         # a generator; we intend to return nothing, but close
         # the file on the way out.
+        # Note that in addition, this is a staticmethod; if it's an instance
+        # method it results in cyclic reference graph for this object.
+        # End result, files hang around until a full gc collection spots the
+        # cycle and reaps the cyclic readlines_iter chunk.
         for _ in ():
             yield None
-        self.source.close()
+        source.close()
         raise StopIteration()
 
     def close(self):
