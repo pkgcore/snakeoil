@@ -350,6 +350,7 @@ class Mount(unittest.TestCase):
             osutils.mount('source', 'target', 'none', osutils.MS_BIND)
         self.assertEqual(cm.exception.errno, errno.ENOENT)
 
+    @unittest.skipIf(os.getuid() == 0, 'this test must be run as non-root')
     def test_no_perms(self):
         with self.assertRaises(OSError) as cm:
             osutils.mount(self.source, self.target, 'none', osutils.MS_BIND)
