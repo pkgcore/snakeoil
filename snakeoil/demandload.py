@@ -24,6 +24,11 @@ have to be careful with:
    third module is imported you do not get that exception, so you
    have to be careful not to import or otherwise pass around the
    placeholder object without triggering it.
+ - You may not demandload more than one level of lookups.  Specifically,
+   demandload("os.path") is not allowed- this would require a "os" fake
+   object in the local scope, one which would have a "path" fake object
+   pushed into the os object.  This is effectively not much of a limitation;
+   you can instead just lazyload 'path' directly via demandload("os:path").
  - Not all operations on the placeholder object trigger demandload.
    The most common problem is that C{except ExceptionClass} does not
    work if C{ExceptionClass} is a placeholder.
@@ -34,8 +39,10 @@ have to be careful with:
 
 __all__ = ("demandload", "demand_compile_regexp")
 
+import functools
 import os
 import sys
+import threading
 
 from snakeoil import compatibility
 from snakeoil.modules import load_any
@@ -64,8 +71,9 @@ def parse_imports(imports):
       'foo:bar,baz@spork' -> ('foo.bar', 'bar'), ('foo.baz', 'spork')
       'foo@bar' -> ('foo', 'bar')
 
-    Notice 'foo.bar' is not a valid input. This simplifies the code,
-    but if it is desired it can be added back.
+    Notice 'foo.bar' is not a valid input.  Supporting 'foo.bar' would
+    result in nested demandloaded objects- this isn't desirable for
+    client code.  Instead use 'foo:bar'.
 
     :type imports: sequence of C{str} objects.
     :rtype: iterable of tuples of two C{str} objects.
@@ -75,7 +83,10 @@ def parse_imports(imports):
         if len(fromlist) == 1:
             # Not a "from" import.
             if '.' in s:
-                raise ValueError('dotted imports unsupported; %r' % s)
+                raise ValueError(
+                    "dotted imports are disallowed; see "
+                    "snakeoil.demandload docstring for "
+                    "details; %r" % s)
             split = s.split('@', 1)
             for s in split:
                 if not s.translate(_allowed_chars).isspace():
@@ -137,18 +148,47 @@ class Placeholder(object):
     See the module docstring for common problems with its use.
     """
 
-    def __init__(self, scope, name):
+    @classmethod
+    def load_namespace(cls, scope, name, target):
+        """Object that imports modules into scope when first used.
+
+        See the module docstring for common problems with its use; used by
+        :py:func:`demandload`.
+        """
+        if not isinstance(target, str):
+            raise TypeError("Asked to load non string namespace: %r" % (target,))
+        return cls(scope, name, functools.partial(load_any, target))
+
+    @classmethod
+    def load_regex(cls, scope, name, *args, **kwargs):
+        """
+        Compiled Regex object that knows how to replace itself when first accessed.
+
+        See the module docstring for common problems with its use; used by
+        :py:func:`demand_compile_regexp`.
+        """
+        if not args and not kwargs:
+            raise TypeError("re.compile requires at least one arg or kwargs")
+        return cls(scope, name, functools.partial(re.compile, *args, **kwargs))
+
+    def __init__(self, scope, name, load_func):
         """Initialize.
 
         :param scope: the scope we live in, normally the global namespace of
             the caller (C{globals()}).
         :param name: the name we have in C{scope}.
+        :param load_func: a functor that when invoked with no args, returns the
+            object we're demandloading.
         """
+        if not callable(load_func):
+            raise TypeError("load_func must be callable; got %r" % (load_func,))
         object.__setattr__(self, '_scope', scope)
         object.__setattr__(self, '_name', name)
         object.__setattr__(self, '_replacing_tids', [])
+        object.__setattr__(self, '_load_func', load_func)
+        object.__setattr__(self, '_loading_lock', threading.Lock())
 
-    def _already_replaced(self):
+    def _target_already_loaded(self, complain=True):
         name = object.__getattribute__(self, '_name')
         scope = object.__getattribute__(self, '_scope')
 
@@ -165,47 +205,51 @@ class Placeholder(object):
         # as for why we watch for the threading modules; if they're not there,
         # it's impossible for this pathway to accidentally be triggered twice-
         # meaning it is a misuse by the consuming client code.
-        if 'threading' in sys.modules:
-            tids_to_complain_about = object.__getattribute__(self, '_replacing_tids')
-            complain = threading.current_thread().ident in tids_to_complain_about
-        else:
-            complain = True
-
         if complain:
-            if _protection_enabled():
-                raise ValueError('Placeholder for %r was triggered twice' % (name,))
-            elif _noisy_protection():
-                logging.warning('Placeholder for %r was triggered multiple times '
-                                'in file %r', name, scope.get("__file__", "unknown"))
+            tids_to_complain_about = object.__getattribute__(self, '_replacing_tids')
+            if threading.current_thread().ident in tids_to_complain_about:
+                if _protection_enabled():
+                    raise ValueError('Placeholder for %r was triggered twice' % (name,))
+                elif _noisy_protection():
+                    logging.warning('Placeholder for %r was triggered multiple times '
+                                    'in file %r', name, scope.get("__file__", "unknown"))
         return scope[name]
 
-    def _replace(self):
-        """Replace ourself in C{scope} with the result of our C{_replace_func}.
+    def _get_target(self):
+        """Replace ourself in C{scope} with the result of our C{_load_func}.
 
-        :return: the result of calling C{_replace_func}.
+        :return: the result of calling C{_load_func}.
         """
-        replace_func = object.__getattribute__(self, '_replace_func')
-        scope = object.__getattribute__(self, '_scope')
-        name = object.__getattribute__(self, '_name')
+        preloaded_func = object.__getattribute__(self, '_target_already_loaded')
+        with object.__getattribute__(self, '_loading_lock'):
+            load_func = object.__getattribute__(self, '_load_func')
+            if load_func is None:
+                # This means that there was contention; two threads made it into
+                # _get_target.  That's fine; suppress complaints, and return the
+                # preloaded value.
+                result = preloaded_func(False)
+            else:
+                # We're the first thread to try and do the load; load the target,
+                # fix the scope, and replace this method with one that shortcircuits
+                # (and appropriately complains) the lookup.
+                result = load_func()
+                scope = object.__getattribute__(self, '_scope')
+                name = object.__getattribute__(self, '_name')
+                scope[name] = result
+                # Replace this method with the fast path/preloaded one; this
+                # is to ensure complaints get leveled if needed.
+                object.__setattr__(self, '_get_target', preloaded_func)
+                object.__setattr__(self, '_load_func', None)
 
-        result = replace_func()
-        scope[name] = result
 
-        # Paranoia, explained in the module docstring.
-        # note that this *must* follow scope mutation, else it can cause
-        # issues for threading
-        already_replaced = object.__getattribute__(self, '_already_replaced')
-        object.__setattr__(self, '_replace_func', already_replaced)
-
-        # note this step *has* to follow scope modification; else it
-        # will go maximum depth recursion.
-        if 'threading' in sys.modules:
+            # note this step *has* to follow scope modification; else it
+            # will go maximum depth recursion.
             tids = object.__getattribute__(self, '_replacing_tids')
             tids.append(threading.current_thread().ident)
 
         return result
 
-    def _replace_func(self):
+    def _load_func(self):
         raise NotImplementedError
 
     # Various methods proxied to our replacement.
@@ -214,32 +258,16 @@ class Placeholder(object):
         return self.__getattribute__('__str__')()
 
     def __getattribute__(self, attr):
-        result = object.__getattribute__(self, '_replace')()
+        result = object.__getattribute__(self, '_get_target')()
         return getattr(result, attr)
 
     def __setattr__(self, attr, value):
-        result = object.__getattribute__(self, '_replace')()
+        result = object.__getattribute__(self, '_get_target')()
         setattr(result, attr, value)
 
     def __call__(self, *args, **kwargs):
-        result = object.__getattribute__(self, '_replace')()
+        result = object.__getattribute__(self, '_get_target')()
         return result(*args, **kwargs)
-
-
-class StandardPlaceholder(Placeholder):
-    """Object that imports modules into scope when first used.
-
-    See the module docstring for common problems with its use; used by
-    :py:func:`demandload`.
-    """
-
-    def __init__(self, scope, name, source):
-        super(StandardPlaceholder, self).__init__(scope, name)
-        object.__setattr__(self, '_source', source)
-
-    def _replace_func(self):
-        source = object.__getattribute__(self, '_source')
-        return load_any(source)
 
 
 def demandload(*imports, **kwargs):
@@ -260,7 +288,7 @@ def demandload(*imports, **kwargs):
     scope = kwargs.pop('scope', sys._getframe(1).f_globals)
 
     for source, target in parse_imports(imports):
-        scope[target] = StandardPlaceholder(scope, target, source)
+        scope[target] = Placeholder.load_namespace(scope, target, source)
 
 
 # Extra name to make undoing monkeypatching demandload with
@@ -275,24 +303,6 @@ def disabled_demandload(*imports, **kwargs):
         scope[target] = load_any(source)
 
 
-class RegexPlaceholder(Placeholder):
-    """
-    Compiled Regex object that knows how to replace itself when first accessed.
-
-    See the module docstring for common problems with its use; used by
-    :py:func:`demand_compile_regexp`.
-    """
-    def __init__(self, scope, name, *args, **kwargs):
-        super(RegexPlaceholder, self).__init__(scope, name)
-        object.__setattr__(self, '_args', args)
-        object.__setattr__(self, '_kwargs', kwargs)
-
-    def _replace_func(self):
-        args = object.__getattribute__(self, '_args')
-        kwargs = object.__getattribute__(self, '_kwargs')
-        return re.compile(*args, **kwargs)
-
-
 def demand_compile_regexp(name, *args, **kwargs):
     """Demandloaded version of :py:func:`re.compile`.
 
@@ -301,7 +311,7 @@ def demand_compile_regexp(name, *args, **kwargs):
     :param name: the name of the compiled re object in that scope.
     """
     scope = kwargs.pop('scope', sys._getframe(1).f_globals)
-    scope[name] = RegexPlaceholder(scope, name, *args, **kwargs)
+    scope[name] = Placeholder.load_regex(scope, name, *args, **kwargs)
 
 
 def disabled_demand_compile_regexp(name, *args, **kwargs):
@@ -317,5 +327,4 @@ if os.environ.get("SNAKEOIL_DEMANDLOAD_DISABLED", 'n').lower() in ('y', 'yes' '1
 demandload(
     'logging',
     're',
-    'threading',
 )
