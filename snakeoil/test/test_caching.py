@@ -3,10 +3,11 @@
 
 import gc
 
-from snakeoil.test import TestCase, mk_cpy_loadable_testcase
+from snakeoil.test import TestCase, mk_cpy_loadable_testcase, not_a_test
 from snakeoil import caching
 
 
+@not_a_test
 def gen_test(WeakInstMeta):
     class weak_slotted(object):
         __metaclass__ = WeakInstMeta

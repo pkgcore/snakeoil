@@ -11,7 +11,7 @@ pjoin = os.path.join
 
 from snakeoil import compatibility, currying, fileutils, _fileutils
 from snakeoil.fileutils import AtomicWriteFile
-from snakeoil.test import TestCase
+from snakeoil.test import TestCase, not_a_test
 from snakeoil.test.mixins import TempDirMixin
 
 
@@ -251,6 +251,7 @@ class readlines_mixin(object):
         self.assertEqual(results, expected)
 
 
+@not_a_test
 def mk_readlines_test(scope, mode):
     func_name = 'readlines_%s' % mode
     base = globals()['native_readfile_%s_Test' % mode]

@@ -43,6 +43,13 @@ class SkipTest(Exception):
     """Raise to skip a test."""
 
 
+def not_a_test(obj):
+    """Decorator used to suppress a functor from being treated as a TestCase"""
+    obj.__test__ = False
+    return obj
+not_a_test = not_a_test(not_a_test)
+
+
 class Todo(object):
 
     def __init__(self, reason, errors=None):
@@ -276,6 +283,7 @@ class TestCase(unittest.TestCase, object):
             result.stopTest(self)
 
 
+@not_a_test
 def mk_cpy_loadable_testcase(extension_namespace, trg_namespace=None,
                              trg_attr=None, src_attr=None):
 

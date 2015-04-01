@@ -6,7 +6,7 @@ from time import time
 
 from snakeoil import klass
 from snakeoil.compatibility import cmp, is_py3k
-from snakeoil.test import TestCase, mk_cpy_loadable_testcase
+from snakeoil.test import TestCase, mk_cpy_loadable_testcase, not_a_test
 
 
 class Test_native_GetAttrProxy(TestCase):
@@ -585,7 +585,7 @@ class TestImmutableInstance(TestCase):
 
         self.common_test(f)
 
-
+    @not_a_test
     def common_test(self, modify_kls):
         class kls(object):
             modify_kls(locals())
