@@ -347,12 +347,12 @@ class Mount(unittest.TestCase):
 
     def test_missing_dirs(self):
         with self.assertRaises(OSError) as cm:
-            osutils.mount('source', 'target', 'fstype', osutils.MS_BIND)
+            osutils.mount('source', 'target', 'none', osutils.MS_BIND)
         self.assertEqual(cm.exception.errno, errno.ENOENT)
 
     def test_no_perms(self):
         with self.assertRaises(OSError) as cm:
-            osutils.mount(self.source, self.target, 'fstype', osutils.MS_BIND)
+            osutils.mount(self.source, self.target, 'none', osutils.MS_BIND)
         self.assertEqual(cm.exception.errno, errno.EPERM)
 
 
