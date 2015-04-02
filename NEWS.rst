@@ -5,6 +5,11 @@ Release Notes
 snakeoil trunk
 --------------
 
+snakeoil 0.6.3 (2015-04-01)
+---------------------------
+
+- Remove temporary plugincache generated during tests so it isn't installed.
+
 
 snakeoil 0.6.2 (2015-04-01)
 ---------------------------

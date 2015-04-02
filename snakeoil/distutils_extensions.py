@@ -286,6 +286,14 @@ class test(core.Command):
             namespaces, disable_fork=self.disable_fork,
             blacklist=self.blacklist, pythonpath=syspath,
             modules_to_wipe=mods_to_wipe)
+
+        # remove temporary plugincache so it isn't installed
+        plugincache = os.path.join(
+            os.path.abspath(build_py.build_lib), build_py.package_namespace,
+            'plugins/plugincache')
+        if os.path.exists(plugincache):
+            os.remove(plugincache)
+
         if retval:
             raise errors.DistutilsExecError("tests failed; return %i" % (retval,))
 
