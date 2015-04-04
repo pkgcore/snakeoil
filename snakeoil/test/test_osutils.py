@@ -355,6 +355,18 @@ class Mount(unittest.TestCase):
         with self.assertRaises(OSError) as cm:
             osutils.mount(self.source, self.target, 'none', osutils.MS_BIND)
         self.assertEqual(cm.exception.errno, errno.EPERM)
+        with self.assertRaises(OSError) as cm:
+            osutils.umount(self.target)
+        self.assertEqual(cm.exception.errno, errno.EPERM)
+
+    @unittest.skipIf(os.getuid() != 0, 'this test must be run as root')
+    def test_root(self):
+        # test umount
+        osutils.mount(self.source, self.target, 'none', osutils.MS_BIND)
+        osutils.umount(self.target)
+        # test umount2
+        osutils.mount(self.source, self.target, 'none', osutils.MS_BIND)
+        osutils.umount(self.target, osutils.MNT_FORCE)
 
 
 cpy_readdir_loaded_Test = mk_cpy_loadable_testcase(

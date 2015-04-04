@@ -42,7 +42,7 @@ __all__ = (
     'listdir_files', 'listdir_dirs', 'listdir',
     'readdir', 'normpath', 'unlink_if_exists',
     'FsLock', 'GenericFailed',
-    'LockException', 'NonExistent', 'mount',
+    'LockException', 'NonExistent', 'mount', 'umount',
 )
 
 import errno
@@ -430,7 +430,7 @@ def fstat_mtime_long(fd, st=None):
     return (os.fstat(fd) if st is None else st)[stat.ST_MTIME]
 
 
-# Flags synced from sys/mount.h, see mount(2) for details.
+# mount flags synced from sys/mount.h, see the mount(2) man page for details.
 MS_RDONLY = 1
 MS_NOSUID = 2
 MS_NODEV = 4
@@ -457,6 +457,12 @@ MS_STRICTATIME = 1 << 24
 MS_ACTIVE = 1 << 30
 MS_NOUSER = 1 << 31
 
+# umount2 flags synced from sys/mount.h, see the umount2 man page for details.
+MNT_FORCE = 1
+MNT_DETACH = 2
+MNT_EXPIRE = 4
+UMOUNT_NOFOLLOW = 8
+
 
 def mount(source, target, fstype, flags, data=None):
     """Call mount(2); see the man page for details."""
@@ -466,5 +472,20 @@ def mount(source, target, fstype, flags, data=None):
         target = target.encode() if isinstance(target, str) else target
         fstype = fstype.encode() if isinstance(fstype, str) else fstype
     if libc.mount(source, target, fstype, ctypes.c_ulong(flags), data) != 0:
+        e = ctypes.get_errno()
+        raise OSError(e, os.strerror(e))
+
+
+def umount(target, flags=None):
+    """Call umount or umount2; see the umount(2) man page for details."""
+    libc = ctypes.CDLL(find_library('c'), use_errno=True)
+    if compatibility.is_py3k:
+        target = target.encode() if isinstance(target, str) else target
+    args = []
+    func = libc.umount
+    if flags is not None:
+        args.append(ctypes.c_ulong(flags))
+        func = libc.umount2
+    if func(target, *args) != 0:
         e = ctypes.get_errno()
         raise OSError(e, os.strerror(e))
