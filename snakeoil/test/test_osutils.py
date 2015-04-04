@@ -357,7 +357,7 @@ class Mount(unittest.TestCase):
         self.assertEqual(cm.exception.errno, errno.EPERM)
         with self.assertRaises(OSError) as cm:
             osutils.umount(self.target)
-        self.assertEqual(cm.exception.errno, errno.EPERM)
+        self.assertTrue(cm.exception.errno in (errno.EPERM, errno.EINVAL))
 
     @unittest.skipIf(os.getuid() != 0, 'this test must be run as root')
     def test_root(self):
