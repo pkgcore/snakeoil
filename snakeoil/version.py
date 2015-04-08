@@ -5,7 +5,7 @@
 """Version information (tied to git)."""
 
 
-__version__ = '0.6.3'
+__version__ = '0.6.4'
 
 _ver = None
 import errno
