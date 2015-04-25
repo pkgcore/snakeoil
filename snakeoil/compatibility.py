@@ -96,6 +96,9 @@ if is_py3k:
     def force_bytes(string):
         return string.encode()
 
+    class ConfigParser(configparser.ConfigParser):
+        pass
+
 else:
     # note that 2to3 screws this up... non issue however, since
     # this codepath won't be executed.
@@ -112,8 +115,10 @@ else:
     # provide access to old method/class names without having to conditionalize
     # elsewhere- note that read_file actually was added in 3.2, but we don't
     # support 3.1
-    configparser.ConfigParser.read_file = configparser.ConfigParser.readfp
-    configparser.ConfigParser = configparser.SafeConfigParser
+    class ConfigParser(configparser.SafeConfigParser):
+
+        def read_file(self, f, source=None):
+            self.readfp(f, filename=source)
 
 if is_py3k:
     def raise_from(new_exception, exc_info=None):
