@@ -10,11 +10,11 @@ from __future__ import print_function
 __all__ = (
     "autoconvert_py3k_methods_metaclass", "DictMixin", "LazyValDict",
     "LazyFullValLoadDict", "ProtectedDict", "ImmutableDict", "IndeterminantDict",
-    "defaultdict", "defaultdictkey", "AttrAccessible", "StackedDict",
+    "defaultdictkey", "AttrAccessible", "StackedDict",
     "make_SlottedDict_kls", "ProxiedAttrs",
 )
 
-from collections import deque
+from collections import defaultdict
 from itertools import imap, chain, ifilterfalse, izip
 import operator
 
@@ -616,8 +616,6 @@ class NonPreservingFoldingDict(DictMixin):
     def clear(self):
         self._dict = {}
 
-
-from collections import defaultdict
 
 class defaultdictkey(defaultdict):
 
