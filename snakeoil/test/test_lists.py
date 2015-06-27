@@ -1,12 +1,12 @@
 # Copyright: 2005 Marien Zwart <marienz@gentoo.org>
 # License: BSD/GPL2
 
-
+from collections import OrderedDict
 from operator import itemgetter
 
 from snakeoil.test import TestCase, mk_cpy_loadable_testcase
 from snakeoil import lists
-from snakeoil.mappings import OrderedDict
+
 
 class UnhashableComplex(complex):
 

@@ -346,57 +346,6 @@ class IndeterminantDictTest(TestCase):
         self.assertEqual(d.get(3), True)
 
 
-class TestOrderedDict(TestCase):
-
-    @staticmethod
-    def gen_dict():
-        return mappings.OrderedDict(enumerate(xrange(100)))
-
-    def test_items(self):
-        self.assertEqual(list(self.gen_dict().iteritems()),
-                         list(enumerate(xrange(100))))
-        self.assertEqual(self.gen_dict().items(),
-                         list(enumerate(xrange(100))))
-
-    def test_values(self):
-        self.assertEqual(list(self.gen_dict().itervalues()),
-                         list(xrange(100)))
-        l = ["asdf", "fdsa", "Dawefa", "3419", "pas", "1"]
-        l = [s + "12" for s in l] + l
-        l = ["1231adsfasdfagqwer" + s for s in l] + l
-        self.assertEqual(
-            list(mappings.OrderedDict(
-                (v, k) for k, v in enumerate(l)).itervalues()),
-            list(xrange(len(l))))
-
-    def test_keys(self):
-        self.assertEqual(list(self.gen_dict().iterkeys()), list(xrange(100)))
-        self.assertEqual(self.gen_dict().keys(), list(xrange(100)))
-
-    def test_iter(self):
-        self.assertEqual(list(self.gen_dict()), list(xrange(100)))
-        l = ["asdf", "fdsa", "Dawefa", "3419", "pas", "1"]
-        l = [s + "12" for s in l] + l
-        l = ["1231adsfasdfagqwer" + s for s in l] + l
-        self.assertEqual(list(mappings.OrderedDict((x, None) for x in l)), l)
-
-    def test_del(self):
-        d = self.gen_dict()
-        del d[50]
-        self.assertEqual(list(d), list(range(50) + range(51, 100)))
-        self.assertRaises(KeyError, operator.delitem, d, 50)
-        self.assertRaises(KeyError, operator.delitem, d, 'spork')
-
-    def test_set(self):
-        d = self.gen_dict()
-        d.setdefault(120)
-        d.setdefault(110)
-        self.assertEqual(list(d), list(range(100)) + [120, 110])
-
-    def test_clear(self):
-        self.gen_dict().clear()
-
-
 class FoldingDictTest(TestCase):
 
     def testPreserve(self):

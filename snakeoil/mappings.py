@@ -10,7 +10,7 @@ from __future__ import print_function
 __all__ = (
     "autoconvert_py3k_methods_metaclass", "DictMixin", "LazyValDict",
     "LazyFullValLoadDict", "ProtectedDict", "ImmutableDict", "IndeterminantDict",
-    "OrderedDict", "defaultdict", "defaultdictkey", "AttrAccessible", "StackedDict",
+    "defaultdict", "defaultdictkey", "AttrAccessible", "StackedDict",
     "make_SlottedDict_kls", "ProxiedAttrs",
 )
 
@@ -501,50 +501,6 @@ class StackedDict(DictMixin):
         raise TypeError("unmodifiable")
 
     __delitem__ = clear = __setitem__
-
-
-class OrderedDict(DictMixin):
-
-    """Dict that preserves insertion ordering which is used for iteration ops"""
-
-    __slots__ = ("_data", "_order")
-
-    def __init__(self, iterable=()):
-        self._order = deque()
-        self._data = {}
-        for k, v in iterable:
-            self[k] = v
-
-    def __setitem__(self, key, val):
-        if key not in self:
-            self._order.append(key)
-        self._data[key] = val
-
-    def __delitem__(self, key):
-        del self._data[key]
-
-        for idx, o in enumerate(self._order):
-            if o == key:
-                del self._order[idx]
-                break
-        else:
-            raise AssertionError("orderdict lost its internal ordering")
-
-    def __getitem__(self, key):
-        return self._data[key]
-
-    def __len__(self):
-        return len(self._order)
-
-    def iterkeys(self):
-        return iter(self._order)
-
-    def clear(self):
-        self._order = deque()
-        self._data = {}
-
-    def __contains__(self, key):
-        return key in self._data
 
 
 class PreservingFoldingDict(DictMixin):
