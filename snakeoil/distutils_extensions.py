@@ -195,6 +195,13 @@ class build_ext(dst_build_ext.build_ext):
             self.build_optional = True
         if not self.build_optional:
             self.extensions = [ext for ext in self.extensions if not isinstance(ext, OptionalExtension)] or None
+        self.set_undefined_options('install', ('install_headers', 'default_header_install_dir'))
+        if self.default_header_install_dir:
+            self.default_header_install_dir = os.path.dirname(self.default_header_install_dir)
+            for e in self.extensions:
+                # include_dirs may actually be shared between multiple extensions
+                if self.default_header_install_dir not in e.include_dirs:
+                    e.include_dirs.append(self.default_header_install_dir)
 
         # add header install dir to the search path
         # (fixes virtualenv builds for consumer extensions)
