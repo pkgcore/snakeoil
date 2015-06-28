@@ -5,6 +5,25 @@ Release Notes
 snakeoil trunk
 --------------
 
+
+snakeoil 0.6.4 (2015-04-28)
+---------------------------
+
+- Add header install directory to the search path when building extensions.
+  This helps fix building consumers like pkgcore in virtualenvs.
+
+- Simplify snakeoil.xml by dropping deprecated elementtree related module
+  fallbacks.
+
+- Drop internal OrderedDict implementation from snakeoil.mappings, use the
+  version from collections instead.
+
+- Fix snakeoil.compatibility ConfigParser defaults so 3rd party usage doesn't
+  get overridden.
+
+- Add ctypes-based umount/umount2 wrapper in snakeoil.osutils.
+
+
 snakeoil 0.6.3 (2015-04-01)
 ---------------------------
 
