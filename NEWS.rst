@@ -6,7 +6,7 @@ snakeoil trunk
 --------------
 
 
-snakeoil 0.6.4 (2015-04-28)
+snakeoil 0.6.4 (2015-06-28)
 ---------------------------
 
 - Add header install directory to the search path when building extensions.
