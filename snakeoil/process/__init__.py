@@ -113,7 +113,8 @@ def find_binary(binary, paths=None):
         return binary
 
     if paths is None:
-        paths = os.environ.get("PATH", "").split(":")
+        paths = os.environ.get("PATH", os.defpath)
+    paths = paths.split(os.pathsep)
 
     for path in paths:
         filename = "%s/%s" % (path, binary)
