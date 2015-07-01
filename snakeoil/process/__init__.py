@@ -117,7 +117,7 @@ def find_binary(binary, paths=None):
     paths = paths.split(os.pathsep)
 
     for path in paths:
-        filename = "%s/%s" % (path, binary)
+        filename = os.path.join(path, binary)
         if access(filename, os.X_OK) and os.path.isfile(filename):
             return filename
 
