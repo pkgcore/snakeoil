@@ -13,6 +13,8 @@ __all__ = (
 
 from snakeoil import compatibility
 from snakeoil.demandload import demandload
+from snakeoil.klass import steal_docs
+
 demandload(
     'itertools:chain,ifilterfalse',
 )
@@ -43,12 +45,6 @@ class InvertedContains(set):
         raise TypeError("InvertedContains cannot be iterated over")
 
 
-def steal_set_doc(method):
-    method.__doc__ = getattr(getattr(set, method.__name__, None),
-                             '__doc__', None)
-    return method
-
-
 class SetMixin(object):
     """
     Base class for implementing set classes
@@ -60,45 +56,45 @@ class SetMixin(object):
 
     """
 
-    @steal_set_doc
+    @steal_docs(set)
     def __and__(self, other, kls=None):
         # Note: for these methods we don't bother to filter dupes from this
         # list -  since the subclasses __init__ should already handle this,
         # there's no point doing it twice.
         return (kls or self.__class__)(x for x in self if x in other)
 
-    @steal_set_doc
+    @steal_docs(set)
     def __rand__(self, other):
         return self.__and__(other, kls=other.__class__)
 
-    @steal_set_doc
+    @steal_docs(set)
     def __or__(self, other, kls=None):
         return (kls or self.__class__)(chain(self, other))
 
-    @steal_set_doc
+    @steal_docs(set)
     def __ror__(self, other):
         return self.__or__(other, kls=other.__class__)
 
-    @steal_set_doc
+    @steal_docs(set)
     def __xor__(self, other, kls=None):
         return (kls or self.__class__)(chain(
             (x for x in self if x not in other),
             (x for x in other if x not in self)))
 
-    @steal_set_doc
+    @steal_docs(set)
     def __rxor__(self, other):
         return self.__xor__(other, kls=other.__class__)
 
-    @steal_set_doc
+    @steal_docs(set)
     def __sub__(self, other):
         return self.__class__(x for x in self if x not in other)
 
-    @steal_set_doc
+    @steal_docs(set)
     def __rsub__(self, other):
         return other.__class__(x for x in other if x not in self)
 
-    __add__ = steal_set_doc(__or__)
-    __radd__ = steal_set_doc(__ror__)
+    __add__ = steal_docs(set)(__or__)
+    __radd__ = steal_docs(set)(__ror__)
 
 
 class LimitedChangeSet(SetMixin):
@@ -155,7 +151,7 @@ class LimitedChangeSet(SetMixin):
         self._change_order = []
         self._orig = frozenset(self._new)
 
-    @steal_set_doc
+    @steal_docs(set)
     def add(self, key):
         key = self._validater(key)
         if key in self._changed or key in self._blacklist:
@@ -168,7 +164,7 @@ class LimitedChangeSet(SetMixin):
         self._changed.add(key)
         self._change_order.append((self._added, key))
 
-    @steal_set_doc
+    @steal_docs(set)
     def remove(self, key):
         key = self._validater(key)
         if key in self._changed or key in self._blacklist:
@@ -181,7 +177,7 @@ class LimitedChangeSet(SetMixin):
         self._changed.add(key)
         self._change_order.append((self._removed, key))
 
-    @steal_set_doc
+    @steal_docs(set)
     def __contains__(self, key):
         return self._validater(key) in self._new
 
@@ -214,15 +210,15 @@ class LimitedChangeSet(SetMixin):
         def __str__(self):
             return str(self._new).replace("set(", "LimitedChangeSet(", 1)
 
-    @steal_set_doc
+    @steal_docs(set)
     def __iter__(self):
         return iter(self._new)
 
-    @steal_set_doc
+    @steal_docs(set)
     def __len__(self):
         return len(self._new)
 
-    @steal_set_doc
+    @steal_docs(set)
     def __eq__(self, other):
         if isinstance(other, LimitedChangeSet):
             return self._new == other._new
@@ -230,7 +226,7 @@ class LimitedChangeSet(SetMixin):
             return self._new == other
         return False
 
-    @steal_set_doc
+    @steal_docs(set)
     def __ne__(self, other):
         return not self == other
 
@@ -306,12 +302,12 @@ class RefCountingSet(dict):
         if iterable is not None:
             self.update(iterable)
 
-    @steal_set_doc
+    @steal_docs(set)
     def add(self, item):
         count = self.get(item, 0)
         self[item] = count + 1
 
-    @steal_set_doc
+    @steal_docs(set)
     def remove(self, item):
         count = self[item]
         if count == 1:
@@ -319,14 +315,14 @@ class RefCountingSet(dict):
         else:
             self[item] = count - 1
 
-    @steal_set_doc
+    @steal_docs(set)
     def discard(self, item):
         try:
             self.remove(item)
         except KeyError:
             pass
 
-    @steal_set_doc
+    @steal_docs(set)
     def update(self, items):
         for item in items:
             self.add(item)
