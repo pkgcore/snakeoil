@@ -33,8 +33,13 @@ have to be careful with:
    The most common problem is that C{except ExceptionClass} does not
    work if C{ExceptionClass} is a placeholder.
    C{except module.ExceptionClass} with C{module} a placeholder does
-   work. You can normally avoid this by always demandloading the
-   module, not something in it.
+   work. You can normally avoid this by always demandloading the module, not
+   something in it. Another similar case is that C{isinstance Class} or
+   C{issubclass Class} does not work for the initial call since the proper
+   class hasn't replaced the placeholder until after the call. So the first
+   call will always return False with subsequent calls working as expected. The
+   previously mentioned workaround of demandloading the module works in this
+   case as well.
 """
 
 __all__ = ("demandload", "demand_compile_regexp")
