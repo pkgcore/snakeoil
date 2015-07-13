@@ -354,7 +354,7 @@ class Mount(unittest.TestCase):
     def test_no_perms(self):
         with self.assertRaises(OSError) as cm:
             osutils.mount(self.source, self.target, 'none', osutils.MS_BIND)
-        self.assertEqual(cm.exception.errno, errno.EPERM)
+        self.assertTrue(cm.exception.errno in (errno.EPERM, errno.EACCES))
         with self.assertRaises(OSError) as cm:
             osutils.umount(self.target)
         self.assertTrue(cm.exception.errno in (errno.EPERM, errno.EINVAL))
