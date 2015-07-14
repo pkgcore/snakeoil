@@ -1,18 +1,26 @@
 language: python
 python:
-    - 2.7
-    - 3.3
-    - 3.4
+  - 2.7
+  - 3.3
+  - 3.4
+  - nightly
+matrix:
+  fast_finish: true
+  allow_failures:
+    - python: nightly
 sudo: false
+cache:
+  directories:
+    - $HOME/.cache/pip
 install: pip install 'tox<2' coveralls
-script: tox -e py
+script: tox -e py${TRAVIS_PYTHON_VERSION/\./}
 after_success:
-    # convert pylint plugins as necessary for py3k
-    - if [[ ${TRAVIS_PYTHON_VERSION} == 3* ]]; then 2to3 -wn lintplugin/*.py; fi
+  # convert pylint plugins as necessary for py3k
+  - if [[ ${TRAVIS_PYTHON_VERSION} == 3* ]]; then 2to3 -wn lintplugin/*.py; fi
 
-    - pushd .tox/py/lib/python${TRAVIS_PYTHON_VERSION}/site-packages
-    # upload coverage data to coveralls.io
-    - coveralls
-    # run pylint checks
-    #- ${TRAVIS_BUILD_DIR}/pylint -f colorized --reports y snakeoil
-    - popd
+  - pushd .tox/py/lib/python${TRAVIS_PYTHON_VERSION}/site-packages
+  # upload coverage data to coveralls.io
+  - coveralls
+  # run pylint checks
+  #- ${TRAVIS_BUILD_DIR}/pylint -f colorized --reports y snakeoil
+  - popd
