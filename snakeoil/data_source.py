@@ -16,7 +16,7 @@ doing necessary conversion steps for bytes/text requests.  Use the appropriate o
 it'll save yourself a headache when dealing with py2k/py3k compatibility in the same
 codebase.
 
-Finally, note that all file like handles returned from `test_fileobj()` and `bytes_fileobj()`
+Finally, note that all file like handles returned from `text_fileobj()` and `bytes_fileobj()`
 have a required additional attribute- *exceptions*, either a single Exception class, or a
 tuple of Exception classes that can be thrown by that file handle during usage.
 
