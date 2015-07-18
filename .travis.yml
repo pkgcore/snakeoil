@@ -15,12 +15,7 @@ cache:
 install: pip install 'tox<2' 'coveralls>0.5'
 script: tox -e py${TRAVIS_PYTHON_VERSION/\./}
 after_success:
-  # convert pylint plugins as necessary for py3k
-  - if [[ ${TRAVIS_PYTHON_VERSION} == 3* ]]; then 2to3 -wn lintplugin/*.py; fi
-
-  - pushd .tox/py${TRAVIS_PYTHON_VERSION/\./}/lib/python*/site-packages
   # upload coverage data to coveralls.io
+  - pushd "${TRAVIS_BUILD_DIR}"/.tox/py${TRAVIS_PYTHON_VERSION/\./}/lib/python*/site-packages
   - coveralls
-  # run pylint checks
-  #- ${TRAVIS_BUILD_DIR}/pylint -f colorized --reports y snakeoil
   - popd
