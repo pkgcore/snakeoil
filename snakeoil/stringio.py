@@ -7,10 +7,10 @@ StringIO functionality
 This module provides essentially two types of StringIO's, and two types of modes
 of operation; text versus bytes, and readonly versus writable.
 
-The reason for seperate classes is that when we're running on py2k, if all we're
+The reason for separate classes is that when we're running on py2k, if all we're
 doing is consuming/reading the data it's heavily preferable to use ``cStringIO.StringIO``
 if at all possible for performance reasons.  Thus we have readonly and writable
-classes; the seperation has clear performance benefits.
+classes; the separation has clear performance benefits.
 
 Note that while this functionality is based on StringIO and friends, there is some
 differences in behaviour from stdlib- stdlib's ``cStringIO.StringIO`` is
