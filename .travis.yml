@@ -12,7 +12,7 @@ sudo: false
 cache:
   directories:
     - $HOME/.cache/pip
-install: pip install 'tox<2' coveralls
+install: pip install 'tox<2' 'coveralls>0.5'
 script: tox -e py${TRAVIS_PYTHON_VERSION/\./}
 after_success:
   # convert pylint plugins as necessary for py3k
