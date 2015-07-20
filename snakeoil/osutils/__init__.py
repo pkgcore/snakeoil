@@ -120,7 +120,7 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
 
                     # if it's a subdir, we need +wx at least
                     if apath != base:
-                        sticky_parent = (st.st_gid & stat.S_ISGID)
+                        sticky_parent = (st.st_mode & stat.S_ISGID)
 
                 except OSError:
                     # nothing exists.
