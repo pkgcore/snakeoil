@@ -120,12 +120,6 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
 
                     # if it's a subdir, we need +wx at least
                     if apath != base:
-                        if (st.st_mode & 0o300) != 0o300:
-                            try:
-                                os.chmod(base, (st.st_mode | 0o300))
-                            except OSError:
-                                return False
-                            resets.append((base, st.st_mode))
                         sticky_parent = (st.st_gid & stat.S_ISGID)
 
                 except OSError:
