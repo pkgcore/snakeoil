@@ -142,8 +142,8 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
             try:
                 for base, m in reversed(resets):
                     os.chmod(base, m)
-                if uid != -1 or gid != -1:
-                    os.chown(base, uid, gid)
+                    if gid != -1 or uid != -1:
+                        os.chown(base, uid, gid)
             except OSError:
                 return False
 
