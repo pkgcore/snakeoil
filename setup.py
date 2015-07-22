@@ -6,24 +6,25 @@ import os
 
 from distutils import core
 
-from snakeoil import distutils_extensions as snk_distutils
 from snakeoil.version import __version__
-OptionalExtension = snk_distutils.OptionalExtension
+
+from pkgdist import distutils_extensions as pkg_distutils
+OptionalExtension = pkg_distutils.OptionalExtension
 
 
-class mysdist(snk_distutils.sdist):
+class mysdist(pkg_distutils.sdist):
     """sdist command specifying the right files and generating ChangeLog."""
 
     package_namespace = 'snakeoil'
 
 
-class snakeoil_build_py(snk_distutils.build_py):
+class snakeoil_build_py(pkg_distutils.build_py):
 
     package_namespace = 'snakeoil'
     generate_verinfo = True
 
     def _inner_run(self, py3k_rebuilds):
-        snk_distutils.build_py._inner_run(self, py3k_rebuilds)
+        pkg_distutils.build_py._inner_run(self, py3k_rebuilds)
 
         # distutils is stupid.  restore +x on appropriate scripts
         for script_name in ("caching_2to3.py", "pyflakes_extension.py"):
@@ -34,7 +35,7 @@ class snakeoil_build_py(snk_distutils.build_py):
             os.chmod(path, ((mode | 365) & 4095))
 
 
-class test(snk_distutils.test):
+class test(pkg_distutils.test):
 
     default_test_namespace = 'snakeoil.test'
 
@@ -57,7 +58,7 @@ extra_kwargs = dict(
 
 extensions = []
 
-if not snk_distutils.is_py3k:
+if not pkg_distutils.is_py3k:
     extensions.extend([
         OptionalExtension(
             'snakeoil._posix', ['src/posix.c'], **extra_kwargs),
@@ -77,14 +78,14 @@ if not snk_distutils.is_py3k:
 
 cmdclass = {
     'sdist': mysdist,
-    'build_ext': snk_distutils.build_ext,
+    'build_ext': pkg_distutils.build_ext,
     'build_py': snakeoil_build_py,
     'test': test,
 }
 
 command_options = {}
 
-BuildDoc = snk_distutils.sphinx_build_docs()
+BuildDoc = pkg_distutils.sphinx_build_docs()
 if BuildDoc:
     cmdclass['build_docs'] = BuildDoc
     command_options['build_docs'] = {

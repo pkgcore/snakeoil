@@ -1,5 +1,6 @@
 include AUTHORS BSD GPL2 LICENSE *.rst tox.ini .coveragerc
 recursive-include doc *
 recursive-include include/snakeoil *.h
+recursive-include pkgdist *
 recursive-include src *.[ch]
 global-exclude *.pyc *.pyo __pycache__

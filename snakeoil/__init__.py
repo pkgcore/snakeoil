@@ -15,3 +15,5 @@ This library is a bit of a grabbag of the following:
 * optimized implementations of common patterns
 
 """
+
+__version__ = '0.6.5'

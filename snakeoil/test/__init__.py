@@ -2,12 +2,9 @@
 # Copyright: 2006 Marien Zwart <marienz@gentoo.org>
 # License: BSD/GPL2
 
-
 """Our unittest extensions."""
 
-
 __all__ = ('SkipTest', 'TestCase')
-
 
 from importlib import import_module
 import os
@@ -18,7 +15,8 @@ import unittest
 import warnings
 
 from snakeoil import fileutils, klass, unittest_extensions
-from snakeoil.compatibility import is_py3k_like, IGNORED_EXCEPTIONS, is_py3k
+from snakeoil.compatibility import is_py3k_like, IGNORED_EXCEPTIONS
+
 
 def _tryResultCall(result, methodname, *args):
     method = getattr(result, methodname, None)
