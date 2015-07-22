@@ -3,9 +3,8 @@
 
 """Version information."""
 
+from importlib import import_module
 import os
-
-from snakeoil import modules
 
 _ver = None
 
@@ -15,11 +14,11 @@ def get_version(project, file_in_the_repo):
     global _ver  # pylint: disable=global-statement
     if _ver is None:
         version_info = None
-        api_version = modules.load_attribute('%s.__version__' % (project,))
+        api_version = getattr(import_module(project), '__version__')
         try:
-            version_info = modules.load_attribute(
-                '%s._verinfo.version_info' % (project,))
-        except modules.FailedImport:
+            version_info = getattr(import_module(
+                '%s._verinfo' % (project,)), 'version_info')
+        except AttributeError:
             # we're probably in a git repo
             try:
                 from pkgdist import get_git_version

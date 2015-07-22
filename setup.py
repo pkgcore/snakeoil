@@ -4,9 +4,9 @@
 
 import os
 
-from distutils import core
+from distutils.core import setup
 
-from snakeoil.version import __version__
+from snakeoil import __version__
 
 from pkgdist import distutils_extensions as pkg_distutils
 OptionalExtension = pkg_distutils.OptionalExtension
@@ -85,7 +85,7 @@ if BuildDoc:
 with open('README.rst', 'r') as f:
     readme = f.read()
 
-core.setup(
+setup(
     name='snakeoil',
     version=__version__,
     description='misc common functionality and useful optimizations',
