@@ -4,7 +4,7 @@
 
 import os
 
-from distutils.core import setup
+from setuptools import setup
 
 from snakeoil import __version__
 
@@ -72,16 +72,6 @@ cmdclass = {
     'test': test,
 }
 
-command_options = {}
-
-BuildDoc = pkg_distutils.sphinx_build_docs()
-if BuildDoc:
-    cmdclass['build_docs'] = BuildDoc
-    command_options['build_docs'] = {
-        'version': ('setup.py', __version__),
-        'source_dir': ('setup.py', 'doc'),
-    }
-
 with open('README.rst', 'r') as f:
     readme = f.read()
 
@@ -98,7 +88,6 @@ setup(
     ext_modules=extensions,
     headers=common_includes,
     cmdclass=cmdclass,
-    command_options=command_options,
     classifiers=[
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
