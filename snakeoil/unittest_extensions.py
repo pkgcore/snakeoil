@@ -2,6 +2,7 @@
 # License: BSD/GPL2
 
 import os
+import subprocess
 import sys
 
 import unittest
@@ -42,6 +43,7 @@ class TestLoader(unittest.TestLoader):
                 tests.append(self.loadTestsFromName(childname))
         return self.suiteClass(tests)
 
+
 def protect_env(functor):
     def f(*args, **kwds):
         backup_env = os.environ.copy()
@@ -58,6 +60,42 @@ def protect_env(functor):
     f.__name__ = functor.__name__
     f.__doc__ = functor.__doc__
     return f
+
+
+_PROTECT_ENV_VAR = "SNAKEOIL_UNITTEST_PROTECT_PROCESS"
+
+
+def protect_process(functor, name=None):
+    def _inner_run(self, name=name):
+        if os.environ.get(_PROTECT_ENV_VAR, False):
+            return functor(self)
+        if name is None:
+            name = "%s.%s.%s" % (self.__class__.__module__, self.__class__.__name__, method_name)
+        runner_path = __file__
+        if runner_path.endswith(".pyc") or runner_path.endswith(".pyo"):
+            runner_path = '%s.py' % (runner_path.rsplit(".")[0],)
+        wipe = _PROTECT_ENV_VAR not in os.environ
+        try:
+            os.environ[_PROTECT_ENV_VAR] = "yes"
+            args = [sys.executable, __file__, name]
+            p = subprocess.Popen(args, shell=False, env=os.environ.copy(),
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT)
+            stdout, _stderr = p.communicate()
+            ret = p.wait()
+            self.assertEqual(0, ret,
+                             msg="subprocess run: %r\nnon zero exit: %s\n"
+                                 "stdout:%s\n" % (args, ret, stdout))
+        finally:
+            if wipe:
+                os.environ.pop(_PROTECT_ENV_VAR, None)
+
+    for x in "skip todo __doc__ __name__".split():
+        if hasattr(functor, x):
+            setattr(_inner_run, x, getattr(functor, x))
+    method_name = getattr(functor, '__name__', None)
+    return _inner_run
+
 
 @protect_env
 def run_tests(namespaces, disable_fork=False, pythonpath=None,

@@ -12,8 +12,9 @@ import os
 import pty
 from tempfile import TemporaryFile
 
-from snakeoil.test import SkipTest, TestCase, mk_cpy_loadable_testcase, protect_process
 from snakeoil import formatters, compatibility
+from snakeoil.test import SkipTest, TestCase, mk_cpy_loadable_testcase
+from snakeoil.unittest_extensions import protect_process
 
 if compatibility.is_py3k:
     from io import BytesIO as StringIO
