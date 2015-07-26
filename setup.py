@@ -1,13 +1,8 @@
 #!/usr/bin/env python
 
-"""Python setuptools modules for building/installing/distributing"""
-
-import os
-
-from setuptools import setup
+from setuptools import setup, find_packages
 
 from snakeoil import __version__
-
 from pkgdist import distutils_extensions as pkg_distutils
 OptionalExtension = pkg_distutils.OptionalExtension
 
@@ -27,13 +22,6 @@ class snakeoil_build_py(pkg_distutils.build_py):
 class test(pkg_distutils.test):
 
     default_test_namespace = 'snakeoil.test'
-
-
-packages = [
-    root.replace(os.path.sep, '.')
-    for root, dirs, files in os.walk('snakeoil')
-    if '__init__.py' in files
-]
 
 common_includes = [
     'include/snakeoil/heapdef.h',
@@ -84,7 +72,7 @@ setup(
     license='BSD',
     author='Brian Harring, Tim Harder',
     author_email='python-snakeoil@googlegroups.com',
-    packages=packages,
+    packages=find_packages(exclude=['pkgdist']),
     ext_modules=extensions,
     headers=common_includes,
     cmdclass=cmdclass,
