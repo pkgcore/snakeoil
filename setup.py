@@ -3,25 +3,8 @@
 from setuptools import setup, find_packages
 
 from snakeoil import __version__
-from pkgdist import distutils_extensions as pkg_distutils
-OptionalExtension = pkg_distutils.OptionalExtension
-
-
-class mysdist(pkg_distutils.sdist):
-    """sdist command specifying the right files and generating ChangeLog."""
-
-    package_namespace = 'snakeoil'
-
-
-class snakeoil_build_py(pkg_distutils.build_py):
-
-    package_namespace = 'snakeoil'
-    generate_verinfo = True
-
-
-class test(pkg_distutils.test):
-
-    default_test_namespace = 'snakeoil.test'
+from pkgdist import distutils_extensions as pkg_dist
+OptionalExtension = pkg_dist.OptionalExtension
 
 common_includes = [
     'include/snakeoil/heapdef.h',
@@ -35,7 +18,7 @@ extra_kwargs = dict(
 
 extensions = []
 
-if not pkg_distutils.is_py3k:
+if not pkg_dist.is_py3k:
     extensions.extend([
         OptionalExtension(
             'snakeoil._posix', ['src/posix.c'], **extra_kwargs),
@@ -53,13 +36,6 @@ if not pkg_distutils.is_py3k:
             'snakeoil.chksum._whirlpool_cdo', ['src/whirlpool_cdo.c'], **extra_kwargs),
         ])
 
-cmdclass = {
-    'sdist': mysdist,
-    'build_ext': pkg_distutils.build_ext,
-    'build_py': snakeoil_build_py,
-    'test': test,
-}
-
 with open('README.rst', 'r') as f:
     readme = f.read()
 
@@ -75,7 +51,12 @@ setup(
     packages=find_packages(exclude=['pkgdist']),
     ext_modules=extensions,
     headers=common_includes,
-    cmdclass=cmdclass,
+    cmdclass={
+        'sdist': pkg_dist.sdist,
+        'build_ext': pkg_dist.build_ext,
+        'build_py': pkg_dist.build_py,
+        'test': pkg_dist.test,
+    },
     classifiers=[
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
