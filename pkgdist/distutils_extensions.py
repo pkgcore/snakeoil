@@ -12,6 +12,7 @@ Generally speaking, you should flip through this modules src.
 import math
 import os
 import sys
+import textwrap
 
 os.environ["SNAKEOIL_DEMANDLOAD_PROTECTION"] = 'n'
 os.environ["SNAKEOIL_DEMANDLOAD_WARN"] = 'n'
@@ -19,7 +20,9 @@ os.environ["SNAKEOIL_DEMANDLOAD_WARN"] = 'n'
 from distutils import core, log, errors
 from distutils.command import (
     sdist as dst_sdist, build_ext as dst_build_ext, build_py as dst_build_py,
-    build as dst_build)
+    build as dst_build, build_scripts as dst_build_scripts)
+
+from pkgdist.wrapper import project
 
 
 class OptionalExtension(core.Extension):
@@ -37,7 +40,7 @@ class sdist(dst_sdist.sdist):
 
     """sdist command wrapper to generate version info file"""
 
-    package_namespace = None
+    package_namespace = project
 
     def generate_verinfo(self, base_dir):
         log.info('generating _verinfo')
@@ -64,8 +67,8 @@ class build_py(dst_build_py.build_py):
 
     user_options = dst_build_py.build_py.user_options + [("inplace", "i", "do any source conversions in place")]
 
-    package_namespace = None
-    generate_verinfo = False
+    package_namespace = project
+    generate_verinfo = True
 
     def initialize_options(self):
         dst_build_py.build_py.initialize_options(self)
@@ -217,6 +220,25 @@ class build_ext(dst_build_ext.build_ext):
         return dst_build_ext.build_ext.build_extensions(self)
 
 
+class build_scripts(dst_build_scripts.build_scripts):
+
+    """Create and build (copy and modify #! line) the wrapper scripts."""
+
+    def run(self):
+        script_dir = os.path.join(
+            os.path.dirname(self.build_dir), '.generated_scripts')
+        self.mkpath(script_dir)
+        for script in os.listdir('bin'):
+            with open(os.path.join(script_dir, script), 'w') as f:
+                f.write(textwrap.dedent("""\
+                    #!/usr/bin/env python
+                    from %s import scripts
+                    scripts.main('%s')
+                """ % (project, script)))
+        self.scripts = [os.path.join(script_dir, x) for x in os.listdir('bin')]
+        self.copy_scripts()
+
+
 class test(core.Command):
 
     """Run our unit tests in a built copy.
@@ -238,7 +260,7 @@ class test(core.Command):
         ("include-dirs=", "I", "include dirs for build_ext if needed"),
     ]
 
-    default_test_namespace = None
+    default_test_namespace = '%s.test' % project
 
     def initialize_options(self):
         self.inplace = False
