@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import sys
+
 from setuptools import setup, find_packages
 
 from snakeoil import __version__
@@ -36,6 +38,10 @@ if not pkg_dist.is_py3k:
             'snakeoil.chksum._whirlpool_cdo', ['src/whirlpool_cdo.c'], **extra_kwargs),
         ])
 
+test_requirements = []
+if sys.hexversion < 0x03030000:
+    test_requirements.append('mock')
+
 with open('README.rst', 'r') as f:
     readme = f.read()
 
@@ -51,6 +57,7 @@ setup(
     packages=find_packages(exclude=['pkgdist']),
     ext_modules=extensions,
     headers=common_includes,
+    tests_require=test_requirements,
     cmdclass={
         'sdist': pkg_dist.sdist,
         'build_ext': pkg_dist.build_ext,
