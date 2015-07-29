@@ -19,9 +19,6 @@ For easing py3k compatibility:
 
 * :py:data:`is_py3k` is a boolean you can rely on to indicate if you're running py2k
    or py3k
-* :py:data:`is_py3k_like` is a boolean you can rely on to indicate if you're not running
-  py3k, but will encounter py3k behaviour- primarily useful for instances where backports
-  of py3k bits into py2.7 have broken previous stdlib behaviour.
 * :py:func:`intern` is accessible from here
 * :py:func:`sorted_cmp`, :py:func:`sort_cmp`, :py:func:`cmp` are available for easing
   compatibility across py2k/py3k for comparison and sorting args; these implementations by
@@ -32,7 +29,7 @@ For easing py3k compatibility:
   under py2k you get a plain old string w/ minimal overhead.
 """
 
-__all__ = ("is_py3k", "is_py3k_like", "intern", "cmp", "sorted_cmp", "sort_cmp")
+__all__ = ("is_py3k", "intern", "cmp", "sorted_cmp", "sort_cmp")
 
 import ConfigParser as configparser
 import sys
@@ -48,7 +45,6 @@ if hasattr(sys, 'getPlatform'):
 # pylint: disable=E0601
 
 is_py3k = int(sys.version[0]) == 3
-is_py3k_like = is_py3k or float(sys.version[:3]) >= 2.7
 
 def sorted_key_from_cmp(cmp_func, key_func=None):
     class _key_proxy(object):

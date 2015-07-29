@@ -15,7 +15,7 @@ import unittest
 import warnings
 
 from snakeoil import fileutils, klass
-from snakeoil.compatibility import is_py3k_like, IGNORED_EXCEPTIONS
+from snakeoil.compatibility import IGNORED_EXCEPTIONS
 
 
 def _tryResultCall(result, methodname, *args):
@@ -24,13 +24,10 @@ def _tryResultCall(result, methodname, *args):
         if methodname != 'addExpectedFailure':
             method(*args)
             return True
-        if is_py3k_like:
-            clsmodule = result.__class__.__module__
-            if clsmodule == 'unittest' or clsmodule.startswith("unittest."):
-                # bugger...
-                method(args[0], args[1])
-            else:
-                method(args[0], str(args[1][1]), args[2])
+        clsmodule = result.__class__.__module__
+        if clsmodule == 'unittest' or clsmodule.startswith("unittest."):
+            # bugger...
+            method(args[0], args[1])
         else:
             method(args[0], str(args[1][1]), args[2])
         return True
