@@ -1,6 +1,6 @@
 # Copyright: 2015 Tim Harder <radhermit@gmail.com>
 #
-# Ideas and code for WithParentSkip have been borrowed from withhacks
+# Ideas and code for SplitExec have been borrowed from withhacks
 # (https://pypi.python.org/pypi/withhacks) governed by the MIT license found
 # below.
 #
@@ -35,12 +35,12 @@ import threading
 import traceback
 
 
-class WithParentSkip(object):
+class SplitExec(object):
     """Context manager separating code execution across parent/child processes.
 
     This is done by forking and doing some magic on the stack so the contents
-    of the context are executed only on the forked child and the parent.
-    Exceptions are pickled and passed back to the parent.
+    of the context are executed only on the forked child. Exceptions are
+    pickled and passed back to the parent.
     """
     def __init__(self):
         self.__trace_lock = threading.Lock()
