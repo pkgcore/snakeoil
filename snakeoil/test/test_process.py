@@ -3,8 +3,9 @@
 
 import os
 
-from snakeoil.test import TestCase, mixins
 from snakeoil import process
+from snakeoil.fileutils import touch
+from snakeoil.test import TestCase, mixins
 
 class TestFindBinary(mixins.TempDirMixin, TestCase):
 
@@ -22,12 +23,10 @@ class TestFindBinary(mixins.TempDirMixin, TestCase):
         self.assertRaises(process.CommandNotFound,
                           process.find_binary, script_name)
         fp = os.path.join(self.dir, script_name)
-        open(fp, "w").close()
+        touch(fp)
         os.chmod(fp, 0640)
         self.assertRaises(process.CommandNotFound,
                           process.find_binary, script_name)
         os.chmod(fp, 0750)
         self.assertIn(self.dir, process.find_binary(script_name))
         os.unlink(fp)
-
-

@@ -16,6 +16,7 @@ except ImportError:
     import mock
 
 from snakeoil import osutils
+from snakeoil.fileutils import touch
 from snakeoil.test import TestCase, SkipTest, mk_cpy_loadable_testcase
 from snakeoil.osutils import native_readdir
 from snakeoil.test.mixins import TempDirMixin
@@ -31,7 +32,7 @@ class ReaddirCommon(TempDirMixin):
         TempDirMixin.setUp(self)
         self.subdir = pjoin(self.dir, 'dir')
         os.mkdir(self.subdir)
-        open(pjoin(self.dir, 'file'), 'w').close()
+        touch(pjoin(self.dir, 'file'))
         os.mkfifo(pjoin(self.dir, 'fifo'))
 
     def _test_missing(self, funcs):

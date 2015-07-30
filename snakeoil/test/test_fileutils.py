@@ -2,17 +2,61 @@
 # Copyright: 2005 Marien Zwart <marienz@gentoo.org>
 # License: BSD/GPL2
 
-
 import errno
 import mmap
 import os
+import time
 
 pjoin = os.path.join
 
 from snakeoil import compatibility, currying, fileutils, _fileutils
 from snakeoil.fileutils import AtomicWriteFile
-from snakeoil.test import TestCase, not_a_test
+from snakeoil.test import TestCase, not_a_test, SkipTest
 from snakeoil.test.mixins import TempDirMixin
+
+
+class TestTouch(TempDirMixin):
+
+    def test_file_creation(self):
+        fp = pjoin(self.dir, 'file')
+        fileutils.touch(fp)
+        self.assertEqual(os.path.exists(fp), True)
+        self.assertEqual(os.stat(fp).st_mode & 04777, 0644)
+
+    def test_set_times(self):
+        fp = pjoin(self.dir, 'file')
+        fileutils.touch(fp)
+        orig_stat = os.stat(fp)
+        time.sleep(1)
+        fileutils.touch(fp)
+        new_stat = os.stat(fp)
+        self.assertNotEqual(orig_stat.st_atime, new_stat.st_atime)
+        self.assertNotEqual(orig_stat.st_mtime, new_stat.st_mtime)
+
+    def test_set_custom_times(self):
+        fp = pjoin(self.dir, 'file')
+        fileutils.touch(fp)
+        orig_stat = os.stat(fp)
+        times = (1, 1)
+        fileutils.touch(fp, times=times)
+        new_stat = os.stat(fp)
+        self.assertNotEqual(orig_stat, new_stat)
+        self.assertEqual(1, new_stat.st_atime)
+        self.assertEqual(1, new_stat.st_mtime)
+
+    def test_set_custom_nstimes(self):
+        if not compatibility.is_py3k:
+            raise SkipTest('requires py33 and up')
+
+        fp = pjoin(self.dir, 'file')
+        fileutils.touch(fp)
+        orig_stat = os.stat(fp)
+        ns = (1, 1)
+        fileutils.touch(fp, ns=ns)
+        new_stat = os.stat(fp)
+        self.assertNotEqual(orig_stat, new_stat)
+        self.assertEqual(1, new_stat.st_atime_ns)
+        self.assertEqual(1, new_stat.st_mtime_ns)
 
 
 class TestAtomicWriteFile(TempDirMixin):
@@ -341,5 +385,3 @@ class Test_mmap_and_close(TempDirMixin):
                 m.close()
             if fd is not None:
                 os.close(fd)
-
-

@@ -5,7 +5,7 @@
 file related operations, mainly reading
 """
 
-__all__ = ("AtomicWriteFile", 'write_file', 'UnbufferedWriteHandle')
+__all__ = ("AtomicWriteFile", 'write_file', 'UnbufferedWriteHandle', 'touch')
 types = [""] + list("_%s" % x for x in ("ascii", "ascii_strict", "utf8", "utf8_strict", "utf8_strict"))
 __all__ += tuple("readfile%s" % x for x in types) + tuple("readlines%s" % x for x in types)
 del types
@@ -24,6 +24,32 @@ demandload(
     'snakeoil:data_source',
     'snakeoil:_fileutils',
 )
+
+
+def touch(fname, mode=0o644, **kwargs):
+    """touch(1) equivalent
+
+    :param fname: file path
+    :type fname: str
+    :param mode: file mode
+    :type mode: octal
+
+    See os.utime for other supported arguments.
+    """
+    flags = os.O_CREAT | os.O_APPEND
+    if compatibility.is_py3k:
+        dir_fd = kwargs.get('dir_fd', None)
+        os_open = partial(os.open, dir_fd=dir_fd)
+    else:
+        os_open = os.open
+
+    with os.fdopen(os_open(fname, flags, mode)) as f:
+        if compatibility.is_py3k:
+            os.utime(
+                f.fileno() if os.utime in os.supports_fd else fname,
+                dir_fd=None if os.supports_fd else dir_fd, **kwargs)
+        else:
+            os.utime(fname, kwargs.get('times', None))
 
 
 def write_file(path, mode, stream, encoding=None):
