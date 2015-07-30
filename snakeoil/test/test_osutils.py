@@ -339,12 +339,14 @@ class Mount(unittest.TestCase):
         # byte strings; if they are unicode strings the arguments get mangled
         # leading to errors when the syscall is run. This confirms mount() from
         # snakeoil.osutils always converts the arguments into byte strings.
-        with mock.patch('snakeoil.osutils.ctypes') as mock_ctypes:
-            with self.assertRaises(OSError):
-                osutils.mount('source', 'target', 'fstype', osutils.MS_BIND)
-            mount_call = next(x for x in mock_ctypes.mock_calls if x[0] == 'CDLL().mount')
-            for arg in mount_call[1][0:3]:
-                self.assertIsInstance(arg, bytes)
+        for source, target, fstype in (('source', 'target', 'fstype'),
+                                       (u'source', u'target', u'fstype')):
+            with mock.patch('snakeoil.osutils.ctypes') as mock_ctypes:
+                with self.assertRaises(OSError):
+                    osutils.mount(source, target, fstype, osutils.MS_BIND)
+                mount_call = next(x for x in mock_ctypes.mock_calls if x[0] == 'CDLL().mount')
+                for arg in mount_call[1][0:3]:
+                    self.assertIsInstance(arg, bytes)
 
     def test_missing_dirs(self):
         with self.assertRaises(OSError) as cm:
