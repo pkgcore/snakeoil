@@ -27,6 +27,8 @@ class TestFindBinary(mixins.TempDirMixin, TestCase):
         os.chmod(fp, 0o640)
         self.assertRaises(process.CommandNotFound,
                           process.find_binary, script_name)
+        self.assertRaises(process.CommandNotFound, process.find_binary, fp)
         os.chmod(fp, 0o750)
         self.assertIn(self.dir, process.find_binary(script_name))
+        self.assertIn(self.dir, process.find_binary(fp))
         os.unlink(fp)
