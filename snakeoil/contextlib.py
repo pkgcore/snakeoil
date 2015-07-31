@@ -56,11 +56,11 @@ class SplitExec(object):
 
     def child_setup(self):
         """Initialization for child process."""
-        raise NotImplementedError
+        pass
 
     def cleanup(self):
         """Parent process clean up on termination of the child."""
-        raise NotImplementedError
+        pass
 
     def exception_cleanup(self):
         """Parent process clean up after the child throws an exception."""
