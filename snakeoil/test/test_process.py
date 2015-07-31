@@ -32,3 +32,10 @@ class TestFindBinary(mixins.TempDirMixin, TestCase):
         self.assertIn(self.dir, process.find_binary(script_name))
         self.assertIn(self.dir, process.find_binary(fp))
         os.unlink(fp)
+
+        # make sure dirs aren't returned as binaries
+        self.assertRaises(
+            process.CommandNotFound, process.find_binary,
+            os.path.basename(self.dir), os.path.dirname(self.dir))
+        self.assertRaises(
+            process.CommandNotFound, process.find_binary, self.dir)
