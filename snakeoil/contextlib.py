@@ -88,14 +88,14 @@ class SplitExec(object):
             # pylint: disable=W0703
             # need to catch all exceptions here since we are passing them to
             # the parent process
-            except Exception as ex:
-                ex.__traceback_list__ = traceback.format_exc()
-                self.__pipe.send(ex)
+            except Exception as e:
+                e.__traceback_list__ = traceback.format_exc()
+                self.__pipe.send(e)
                 try:
                     self.__pipe.send(SystemExit())
                 except (BrokenPipeError if sys.hexversion >= 0x03030000  # pylint: disable=E0602
-                        else OSError, IOError) as ex:
-                    if ex.errno in (errno.EPIPE, errno.ESHUTDOWN):
+                        else OSError, IOError) as e:
+                    if e.errno in (errno.EPIPE, errno.ESHUTDOWN):
                         pass
                     else:
                         raise
@@ -129,8 +129,8 @@ class SplitExec(object):
             try:
                 self.__pipe.send(SystemExit())
             except (BrokenPipeError if sys.hexversion >= 0x03030000  # pylint: disable=E0602
-                    else OSError, IOError) as ex:
-                if ex.errno in (errno.EPIPE, errno.ESHUTDOWN):
+                    else OSError, IOError) as e:
+                if e.errno in (errno.EPIPE, errno.ESHUTDOWN):
                     pass
                 else:
                     raise
