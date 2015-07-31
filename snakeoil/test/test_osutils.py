@@ -339,7 +339,7 @@ class Mount(unittest.TestCase):
         # byte strings; if they are unicode strings the arguments get mangled
         # leading to errors when the syscall is run. This confirms mount() from
         # snakeoil.osutils always converts the arguments into byte strings.
-        for source, target, fstype in (('source', 'target', 'fstype'),
+        for source, target, fstype in ((b'source', b'target', b'fstype'),
                                        (u'source', u'target', u'fstype')):
             with mock.patch('snakeoil.osutils.ctypes') as mock_ctypes:
                 with self.assertRaises(OSError):
