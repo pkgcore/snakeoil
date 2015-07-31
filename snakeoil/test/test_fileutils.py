@@ -21,7 +21,7 @@ class TestTouch(TempDirMixin):
         fp = pjoin(self.dir, 'file')
         fileutils.touch(fp)
         self.assertEqual(os.path.exists(fp), True)
-        self.assertEqual(os.stat(fp).st_mode & 04777, 0644)
+        self.assertEqual(os.stat(fp).st_mode & 0o4777, 0o644)
 
     def test_set_times(self):
         fp = pjoin(self.dir, 'file')
@@ -74,15 +74,15 @@ class TestAtomicWriteFile(TempDirMixin):
 
     def test_perms(self):
         fp = pjoin(self.dir, 'target')
-        orig_um = os.umask(0777)
+        orig_um = os.umask(0o777)
         try:
-            af = self.kls(fp, perms=0644)
+            af = self.kls(fp, perms=0o644)
             af.write("dar")
             af.close()
         finally:
             exiting_umask = os.umask(orig_um)
-        self.assertEqual(exiting_umask, 0777)
-        self.assertEqual(os.stat(fp).st_mode & 04777, 0644)
+        self.assertEqual(exiting_umask, 0o777)
+        self.assertEqual(os.stat(fp).st_mode & 0o4777, 0o644)
 
     def test_del(self):
         fp = pjoin(self.dir, "target")

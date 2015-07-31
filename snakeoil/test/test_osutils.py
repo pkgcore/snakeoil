@@ -120,38 +120,38 @@ class EnsureDirsTest(TempDirMixin):
         # default settings
         path = pjoin(self.dir, 'foo', 'bar')
         self.assertTrue(osutils.ensure_dirs(path))
-        self.check_dir(path, os.geteuid(), os.getegid(), 0777)
+        self.check_dir(path, os.geteuid(), os.getegid(), 0o777)
 
     def test_minimal_nonmodifying(self):
         path = pjoin(self.dir, 'foo', 'bar')
-        self.assertTrue(osutils.ensure_dirs(path, mode=0755))
-        os.chmod(path, 0777)
-        self.assertTrue(osutils.ensure_dirs(path, mode=0755, minimal=True))
-        self.check_dir(path, os.geteuid(), os.getegid(), 0777)
+        self.assertTrue(osutils.ensure_dirs(path, mode=0o755))
+        os.chmod(path, 0o777)
+        self.assertTrue(osutils.ensure_dirs(path, mode=0o755, minimal=True))
+        self.check_dir(path, os.geteuid(), os.getegid(), 0o777)
 
     def test_minimal_modifying(self):
         path = pjoin(self.dir, 'foo', 'bar')
-        self.assertTrue(osutils.ensure_dirs(path, mode=0750))
-        self.assertTrue(osutils.ensure_dirs(path, mode=0005, minimal=True))
-        self.check_dir(path, os.geteuid(), os.getegid(), 0755)
+        self.assertTrue(osutils.ensure_dirs(path, mode=0o750))
+        self.assertTrue(osutils.ensure_dirs(path, mode=0o005, minimal=True))
+        self.check_dir(path, os.geteuid(), os.getegid(), 0o755)
 
     def test_create_unwritable_subdir(self):
         path = pjoin(self.dir, 'restricted', 'restricted')
         # create the subdirs without 020 first
         self.assertTrue(osutils.ensure_dirs(os.path.dirname(path)))
-        self.assertTrue(osutils.ensure_dirs(path, mode=0020))
-        self.check_dir(path, os.geteuid(), os.getegid(), 0020)
+        self.assertTrue(osutils.ensure_dirs(path, mode=0o020))
+        self.check_dir(path, os.geteuid(), os.getegid(), 0o020)
         # unrestrict it
         osutils.ensure_dirs(path)
-        self.check_dir(path, os.geteuid(), os.getegid(), 0777)
+        self.check_dir(path, os.geteuid(), os.getegid(), 0o777)
 
     def test_mode(self):
         path = pjoin(self.dir, 'mode', 'mode')
-        self.assertTrue(osutils.ensure_dirs(path, mode=0700))
-        self.check_dir(path, os.geteuid(), os.getegid(), 0700)
+        self.assertTrue(osutils.ensure_dirs(path, mode=0o700))
+        self.check_dir(path, os.geteuid(), os.getegid(), 0o700)
         # unrestrict it
         osutils.ensure_dirs(path)
-        self.check_dir(path, os.geteuid(), os.getegid(), 0777)
+        self.check_dir(path, os.geteuid(), os.getegid(), 0o777)
 
     def test_gid(self):
         # abuse the portage group as secondary group
@@ -163,11 +163,11 @@ class EnsureDirsTest(TempDirMixin):
             raise SkipTest('you are not in the portage group')
         path = pjoin(self.dir, 'group', 'group')
         self.assertTrue(osutils.ensure_dirs(path, gid=portage_gid))
-        self.check_dir(path, os.geteuid(), portage_gid, 0777)
+        self.check_dir(path, os.geteuid(), portage_gid, 0o777)
         self.assertTrue(osutils.ensure_dirs(path))
-        self.check_dir(path, os.geteuid(), portage_gid, 0777)
+        self.check_dir(path, os.geteuid(), portage_gid, 0o777)
         self.assertTrue(osutils.ensure_dirs(path, gid=os.getegid()))
-        self.check_dir(path, os.geteuid(), os.getegid(), 0777)
+        self.check_dir(path, os.geteuid(), os.getegid(), 0o777)
 
 
 class SymlinkTest(TempDirMixin):

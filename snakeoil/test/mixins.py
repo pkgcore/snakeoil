@@ -19,7 +19,7 @@ class TempDirMixin(TestCase):
     def setUp(self):
         self.dir = tempfile.mkdtemp()
         # force it, since sticky bits spread.
-        os.chmod(self.dir, 0700)
+        os.chmod(self.dir, 0o700)
 
     def tearDown(self):
         # change permissions back or rmtree can't kill it
@@ -27,20 +27,20 @@ class TempDirMixin(TestCase):
             return
         for root, dirs, _files in os.walk(self.dir):
             for directory in dirs:
-                os.chmod(os.path.join(root, directory), 0700)
+                os.chmod(os.path.join(root, directory), 0o700)
         shutil.rmtree(self.dir)
 
 def tempdir_decorator(func):
     def f(self, *args, **kwargs):
         self.dir = tempfile.mkdtemp()
         try:
-            os.chmod(self.dir, 0700)
+            os.chmod(self.dir, 0o700)
             return func(self, *args, **kwargs)
         finally:
             if os.path.exists(self.dir):
                 for root, dirs, _files in os.walk(self.dir):
                     for directory in dirs:
-                        os.chmod(os.path.join(root, directory), 0777)
+                        os.chmod(os.path.join(root, directory), 0o777)
                 shutil.rmtree(self.dir)
     f.__name__ = func.__name__
     return f

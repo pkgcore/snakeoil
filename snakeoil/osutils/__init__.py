@@ -88,7 +88,7 @@ def _safe_mkdir(path, mode):
             return False
     return True
 
-def ensure_dirs(path, gid=-1, uid=-1, mode=0777, minimal=True):
+def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
     """
     ensure dirs exist, creating as needed with (optional) gid, uid, and mode.
 
@@ -114,7 +114,7 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0777, minimal=True):
         try:
             um = os.umask(0)
             # if the dir perms would lack +wx, we have to force it
-            force_temp_perms = ((mode & 0300) != 0300)
+            force_temp_perms = ((mode & 0o300) != 0o300)
             resets = []
             apath = normpath(os.path.abspath(path))
             sticky_parent = False
@@ -128,9 +128,9 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0777, minimal=True):
 
                     # if it's a subdir, we need +wx at least
                     if apath != base:
-                        if (st.st_mode & 0300) != 0300:
+                        if (st.st_mode & 0o300) != 0o300:
                             try:
-                                os.chmod(base, (st.st_mode | 0300))
+                                os.chmod(base, (st.st_mode | 0o300))
                             except OSError:
                                 return False
                             resets.append((base, st.st_mode))
@@ -140,7 +140,7 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0777, minimal=True):
                     # nothing exists.
                     try:
                         if force_temp_perms:
-                            if not _safe_mkdir(base, 0700):
+                            if not _safe_mkdir(base, 0o700):
                                 return False
                             resets.append((base, mode))
                         else:
@@ -172,7 +172,7 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0777, minimal=True):
             if minimal:
                 if mode != (st.st_mode & mode):
                     os.chmod(path, st.st_mode | mode)
-            elif mode != (st.st_mode & 07777):
+            elif mode != (st.st_mode & 0o7777):
                 os.chmod(path, mode)
         except OSError:
             return False
