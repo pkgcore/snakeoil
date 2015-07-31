@@ -183,7 +183,6 @@ class _WeakRefFinalizerStub(type):
     Object finalization limitations and related issues are fixed since 3.4 via
     PEP 442 (http://legacy.python.org/dev/peps/pep-0442/).
     """
-    pass
 
 
 if sys.hexversion < 0x03040000:

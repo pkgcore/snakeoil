@@ -61,14 +61,12 @@ class TarInfo(tarfile.TarInfo):
         the ability to set the buffer is disabled in this
         patched version
         """
-        pass
 
     def del_buf(self):
         """
         the ability to delete the buffer is disabled in this
         patched version
         """
-        pass
 
     buf = property(get_buf, set_buf, del_buf)
 

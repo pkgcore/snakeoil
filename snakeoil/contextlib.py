@@ -52,15 +52,12 @@ class SplitExec(object):
 
     def parent_setup(self):
         """Initialization for parent process."""
-        pass
 
     def child_setup(self):
         """Initialization for child process."""
-        pass
 
     def cleanup(self):
         """Parent process clean up on termination of the child."""
-        pass
 
     def exception_cleanup(self):
         """Parent process clean up after the child throws an exception."""
@@ -153,11 +150,9 @@ class SplitExec(object):
     @staticmethod
     def __dummy_sys_trace(*args, **_kwargs):
         """Dummy trace function used to enable tracing."""
-        pass
 
     class ParentException(Exception):
         """Exception used to detect when the child terminates."""
-        pass
 
     def __enable_tracing(self):
         """Enable system-wide tracing.

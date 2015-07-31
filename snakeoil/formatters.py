@@ -30,7 +30,6 @@ class native_StreamClosed(KeyboardInterrupt):
     is by closing a pager before the script finished outputting, which
     should be handled like control+c, not like an error.
     """
-    pass
 
 
 # "Invalid name" (for fg and bg methods, too short)
@@ -119,7 +118,6 @@ class Formatter(object):
 
     def title(self, string):
         """Set the title to string"""
-        pass
 
 
 class native_PlainTextFormatter(Formatter):
@@ -349,7 +347,6 @@ class TerminfoDisabled(Exception):
     Only possible to see this is you're trying to generate a formatter directly
     yourself
     """
-    pass
 
 
 class _BogusTerminfo(ValueError):

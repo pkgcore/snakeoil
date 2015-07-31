@@ -147,7 +147,6 @@ def __set_stage_state__(self, state):
 
 def __stage_step_callback__(self, stage):
     """callback invoked whenever a stage is completed with the completed stage name"""
-    pass
 
 
 class ForcedDepends(type):
