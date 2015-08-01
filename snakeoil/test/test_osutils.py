@@ -19,6 +19,7 @@ from snakeoil import osutils
 from snakeoil.fileutils import touch
 from snakeoil.test import TestCase, SkipTest, mk_cpy_loadable_testcase
 from snakeoil.osutils import native_readdir
+from snakeoil.osutils.mount import mount, umount, MS_BIND
 from snakeoil.test.mixins import TempDirMixin
 
 pjoin = os.path.join
@@ -341,35 +342,35 @@ class Mount(unittest.TestCase):
         # snakeoil.osutils always converts the arguments into byte strings.
         for source, target, fstype in ((b'source', b'target', b'fstype'),
                                        (u'source', u'target', u'fstype')):
-            with mock.patch('snakeoil.osutils.ctypes') as mock_ctypes:
+            with mock.patch('snakeoil.osutils.mount.ctypes') as mock_ctypes:
                 with self.assertRaises(OSError):
-                    osutils.mount(source, target, fstype, osutils.MS_BIND)
+                    mount(source, target, fstype, MS_BIND)
                 mount_call = next(x for x in mock_ctypes.mock_calls if x[0] == 'CDLL().mount')
                 for arg in mount_call[1][0:3]:
                     self.assertIsInstance(arg, bytes)
 
     def test_missing_dirs(self):
         with self.assertRaises(OSError) as cm:
-            osutils.mount('source', 'target', 'none', osutils.MS_BIND)
+            mount('source', 'target', None, MS_BIND)
         self.assertEqual(cm.exception.errno, errno.ENOENT)
 
     @unittest.skipIf(os.getuid() == 0, 'this test must be run as non-root')
     def test_no_perms(self):
         with self.assertRaises(OSError) as cm:
-            osutils.mount(self.source, self.target, 'none', osutils.MS_BIND)
+            mount(self.source, self.target, None, MS_BIND)
         self.assertTrue(cm.exception.errno in (errno.EPERM, errno.EACCES))
         with self.assertRaises(OSError) as cm:
-            osutils.umount(self.target)
+            umount(self.target)
         self.assertTrue(cm.exception.errno in (errno.EPERM, errno.EINVAL))
 
     @unittest.skipIf(os.getuid() != 0, 'this test must be run as root')
     def test_root(self):
         # test umount
-        osutils.mount(self.source, self.target, 'none', osutils.MS_BIND)
-        osutils.umount(self.target)
+        mount(self.source, self.target, None, MS_BIND)
+        umount(self.target)
         # test umount2
-        osutils.mount(self.source, self.target, 'none', osutils.MS_BIND)
-        osutils.umount(self.target, osutils.MNT_FORCE)
+        mount(self.source, self.target, None, MS_BIND)
+        umount(self.target, MNT_FORCE)
 
 
 cpy_readdir_loaded_Test = mk_cpy_loadable_testcase(

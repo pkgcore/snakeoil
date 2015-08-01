@@ -10,8 +10,11 @@ import signal
 import subprocess
 import sys
 
-from snakeoil.osutils import (
-    mount, MS_NODEV, MS_NOEXEC, MS_NOSUID, MS_PRIVATE, MS_REC, MS_RELATIME)
+from snakeoil.osutils.mount import mount as _mount
+from snakeoil.osutils.mount import (
+    MS_NODEV, MS_NOEXEC, MS_NOSUID, MS_PRIVATE,
+    MS_REC, MS_RELATIME, MS_SLAVE,
+)
 from snakeoil.process import exit_as_status
 
 CLONE_FS = 0x00000200
@@ -149,13 +152,13 @@ def create_pidns():
         # Make sure to unshare the existing mount point if needed.  Some distros
         # create shared mount points everywhere by default.
         try:
-            mount('none', '/proc', 'proc', MS_PRIVATE | MS_REC)
+            _mount(None, '/proc', 'proc', MS_PRIVATE | MS_REC)
         except OSError as e:
             if e.errno != errno.EINVAL:
                 raise
 
         # The child needs its own proc mount as it'll be different.
-        mount(
+        _mount(
             'proc', '/proc', 'proc',
             MS_NOSUID | MS_NODEV | MS_NOEXEC | MS_RELATIME)
 
