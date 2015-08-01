@@ -235,6 +235,11 @@ def simple_unshare(mount=True, uts=True, ipc=True, net=False, pid=False):
     if mount:
         unshare(CLONE_NEWNS)
 
+        # Avoid mounts in the new namespace from affecting the parent namespace
+        # on systems that share the rootfs by default, but allow events in the
+        # parent to propagate down.
+        _mount(None, '/', None, MS_REC | MS_SLAVE)
+
     # The UTS namespace was added 2.6.19 and may be disabled in the kernel.
     if uts:
         try:
