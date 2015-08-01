@@ -67,6 +67,25 @@ def unshare(flags):
         raise OSError(e, os.strerror(e))
 
 
+def sethostname(name):
+    """Binding to the sethostname system call.
+
+    Mainly added for compatibility to py2 since socket.sethostname only exists
+    for py33 and up.
+
+    Args:
+        name: hostname to set
+
+    Raises:
+        OSError: if sethostname fails
+    """
+    libc = ctypes.CDLL(ctypes.util.find_library('c'), use_errno=True)
+    name = name.encode() if isinstance(name, basestring) else name
+    if libc.sethostname(name, len(name)) != 0:
+        e = ctypes.get_errno()
+        raise OSError(e, os.strerror(e))
+
+
 def _reap_children(pid):
     """Reap all children that get reparented to us until we see |pid| exit.
 
@@ -218,7 +237,26 @@ def create_netns():
             raise
 
 
-def simple_unshare(mount=True, uts=True, ipc=True, net=False, pid=False):
+def create_utsns(hostname=None):
+    """Start a new UTS namespace
+
+    If functionality is not available, then it will return w/out doing anything.
+    """
+    # The UTS namespace was added 2.6.19 and may be disabled in the kernel.
+    try:
+        unshare(CLONE_NEWUTS)
+    except OSError as e:
+        if e.errno != errno.EINVAL:
+            return
+        else:
+            raise
+
+    # hostname defaults to the parent namespace hostname if not set
+    if hostname is not None:
+        sethostname(hostname)
+
+
+def simple_unshare(mount=True, uts=True, ipc=True, net=False, pid=False, hostname=None):
     """Simpler helper for setting up namespaces quickly.
 
     If support for any namespace type is not available, we'll silently skip it.
@@ -240,13 +278,8 @@ def simple_unshare(mount=True, uts=True, ipc=True, net=False, pid=False):
         # parent to propagate down.
         _mount(None, '/', None, MS_REC | MS_SLAVE)
 
-    # The UTS namespace was added 2.6.19 and may be disabled in the kernel.
     if uts:
-        try:
-            unshare(CLONE_NEWUTS)
-        except OSError as e:
-            if e.errno != errno.EINVAL:
-                pass
+        create_utsns(hostname)
 
     # The IPC namespace was added 2.6.19 and may be disabled in the kernel.
     if ipc:
