@@ -86,6 +86,22 @@ def sethostname(name):
         raise OSError(e, os.strerror(e))
 
 
+def setdomainname(name):
+    """Binding to the setdomainname system call.
+
+    Args:
+        name: domain name to set
+
+    Raises:
+        OSError: if setdomainname fails
+    """
+    libc = ctypes.CDLL(ctypes.util.find_library('c'), use_errno=True)
+    name = name.encode() if isinstance(name, basestring) else name
+    if libc.setdomainname(name, len(name)) != 0:
+        e = ctypes.get_errno()
+        raise OSError(e, os.strerror(e))
+
+
 def _reap_children(pid):
     """Reap all children that get reparented to us until we see |pid| exit.
 
@@ -251,9 +267,12 @@ def create_utsns(hostname=None):
         else:
             raise
 
-    # hostname defaults to the parent namespace hostname if not set
+    # hostname/domainname default to the parent namespace settings if unset
     if hostname is not None:
+        hostname, _, domainname = hostname.partition('.')
         sethostname(hostname)
+        if domainname:
+            setdomainname(domainname)
 
 
 def simple_unshare(mount=True, uts=True, ipc=True, net=False, pid=False, hostname=None):
