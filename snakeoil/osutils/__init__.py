@@ -116,6 +116,7 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
                 try:
                     st = os.stat(base)
                     if not stat.S_ISDIR(st.st_mode):
+                        # one of the path components isn't a dir
                         return False
 
                     # if it's a subdir, we need +wx at least
@@ -151,6 +152,10 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
             os.umask(um)
         return True
     else:
+        if not os.path.isdir(path):
+            # don't change perms for existing paths that aren't dirs
+            return False
+
         try:
             if ((gid != -1 and gid != st.st_gid) or
                     (uid != -1 and uid != st.st_uid)):

@@ -116,7 +116,6 @@ class EnsureDirsTest(TempDirMixin):
         self.assertEqual(st.st_uid, uid)
         self.assertEqual(st.st_gid, gid)
 
-
     def test_ensure_dirs(self):
         # default settings
         path = pjoin(self.dir, 'foo', 'bar')
@@ -145,6 +144,67 @@ class EnsureDirsTest(TempDirMixin):
         # unrestrict it
         osutils.ensure_dirs(path)
         self.check_dir(path, os.geteuid(), os.getegid(), 0o777)
+
+    def test_path_is_a_file(self):
+        # fail if passed a path to an existing file
+        path = pjoin(self.dir, 'file')
+        touch(path)
+        self.assertTrue(os.path.isfile(path))
+        self.assertFalse(osutils.ensure_dirs(path, mode=0o700))
+
+    def test_non_dir_in_path(self):
+        # fail if one of the parts of the path isn't a dir
+        path = pjoin(self.dir, 'file', 'dir')
+        touch(pjoin(self.dir, 'file'))
+        self.assertFalse(osutils.ensure_dirs(path, mode=0o700))
+
+    def test_mkdir_failing(self):
+        # fail if os.mkdir fails
+        with mock.patch('snakeoil.osutils.os.mkdir') as mkdir:
+            mkdir.side_effect = OSError(30, 'Read-only file system')
+            path = pjoin(self.dir, 'dir')
+            self.assertFalse(osutils.ensure_dirs(path, mode=0o700))
+
+            # force temp perms
+            self.assertFalse(osutils.ensure_dirs(path, mode=0o400))
+            mkdir.side_effect = OSError(17, 'File exists')
+            self.assertFalse(osutils.ensure_dirs(path, mode=0o700))
+
+    def test_chmod_or_chown_failing(self):
+        # fail if chmod or chown fails
+        path = pjoin(self.dir, 'dir')
+        os.mkdir(path)
+        os.chmod(path, 0o750)
+
+        with mock.patch('snakeoil.osutils.os.chmod') as chmod, \
+                mock.patch('snakeoil.osutils.os.chown') as chown:
+            chmod.side_effect = OSError(5, 'Input/output error')
+
+            # chmod failure when file exists and trying to reset perms to match
+            # the specified mode
+            self.assertFalse(osutils.ensure_dirs(path, mode=0o005, minimal=True))
+            self.assertFalse(osutils.ensure_dirs(path, mode=0o005, minimal=False))
+            os.rmdir(path)
+
+            # chmod failure when resetting perms on parents
+            self.assertFalse(osutils.ensure_dirs(path, mode=0o400))
+            os.rmdir(path)
+
+            # chown failure when resetting perms on parents
+            chmod.side_effect = None
+            chown.side_effect = OSError(5, 'Input/output error')
+            self.assertFalse(osutils.ensure_dirs(path, uid=1000, gid=1000, mode=0o400))
+
+    def test_reset_sticky_parent_perms(self):
+        # make sure perms are reset after traversing over sticky parents
+        sticky_parent = pjoin(self.dir, 'dir')
+        path = pjoin(sticky_parent, 'dir')
+        os.mkdir(sticky_parent)
+        os.chmod(sticky_parent, 0o2755)
+        pre_sticky_parent = os.stat(sticky_parent)
+        self.assertTrue(osutils.ensure_dirs(path, mode=0o700))
+        post_sticky_parent = os.stat(sticky_parent)
+        self.assertEqual(pre_sticky_parent.st_mode, post_sticky_parent.st_mode)
 
     def test_mode(self):
         path = pjoin(self.dir, 'mode', 'mode')
