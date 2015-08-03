@@ -9,6 +9,7 @@ passing in distutils.
 Generally speaking, you should flip through this modules src.
 """
 
+import inspect
 import math
 import os
 import sys
@@ -17,19 +18,38 @@ import textwrap
 os.environ["SNAKEOIL_DEMANDLOAD_PROTECTION"] = 'n'
 os.environ["SNAKEOIL_DEMANDLOAD_WARN"] = 'n'
 
-from distutils import core, log, errors
+from distutils import log, errors
+from distutils.core import Command, Extension
 from distutils.command import (
     sdist as dst_sdist, build_ext as dst_build_ext, build_py as dst_build_py,
     build as dst_build, build_scripts as dst_build_scripts)
 
-from pkgdist.wrapper import project
+from snakeoil.version import get_git_version
 
 
-class OptionalExtension(core.Extension):
+def find_project(repo_file):
+    toplevel = os.path.dirname(os.path.realpath(repo_file))
+    toplevel_depth = len(toplevel.split('/'))
+
+    # look for a top-level module
+    for root, dirs, files in os.walk(toplevel):
+        if len(root.split('/')) > toplevel_depth + 1:
+            continue
+        if '__init__.py' in files:
+            return os.path.basename(root)
+
+    raise ValueError('No project module found')
+
+
+# determine the project we're being imported into
+project = find_project(inspect.stack(0)[1][1])
+
+
+class OptionalExtension(Extension):
     """python extension that is optional to build.
 
     If it's not required to have the exception built, just preferable,
-    use this class instead of :py:class:`core.Extension` since the machinery
+    use this class instead of :py:class:`Extension` since the machinery
     in this module relies on isinstance to identify what absolutely must
     be built vs what would be nice to have built.
     """
@@ -44,7 +64,6 @@ class sdist(dst_sdist.sdist):
 
     def generate_verinfo(self, base_dir):
         log.info('generating _verinfo')
-        from .version import get_git_version
         data = get_git_version(base_dir)
         if not data:
             return
@@ -108,15 +127,14 @@ class build_py(dst_build_py.build_py):
         # this should check mtime...
         if not os.path.exists(ver_path):
             log.info('generating _verinfo')
-            from . import version
             with open(ver_path, 'w') as f:
-                f.write("version_info=%r" % (version.get_git_version('.'),))
+                f.write("version_info=%r" % (get_git_version('.'),))
             self.byte_compile([ver_path])
             py3k_rebuilds.append((ver_path, os.lstat(ver_path).st_mtime))
 
     def get_py2to3_converter(self, options=None, proc_count=0):
         from lib2to3 import refactor as ref_mod
-        from . import caching_2to3
+        from snakeoil.dist import caching_2to3
 
         if ((sys.version_info >= (3, 0) and sys.version_info < (3, 1, 2)) or
                 (sys.version_info >= (2, 6) and sys.version_info < (2, 6, 5))):
@@ -228,18 +246,19 @@ class build_scripts(dst_build_scripts.build_scripts):
         script_dir = os.path.join(
             os.path.dirname(self.build_dir), '.generated_scripts')
         self.mkpath(script_dir)
-        for script in os.listdir('bin'):
-            with open(os.path.join(script_dir, script), 'w') as f:
+        self.scripts = [os.path.join(script_dir, x) for x in os.listdir('bin')]
+        for script in self.scripts:
+            with open(script, 'w') as f:
                 f.write(textwrap.dedent("""\
                     #!/usr/bin/env python
+                    from os.path import basename
                     from %s import scripts
-                    scripts.main('%s')
-                """ % (project, script)))
-        self.scripts = [os.path.join(script_dir, x) for x in os.listdir('bin')]
+                    scripts.main(basename(__file__))
+                """ % project))
         self.copy_scripts()
 
 
-class test(core.Command):
+class test(Command):
 
     """Run our unit tests in a built copy.
 
@@ -283,7 +302,7 @@ class test(core.Command):
             self.namespaces = ()
 
     def run(self):
-        from snakeoil import unittest_extensions
+        from snakeoil.dist import unittest_extensions
 
         build_ext = self.reinitialize_command('build_ext')
         build_py = self.reinitialize_command('build_py')
@@ -328,11 +347,13 @@ class test(core.Command):
         if retval:
             raise errors.DistutilsExecError("tests failed; return %i" % (retval,))
 
+
 # yes these are in snakeoil.compatibility; we can't rely on that module however
 # since snakeoil source is in 2k form, but this module is 2k/3k compatible.
 # in other words, it could be invoked by py3k to translate snakeoil to py3k
 is_py3k = sys.version_info >= (3, 0)
 is_jython = 'java' in getattr(sys, 'getPlatform', lambda: '')().lower()
+
 
 def get_number_of_processors():
     try:

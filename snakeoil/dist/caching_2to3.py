@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 # Copyright: 2009-2011 Brian Harring <ferringb@gmail.com>
 # License: PSF-2.2/GPL2/BSD
 

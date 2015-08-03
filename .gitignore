@@ -5,9 +5,9 @@
 # C extensions
 *.so
 
-build
-cache
-dist
+./build
+./cache
+./dist
 _trial_temp
 /doc/_build
 /doc/api

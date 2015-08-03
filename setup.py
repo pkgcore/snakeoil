@@ -5,7 +5,7 @@ import sys
 from setuptools import setup, find_packages
 
 from snakeoil import __version__
-from pkgdist import distutils_extensions as pkg_dist
+from snakeoil.dist import distutils_extensions as pkg_dist
 OptionalExtension = pkg_dist.OptionalExtension
 
 common_includes = [
@@ -54,7 +54,7 @@ setup(
     license='BSD',
     author='Brian Harring, Tim Harder',
     author_email='python-snakeoil@googlegroups.com',
-    packages=find_packages(exclude=['pkgdist']),
+    packages=find_packages(),
     ext_modules=extensions,
     headers=common_includes,
     tests_require=test_requirements,
