@@ -5,6 +5,9 @@ Release Notes
 snakeoil trunk
 --------------
 
+- Move snakeoil.namespaces to snakeoil.process.namespaces since they directly
+  relate to processes and we'll probably add a similar module for cgroups in
+  the near future.
 
 snakeoil 0.6.4 (2015-06-28)
 ---------------------------
