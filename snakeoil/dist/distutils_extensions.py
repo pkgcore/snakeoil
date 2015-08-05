@@ -99,7 +99,7 @@ class build_py(dst_build_py.build_py):
             self.build_lib = '.'
         dst_build_py.build_py.finalize_options(self)
 
-    def _compute_py3k_rebuilds(self, force=False):
+    def _compute_rebuilds(self, force=False):
         for base, mod_name, path in self.find_all_modules():
             try:
                 new_mtime = math.floor(os.lstat(path).st_mtime)
@@ -118,10 +118,10 @@ class build_py(dst_build_py.build_py):
             if old_mtime != new_mtime:
                 yield trg_path, new_mtime
 
-    def _inner_run(self, py3k_rebuilds):
+    def _inner_run(self, rebuilds):
         pass
 
-    def _run_generate_verinfo(self, py3k_rebuilds):
+    def _run_generate_verinfo(self, rebuilds):
         ver_path = self.get_module_outfile(
             self.build_lib, (self.package_namespace,), '_verinfo')
         # this should check mtime...
@@ -130,7 +130,7 @@ class build_py(dst_build_py.build_py):
             with open(ver_path, 'w') as f:
                 f.write("version_info=%r" % (get_git_version('.'),))
             self.byte_compile([ver_path])
-            py3k_rebuilds.append((ver_path, os.lstat(ver_path).st_mtime))
+            rebuilds.append((ver_path, os.lstat(ver_path).st_mtime))
 
     def get_py2to3_converter(self, options=None, proc_count=0):
         from lib2to3 import refactor as ref_mod
@@ -169,7 +169,7 @@ class build_py(dst_build_py.build_py):
         py3k_rebuilds = []
         if not self.inplace:
             if is_py3k:
-                py3k_rebuilds = list(self._compute_py3k_rebuilds(
+                py3k_rebuilds = list(self._compute_rebuilds(
                     self.force))
             dst_build_py.build_py.run(self)
 
@@ -186,8 +186,36 @@ class build_py(dst_build_py.build_py):
         converter([x[0] for x in py3k_rebuilds], write=True)
         for path, mtime in py3k_rebuilds:
             os.utime(path, (-1, mtime))
-
         log.info("completed py3k conversions")
+
+
+class build_py3(build_py):
+
+    """build command wrapper for running 3to2 for py2 targets"""
+
+    def run(self):
+        py2k_rebuilds = []
+        if not self.inplace:
+            if not is_py3k:
+                py2k_rebuilds = list(self._compute_rebuilds(self.force))
+            dst_build_py.build_py.run(self)
+
+        if self.generate_verinfo:
+            self._run_generate_verinfo(py2k_rebuilds)
+
+        self._inner_run(py2k_rebuilds)
+
+        if is_py3k:
+            return
+
+        from lib3to2.build import run_3to2
+
+        converter = run_3to2
+        log.info("starting 3to2 conversion; this may take a while...")
+        converter([x[0] for x in py2k_rebuilds])
+        for path, mtime in py2k_rebuilds:
+            os.utime(path, (-1, mtime))
+        log.info("completed py2k conversions")
 
 
 class build_ext(dst_build_ext.build_ext):
