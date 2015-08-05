@@ -5,6 +5,30 @@ Release Notes
 snakeoil trunk
 --------------
 
+- Add a build_py3 target to snakeoil.dist.distutils_extensions to allow for
+  writing py3 compatible code and using 3to2 for conversion purposes instead of
+  writing py2 compatible code and using 2to3 during project builds.
+
+- Add initial user namespace support functionality. Currently the process
+  running the code gets its uid/gid mapped to root in the new namespace, but
+  that will be made more configurable later on.
+
+- Add support for setting the system hostname and domain name under a UTS
+  namespace.
+
+- Make sure child mount namespaces don't affect their parents. Some distros use
+  shared rootfs mount namespaces by default so child mount namespace mount
+  events propagate back up to their parents if they aren't made private or
+  slaved.
+
+- Move mount methods from snakeoil.osutils into their own module at
+  snakeoil.osutils.mount.
+
+- Add a touch(1) equivalent to snakeoil.fileutils.
+
+- Add the beginnings of a context manager module as snakeoil.contextlib.
+  Currently this just includes the SplitExec class leveraged by pychroot.
+
 - Move snakeoil.namespaces to snakeoil.process.namespaces since they directly
   relate to processes and we'll probably add a similar module for cgroups in
   the near future.
