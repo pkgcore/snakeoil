@@ -209,10 +209,19 @@ class build_py3(build_py):
             return
 
         from lib3to2.build import run_3to2
+        from lib2to3 import refactor
 
-        converter = run_3to2
+        # assume a few fixes are already handled in the code or aren't needed
+        # for py27
+        skip_list = (
+            'lib3to2.fixes.fix_str', 'lib3to2.fixes.fix_printfunction',
+            'lib3to2.fixes.fix_except', 'lib3to2.fixes.fix_with',
+        )
+        fixer_names = [x for x in refactor.get_fixers_from_package('lib3to2.fixes')
+                       if x not in skip_list]
+
         log.info("starting 3to2 conversion; this may take a while...")
-        converter([x[0] for x in py2k_rebuilds])
+        run_3to2([x[0] for x in py2k_rebuilds], fixer_names=fixer_names)
         for path, mtime in py2k_rebuilds:
             os.utime(path, (-1, mtime))
         log.info("completed py2k conversions")
