@@ -2,12 +2,16 @@
 Release Notes
 =============
 
-snakeoil trunk
---------------
+snakeoil 0.6.5 (2015-0?-??)
+---------------------------
 
 - Add a build_py3 target to snakeoil.dist.distutils_extensions to allow for
   writing py3 compatible code and using 3to2 for conversion purposes instead of
   writing py2 compatible code and using 2to3 during project builds.
+
+- Drop some extra complexity from snakeoil.osutils.ensure_dirs(), mostly this
+  entails not altering perms on existing dirs anymore while traversing up the
+  components of a given path.
 
 - Add initial user namespace support functionality. Currently the process
   running the code gets its uid/gid mapped to root in the new namespace, but
