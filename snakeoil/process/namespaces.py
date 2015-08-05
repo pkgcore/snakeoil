@@ -275,7 +275,35 @@ def create_utsns(hostname=None):
             setdomainname(domainname)
 
 
-def simple_unshare(mount=True, uts=True, ipc=True, net=False, pid=False, hostname=None):
+def create_userns():
+    """Start a new user namespace
+
+    If functionality is not available, then it will return w/out doing anything.
+    """
+
+    # Get original uid/gid values before they're changed on entering the namespace.
+    uid = os.getuid()
+    gid = os.getgid()
+
+    try:
+        unshare(CLONE_NEWUSER)
+    except OSError as e:
+        if e.errno == errno.EINVAL:
+            return
+        else:
+            # For all other errors, abort.  They shouldn't happen.
+            raise
+
+    with open('/proc/self/setgroups', 'w') as f:
+        f.write('deny')
+    with open('/proc/self/uid_map', 'w') as f:
+        f.write('0 %s 1\n' % uid)
+    with open('/proc/self/gid_map', 'w') as f:
+        f.write('0 %s 1\n' % gid)
+
+
+def simple_unshare(mount=True, uts=True, ipc=True, net=False, pid=False,
+                   user=False, hostname=None):
     """Simpler helper for setting up namespaces quickly.
 
     If support for any namespace type is not available, we'll silently skip it.
@@ -286,7 +314,13 @@ def simple_unshare(mount=True, uts=True, ipc=True, net=False, pid=False, hostnam
         ipc: Create an IPC namespace.
         net: Create a net namespace.
         pid: Create a pid namespace.
+        user: Create a user namespace.
+        hostname: hostname to use for the UTS namespace
     """
+    # user namespace must be first
+    if user and os.getuid() != 0:
+        create_userns()
+
     # The mount namespace is the only one really guaranteed to exist --
     # it's been supported forever and it cannot be turned off.
     if mount:
