@@ -1,7 +1,7 @@
 [run]
 source = snakeoil
 branch = True
-omit = snakeoil/test/* snakeoil/dist/*
+omit = snakeoil/test/*, snakeoil/dist/*
 
 [report]
 show_missing = True
