@@ -5,6 +5,9 @@ Release Notes
 snakeoil 0.6.5 (2015-0?-??)
 ---------------------------
 
+- Remove get_physical_proc_count() and get_proc_count() from snakeoil.process,
+  use cpu_count() from multiprocessing instead or other similar support.
+
 - Add a build_py3 target to snakeoil.dist.distutils_extensions to allow for
   writing py3 compatible code and using 3to2 for conversion purposes instead of
   writing py2 compatible code and using 2to3 during project builds.

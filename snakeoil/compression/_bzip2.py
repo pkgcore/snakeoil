@@ -14,6 +14,7 @@ Should use this module unless its absolutely critical that bz2 module be used
 __all__ = ("compress_data", "decompress_data")
 
 from functools import partial
+import multiprocessing
 import sys
 
 from snakeoil import process
@@ -48,12 +49,7 @@ parallelizable = False
 lbzip2_compress_args = lbzip2_decompress_args = ()
 try:
     lbzip2_path = process.find_binary("lbzip2")
-    # limit lbzip2 to # of actual cores; else it'll just burn cpu
-    # usage.  for verification of this, get an intel system w/ HT,
-    # grab a large file, and do some runs comparing core count.
-    # HT threads are worthless for this- wall time is the same, but
-    # it burns extra cpu time.
-    lbzip2_compress_args = ('-n%i' % process.get_physical_proc_count(),)
+    lbzip2_compress_args = ('-n%i' % multiprocessing.cpu_count(),)
     lbzip2_decompress_args = lbzip2_compress_args
     parallelizable = True
 except process.CommandNotFound:

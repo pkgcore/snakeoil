@@ -20,8 +20,8 @@ from snakeoil import modules
 from snakeoil.compatibility import intern, is_py3k
 from snakeoil.demandload import demandload
 demandload(
+    'multiprocessing:cpu_count',
     'os',
-    'snakeoil.process:get_proc_count',
     'snakeoil.fileutils:mmap_or_open_for_read',
 )
 
@@ -66,7 +66,7 @@ def loop_over_file(handle, callbacks, parallelize=True):
         # the encoding bypass during py3k
         f.seek(0, 0)
 
-    parallelize = parallelize and len(callbacks) > 1 and get_proc_count() > 1
+    parallelize = parallelize and len(callbacks) > 1 and cpu_count() > 1
     threads, queues = [], []
 
     try:
