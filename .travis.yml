@@ -12,11 +12,10 @@ sudo: false
 cache:
   directories:
     - $HOME/.cache/pip
-install: pip install 'tox<2' 'coveralls>0.5' codecov
+install: pip install 'tox<2' codecov
 script: tox -e py${TRAVIS_PYTHON_VERSION/\./}
 after_success:
-  # upload coverage data to coveralls.io
+  # upload coverage data to codecov.io
   - pushd "${TRAVIS_BUILD_DIR}"/.tox/py${TRAVIS_PYTHON_VERSION/\./}/lib/python*/site-packages
-  - coveralls
   - codecov
   - popd
