@@ -14,8 +14,8 @@ demandload(
     'signal',
     'subprocess',
     'time',
-    'snakeoil.osutils:access',
     'snakeoil.fileutils:readlines_ascii',
+    'snakeoil.osutils:access',
 )
 
 ### Deprecated, removal in 0.7
@@ -106,6 +106,32 @@ def get_proc_count(force=False):
 ###
 
 
+def is_running(pid):
+    """Determine if a process is running or not.
+
+    Note that this returns False if process doesn't exist.
+
+    :param pid: a process ID
+    :return: boolean of whether the process is running or not
+    """
+    try:
+        # see if the process exists
+        os.kill(pid, 0)
+
+        # get the process status
+        with open("/proc/%s/status" % pid, 'r') as f:
+            for line in f:
+                if line.startswith('State:'):
+                    status = line.split()[1]
+                    break
+    except EnvironmentError as e:
+        if e.errno in (errno.ENOENT, errno.ESRCH):
+            raise ProcessNotFound(pid)
+        raise
+
+    return status in ('R', 'S', 'D')
+
+
 def find_binary(binary, paths=None):
     """look through the PATH environment, finding the binary to execute"""
 
@@ -183,6 +209,12 @@ class CommandNotFound(Exception):
     def __init__(self, command):
         Exception.__init__(self, "Failed to find binary %r" % (command,))
         self.command = command
+
+
+class ProcessNotFound(Exception):
+
+    def __init__(self, pid):
+        Exception.__init__(self, "Process doesn't exist: %s" % (pid,))
 
 
 def _native_closerange(from_fd, to_fd):
