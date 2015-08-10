@@ -16,4 +16,4 @@ This library is a bit of a grabbag of the following:
 
 """
 
-__version__ = '0.6.5'
+__version__ = '0.6.6'
