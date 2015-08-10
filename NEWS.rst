@@ -2,12 +2,15 @@
 Release Notes
 =============
 
-snakeoil 0.6.5 (2015-0?-??)
+snakeoil 0.6.5 (2015-08-10)
 ---------------------------
 
-- Deprecate get_physical_proc_count() and get_proc_count() from
-  snakeoil.process, use cpu_count() from multiprocessing instead or other
-  similar support. Support will be removed in 0.7.
+- snakeoil.process: Add is_running() that determines whether a process is
+  running or not using the PID status from the proc filesystem.
+
+- snakeoil.process: Deprecate get_physical_proc_count() and get_proc_count(),
+  use cpu_count() from multiprocessing instead or other similar support.
+  Support will be removed in 0.7.
 
 - Add a build_py3 target to snakeoil.dist.distutils_extensions to allow for
   writing py3 compatible code and using 3to2 for conversion purposes instead of
@@ -32,7 +35,7 @@ snakeoil 0.6.5 (2015-0?-??)
 - Move mount methods from snakeoil.osutils into their own module at
   snakeoil.osutils.mount.
 
-- Add a touch(1) equivalent to snakeoil.fileutils.
+- snakeoil.fileutils: add a touch(1) equivalent.
 
 - Add the beginnings of a context manager module as snakeoil.contextlib.
   Currently this just includes the SplitExec class leveraged by pychroot.
