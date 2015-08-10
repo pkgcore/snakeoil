@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import io
 import sys
 
 from setuptools import setup, find_packages
@@ -42,7 +43,7 @@ test_requirements = []
 if sys.hexversion < 0x03030000:
     test_requirements.append('mock')
 
-with open('README.rst', 'r') as f:
+with io.open('README.rst', encoding='utf-8') as f:
     readme = f.read()
 
 setup(
