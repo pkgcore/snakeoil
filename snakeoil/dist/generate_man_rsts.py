@@ -8,6 +8,11 @@ import os
 import re
 import sys
 
+from snakeoil import cli
+
+# enable extended docs keyword arg support
+cli._generate_docs = True
+
 
 def _rst_header(char, text, leading=False):
     s = char * len(text)
