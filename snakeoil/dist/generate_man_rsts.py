@@ -7,6 +7,7 @@ from importlib import import_module
 import os
 import re
 import sys
+import textwrap
 
 from snakeoil import cli
 
@@ -29,10 +30,9 @@ class RawTextDocsFormatter(argparse.RawTextHelpFormatter):
         l.append(super(RawTextDocsFormatter, self)._format_action(action))
         docs = getattr(action, 'docs', None)
         if docs:
-            docs_l = []
-            for s in docs.strip().split('\n'):
-                docs_l.append('\t'[len(s) == 0:] + s.strip())
-            l.append('\n' + '\n'.join(docs_l) + '\n\n')
+            # force indentation uniformity
+            docs = '\n\t'.join(textwrap.dedent(docs).split('\n'))
+            l.append('\n' + docs + '\n\n')
         return ''.join(l)
 
 
