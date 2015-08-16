@@ -15,38 +15,27 @@ def _rst_header(char, text, leading=False):
         return [s, text, s, '']
     return [text, s, '']
 
-def _indent(stream):
-    for s in stream:
-        yield '  ' + s
 
-_splitting_regex = re.compile("(?:^|\n+(?=[^ \n]))")
-def _find_spacing(string):
-    pre, sep, post = string.rpartition('  ')
-    while pre:
-        yield len(pre)
-        pre, sep, post = pre.rpartition('  ')
+class RawTextDocsFormatter(argparse.RawTextHelpFormatter):
+    """Add optional rST content from the docs keyword arg to help output."""
 
-def _deserialize_2d_array(data):
-    lines = _splitting_regex.split(data.strip())
-    if not lines:
-        return []
-    line_iter = iter(lines)
-    candidates = set(_find_spacing(line_iter.next()))
-    for line in lines:
-        candidates.intersection_update(_find_spacing(line))
-        if not candidates:
-            break
-    else:
-        lowest = min(candidates)
-        return [(line[:lowest].strip(), line[lowest+2:].strip())
-                for line in lines]
-    raise Exception("Failed to parse %r" % (data,))
+    def _format_action(self, action):
+        l = []
+        l.append(super(RawTextDocsFormatter, self)._format_action(action))
+        docs = getattr(action, 'docs', None)
+        if docs:
+            docs_l = []
+            for s in docs.strip().split('\n'):
+                docs_l.append('\t'[len(s) == 0:] + s.strip())
+            l.append('\n' + '\n'.join(docs_l) + '\n\n')
+        return ''.join(l)
 
 
 class ManConverter(object):
+    """Convert argparse help docs into rST man pages."""
 
-    positional_re = re.compile("(^|\n)([^: ]+)")
-    positional_re = partial(positional_re.sub, '\g<1>:\g<2>:')
+    positional_re = re.compile("^([^: \t]+)")
+    positional_re = partial(positional_re.sub, ':\g<1>:')
 
     arg_enumeration_re = re.compile("{([^}]+)}")
 
@@ -56,7 +45,7 @@ class ManConverter(object):
             string = string.replace(',', '|')
             array = [x.strip() for x in string.split('|')]
             # Specifically return '|' w/out spaces; later code is
-            # space sensitve.  We do the appropriate replacement as
+            # space sensitive. We do the appropriate replacement as
             # the last step.
             return '<%s>' % ('|'.join(array),)
         text = self.arg_enumeration_re.sub(f, text)
@@ -121,8 +110,7 @@ class ManConverter(object):
 
     @staticmethod
     def _get_formatter(parser, name):
-        return argparse.RawTextHelpFormatter(
-            name, width=1000, max_help_position=1000)
+        return RawTextDocsFormatter(name, width=1000, max_help_position=1000)
 
     def process_positional(self, parser, name, action_group):
         l = []
@@ -133,9 +121,8 @@ class ManConverter(object):
             l.extend(_rst_header("=", action_group.title))
             if action_group.description:
                 l.extend(action_group.description.split("\n"))
-            for x in self.positional_re(data).split("\n"):
-                l.append(x)
-                l.append('')
+            l.extend(self.positional_re(x) for x in data.split("\n"))
+            l.append('')
         return l
 
     def process_subcommands(self, parser, name, action_group):
@@ -189,16 +176,12 @@ class ManConverter(object):
             if action_group.description:
                 l.extend(action_group.description.lstrip('\n').rstrip('\n').splitlines())
                 l.append('')
-
-            array = _deserialize_2d_array(data)
-            if array:
-                array = [(self._rewrite_option(x[0]), x[1]) for x in array]
-                min_length = max(len(x[0]) for x in array) + 2
-                array = [(x[0].ljust(min_length, ' '), x[1]) for x in array]
-                for x in array:
-                    l.append(''.join(x))
+            options = data.split('\n')
+            for i, opt in enumerate(options):
+                l.append(opt)
+                if i < len(options)-1 and re.match('\S+', options[i+1]) is not None:
+                    # add empty line between options to avoid formatting issues
                     l.append('')
-            l.append('')
         return l
 
     def generate_usage(self, parser, name):
@@ -231,6 +214,7 @@ class ManConverter(object):
                 data.append('')
             data.extend(options)
             yield (name.rsplit(' ', 1)[1], data)
+
 
 if __name__ == '__main__':
     output = sys.argv[1]
