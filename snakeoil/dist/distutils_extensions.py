@@ -390,14 +390,3 @@ class test(Command):
 # in other words, it could be invoked by py3k to translate snakeoil to py3k
 is_py3k = sys.version_info >= (3, 0)
 is_jython = 'java' in getattr(sys, 'getPlatform', lambda: '')().lower()
-
-
-def get_number_of_processors():
-    try:
-        with open("/proc/cpuinfo") as f:
-            val = len([x for x in f if ''.join(x.split()).split(":")[0] == "processor"])
-        if not val:
-            return 1
-        return val
-    except EnvironmentError:
-        return 1
