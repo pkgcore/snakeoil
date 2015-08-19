@@ -6,8 +6,8 @@ import sys
 from setuptools import setup, find_packages
 
 from snakeoil import __version__
-from snakeoil.dist import distutils_extensions as pkg_dist
-OptionalExtension = pkg_dist.OptionalExtension
+from snakeoil.dist import distutils_extensions as pkgdist
+OptionalExtension = pkgdist.OptionalExtension
 
 common_includes = [
     'include/snakeoil/heapdef.h',
@@ -21,7 +21,7 @@ extra_kwargs = dict(
 
 extensions = []
 
-if not pkg_dist.is_py3k:
+if not pkgdist.is_py3k:
     extensions.extend([
         OptionalExtension(
             'snakeoil._posix', ['src/posix.c'], **extra_kwargs),
@@ -60,10 +60,10 @@ setup(
     headers=common_includes,
     tests_require=test_requirements,
     cmdclass={
-        'sdist': pkg_dist.sdist,
-        'build_ext': pkg_dist.build_ext,
-        'build_py': pkg_dist.build_py,
-        'test': pkg_dist.test,
+        'sdist': pkgdist.sdist,
+        'build_ext': pkgdist.build_ext,
+        'build_py': pkgdist.build_py,
+        'test': pkgdist.test,
     },
     classifiers=[
         'Intended Audience :: Developers',
