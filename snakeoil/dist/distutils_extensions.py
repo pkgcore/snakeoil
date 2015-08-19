@@ -24,8 +24,6 @@ from distutils.command import (
     sdist as dst_sdist, build_ext as dst_build_ext, build_py as dst_build_py,
     build as dst_build, build_scripts as dst_build_scripts)
 
-from snakeoil.version import get_git_version
-
 
 def find_project(repo_file):
     toplevel = os.path.dirname(os.path.realpath(repo_file))
@@ -63,6 +61,7 @@ class sdist(dst_sdist.sdist):
     package_namespace = project
 
     def generate_verinfo(self, base_dir):
+        from snakeoil.version import get_git_version
         log.info('generating _verinfo')
         data = get_git_version(base_dir)
         if not data:
@@ -122,6 +121,7 @@ class build_py(dst_build_py.build_py):
         pass
 
     def _run_generate_verinfo(self, rebuilds):
+        from snakeoil.version import get_git_version
         ver_path = self.get_module_outfile(
             self.build_lib, (self.package_namespace,), '_verinfo')
         # this should check mtime...
