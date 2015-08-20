@@ -8,13 +8,20 @@ snakeoil is a python library that implements optimized versions of common
 python functionality. Some classes and functions have cpython equivalents,
 but they all have native python implementations too.
 
-Contact
-=======
+Installing
+==========
 
-For support and development inquiries a `mailing list`_ is available or you can
-join `#pkgcore`_ on Freenode.
+Installing latest pypi release in a virtualenv::
 
-For bugs and feature requests please create an issue in the `issue tracker`_.
+    pip install snakeoil
+
+Installing from git in a virtualenv::
+
+    pip install https://github.com/pkgcore/snakeoil/archive/master.tar.gz
+
+Installing from a tarball or git repo::
+
+    python setup.py install
 
 Tests
 =====
@@ -34,20 +41,13 @@ the following::
 Note that mock_ is required for tests if you're using anything less than python
 3.3.
 
-Installing
-==========
+Contact
+=======
 
-Installing latest pypi release in a virtualenv::
+For support and development inquiries a `mailing list`_ is available or you can
+join `#pkgcore`_ on Freenode.
 
-    pip install snakeoil
-
-Installing from git in a virtualenv::
-
-    pip install https://github.com/pkgcore/snakeoil/archive/master.tar.gz
-
-Installing from a tarball or git repo::
-
-    python setup.py install
+For bugs and feature requests please create an issue in the `issue tracker`_.
 
 
 .. _`mailing list`: https://groups.google.com/forum/#!forum/python-snakeoil
