@@ -21,7 +21,7 @@ __all__ = (
 )
 
 from collections import deque
-from functools import partial
+from functools import partial, wraps
 from operator import attrgetter
 
 from snakeoil import caching, compatibility
@@ -576,6 +576,42 @@ def steal_docs(target, ignore_missing=False, name=None):
         functor.__doc__ = obj.__doc__
         return functor
     return inner
+
+
+def patch(cls, method, external_decorator=None):
+    """Simplified monkeypatching via decorator.
+
+    :param cls: target class
+    :param method: target method to replace
+    :param external_decorator: decorator used on target method,
+        e.g. classmethod or staticmethod
+
+    Example usage (that's entirely useless):
+
+    >>> import string
+    >>> from snakeoil.klass import patch
+    >>> @patch(string, 'lower')
+    >>> def lower(orig_lower, s):
+    ...   return string.upper(s)
+    >>> s = 'foo'
+    >>> assert string.lower(s) == 'FOO'
+    """
+    def decorator(func):
+        # save the original method
+        orig_func = getattr(cls, method)
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(orig_func, *args, **kwargs)
+
+        if external_decorator is not None:
+            wrapper = external_decorator(wrapper)
+
+        # overwrite the original method with our wrapper
+        setattr(cls, method, wrapper)
+        return wrapper
+
+    return decorator
 
 
 def _immutable_setattr(self, attr, value):
