@@ -41,7 +41,7 @@ Installing latest pypi release in a virtualenv::
 
     pip install snakeoil
 
-Installing from git in a virtualenv (note that snakeoil should be used from git)::
+Installing from git in a virtualenv::
 
     pip install https://github.com/pkgcore/snakeoil/archive/master.tar.gz
 
