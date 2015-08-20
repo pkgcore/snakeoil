@@ -17,7 +17,7 @@ __all__ = (
     "jit_attr_named", "jit_attr_ext_method", "alias_attr", "cached_hash",
     "cached_property", "cached_property_named",
     "steal_docs", "immutable_instance", "inject_immutable_instance",
-    "alias_method",
+    "alias_method", "patch",
 )
 
 from collections import deque
