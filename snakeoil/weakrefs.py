@@ -1,9 +1,7 @@
 # Copyright: 2006-2010 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
-"""
-Optimized WeakValCache implementation, and a __del__ alternative
-"""
+"""Optimized WeakValCache implementation, and a __del__ alternative"""
 
 from __future__ import print_function
 
@@ -44,9 +42,11 @@ class WeakRefProxy(BaseDelayedObject):
         obj.__enable_finalization__(weakref)
         return obj
 
+
 def __enable_finalization__(self, weakref):
     # note we directly access the class, to ensure the instance hasn't overshadowed.
     self.__class__.__finalizer_weakrefs__[os.getpid()][id(self)] = weakref
+
 
 def __disable_finalization__(self):
     # note we directly access the class, to ensure the instance hasn't overshadowed.
@@ -70,34 +70,35 @@ class WeakRefFinalizer(type):
     nature of __del__.  This means __del__ is dodgy to use in practice.
 
     Weakrefs, by their nature of not strongly ref'ing the target (thus being
-    impossible to participate in a reference cycle) are able to invoke finalizers
-    upon the target's refcount becoming zero.
+    impossible to participate in a reference cycle) are able to invoke
+    finalizers upon the target's refcount becoming zero.
 
     Essentially, what this metaclass does is make it possible to write __del__
-    without the issues of __del__; the sole thing you cannot do in __del__ in this
-    usage is resurrect the instance.
+    without the issues of __del__; the sole thing you cannot do in __del__ in
+    this usage is resurrect the instance.
 
-    This metaclass modifies the target class, renaming its __del__ to __finalizer__
-    and modifying instance generation to return a proxy to the target instance.  This proxy
-    is detailed in :mod:`snakeoil.obj`, but suffice it to say it's pretty much
-    transparent to all consumers.  When the proxy object is collected, a weakref callback
-    fires triggering the proxy targets __finalizer__ method.
+    This metaclass modifies the target class, renaming its __del__ to
+    __finalizer__ and modifying instance generation to return a proxy to the
+    target instance.  This proxy is detailed in :mod:`snakeoil.obj`, but
+    suffice it to say it's pretty much transparent to all consumers.  When the
+    proxy object is collected, a weakref callback fires triggering the proxy
+    targets __finalizer__ method.
 
-    The end result of this trickery is that you can use __del__ w/out the gc issues
-    when using this metaclass, and without the specialized hacks required of other
-    finalizer implementations.  With this metaclass, you write __del__ as you normally
-    would, and have full access to self (rather than a subset of attributes as other
-    implementations induce).
+    The end result of this trickery is that you can use __del__ w/out the gc
+    issues when using this metaclass, and without the specialized hacks
+    required of other finalizer implementations.  With this metaclass, you
+    write __del__ as you normally would, and have full access to self (rather
+    than a subset of attributes as other implementations induce).
 
     Note that while this makes __del__ possible, it still is recommended to use
     contextmanagers where possible, and alternative approaches that favor a
-    deterministics/explicit finalization instead of the implicit finalization that
-    __del__ implies.  There however are instances where __del__ is the most elegant
-    solution available, thus this metaclass existing.
+    deterministics/explicit finalization instead of the implicit finalization
+    that __del__ implies.  There however are instances where __del__ is the
+    most elegant solution available, thus this metaclass existing.
 
-    Finally, note that the resultant finalization code (the raw `__del__` method)
-    is invoked only once on the target instance- attempts to do otherwise via
-    invoking __finalizer__() become no-ops.
+    Finally, note that the resultant finalization code (the raw `__del__`
+    method) is invoked only once on the target instance- attempts to do
+    otherwise via invoking __finalizer__() become no-ops.
 
     Example usage:
 
@@ -130,23 +131,24 @@ class WeakRefFinalizer(type):
     def __new__(cls, name, bases, d):
         if '__del__' in d:
             d['__finalizer__'] = d.pop("__del__")
-        elif not '__finalizer__' in d and not \
-            any(hasattr(parent, "__finalizer__") for parent in bases):
-            raise TypeError("cls %s doesn't have either __del__ nor a __finalizer__"
-                            % (name,))
+        elif '__finalizer__' not in d and not \
+                any(hasattr(parent, "__finalizer__") for parent in bases):
+            raise TypeError(
+                "cls %s doesn't have either __del__ nor a __finalizer__" % (name,))
 
-        if not '__disable_finalization__' in d and not \
-            any(hasattr(parent, "__disable_finalization__") for parent in bases):
+        if '__disable_finalization__' not in d and not \
+                any(hasattr(parent, "__disable_finalization__") for parent in bases):
             # install tracking
             d['__disable_finalization__'] = __disable_finalization__
             d['__enable_finalization__'] = __enable_finalization__
-        # install tracking bits.  we do this per class- this is intended to avoid any
-        # potential stupid subclasses wiping a parents tracking.
+        # install tracking bits. We do this per class- this is intended to
+        # avoid any potential stupid subclasses wiping a parents tracking.
 
         d['__finalizer_weakrefs__'] = defaultdict(dict)
 
         new_cls = super(WeakRefFinalizer, cls).__new__(cls, name, bases, d)
-        new_cls.__proxy_class__ = partial(make_kls(new_cls, WeakRefProxy), cls, lambda x: x)
+        new_cls.__proxy_class__ = partial(
+            make_kls(new_cls, WeakRefProxy), cls, lambda x: x)
         new_cls.__proxy_class__.__name__ = name
         cls.__known_classes__[new_cls] = True
         return new_cls
