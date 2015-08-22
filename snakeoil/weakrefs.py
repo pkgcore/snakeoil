@@ -13,6 +13,7 @@ __all__ = ("WeakValCache", "WeakRefFinalizer")
 # pylint: disable=W0611
 
 import atexit
+from collections import defaultdict
 from functools import partial
 import os
 import sys
@@ -25,7 +26,6 @@ try:
 except ImportError:
     from weakref import WeakValueDictionary as WeakValCache, ref, WeakKeyDictionary
 
-from snakeoil import mappings
 from snakeoil.obj import make_kls, BaseDelayedObject
 
 
@@ -143,7 +143,7 @@ class WeakRefFinalizer(type):
         # install tracking bits.  we do this per class- this is intended to avoid any
         # potential stupid subclasses wiping a parents tracking.
 
-        d['__finalizer_weakrefs__'] = mappings.defaultdict(dict)
+        d['__finalizer_weakrefs__'] = defaultdict(dict)
 
         new_cls = super(WeakRefFinalizer, cls).__new__(cls, name, bases, d)
         new_cls.__proxy_class__ = partial(make_kls(new_cls, WeakRefProxy), cls, lambda x: x)
