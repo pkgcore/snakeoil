@@ -623,3 +623,30 @@ class TestAliasMethod(TestCase):
         self.assertEqual(c.__len__(), c.lfunc())
         c.__len__ = lambda: 4
         self.assertEqual(c.__len__(), c.lfunc())
+
+
+class TestPatch(TestCase):
+
+    def test_patch(self):
+        import string
+
+        @klass.patch(string, 'lower')
+        def lower(orig_lower, s):
+            return string.upper(s)
+
+        s = 'foo'
+        self.assertEqual(string.lower(s), 'FOO')
+
+    def test_patch_external_decorator(self):
+        class kls(object):
+            @staticmethod
+            def false(*arg, **kwargs):
+                return False
+
+        self.assertFalse(kls.false())
+
+        @klass.patch(kls, 'false', staticmethod)
+        def false(orig_func, *args, **kwargs):
+            return True
+
+        self.assertTrue(kls.false())
