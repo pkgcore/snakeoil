@@ -11,6 +11,7 @@ from snakeoil.demandload import demandload
 
 demandload(
     'errno',
+    'io:open',
     'signal',
     'subprocess',
     'time',
