@@ -14,7 +14,7 @@ _generate_docs = False
 
 @patch(argparse._ActionsContainer, 'add_argument')
 def add_argument(argparse_add_argument, self, *args, **kwargs):
-    """Enable docs keyword args support for arguments.
+    """Enable docs keyword argument support for argparse arguments.
 
     This is used to add extended, rST-formatted docs to man pages (or other
     generated doc formats) without affecting the regular, summarized help
