@@ -2,6 +2,22 @@
 Release Notes
 =============
 
+snakeoil 0.6.6 (2015-0?-??)
+---------------------------
+
+- Add support for adding extended docs to argparse arguments via the 'docs'
+  kwarg. This allows for adding extended content meant for man pages directly
+  to the arguments in scripts. To enable support, all that must be done is
+  importing snakeoil.cli which will monkeypatch add_argument() from argparse to
+  ignore 'docs' kwargs by default. The extended content can be pulled at
+  certain times such as during doc generation by setting a flag, see
+  snakeoil.dist.generate_man_rsts for example usage.
+
+- snakeoil.dist.distutils_extensions: Drop get_number_of_processors() since
+  multiprocessing.cpu_count is used instead.
+
+- snakeoil.klass: add patch decorator for simple monkeypatching
+
 snakeoil 0.6.5 (2015-08-10)
 ---------------------------
 
