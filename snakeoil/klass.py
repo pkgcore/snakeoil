@@ -588,13 +588,13 @@ def patch(cls, method, external_decorator=None):
 
     Example usage (that's entirely useless):
 
-    >>> import string
+    >>> import math
     >>> from snakeoil.klass import patch
-    >>> @patch(string, 'lower')
-    >>> def lower(orig_lower, s):
-    ...   return string.upper(s)
-    >>> s = 'foo'
-    >>> assert string.lower(s) == 'FOO'
+    >>> @patch(math, 'ceil')
+    >>> def ceil(orig_ceil, n):
+    ...   return math.floor(n)
+    >>> n = 0.1
+    >>> assert math.ceil(n) == 0
     """
     def decorator(func):
         # save the original method

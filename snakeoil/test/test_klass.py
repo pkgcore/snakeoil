@@ -628,14 +628,16 @@ class TestAliasMethod(TestCase):
 class TestPatch(TestCase):
 
     def test_patch(self):
-        import string
+        import math
 
-        @klass.patch(string, 'lower')
-        def lower(orig_lower, s):
-            return string.upper(s)
+        n = 0.1
+        self.assertEqual(math.ceil(n), 1)
 
-        s = 'foo'
-        self.assertEqual(string.lower(s), 'FOO')
+        @klass.patch(math, 'ceil')
+        def ceil(orig_ceil, n):
+            return math.floor(n)
+
+        self.assertEqual(math.ceil(n), 0)
 
     def test_patch_external_decorator(self):
         class kls(object):
