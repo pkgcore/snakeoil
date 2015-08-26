@@ -18,6 +18,8 @@ snakeoil 0.6.6 (2015-0?-??)
 
 - snakeoil.klass: add patch decorator for simple monkeypatching
 
+- snakeoil.contextlib has been moved to snakeoil.context.
+
 snakeoil 0.6.5 (2015-08-10)
 ---------------------------
 
