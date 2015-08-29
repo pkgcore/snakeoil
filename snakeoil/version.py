@@ -10,20 +10,26 @@ import os
 _ver = None
 
 
-def get_version(project, repo_file):
+def get_version(project, repo_file, api_version=None):
     """Determine a project's version information.
 
-    Note that this assumes the __version__ attribute is defined main module of
-    the specified project.
+    Standardized version retrieval for git-based projects. In summary, if the
+    api_version isn't specified it imports __version__ from the main module for
+    the project. Next it tries to import extended information from a generated
+    file (for packages using snakeoil's custom sdist phase) and if that fails
+    assumes it's in a git repo and grabs the git info instead.
 
     :param project: module name
     :param repo_file: file belonging to module
+    :param api_version: version for the project, if not specified __version__
+        is imported from the main project module
     :return: a string describing the project version
     """
     global _ver  # pylint: disable=global-statement
     if _ver is None:
         version_info = None
-        api_version = getattr(import_module(project), '__version__')
+        if api_version is None:
+            api_version = getattr(import_module(project), '__version__')
         try:
             version_info = getattr(import_module(
                 '%s._verinfo' % (project,)), 'version_info')
