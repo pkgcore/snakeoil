@@ -11,7 +11,15 @@ _ver = None
 
 
 def get_version(project, repo_file):
-    """:return: a string describing the project version."""
+    """Determine a project's version information.
+
+    Note that this assumes the __version__ attribute is defined main module of
+    the specified project.
+
+    :param project: module name
+    :param repo_file: file belonging to module
+    :return: a string describing the project version
+    """
     global _ver  # pylint: disable=global-statement
     if _ver is None:
         version_info = None
