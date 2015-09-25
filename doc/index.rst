@@ -1,9 +1,3 @@
-.. snakeoil documentation master file, created by
-   sphinx-quickstart on Sun Jul 25 05:24:43 2010.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-
 Welcome to snakeoil.  Now what is it?
 =====================================
 
@@ -39,14 +33,12 @@ Please note that snakeoil while relying on extensions in certain spots, does not
 the extensions to function- it will just fallback to native python implementations if it
 cannot find its extensions to use.
 
-
 Community
 ---------
 
 Snakeoil now lives in full at |homepage|.  Issue tracking, wiki, groups, source, are all available from there.
 
 For IRC, the core developers are generally accessible for bugs/questions via `the freenode network in the #pkgcore channel <irc://freenode.net/#pkgcore>`_.
-
 
 Getting the source (downloading releases or trunk)
 --------------------------------------------------
@@ -57,14 +49,12 @@ All releases are available at |release_url|\., with release news available at :r
 
 As for dependencies, snakeoil basically just requires python2.7 and up.
 
-
 Snakeoil intentions
 ===================
 
 Following is a rough breakdown of the core areas snakeoil aims to cover.  This is not comprehensive-
 generally speaking things that are useful have a way of winding up being added to snakeoil for reuse
 elsewhere.
-
 
 Python annoyances and hard issues
 ---------------------------------
@@ -98,7 +88,6 @@ purpose of snakeoil's functionality in that vein is to solve it once and for all
 with the best possible implementation.  Let developers worry about their problem at hand, rather
 than worry about solving an issue someone else has already addressed essentially.
 
-
 Supporting multiple python versions can be a pain
 -------------------------------------------------
 
@@ -110,7 +99,6 @@ there to help with these issues.  Note that compatibility functionality that goe
 isn't the only compatibility bits- that's just the general grab bag for it.
 :py:mod:`snakeoil.currying` is another example (primarily targeting :py:class:`functools.partial`,
 although providing more functionality than just that limited usage).
-
 
 Optimizations
 -------------
@@ -136,7 +124,6 @@ usage- for codebases with a large number of small dictionaries, :py:func:`snakeo
 reduce the memory requirement in the range of 75-95%.  For codebases that make extensive use of
 __slots__ for memory reasons, it's advised that they take a look at :py:class:`snakeoil.test.test_slot_shadowing`
 
-
 Avoiding Boilerplate (functionality to help with DRY- Don't Repeat Yourself)
 ----------------------------------------------------------------------------
 
@@ -145,8 +132,6 @@ themselves repeatedly writing the same type of functionality, over and over.  Th
 methods, attribute/class attribute aliasing for backwards compatibility, JIT properties, and
 cloning documentation from preexisting sources.  If interested, :py:mod:`snakeoil.klass` is a
 good place to start reading.
-
-
 
 General Contents:
 =================
