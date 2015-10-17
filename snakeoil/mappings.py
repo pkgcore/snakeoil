@@ -740,22 +740,24 @@ def native_attr_getitem(self, key):
     except AttributeError:
         raise KeyError(key)
 
+
 def native_attr_update(self, iterable):
     for k, v in iterable:
         setattr(self, k, v)
 
+
 def native_attr_contains(self, key):
     return hasattr(self, key)
+
 
 # python issue 7604; depending on the python version, delattr'ing an empty slot
 # doesn't throw AttributeError; we vary our implementation for efficiency
 # dependent on a onetime runtime test of that.
-
 class foo(object):
     __slots__ = ("slot",)
 
 # track which is required since if we can use extensions, we'll have
-# to chose which to import; cpy side exports both, leaving it to us
+# to choose which to import; cpy side exports both, leaving it to us
 # to decide which to use (via runtime check, it means we don't have to
 # be recompiled for minor bumps when the fix is in place- it just switches
 # on).
@@ -765,6 +767,7 @@ try:
 except AttributeError:
     # properly throws an exception; thus we do a single lookup.
     _use_slow_delitem = False
+
     def native_attr_delitem(self, key):
         try:
             delattr(self, key)
@@ -784,6 +787,7 @@ else:
 # cleanup the test class.
 del foo
 
+
 _sentinel = object()
 def native_attr_pop(self, key, *a):
     # faster then the exception form...
@@ -798,6 +802,7 @@ def native_attr_pop(self, key, *a):
     else:
         raise KeyError(key)
     return o
+
 
 def native_attr_get(self, key, default=None):
     return getattr(self, key, default)
@@ -911,7 +916,6 @@ def make_SlottedDict_kls(keys):
 
             def __len__(self):
                 return len(self.keys())
-
 
         o = SlottedDict
         slotted_dict_cache[new_keys] = o

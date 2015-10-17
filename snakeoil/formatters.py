@@ -87,14 +87,13 @@ class Formatter(object):
         to write.
         """
 
-
     def fg(self, color=None):
         """Change foreground color.
 
         :param color: color to change to. A default is used if omitted.
             if passed None, resets to the default color.
-        :return: object representing changing the foreground to the requested color,
-            if possible for this formatter.
+        :return: object representing changing the foreground to the requested
+            color, if possible for this formatter.
         """
 
     def bg(self, color=None):
@@ -102,8 +101,8 @@ class Formatter(object):
 
         :param color: color to change to. A default is used if omitted.
             if passed None, resets to the default color.
-        :return: object representing changing the background to the requested color,
-            if possible for this formatter.
+        :return: object representing changing the background to the requested
+            color, if possible for this formatter.
         """
 
     def error(self, message):
@@ -311,19 +310,20 @@ class native_PlainTextFormatter(Formatter):
     def fg(self, color=None):
         """change fg color
 
-        This is a compatibility method- no coloring escapes are returned from it
+        Compatibility method- no coloring escapes are returned from it.
         """
         return ''
 
     def bg(self, color=None):
         """change bg color
 
-        This is a compatibility method- no coloring escapes are returned from it
+        Compatibility method- no coloring escapes are returned from it.
         """
         return ''
 
 try:
     from snakeoil._formatters import PlainTextFormatter, StreamClosed
+
     class PlainTextFormatter(PlainTextFormatter, Formatter):
         __doc__ = native_PlainTextFormatter.__doc__
         __slots__ = ()
@@ -339,6 +339,7 @@ try:
 except ImportError:
     PlainTextFormatter = native_PlainTextFormatter
     StreamClosed = native_StreamClosed
+
 
 class TerminfoDisabled(Exception):
     """
@@ -413,13 +414,12 @@ else:
             raise AttributeError("%s instances are immutable" %
                                  (self.__class__.__name__,))
 
-
     class TerminfoCode(object):
         """
-        class encapsulating a specific terminfo entry command- reset for example
+        Encapsulates specific terminfo entry commands, reset for example.
 
         This should not generally be invoked by hand, instead returned by
-        the formatter itself
+        the formatter itself.
         """
 
         __slots__ = ("value", "__weakref__")
@@ -432,7 +432,6 @@ else:
         def __setattr__(self, key, value):
             raise AttributeError("%s instances are immutable" %
                                  (self.__class__.__name__,))
-
 
     class TerminfoMode(TerminfoCode):
 
@@ -451,7 +450,6 @@ else:
         def __call__(self, formatter):
             formatter._modes.clear()
             formatter.stream.write(self.value)
-
 
     class TerminfoFormatter(PlainTextFormatter):
 
@@ -526,7 +524,8 @@ else:
                 compatibility.raise_from(TerminfoHatesOurTerminal(self._term))
 
             if self._set_color == (None, None):
-                raise TerminfoDisabled('setting background and foreground colors is not supported')
+                raise TerminfoDisabled(
+                    'setting background/foreground colors is not supported')
 
             curses.tparm(self._set_color[0], curses.COLOR_WHITE)
 
