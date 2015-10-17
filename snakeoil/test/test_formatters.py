@@ -249,6 +249,11 @@ class GetFormatterTest(TestCase):
         self.failUnless(isinstance(formatter, formatters.PlainTextFormatter))
 
     @issue7567
+    def test_vt100_terminal(self):
+        formatter = _with_term('vt100', formatters.get_formatter, master)
+        self.failUnless(isinstance(formatter, formatters.PlainTextFormatter))
+
+    @issue7567
     def test_smart_terminal(self):
         master, _out = _get_pty_pair()
         formatter = _with_term('xterm', formatters.get_formatter, master)
