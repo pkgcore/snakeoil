@@ -371,7 +371,6 @@ try:
 except ImportError:
     TerminfoColor = None
 else:
-
     class TerminfoColor(object):
         """
         class encapsulating a specific terminfo entry for a color
@@ -526,15 +525,8 @@ else:
             except (_BogusTerminfo, curses.error):
                 compatibility.raise_from(TerminfoHatesOurTerminal(self._term))
 
-            # Older python 3 has a tparm that takes a str, which makes
-            # little sense. This was fixed in 3.2.3 (yes, in a micro
-            # release), so this mess can go away if we require 3.3.
-            try:
+            if curses.has_colors():
                 curses.tparm(self._set_color[0], curses.COLOR_WHITE)
-            except TypeError:
-                # This is python 3 < 3.2.3.
-                self._set_color = tuple(
-                    template.decode('ascii') for template in self._set_color)
 
             # [fg, bg]
             self._current_colors = [None, None]
