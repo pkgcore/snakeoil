@@ -5,6 +5,9 @@ Release Notes
 snakeoil 0.6.6 (2015-0?-??)
 ---------------------------
 
+- snakeoil.formatters: Don't force colored output if the terminal doesn't
+  support it.
+
 - Add support for adding extended docs to argparse arguments via the 'docs'
   kwarg. This allows for adding extended content meant for man pages directly
   to the arguments in scripts. To enable support, all that must be done is
@@ -16,9 +19,10 @@ snakeoil 0.6.6 (2015-0?-??)
 - snakeoil.dist.distutils_extensions: Drop get_number_of_processors() since
   multiprocessing.cpu_count is used instead.
 
-- snakeoil.klass: add patch decorator for simple monkeypatching
+- snakeoil.klass: Add patch decorator method for simplified monkeypatching.
 
-- snakeoil.contextlib has been moved to snakeoil.context.
+- snakeoil.contextlib has been moved to snakeoil.context to avoid any potential
+  namespace issues from contextlib in the stdlib.
 
 snakeoil 0.6.5 (2015-08-10)
 ---------------------------
