@@ -204,10 +204,16 @@ class ManConverter(object):
 
         synopsis = _rst_header('=', "synopsis")
         synopsis.extend(self.generate_usage(parser, name))
+        description = _rst_header('=', "description")
+        if parser.long_description:
+            description.append(parser.long_description)
+        else:
+            description.append(parser.description)
         options = self.process_action_groups(parser, name)
 
         if main_command:
             yield ('main_synopsis', synopsis)
+            yield ('main_description', description)
             yield ('main_options', options)
         else:
             data = _rst_header('=', name, leading=True)
