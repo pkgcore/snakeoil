@@ -2,7 +2,7 @@
 Release Notes
 =============
 
-snakeoil 0.6.6 (2015-0?-??)
+snakeoil 0.6.6 (2015-??-??)
 ---------------------------
 
 - snakeoil.formatters: Don't force colored output if the terminal doesn't
@@ -21,7 +21,7 @@ snakeoil 0.6.6 (2015-0?-??)
 
 - snakeoil.klass: Add patch decorator method for simplified monkeypatching.
 
-- snakeoil.contextlib has been moved to snakeoil.context to avoid any potential
+- snakeoil.contextlib has been moved to snakeoil.contexts to avoid any potential
   namespace issues from contextlib in the stdlib.
 
 snakeoil 0.6.5 (2015-08-10)

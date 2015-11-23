@@ -24,7 +24,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-"""Various context manager utilities."""
+"""Various with-statement context utilities."""
 
 import errno
 import inspect
