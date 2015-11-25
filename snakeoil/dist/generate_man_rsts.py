@@ -205,7 +205,7 @@ class ManConverter(object):
         synopsis = _rst_header('=', "synopsis")
         synopsis.extend(self.generate_usage(parser, name))
         description = _rst_header('=', "description")
-        if parser.long_description:
+        if getattr(parser, 'long_description', False):
             description.extend(parser.long_description)
         else:
             description.append(parser.description)
