@@ -234,73 +234,71 @@ class native_PlainTextFormatter(Formatter):
             self.first_prefix.extend(first_prefixes)
         if later_prefixes is not None:
             self.later_prefix.extend(later_prefixes)
-        # Remove this nested try block once we depend on python 2.5
         try:
-            try:
-                for arg in args:
-                    # If we're at the start of the line, write our prefix.
-                    # There is a deficiency here: if neither our arg nor our
-                    # prefix affect _pos (both are escape sequences or empty)
-                    # we will write prefix more than once. This should not
-                    # matter.
-                    if not self._pos:
-                        self._write_prefix(wrap)
-                    while callable(arg):
-                        arg = arg(self)
-                    if arg is None:
-                        continue
-                    if not isinstance(arg, basestring):
-                        arg = str(arg)
-                    conversion_needed = self._encoding_conversion_needed(arg)
-                    while wrap and self._pos + len(arg) > self.width:
-                        # We have to split.
-                        maxlen = self.width - self._pos
-                        space = arg.rfind(' ', 0, maxlen)
-                        if space == -1:
-                            # No space to split on.
+            for arg in args:
+                # If we're at the start of the line, write our prefix.
+                # There is a deficiency here: if neither our arg nor our
+                # prefix affect _pos (both are escape sequences or empty)
+                # we will write prefix more than once. This should not
+                # matter.
+                if not self._pos:
+                    self._write_prefix(wrap)
+                while callable(arg):
+                    arg = arg(self)
+                if arg is None:
+                    continue
+                if not isinstance(arg, basestring):
+                    arg = str(arg)
+                conversion_needed = self._encoding_conversion_needed(arg)
+                while wrap and self._pos + len(arg) > self.width:
+                    # We have to split.
+                    maxlen = self.width - self._pos
+                    space = arg.rfind(' ', 0, maxlen)
+                    if space == -1:
+                        # No space to split on.
 
-                            # If we are on the first line we can simply go to
-                            # the next (this helps if the "later" prefix is
-                            # shorter and should not really matter if not).
+                        # If we are on the first line we can simply go to
+                        # the next (this helps if the "later" prefix is
+                        # shorter and should not really matter if not).
 
-                            # If we are on the second line and have already
-                            # written something we can also go to the next
-                            # line.
-                            if self._in_first_line or self._wrote_something:
-                                bit = ''
-                            else:
-                                # Forcibly split this as far to the right as
-                                # possible.
-                                bit = arg[:maxlen]
-                                arg = arg[maxlen:]
+                        # If we are on the second line and have already
+                        # written something we can also go to the next
+                        # line.
+                        if self._in_first_line or self._wrote_something:
+                            bit = ''
                         else:
-                            bit = arg[:space]
-                            # Omit the space we split on.
-                            arg = arg[space + 1:]
-                        if conversion_needed:
-                            bit = self._force_encoding(bit)
-                        self.stream.write(bit)
-                        self.stream.write(self._force_encoding('\n'))
-                        self._pos = 0
-                        self._in_first_line = False
-                        self._wrote_something = False
-                        self._write_prefix(wrap)
-
-                    # This fits.
-                    self._wrote_something = True
-                    self._pos += len(arg)
+                            # Forcibly split this as far to the right as
+                            # possible.
+                            bit = arg[:maxlen]
+                            arg = arg[maxlen:]
+                    else:
+                        bit = arg[:space]
+                        # Omit the space we split on.
+                        arg = arg[space + 1:]
                     if conversion_needed:
-                        arg = self._force_encoding(arg)
-                    self.stream.write(arg)
-                if autoline:
+                        bit = self._force_encoding(bit)
+                    self.stream.write(bit)
                     self.stream.write(self._force_encoding('\n'))
-                    self._wrote_something = False
                     self._pos = 0
-                    self._in_first_line = True
-            except IOError as e:
-                if e.errno == errno.EPIPE:
-                    raise StreamClosed(e)
-                raise
+                    self._in_first_line = False
+                    self._wrote_something = False
+                    self._write_prefix(wrap)
+
+                # This fits.
+                self._wrote_something = True
+                self._pos += len(arg)
+                if conversion_needed:
+                    arg = self._force_encoding(arg)
+                self.stream.write(arg)
+            if autoline:
+                self.stream.write(self._force_encoding('\n'))
+                self._wrote_something = False
+                self._pos = 0
+                self._in_first_line = True
+        except IOError as e:
+            if e.errno == errno.EPIPE:
+                raise StreamClosed(e)
+            raise
         finally:
             if first_prefixes is not None:
                 self.first_prefix = self.first_prefix[:-len(first_prefixes)]
