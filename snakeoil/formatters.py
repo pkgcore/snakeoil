@@ -521,7 +521,7 @@ else:
             except (_BogusTerminfo, curses.error):
                 compatibility.raise_from(TerminfoHatesOurTerminal(self._term))
 
-            if self._set_color == (None, None):
+            if not all(self._set_color):
                 raise TerminfoDisabled(
                     'setting background/foreground colors is not supported')
 
