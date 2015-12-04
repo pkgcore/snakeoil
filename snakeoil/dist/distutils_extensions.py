@@ -316,11 +316,11 @@ class build_scripts(dst_build_scripts.build_scripts):
         for script in self.scripts:
             with open(script, 'w') as f:
                 f.write(textwrap.dedent("""\
-                    #!/usr/bin/env python
+                    #!%s
                     from os.path import basename
                     from %s import scripts
                     scripts.main(basename(__file__))
-                """ % project))
+                """ % (sys.executable, project)))
         self.copy_scripts()
 
 
