@@ -308,11 +308,14 @@ class build_scripts(dst_build_scripts.build_scripts):
 
     """Create and build (copy and modify #! line) the wrapper scripts."""
 
-    def run(self):
+    def finalize_options(self):
+        dst_build_scripts.build_scripts.finalize_options(self)
         script_dir = os.path.join(
             os.path.dirname(self.build_dir), '.generated_scripts')
         self.mkpath(script_dir)
         self.scripts = [os.path.join(script_dir, x) for x in os.listdir('bin')]
+
+    def run(self):
         for script in self.scripts:
             with open(script, 'w') as f:
                 f.write(textwrap.dedent("""\
