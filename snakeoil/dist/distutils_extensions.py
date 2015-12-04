@@ -72,6 +72,11 @@ class sdist(dst_sdist.sdist):
         self.build_docs = False
 
     def generate_verinfo(self, base_dir):
+        """Generate project version module.
+
+        This is used by the --version option in interactive programs among
+        other things.
+        """
         from snakeoil.version import get_git_version
         log.info('generating _verinfo')
         data = get_git_version(base_dir)
