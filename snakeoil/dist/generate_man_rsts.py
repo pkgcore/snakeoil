@@ -31,7 +31,10 @@ class RawTextDocsFormatter(argparse.RawTextHelpFormatter):
         docs = getattr(action, 'docs', None)
         if docs is not None:
             # force indentation uniformity
-            docs = '\n\t'.join(textwrap.dedent(docs).strip().split('\n'))
+            if isinstance(docs, (list, tuple)):
+                docs = textwrap.dedent('\n\t'.join(docs)).strip()
+            else:
+                docs = '\n\t'.join(textwrap.dedent(docs).strip().split('\n'))
             l.append('\n\t' + docs + '\n')
         return ''.join(l)
 
