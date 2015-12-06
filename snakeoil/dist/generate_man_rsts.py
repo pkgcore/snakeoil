@@ -32,9 +32,10 @@ class RawTextDocsFormatter(argparse.RawTextHelpFormatter):
         if docs is not None:
             # force indentation uniformity
             if isinstance(docs, (list, tuple)):
-                docs = textwrap.dedent('\n\t'.join(docs)).strip()
-            else:
-                docs = '\n\t'.join(textwrap.dedent(docs).strip().split('\n'))
+                # list args are often used if originator wanted to strip
+                # off first description summary line
+                docs = '\n'.join(docs)
+            docs = '\n\t'.join(textwrap.dedent(docs).strip().split('\n'))
             l.append('\n\t' + docs + '\n')
         return ''.join(l)
 
