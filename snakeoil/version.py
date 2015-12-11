@@ -46,10 +46,9 @@ def get_version(project, repo_file, api_version=None):
         elif version_info['tag'] == api_version:
             s = 'released %s' % (version_info['date'],)
         else:
-            s = ('vcs version %s, date %s' %
-                 (version_info['rev'], version_info['date']))
+            s = ('-g%s, %s' % (version_info['rev'][:7], version_info['date']))
 
-        _ver = '%s %s\n%s' % (project, api_version, s)
+        _ver = '%s %s%s' % (project, api_version, s)
     return _ver
 
 
