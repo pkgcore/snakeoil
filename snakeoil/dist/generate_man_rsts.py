@@ -220,7 +220,8 @@ class ManConverter(object):
             yield ('main_description', description)
             yield ('main_options', options)
         else:
-            data = _rst_header('=', name, leading=True)
+            desc_header = ' - %s' % (parser.description,) if parser.description else ''
+            data = _rst_header('=', '%s%s' % (name, desc_header), leading=True)
             data.extend(synopsis)
             data.append('')
             if parser.description:
