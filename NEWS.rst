@@ -2,8 +2,10 @@
 Release Notes
 =============
 
-snakeoil 0.6.6 (2015-??-??)
+snakeoil 0.6.6 (2015-12-13)
 ---------------------------
+
+- snakeoil.cli: Add userquery() from pkgcore.ebuild.formatter.
 
 - snakeoil.formatters: Don't force colored output if the terminal doesn't
   support it.
