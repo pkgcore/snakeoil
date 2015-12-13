@@ -14,7 +14,6 @@ This library is a bit of a grabbag of the following:
   exposing fallback implementations of desirable functionality in older python
   versions.
 * optimized implementations of common patterns
-
 """
 
-__version__ = '0.6.6'
+__version__ = '0.6.7'
