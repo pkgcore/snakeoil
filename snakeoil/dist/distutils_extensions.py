@@ -25,6 +25,8 @@ from distutils.command import (
     sdist as dst_sdist, build_ext as dst_build_ext, build_py as dst_build_py,
     build as dst_build, build_scripts as dst_build_scripts)
 
+from sphinx.setup_command import BuildDoc
+
 
 def find_project(repo_file):
     toplevel = os.path.dirname(os.path.realpath(repo_file))
@@ -254,6 +256,23 @@ class build_py3(build_py):
         for path, mtime in py2k_rebuilds:
             os.utime(path, (-1, mtime))
         log.info("completed py2k conversions")
+
+
+class build_sphinx(BuildDoc):
+    """Sphinx command that overrides the module search path.
+
+    Fixes generating man pages for scripts that need to import modules
+    generated via 2to3 or other conversions instead of straight from the build
+    directory.
+    """
+
+    def run(self):
+        if self.build_dir:
+            syspath = sys.path
+            sys.path.insert(0, os.path.abspath(os.path.join(self.build_dir, '..', 'lib')))
+        super(build_sphinx, self).run()
+        if self.build_dir:
+            sys.path = syspath
 
 
 class build_ext(dst_build_ext.build_ext):
