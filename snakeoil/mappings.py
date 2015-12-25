@@ -20,7 +20,6 @@ import operator
 
 from snakeoil.klass import get, contains, steal_docs
 from snakeoil import compatibility
-cmp = compatibility.cmp
 
 class autoconvert_py3k_methods_metaclass(type):
 
@@ -167,23 +166,20 @@ class DictMixin(object):
     get = get
     __contains__ = contains
 
-    # default cmp actually operates based on key len comparison, oddly enough
-    def __cmp__(self, other):
-        for k1, k2 in izip(sorted(self), sorted(other)):
-            c = cmp(k1, k2)
-            if c != 0:
-                return c
-            c = cmp(self[k1], other[k2])
-            if c != 0:
-                return c
-        c = cmp(len(self), len(other))
-        return c
-
+    @steal_docs(dict)
     def __eq__(self, other):
-        return self.__cmp__(other) == 0
+        if len(self) != len(other):
+            return False
+        for k1, k2 in izip(sorted(self), sorted(other)):
+            if k1 != k2:
+                return False
+            if self[k1] != other[k2]:
+                return False
+        return True
 
+    @steal_docs(dict)
     def __ne__(self, other):
-        return self.__cmp__(other) != 0
+        return not self == other
 
     @steal_docs(dict)
     def pop(self, key, default=None):

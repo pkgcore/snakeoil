@@ -10,7 +10,7 @@ from __future__ import print_function
 __all__ = ("expandable_chain", "caching_iter", "iter_sort")
 
 from collections import deque
-from itertools import islice
+from itertools import islice, izip_longest
 
 
 class expandable_chain(object):
@@ -137,7 +137,7 @@ class caching_iter(object):
 
         return self.cached_list[index]
 
-    def __cmp__(self, other):
+    def _flatten(self):
         if self.iterable is not None:
             if self.sorter:
                 self.cached_list.extend(self.iterable)
@@ -146,7 +146,33 @@ class caching_iter(object):
             else:
                 self.cached_list = tuple(self.cached_list + list(self.iterable))
             self.iterable = None
-        return cmp(self.cached_list, other)
+
+    def __lt__(self, other):
+        self._flatten()
+        for x, y in izip_longest(self.cached_list, other):
+            if x != y:
+                return x < y
+        return False
+
+    def __gt__(self, other):
+        self._flatten()
+        for x, y in izip_longest(self.cached_list, other):
+            if x != y:
+                return x > y
+        return False
+
+    def __le__(self, other):
+        return self < other or self == other
+
+    def __ge__(self, other):
+        return not self < other
+
+    def __eq__(self, other):
+        self._flatten()
+        return self.cached_list == other
+
+    def __ne__(self, other):
+        return not self == other
 
     def __nonzero__(self):
         if self.cached_list:
@@ -215,7 +241,6 @@ def iter_sort(sorter, *iterables):
     For example:
 
     >>> from snakeoil.iterables import iter_sort
-    >>> from snakeoil.compatibility import cmp
     >>> iter1 = xrange(0, 5, 2)
     >>> iter2 = xrange(1, 6, 2)
     >>> # note that these lists will be consumed as they go,

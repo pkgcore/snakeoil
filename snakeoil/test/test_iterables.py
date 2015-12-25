@@ -95,6 +95,9 @@ class CachingIterTest(TestCase):
         self.assertTrue(get_inst(xrange(100)) > tuple(xrange(90)))
         self.assertFalse(get_inst(xrange(90)) > tuple(xrange(100)))
         self.assertTrue(get_inst(xrange(100)) >= tuple(xrange(100)))
+        self.assertTrue(get_inst(xrange(90)) < tuple(xrange(100)))
+        self.assertFalse(get_inst(xrange(100)) < tuple(xrange(90)))
+        self.assertTrue(get_inst(xrange(90)) <= tuple(xrange(100)))
 
     def test_sorter(self):
         get_inst = self._py3k_protection
