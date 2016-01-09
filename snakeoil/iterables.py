@@ -162,17 +162,17 @@ class caching_iter(object):
         return False
 
     def __le__(self, other):
-        return self < other or self == other
+        return self.__lt__(other) or self.__eq__(other)
 
     def __ge__(self, other):
-        return not self < other
+        return not self.__lt__(other)
 
     def __eq__(self, other):
         self._flatten()
         return self.cached_list == other
 
     def __ne__(self, other):
-        return not self == other
+        return not self.__eq__(other)
 
     def __nonzero__(self):
         if self.cached_list:

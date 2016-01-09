@@ -179,7 +179,7 @@ class DictMixin(object):
 
     @steal_docs(dict)
     def __ne__(self, other):
-        return not self == other
+        return not self.__eq__(other)
 
     @steal_docs(dict)
     def pop(self, key, default=None):
