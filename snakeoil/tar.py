@@ -45,10 +45,13 @@ class TarInfo(tarfile.TarInfo):
     :ivar uname: same as TarInfo.uname, just interned via a property.
     """
 
-    __slots__ = (
-        "name", "mode", "uid", "gid", "size", "mtime", "chksum", "type",
-        "linkname", "_uname", "_gname", "devmajor", "devminor", "prefix",
-        "offset", "offset_data", "_buf", "sparse", "_link_target")
+    if not hasattr(tarfile.TarInfo, '__slots__'):
+        __slots__ = (
+            "name", "mode", "uid", "gid", "size", "mtime", "chksum", "type",
+            "linkname", "_uname", "_gname", "devmajor", "devminor", "prefix",
+            "offset", "offset_data", "_buf", "sparse", "_link_target")
+    else:
+        __slots__ = ('_buf', '_uname', '_gname')
 
     def get_buf(self):
         return self.tobuf()
