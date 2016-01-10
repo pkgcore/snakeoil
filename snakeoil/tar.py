@@ -27,6 +27,8 @@ else:
 del t
 # ok, we now have our own local copy to monkey patch
 
+from snakeoil.compatibility import intern
+
 
 class TarInfo(tarfile.TarInfo):
 
