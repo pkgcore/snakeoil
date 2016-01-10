@@ -27,8 +27,6 @@ else:
 del t
 # ok, we now have our own local copy to monkey patch
 
-from snakeoil.compatibility import intern
-
 
 class TarInfo(tarfile.TarInfo):
 
@@ -47,13 +45,10 @@ class TarInfo(tarfile.TarInfo):
     :ivar uname: same as TarInfo.uname, just interned via a property.
     """
 
-    if not hasattr(tarfile.TarInfo, '__slots__'):
-        __slots__ = (
-            "name", "mode", "uid", "gid", "size", "mtime", "chksum", "type",
-            "linkname", "_uname", "_gname", "devmajor", "devminor", "prefix",
-            "offset", "offset_data", "_buf", "sparse", "_link_target")
-    else:
-        __slots__ = ()
+    __slots__ = (
+        "name", "mode", "uid", "gid", "size", "mtime", "chksum", "type",
+        "linkname", "_uname", "_gname", "devmajor", "devminor", "prefix",
+        "offset", "offset_data", "_buf", "sparse", "_link_target")
 
     def get_buf(self):
         return self.tobuf()
@@ -71,7 +66,6 @@ class TarInfo(tarfile.TarInfo):
         """
 
     buf = property(get_buf, set_buf, del_buf)
-
 
     def get_gname(self):
         return self._gname
