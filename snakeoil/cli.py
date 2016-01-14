@@ -5,6 +5,7 @@
 
 import argparse
 
+from snakeoil.compatibility import raise_from
 from snakeoil.klass import patch
 
 # Enable flag to pull extended docs keyword args into arguments during doc
