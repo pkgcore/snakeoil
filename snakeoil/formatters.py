@@ -589,7 +589,7 @@ else:
     fileno_excepts = AttributeError
 
 
-def get_formatter(stream):
+def get_formatter(stream, force_color=False):
     """TerminfoFormatter if the stream is a tty, else PlainTextFormatter."""
     if TerminfoColor is None:
         return PlainTextFormatter(stream)
@@ -600,7 +600,7 @@ def get_formatter(stream):
     else:
         # We do this instead of stream.isatty() because TerminfoFormatter
         # needs an fd to pass to curses, not just a filelike talking to a tty.
-        if os.isatty(fd):
+        if os.isatty(fd) or force_color:
             try:
                 return TerminfoFormatter(stream)
             except (curses.error, TerminfoDisabled, TerminfoHatesOurTerminal):
