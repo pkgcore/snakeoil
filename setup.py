@@ -5,7 +5,6 @@ import sys
 
 from setuptools import setup, find_packages
 
-from snakeoil import __version__
 from snakeoil.dist import distutils_extensions as pkgdist
 OptionalExtension = pkgdist.OptionalExtension
 
@@ -48,7 +47,7 @@ with io.open('README.rst', encoding='utf-8') as f:
 
 setup(
     name='snakeoil',
-    version=__version__,
+    version=pkgdist.version(),
     description='misc common functionality and useful optimizations',
     long_description=readme,
     url='https://github.com/pkgcore/snakeoil',
