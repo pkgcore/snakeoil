@@ -9,9 +9,12 @@ passing in distutils.
 Generally speaking, you should flip through this modules src.
 """
 
+import errno
 import inspect
+import io
 import math
 import os
+import re
 import sys
 import subprocess
 import textwrap
@@ -42,6 +45,30 @@ def find_project(repo_file):
 
 # determine the project we're being imported into
 PROJECT = find_project(inspect.stack(0)[1][1])
+
+
+def version(project=PROJECT):
+    """Determine a project's version.
+
+    Based on the assumption that a project defines __version__ in it's main
+    module.
+    """
+    version = None
+    try:
+        with io.open(os.path.join(project, '__init__.py'), encoding='utf-8') as f:
+            version = re.search(
+                r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
+                f.read(), re.MULTILINE).group(1)
+    except IOError as e:
+        if e.errno == errno.ENOENT:
+            pass
+        else:
+            raise
+
+    if version is None:
+        raise RuntimeError('Cannot find version for project: %s' % (project,))
+
+    return version
 
 
 def data_mapping(host_prefix, path, skip=None):
