@@ -10,6 +10,7 @@ Generally speaking, you should flip through this modules src.
 """
 
 import errno
+import inspect
 import io
 import math
 import os
@@ -44,9 +45,9 @@ def find_project(repo_file):
 
 
 # determine the project we're being imported into
-PROJECT = find_project(os.path.abspath(__file__))
+PROJECT = find_project(inspect.stack(0)[1][1])
 # top level repo/tarball directory
-TOPDIR = os.path.dirname(os.path.abspath(__file__))
+TOPDIR = os.path.dirname(inspect.stack(0)[1][1])
 
 
 def version(project=PROJECT):
