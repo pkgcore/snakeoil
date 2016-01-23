@@ -41,7 +41,7 @@ def find_project(repo_file):
 
 
 # determine the project we're being imported into
-project = find_project(inspect.stack(0)[1][1])
+PROJECT = find_project(inspect.stack(0)[1][1])
 
 
 def data_mapping(host_prefix, path, skip=None):
@@ -70,7 +70,7 @@ class sdist(dst_sdist.sdist):
 
     """sdist command wrapper to generate version info file"""
 
-    package_namespace = project
+    package_namespace = PROJECT
 
     user_options = dst_sdist.sdist.user_options + [
         ('build-docs', None, 'build docs'),
@@ -119,7 +119,7 @@ class build_py(dst_build_py.build_py):
 
     user_options = dst_build_py.build_py.user_options + [("inplace", "i", "do any source conversions in place")]
 
-    package_namespace = project
+    package_namespace = PROJECT
     generate_verinfo = True
 
     def initialize_options(self):
@@ -357,7 +357,7 @@ class build_scripts(dst_build_scripts.build_scripts):
                     from os.path import basename
                     from %s import scripts
                     scripts.main(basename(__file__))
-                """ % (sys.executable, project)))
+                """ % (sys.executable, PROJECT)))
         self.copy_scripts()
 
 
@@ -382,7 +382,7 @@ class test(Command):
         ("include-dirs=", "I", "include dirs for build_ext if needed"),
     ]
 
-    default_test_namespace = '%s.test' % project
+    default_test_namespace = '%s.test' % PROJECT
 
     def initialize_options(self):
         self.inplace = False
