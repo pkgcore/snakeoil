@@ -48,10 +48,12 @@ def generate_man(project, project_dir):
         ManConverter.regen_if_needed(gendir, module, out_name=script)
 
 
-def generate_html(module_dir):
+def generate_html(project, project_dir):
     print('Generating API docs')
-    subprocess.call([
-        'sphinx-apidoc', '-Tef', '-o', 'api', module_dir, os.path.join(module_dir, 'test')])
+    apidir = os.path.join(project_dir, 'doc', 'generated', 'api')
+    if subprocess.call(['sphinx-apidoc', '-Tef', '-o', apidir, project,
+                        os.path.join(project, 'test')]):
+        raise RuntimeError('API doc generation failed')
 
 
 if __name__ == '__main__':
