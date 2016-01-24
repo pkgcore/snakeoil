@@ -12,9 +12,11 @@ from snakeoil.dist.generate_man_rsts import ManConverter
 
 def generate_man(project, project_dir):
     print('Generating files for man pages')
+    docdir = os.path.join(project_dir, 'doc')
+    gendir = os.path.join(docdir, 'generated')
 
     try:
-        os.mkdir('generated')
+        os.mkdir(gendir)
     except OSError as e:
         if e.errno == errno.EEXIST:
             return
@@ -30,8 +32,8 @@ def generate_man(project, project_dir):
     for module, script in generated_man_pages:
         rst = script + '.rst'
         # generate missing, generic man pages
-        if not os.path.isfile(os.path.join('man', rst)):
-            with open(os.path.join('generated', rst), 'w') as f:
+        if not os.path.isfile(os.path.join(docdir, 'man', rst)):
+            with open(os.path.join(gendir, rst), 'w') as f:
                 f.write(textwrap.dedent("""\
                     {header}
                     {script}
@@ -41,9 +43,9 @@ def generate_man(project, project_dir):
                     .. include:: {script}/main_description.rst
                     .. include:: {script}/main_options.rst
                 """.format(header=('=' * len(script)), script=script)))
-            os.symlink(os.path.join(os.pardir, 'generated', rst), os.path.join('man', rst))
-        os.symlink(os.path.join(os.pardir, 'generated', script), os.path.join('man', script))
-        ManConverter.regen_if_needed('generated', module, out_name=script)
+            os.symlink(os.path.join(gendir, rst), os.path.join(docdir, 'man', rst))
+        os.symlink(os.path.join(gendir, script), os.path.join(docdir, 'man', script))
+        ManConverter.regen_if_needed(gendir, module, out_name=script)
 
 
 def generate_html(module_dir):
