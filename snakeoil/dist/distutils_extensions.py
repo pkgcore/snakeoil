@@ -306,6 +306,11 @@ class build_man(Command):
         pass
 
     def run(self):
+        # don't rebuild man pages if one of the output dirs exist
+        if any(os.path.exists(x) for x in install_man.content_search_path):
+            log.info('man pages already built, skipping regeneration...')
+            return True
+
         # Use a built version for the man page generation process that imports
         # script modules.
         build_py = self.distribution.get_command_obj('build_py')
