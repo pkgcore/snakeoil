@@ -47,7 +47,7 @@ def find_project(repo_file):
 # determine the project we're being imported into
 PROJECT = find_project(inspect.stack(0)[1][1])
 # top level repo/tarball directory
-TOPDIR = os.path.dirname(inspect.stack(0)[1][1])
+TOPDIR = os.path.abspath(os.path.dirname(inspect.stack(0)[1][1]))
 
 
 def version(project=PROJECT):
