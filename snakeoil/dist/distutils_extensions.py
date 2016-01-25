@@ -335,9 +335,10 @@ class build_man(Command):
                 generate_man(PROJECT, TOPDIR)
 
             # generate man pages
+            self.distribution.reinitialize_command('build_sphinx')
             build_sphinx = self.distribution.get_command_obj('build_sphinx')
             build_sphinx.builder = 'man'
-            build_sphinx.finalize_options()
+            build_sphinx.ensure_finalized()
             self.run_command('build_sphinx')
             sys.path = syspath
 
@@ -593,6 +594,8 @@ class test(Command):
         build_py = self.reinitialize_command('build_py')
         build_ext.inplace = build_py.inplace = self.inplace
         build_ext.force = build_py.force = self.force
+        build_ext.ensure_finalized()
+        build_py.ensure_finalized()
 
         if self.include_dirs:
             build_ext.include_dirs = self.include_dirs
