@@ -18,9 +18,8 @@ def generate_man(project, project_dir):
     try:
         os.mkdir(gendir)
     except OSError as e:
-        if e.errno == errno.EEXIST:
-            return
-        raise
+        if e.errno != errno.EEXIST:
+            raise
 
     scripts = os.listdir(os.path.abspath(os.path.join(project_dir, 'bin')))
 
@@ -44,7 +43,8 @@ def generate_man(project, project_dir):
                     .. include:: {script}/main_options.rst
                 """.format(header=('=' * len(script)), script=script)))
             os.symlink(os.path.join(gendir, rst), os.path.join(docdir, 'man', rst))
-        os.symlink(os.path.join(gendir, script), os.path.join(docdir, 'man', script))
+        if not os.path.exists(os.path.join(docdir, 'man', script)):
+            os.symlink(os.path.join(gendir, script), os.path.join(docdir, 'man', script))
         ManConverter.regen_if_needed(gendir, module, out_name=script)
 
 
