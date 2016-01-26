@@ -27,9 +27,11 @@ class RawTextDocsFormatter(argparse.RawTextHelpFormatter):
 
     def _format_action(self, action):
         l = []
-        l.append(super(RawTextDocsFormatter, self)._format_action(action))
         docs = getattr(action, 'docs', None)
         if docs is not None:
+            # docs overrides help
+            action.help = None
+
             # force indentation uniformity
             if isinstance(docs, (list, tuple)):
                 # list args are often used if originator wanted to strip
@@ -37,6 +39,11 @@ class RawTextDocsFormatter(argparse.RawTextHelpFormatter):
                 docs = '\n'.join(docs)
             docs = '\n\t'.join(textwrap.dedent(docs).strip().split('\n'))
             l.append('\n\t' + docs + '\n')
+
+        # Put the arguments first before their descriptions, has to be done
+        # after processing docs due to conditionally overriding help.
+        l.insert(0, super(RawTextDocsFormatter, self)._format_action(action))
+
         return ''.join(l)
 
 
