@@ -21,16 +21,16 @@ def add_argument(argparse_add_argument, self, *args, **kwargs):
     generated doc formats) without affecting the regular, summarized help
     output for scripts.
 
-    To use, import this module where argparse is used to add command-line
-    arguments so the 'docs' kwarg gets ignored during general use. During
-    document generation, enable the global _generate_docs variable in order to
-    add 'docs' attributes to action objects that specify them. The strings from
-    those attributes can then be extracted and added to the correct locations
-    in the generated docs, see snakeoil.dist.generate_man_rsts for an example.
+    To use, import this module where argparse is used to create parsers so the
+    'docs' keyword gets discarded during regular use. For document generation,
+    enable the global _generate_docs variable in order to add 'docs' attributes
+    to action objects that specify them. The strings from those attributes can
+    then be extracted and added to the correct locations in the generated docs,
+    see snakeoil.dist.generate_man_rsts for an example.
     """
     docs = kwargs.pop('docs', None)
     action = argparse_add_argument(self, *args, **kwargs)
-    if docs is not None and _generate_docs:
+    if _generate_docs and docs is not None:
         action.docs = docs
     return action
 
