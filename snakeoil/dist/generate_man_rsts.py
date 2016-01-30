@@ -216,9 +216,10 @@ class ManConverter(object):
         synopsis = _rst_header('=', "synopsis")
         synopsis.extend(self.generate_usage(parser, name))
         description = None
-        if getattr(parser, 'docs', False):
+        docs = getattr(parser, 'docs', None)
+        if docs:
             description = _rst_header('=', "description")
-            description.append(parser.docs)
+            description.append(textwrap.dedent(docs).strip())
         options = self.process_action_groups(parser, name)
 
         if main_command:
