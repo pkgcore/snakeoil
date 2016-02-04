@@ -326,7 +326,8 @@ class build_man(Command):
         if self.force or not self.skip():
             # Use a built version for the man page generation process that
             # imports script modules.
-            build_py = self.distribution.get_command_obj('build_py')
+            build_py = self.reinitialize_command('build_py')
+            build_py.ensure_finalized()
             self.run_command('build_py')
             syspath = sys.path[:]
             sys.path.insert(0, os.path.abspath(build_py.build_lib))
@@ -337,8 +338,7 @@ class build_man(Command):
                 generate_man(PROJECT, TOPDIR)
 
             # generate man pages
-            self.distribution.reinitialize_command('build_sphinx')
-            build_sphinx = self.distribution.get_command_obj('build_sphinx')
+            build_sphinx = self.reinitialize_command('build_sphinx')
             build_sphinx.builder = 'man'
             build_sphinx.ensure_finalized()
             self.run_command('build_sphinx')
@@ -369,8 +369,7 @@ class build_docs(build_man):
             generate_html(PROJECT, TOPDIR)
 
             # generate html docs -- allow build_sphinx cmd to run again
-            self.distribution.reinitialize_command('build_sphinx')
-            build_sphinx = self.distribution.get_command_obj('build_sphinx')
+            build_sphinx = self.reinitialize_command('build_sphinx')
             build_sphinx.builder = 'html'
             build_sphinx.ensure_finalized()
             self.run_command('build_sphinx')
