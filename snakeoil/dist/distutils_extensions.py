@@ -664,7 +664,7 @@ class PyTest(Command):
         if self.match is not None:
             self.match = tuple(set(self.match.split(',')))
 
-        if self.coverage or self.report is not None:
+        if self.coverage:
             try:
                 import pytest_cov
                 self.test_args.extend(['--cov', PROJECT])
@@ -672,10 +672,11 @@ class PyTest(Command):
                 sys.stderr.write('error: install pytest-cov for coverage support\n')
                 sys.exit(1)
 
-        if self.report is None:
-            self.test_args.extend(['--cov-report='])
-        else:
-            self.test_args.extend(['--cov-report', self.report])
+            if self.report is None:
+                # disable coverage report output
+                self.test_args.extend(['--cov-report='])
+            else:
+                self.test_args.extend(['--cov-report', self.report])
 
         if self.jobs is not None:
             try:
