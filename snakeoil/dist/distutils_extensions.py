@@ -644,6 +644,7 @@ class PyTest(Command):
     """Run tests using pytest against a built copy."""
 
     user_options = [
+        ('pytest-args=', 'a', 'arguments to pass to py.test'),
         ('coverage', 'c', 'generate coverage info'),
         ('report=', 'r', 'generate and/or show a coverage report'),
         ('jobs=', 'j', 'run X parallel tests at once'),
@@ -653,6 +654,7 @@ class PyTest(Command):
     default_test_dir = os.path.join(PROJECT, 'test')
 
     def initialize_options(self):
+        self.pytest_args = ''
         self.coverage = False
         self.match = None
         self.jobs = None
@@ -685,6 +687,9 @@ class PyTest(Command):
             except ImportError:
                 sys.stderr.write('error: install pytest-xdist for -j/--jobs support\n')
                 sys.exit(1)
+
+        # add custom pytest args
+        self.test_args.extend(self.pytest_args.split())
 
     def run(self):
         import pytest
