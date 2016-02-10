@@ -9,10 +9,10 @@ import re
 import sys
 from textwrap import dedent
 
-from snakeoil import cli
+from snakeoil.cli import argparser
 
 # enable extended docs keyword arg support
-cli._generate_docs = True
+argparser._generate_docs = True
 
 
 def _rst_header(char, text, leading=False):

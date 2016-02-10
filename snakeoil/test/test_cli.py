@@ -30,9 +30,9 @@ class TestCli(TestCase):
                 '-b', '--blah', action='store_true', docs='Blah blah blah')
 
         # monkeypatch add_argument() from argparse to allow docs kwargs
-        from snakeoil import cli
         # force argparse to be patched
-        reload(cli)
+        from snakeoil.cli import argparser
+        reload(argparser)
         action = parser.add_argument(
             '-b', '--blah', action='store_true', docs='Blah blah blah')
 
@@ -40,7 +40,7 @@ class TestCli(TestCase):
         self.assertIsNone(getattr(action, 'docs', None))
 
         # they're only enabled if the _generate_docs flag is set
-        cli._generate_docs = True
+        argparser._generate_docs = True
         action = parser.add_argument(
             '-c', '--cat', action='store_true', docs='cat cat cat')
         self.assertEqual(getattr(action, 'docs', None), 'cat cat cat')
