@@ -11,9 +11,9 @@ from snakeoil.dist.generate_man_rsts import ManConverter
 
 
 def generate_man(project, project_dir):
-    print('Generating files for man pages')
     docdir = os.path.join(project_dir, 'doc')
     gendir = os.path.join(docdir, 'generated')
+    print("Generating files for {} man pages in '{}'".format(project, gendir))
 
     try:
         os.mkdir(gendir)
@@ -49,8 +49,8 @@ def generate_man(project, project_dir):
 
 
 def generate_html(project, project_dir):
-    print('Generating API docs')
     apidir = os.path.join(project_dir, 'doc', 'generated', 'api')
+    print("Generating {} API docs in '{}'".format(project, apidir))
     if subprocess.call(['sphinx-apidoc', '-Tef', '-o', apidir, project,
                         os.path.join(project, 'test')]):
         raise RuntimeError('API doc generation failed')
