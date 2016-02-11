@@ -7,7 +7,7 @@ from importlib import import_module
 import os
 import re
 import sys
-import textwrap
+from textwrap import dedent
 
 from snakeoil import cli
 
@@ -37,7 +37,7 @@ class RawTextDocsFormatter(argparse.RawTextHelpFormatter):
                 # list args are often used if originator wanted to strip
                 # off first description summary line
                 docs = '\n'.join(docs)
-            docs = '\n\t'.join(textwrap.dedent(docs).strip().split('\n'))
+            docs = '\n\t'.join(dedent(docs).strip().split('\n'))
             l.append('\n\t' + docs + '\n')
 
         # Put the arguments first before their descriptions, has to be done
@@ -136,7 +136,7 @@ class ManConverter(object):
         if data:
             l.extend(_rst_header("=", action_group.title))
             if action_group.description:
-                l.extend(action_group.description.split("\n"))
+                l.extend(dedent(action_group.description).split("\n"))
             l.extend(self.positional_re(x) for x in data.split("\n"))
             l.append('')
         return l
@@ -150,7 +150,7 @@ class ManConverter(object):
             assert len(action_group._group_actions) == 1
             l.extend(_rst_header("=", action_group.title))
             if action_group.description:
-                l.extend(action_group.description.split("\n"))
+                l.extend(dedent(action_group.description).split("\n"))
 
             for subcommand, parser in action_group._group_actions[0].choices.iteritems():
                 subdir_path = self.name.split()[1:]
@@ -190,7 +190,7 @@ class ManConverter(object):
                 continue
             l.extend(_rst_header("=", action_group.title))
             if action_group.description:
-                l.extend(action_group.description.lstrip('\n').rstrip('\n').splitlines())
+                l.extend(dedent(action_group.description).lstrip('\n').rstrip('\n').splitlines())
                 l.append('')
             options = data.split('\n')
             for i, opt in enumerate(options):
@@ -219,7 +219,7 @@ class ManConverter(object):
         docs = getattr(parser, 'docs', None)
         if docs:
             description = _rst_header('=', "description")
-            description.append(textwrap.dedent(docs).strip())
+            description.append(dedent(docs).strip())
         options = self.process_action_groups(parser, name)
 
         if main_command:
