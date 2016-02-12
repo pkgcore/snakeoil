@@ -360,6 +360,9 @@ class TestAccess(TempDirMixin):
 
     def test_fallback(self):
         fp = pjoin(self.dir, "file")
+        # create the file
+        with open(fp, 'w') as f:
+            pass
         os.chmod(fp, 000)
         self.assertFalse(self.func(fp, os.X_OK))
         self.assertTrue(self.func(fp, os.W_OK))
