@@ -20,9 +20,8 @@ demandload(
 def is_running(pid):
     """Determine if a process is running or not.
 
-    Note that this returns False if process doesn't exist.
-
     :param pid: a process ID
+    :raises ProcessNotFound: if pid doesn't exist
     :return: boolean of whether the process is running or not
     """
     try:
