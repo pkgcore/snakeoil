@@ -597,12 +597,20 @@ def patch(cls, method, external_decorator=None):
     >>> assert math.ceil(n) == 0
     """
     def decorator(func):
+        # use the original function wrapper
+        if getattr(func, '_func', False):
+            func = func._func
+
         # save the original method
         orig_func = getattr(cls, method)
 
         @wraps(func)
         def wrapper(*args, **kwargs):
             return func(orig_func, *args, **kwargs)
+
+        # save the original function wrapper
+        if not getattr(func, '_func', False):
+            wrapper._func = func
 
         if external_decorator is not None:
             wrapper = external_decorator(wrapper)
