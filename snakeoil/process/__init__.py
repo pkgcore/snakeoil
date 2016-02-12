@@ -119,6 +119,11 @@ def is_running(pid):
         # see if the process exists
         os.kill(pid, 0)
 
+        # assume process existence is enough when Linux /proc is not
+        # available
+        if os.uname()[0].lower() != 'linux':
+            return True
+
         # get the process status
         with open("/proc/%s/status" % pid, 'r') as f:
             for line in f:
