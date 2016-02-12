@@ -3,7 +3,6 @@
 import argparse
 import errno
 import os
-import subprocess
 import sys
 import textwrap
 
@@ -49,10 +48,10 @@ def generate_man(project, project_dir):
 
 
 def generate_html(project, project_dir):
-    apidir = os.path.join(project_dir, 'doc', 'generated', 'api')
+    from sphinx import apidoc
+    apidir = os.path.join(project_dir, 'doc', 'api')
     print("Generating {} API docs in '{}'".format(project, apidir))
-    if subprocess.call(['sphinx-apidoc', '-Tef', '-o', apidir, project,
-                        os.path.join(project, 'test')]):
+    if apidoc.main(['sphinx-apidoc', '-Tef', '-o', apidir, project, os.path.join(project, 'test')]):
         raise RuntimeError('API doc generation failed')
 
 
