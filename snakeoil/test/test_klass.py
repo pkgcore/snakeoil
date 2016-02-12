@@ -639,6 +639,26 @@ class TestPatch(TestCase):
 
         self.assertEqual(math.ceil(n), 0)
 
+    def test_multiple_patches(self):
+        class kls(object):
+            def false(self, *arg, **kwargs):
+                return False
+
+        class kls2(object):
+            def false(self, *arg, **kwargs):
+                return False
+
+        self.assertFalse(kls().false())
+        self.assertFalse(kls2().false())
+
+        @klass.patch(kls2, 'false')
+        @klass.patch(kls, 'false')
+        def true(orig_func, *args, **kwargs):
+            return True
+
+        self.assertTrue(kls().false())
+        self.assertTrue(kls2().false())
+
     def test_patch_external_decorator(self):
         class kls(object):
             @staticmethod
