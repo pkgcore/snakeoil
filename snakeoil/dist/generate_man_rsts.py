@@ -135,8 +135,10 @@ class ManConverter(object):
         data = h.format_help().strip()
         if data:
             l.extend(_rst_header("=", action_group.title))
-            if action_group.description:
-                l.extend(dedent(action_group.description).split("\n"))
+            # Use extended docs if they exist, otherwise fallback to the description.
+            docs = getattr(action_group, 'docs', getattr(action_group, 'description', None))
+            if docs:
+                l.extend(dedent(docs).split("\n"))
             l.extend(self.positional_re(x) for x in data.split("\n"))
             l.append('')
         return l
@@ -149,8 +151,10 @@ class ManConverter(object):
         if data:
             assert len(action_group._group_actions) == 1
             l.extend(_rst_header("=", action_group.title))
-            if action_group.description:
-                l.extend(dedent(action_group.description).split("\n"))
+            # Use extended docs if they exist, otherwise fallback to the description.
+            docs = getattr(action_group, 'docs', getattr(action_group, 'description', None))
+            if docs:
+                l.extend(dedent(docs).split("\n"))
 
             for subcommand, parser in action_group._group_actions[0].choices.iteritems():
                 subdir_path = self.name.split()[1:]
@@ -189,8 +193,10 @@ class ManConverter(object):
             if not data:
                 continue
             l.extend(_rst_header("=", action_group.title))
-            if action_group.description:
-                l.extend(dedent(action_group.description).lstrip('\n').rstrip('\n').splitlines())
+            # Use extended docs if they exist, otherwise fallback to the description.
+            docs = getattr(action_group, 'docs', getattr(action_group, 'description', None))
+            if docs:
+                l.extend(dedent(docs).lstrip('\n').rstrip('\n').splitlines())
                 l.append('')
             options = data.split('\n')
             for i, opt in enumerate(options):
