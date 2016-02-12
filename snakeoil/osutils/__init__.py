@@ -290,7 +290,9 @@ class FsLock(object):
                 raise NonExistent(path)
 
     def _acquire_fd(self):
-        flags = os.O_RDONLY
+        # write access is needed to acquire LOCK_EX
+        # https://github.com/pkgcore/snakeoil/pull/23
+        flags = os.O_RDWR
         if self.create:
             flags |= os.O_CREAT
         try:
