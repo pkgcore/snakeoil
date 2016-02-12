@@ -318,7 +318,7 @@ class FsLockTest(TempDirMixin):
         # do this all non-blocking to avoid hanging tests
         self.assertTrue(lock.acquire_read_lock(False))
         # file should exist now
-        with open(path) as f:
+        with open(path, 'r+') as f:
             # acquire and release a read lock
             fcntl.flock(f, fcntl.LOCK_SH | fcntl.LOCK_NB)
             fcntl.flock(f, fcntl.LOCK_UN)
