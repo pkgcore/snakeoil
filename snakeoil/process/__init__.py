@@ -28,6 +28,11 @@ def is_running(pid):
         # see if the process exists
         os.kill(pid, 0)
 
+        # Assume process existence is enough when a linux-style procfs is not
+        # available.
+        if not sys.platform.startswith('linux'):
+            return True
+
         # get the process status
         with open("/proc/%s/status" % pid, 'r') as f:
             for line in f:
