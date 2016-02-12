@@ -301,8 +301,11 @@ class FsLock(object):
     def _enact_change(self, flags, blocking):
         if self.fd is None:
             self._acquire_fd()
-        # we do it this way, due to the fact try/except is a bit of a hit
-        if not blocking:
+        # We do it this way, due to the fact try/except is a bit of a hit.
+        # Note that LOCK_UN can never block, and combining it with LOCK_NB
+        # triggers ValueError on Solaris.
+        # https://github.com/pkgcore/snakeoil/pull/23
+        if not blocking and flags != fcntl.LOCK_UN:
             try:
                 fcntl.flock(self.fd, flags|fcntl.LOCK_NB)
             except IOError as ie:
