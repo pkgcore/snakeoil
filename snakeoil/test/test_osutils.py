@@ -321,7 +321,7 @@ class FsLockTest(TempDirMixin):
         with open(path) as f:
             # acquire and release a read lock
             fcntl.flock(f, fcntl.LOCK_SH | fcntl.LOCK_NB)
-            fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
+            fcntl.flock(f, fcntl.LOCK_UN)
             # we can't acquire an exclusive lock
             self.assertRaises(
                 IOError, fcntl.flock, f, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -330,7 +330,7 @@ class FsLockTest(TempDirMixin):
             fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
             self.assertFalse(lock.acquire_read_lock(False))
             self.assertFalse(lock.acquire_write_lock(False))
-            fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
+            fcntl.flock(f, fcntl.LOCK_UN)
             # acquire an exclusive/write lock
             self.assertTrue(lock.acquire_write_lock(False))
             self.assertRaises(
@@ -338,18 +338,18 @@ class FsLockTest(TempDirMixin):
             # downgrade to read lock
             self.assertTrue(lock.acquire_read_lock())
             fcntl.flock(f, fcntl.LOCK_SH | fcntl.LOCK_NB)
-            fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
+            fcntl.flock(f, fcntl.LOCK_UN)
             self.assertRaises(
                 IOError, fcntl.flock, f, fcntl.LOCK_EX | fcntl.LOCK_NB)
             # and release
             lock.release_read_lock()
             fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
+            fcntl.flock(f, fcntl.LOCK_UN)
 
             self.assertTrue(lock.acquire_write_lock(False))
             lock.release_write_lock()
             fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            fcntl.flock(f, fcntl.LOCK_UN | fcntl.LOCK_NB)
+            fcntl.flock(f, fcntl.LOCK_UN)
 
 
 class TestAccess(TempDirMixin):
