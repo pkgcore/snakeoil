@@ -13,8 +13,10 @@ from snakeoil.klass import patch
 _generate_docs = False
 
 
+@patch(argparse._ActionsContainer, 'add_mutually_exclusive_group')
+@patch(argparse._ActionsContainer, 'add_argument_group')
 @patch(argparse._ActionsContainer, 'add_argument')
-def add_argument(argparse_add_argument, self, *args, **kwargs):
+def add_argument(orig_func, self, *args, **kwargs):
     """Enable docs keyword argument support for argparse arguments.
 
     This is used to add extended, rST-formatted docs to man pages (or other
@@ -29,7 +31,7 @@ def add_argument(argparse_add_argument, self, *args, **kwargs):
     see snakeoil.dist.generate_man_rsts for an example.
     """
     docs = kwargs.pop('docs', None)
-    action = argparse_add_argument(self, *args, **kwargs)
+    action = orig_func(self, *args, **kwargs)
     if _generate_docs and docs is not None:
         action.docs = docs
     return action
