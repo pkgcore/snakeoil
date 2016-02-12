@@ -353,12 +353,10 @@ class FsLockTest(TempDirMixin):
 
 class TestAccess(TempDirMixin):
 
-    if osutils.access is os.access:
-        skip = "os.access is usable, no need to test"
-    elif os.getuid() != 0:
+    if os.getuid() != 0:
         skip = "these tests must be ran as root"
 
-    func = staticmethod(osutils.access)
+    func = staticmethod(osutils.fallback_access)
 
     def test_fallback(self):
         fp = pjoin(self.dir, "file")
