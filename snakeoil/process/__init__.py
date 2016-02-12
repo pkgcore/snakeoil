@@ -110,7 +110,7 @@ def get_proc_count(force=False):
 def is_running(pid):
     """Determine if a process is running or not.
 
-    Note that this returns False if process doesn't exist.
+    Note that this raises ProcessNotFound if process doesn't exist.
 
     :param pid: a process ID
     :return: boolean of whether the process is running or not
