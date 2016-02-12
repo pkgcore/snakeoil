@@ -3,6 +3,7 @@
 
 import os
 import signal
+import sys
 import time
 
 try:
@@ -62,7 +63,12 @@ class TestIsRunning(TestCase):
         else:
             # wait for signal to propagate
             time.sleep(1)
-            self.assertFalse(process.is_running(pid))
+            # The return value is reliable only on Linux, on other systems just
+            # make sure ProcessNotFound isn't thrown.
+            if sys.platform.startswith('linux'):
+                self.assertFalse(process.is_running(pid))
+            else:
+                process.is_running(pid)
             os.kill(pid, signal.SIGKILL)
 
         with mock.patch('snakeoil.process.os.kill') as kill:
