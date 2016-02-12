@@ -19,7 +19,7 @@ from snakeoil import osutils
 from snakeoil.fileutils import touch
 from snakeoil.test import TestCase, SkipTest, mk_cpy_loadable_testcase
 from snakeoil.osutils import native_readdir
-from snakeoil.osutils.mount import mount, umount, MS_BIND
+from snakeoil.osutils.mount import mount, umount, MNT_FORCE, MS_BIND
 from snakeoil.test.mixins import TempDirMixin
 
 pjoin = os.path.join
