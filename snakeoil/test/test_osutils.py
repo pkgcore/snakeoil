@@ -7,6 +7,7 @@ import fcntl
 import grp
 import os
 import stat
+import sys
 import tempfile
 import unittest
 
@@ -396,6 +397,7 @@ class Mount(unittest.TestCase):
         os.rmdir(self.source)
         os.rmdir(self.target)
 
+    @unittest.skipUnless(sys.platform.startswith('linux'), 'supported on Linux only')
     def test_args_bytes(self):
         # The initial source, target, and fstype arguments to mount(2) must be
         # byte strings; if they are unicode strings the arguments get mangled
@@ -410,12 +412,14 @@ class Mount(unittest.TestCase):
                 for arg in mount_call[1][0:3]:
                     self.assertIsInstance(arg, bytes)
 
+    @unittest.skipUnless(sys.platform.startswith('linux'), 'supported on Linux only')
     def test_missing_dirs(self):
         with self.assertRaises(OSError) as cm:
             mount('source', 'target', None, MS_BIND)
         self.assertEqual(cm.exception.errno, errno.ENOENT)
 
     @unittest.skipIf(os.getuid() == 0, 'this test must be run as non-root')
+    @unittest.skipUnless(sys.platform.startswith('linux'), 'supported on Linux only')
     def test_no_perms(self):
         with self.assertRaises(OSError) as cm:
             mount(self.source, self.target, None, MS_BIND)
@@ -425,6 +429,7 @@ class Mount(unittest.TestCase):
         self.assertTrue(cm.exception.errno in (errno.EPERM, errno.EINVAL))
 
     @unittest.skipIf(os.getuid() != 0, 'this test must be run as root')
+    @unittest.skipUnless(sys.platform.startswith('linux'), 'supported on Linux only')
     def test_root(self):
         # test umount
         mount(self.source, self.target, None, MS_BIND)
