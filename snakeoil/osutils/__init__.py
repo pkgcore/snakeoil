@@ -290,7 +290,7 @@ class FsLock(object):
                 raise NonExistent(path)
 
     def _acquire_fd(self):
-        flags = os.R_OK
+        flags = os.O_RDONLY
         if self.create:
             flags |= os.O_CREAT
         try:
