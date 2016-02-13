@@ -785,6 +785,9 @@ class config(dst_config.config):
             self.cache_path = os.path.join(self.build_base, 'config.cache')
         dst_config.config.finalize_options(self)
 
+    def _cache_env_key(self):
+        return (self.cc, self.include_dirs, self.libraries, self.library_dirs)
+
     @cache_check('_sanity_check')
     @print_check('Performing basic C toolchain sanity check', 'works', 'broken')
     def _sanity_check(self):
@@ -800,7 +803,11 @@ class config(dst_config.config):
         except (OSError, IOError):
             cache_db = {}
         else:
-            sys.stderr.write('-- Using cache from %s\n' % self.cache_path)
+            if self._cache_env_key() == cache_db.get('env_key'):
+                sys.stderr.write('-- Using cache from %s\n' % self.cache_path)
+            else:
+                sys.stderr.write('-- Build environment changed, discarding cache\n')
+                cache_db = {}
 
         self.cache = cache_db.get('cache', {})
         self.check_defines = {}
@@ -821,6 +828,7 @@ class config(dst_config.config):
         # store updated cache
         cache_db = {
             'cache': self.cache,
+            'env_key': self._cache_env_key(),
         }
         self.mkpath(os.path.dirname(self.cache_path))
         with open(self.cache_path, 'wb') as f:
