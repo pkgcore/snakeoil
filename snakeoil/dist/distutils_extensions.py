@@ -28,7 +28,7 @@ from distutils.core import Command, Extension
 from distutils.errors import DistutilsExecError
 from distutils.command import (
     sdist as dst_sdist, build_ext as dst_build_ext, build_py as dst_build_py,
-    build as dst_build, build_scripts as dst_build_scripts)
+    build as dst_build, build_scripts as dst_build_scripts, config as dst_config)
 
 # getting built by readthedocs
 READTHEDOCS = os.environ.get('READTHEDOCS', None) == 'True'
@@ -413,6 +413,11 @@ class build_ext(dst_build_ext.build_ext):
                 if self.default_header_install_dir not in e.include_dirs:
                     e.include_dirs.append(self.default_header_install_dir)
 
+    def run(self):
+        # ensure that the platform checks were performed
+        self.run_command('config')
+        return dst_build_ext.build_ext.run(self)
+
     def build_extensions(self):
         if self.debug:
             # say it with me kids... distutils sucks!
@@ -714,6 +719,12 @@ class PyTest(Command):
                             os.path.join(builddir, '.coveragerc'))
         ret = subprocess.call([sys.executable, '-m', 'pytest'] + self.test_args, cwd=builddir)
         sys.exit(ret)
+
+
+class config(dst_config.config):
+    """Perform platform checks for extension build"""
+
+    pass
 
 
 # yes these are in snakeoil.compatibility; we can't rely on that module however

@@ -62,6 +62,7 @@ setup(
         'sdist': pkgdist.sdist,
         'build_ext': pkgdist.build_ext,
         'build_py': pkgdist.build_py,
+        'config': pkgdist.config,
         'test': pkgdist.test,
     },
     classifiers=[
