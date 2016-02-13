@@ -415,14 +415,13 @@ class build_ext(dst_build_ext.build_ext):
         return dst_build_ext.build_ext.run(self)
 
     def build_extensions(self):
-        if self.debug:
-            # say it with me kids... distutils sucks!
-            for x in ("compiler_so", "compiler", "compiler_cxx"):
+        # say it with me kids... distutils sucks!
+        for x in ("compiler_so", "compiler", "compiler_cxx"):
+            if self.debug:
                 l = [y for y in getattr(self.compiler, x) if y != '-DNDEBUG']
                 l.append('-Wall')
                 setattr(self.compiler, x, l)
-        if not self.disable_distutils_flag_fixing:
-            for x in ("compiler_so", "compiler", "compiler_cxx"):
+            if not self.disable_distutils_flag_fixing:
                 val = getattr(self.compiler, x)
                 if "-fno-strict-aliasing" not in val:
                     val.append("-fno-strict-aliasing")
