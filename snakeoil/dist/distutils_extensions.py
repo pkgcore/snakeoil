@@ -721,10 +721,30 @@ class PyTest(Command):
         sys.exit(ret)
 
 
+def print_check(message, if_yes='found', if_no='not found'):
+    """Decorator to print pre/post-check messages"""
+    def sub_decorator(f):
+        def sub_func(*args, **kwargs):
+            sys.stderr.write('-- %s\n' % (message,))
+            result = f(*args, **kwargs)
+            sys.stderr.write(
+                '-- %s -- %s\n' % (message, if_yes if result else if_no))
+            return result
+        return sub_func
+    return sub_decorator
+
+
 class config(dst_config.config):
     """Perform platform checks for extension build"""
 
-    pass
+    @print_check('Performing basic C toolchain sanity check', 'works', 'broken')
+    def _sanity_check(self):
+        return self.try_link("int main(int argc, char *argv[]) { return 0; }")
+
+    def run(self):
+        if not self._sanity_check():
+            sys.stderr.write('The C toolchain is unable to compile & link a simple C program!\n')
+            sys.exit(1)
 
 
 # yes these are in snakeoil.compatibility; we can't rely on that module however
