@@ -670,7 +670,7 @@ snakeoil_readlines_get_mtime(snakeoil_readlines *self)
 	Py_DECREF(ret);
 	if (is_float)
 		return PyFloat_FromDouble(self->mtime + 1e-9 * self->mtime_nsec);
-#if SIZEOF_TIME_T > SIZEOF_LONG
+#ifdef TIME_T_LONGER_THAN_LONG
 	return PyLong_FromLong((Py_LONG_LONG)self->mtime);
 #else
 	return PyInt_FromLong((long)self->mtime);

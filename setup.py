@@ -34,6 +34,15 @@ class config(pkgdist.config):
             return self.check_struct_member('struct dirent', 'd_type',
                     ('dirent.h',))
 
+        @pkgdist.check_define('TIME_T_LONGER_THAN_LONG')
+        @pkgdist.print_check("Checking if sizeof(time_t) > sizeof(long)", 'yes', 'no')
+        def check_TIME_T_LONGER_THAN_LONG(self):
+            # Ye old trick here: the conditional is const, so we can use it
+            # as array size. If it evaluates to false, we return -1 which is
+            # invalid and causes the compilation to fail.
+            return self.try_compile('int x[(sizeof(time_t) > sizeof(long)) ? 1 : -1];',
+                    ('sys/types.h',))
+
 if not pkgdist.is_py3k:
     extensions.extend([
         OptionalExtension(
