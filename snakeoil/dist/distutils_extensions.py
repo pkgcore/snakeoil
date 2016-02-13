@@ -429,6 +429,13 @@ class build_ext(dst_build_ext.build_ext):
                 val = getattr(self.compiler, x)
                 if "-fno-strict-aliasing" not in val:
                     val.append("-fno-strict-aliasing")
+            if getattr(self.distribution, 'check_defines', None):
+                val = getattr(self.compiler, x)
+                for d, result in self.distribution.check_defines.items():
+                    if result:
+                        val.append('-D%s=1' % d)
+                    else:
+                        val.append('-U%s' % d)
         return dst_build_ext.build_ext.build_extensions(self)
 
 
@@ -766,6 +773,9 @@ class config(dst_config.config):
                 continue
             if hasattr(getattr(self, k), 'pkgdist_config_decorated'):
                 getattr(self, k)()
+
+        # store results in Distribution instance
+        self.distribution.check_defines = self.check_defines
 
     # == methods for custom checks ==
     def check_struct_member(self, typename, member, headers=None,
