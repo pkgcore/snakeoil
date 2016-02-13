@@ -608,7 +608,7 @@ def patch(cls, method, external_decorator=None):
             return func(orig_func, *args, **kwargs)
 
         # save the original function wrapper
-        wrapper._func = getattr(func, '_func', func)
+        wrapper._func = func
 
         if external_decorator is not None:
             wrapper = external_decorator(wrapper)
