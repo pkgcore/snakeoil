@@ -768,6 +768,14 @@ class config(dst_config.config):
             if hasattr(getattr(self, k), 'pkgdist_config_decorated'):
                 getattr(self, k)()
 
+    # == methods for custom checks ==
+    def check_struct_member(self, typename, member, headers=None,
+            include_dirs=None, lang="c"):
+        """Check whether type typename (which needs to be struct
+        or union) has the named member."""
+        return self.try_compile('int main() { %s x; (void) x.%s; return 0; }'
+                % (typename, member), headers, include_dirs, lang)
+
 
 # yes these are in snakeoil.compatibility; we can't rely on that module however
 # since snakeoil source is in 2k form, but this module is 2k/3k compatible.
