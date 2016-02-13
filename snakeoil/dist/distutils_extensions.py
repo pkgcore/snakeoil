@@ -728,6 +728,19 @@ def print_check(message, if_yes='found', if_no='not found'):
             sys.stderr.write('-- %s -- %s\n' % (message,
                 if_yes if result else if_no))
             return result
+        sub_func.pkgdist_config_decorated = True
+        return sub_func
+    return sub_decorator
+
+
+def check_define(define_name):
+    """Method decorator to store check result"""
+    def sub_decorator(f):
+        def sub_func(self, *args, **kwargs):
+            result = f(self, *args, **kwargs)
+            self.check_defines[define_name] = result
+            return result
+        sub_func.pkgdist_config_decorated = True
         return sub_func
     return sub_decorator
 
@@ -743,6 +756,15 @@ class config(dst_config.config):
         if not self._sanity_check():
             sys.stderr.write('The C toolchain is unable to compile & link a simple C program!\n')
             sys.exit(1)
+
+        self.check_defines = {}
+
+        # run all decorated methods
+        for k in dir(self):
+            if k.startswith('_'):
+                continue
+            if hasattr(getattr(self, k), 'pkgdist_config_decorated'):
+                getattr(self, k)()
 
 
 # yes these are in snakeoil.compatibility; we can't rely on that module however
