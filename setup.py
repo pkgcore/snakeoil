@@ -20,6 +20,14 @@ extra_kwargs = dict(
 
 extensions = []
 
+class config(pkgdist.config):
+    if not pkgdist.is_py3k:
+        @pkgdist.check_define('HAVE_STAT_TV_NSEC')
+        @pkgdist.print_check("Checking for struct stat.st_mtim.tv_nsec")
+        def check_HAVE_STAT_TV_NSEC(self):
+            return self.check_struct_member('struct stat', 'st_mtim.tv_nsec',
+                    ('sys/types.h', 'sys/stat.h'))
+
 if not pkgdist.is_py3k:
     extensions.extend([
         OptionalExtension(
@@ -62,7 +70,7 @@ setup(
         'sdist': pkgdist.sdist,
         'build_ext': pkgdist.build_ext,
         'build_py': pkgdist.build_py,
-        'config': pkgdist.config,
+        'config': config,
         'test': pkgdist.test,
     },
     classifiers=[
