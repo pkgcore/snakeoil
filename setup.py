@@ -28,6 +28,12 @@ class config(pkgdist.config):
             return self.check_struct_member('struct stat', 'st_mtim.tv_nsec',
                     ('sys/types.h', 'sys/stat.h'))
 
+        @pkgdist.check_define('HAVE_DIRENT_D_TYPE')
+        @pkgdist.print_check("Checking for struct dirent.d_type")
+        def check_HAVE_DIRENT_D_TYPE(self):
+            return self.check_struct_member('struct dirent', 'd_type',
+                    ('dirent.h',))
+
 if not pkgdist.is_py3k:
     extensions.extend([
         OptionalExtension(

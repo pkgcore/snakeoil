@@ -18,6 +18,11 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
+#ifndef HAVE_DIRENT_D_TYPE
+#	define DT_DIR 0
+#	define DT_REG 0
+#endif
+
 
 static PyObject *snakeoil_DIRSTR,
 	*snakeoil_CHRSTR,
@@ -56,8 +61,11 @@ snakeoil_readdir_actual_listdir(const char* path, int followsyms,
 			name[2] == 0))) {
 			continue;
 		}
+#ifdef HAVE_DIRENT_D_TYPE
 		if (entry->d_type == DT_UNKNOWN ||
-			(followsyms && entry->d_type == DT_LNK)) {
+			(followsyms && entry->d_type == DT_LNK))
+#endif /*HAVE_DIRENT_D_TYPE*/
+		{
 
 			/* both path components, the "/", the trailing null */
 
@@ -91,9 +99,12 @@ snakeoil_readdir_actual_listdir(const char* path, int followsyms,
 			if ((st.st_mode & S_IFMT) != skind) {
 				continue;
 			}
-		} else if (entry->d_type != dkind) {
+		}
+#ifdef HAVE_DIRENT_D_TYPE
+		else if (entry->d_type != dkind) {
 			continue;
 		}
+#endif /*HAVE_DIRENT_D_TYPE*/
 		if (!(string = PyString_FromString(name))) {
 			Py_DECREF(result);
 			result = NULL;
@@ -230,6 +241,7 @@ snakeoil_readdir_read_dir(PyObject* self, PyObject* args)
 		}
 
 		PyObject *typestr;
+#ifdef HAVE_DIRENT_D_TYPE
 		switch (entry->d_type) {
 			case DT_REG:
 				typestr = snakeoil_REGSTR;
@@ -253,6 +265,7 @@ snakeoil_readdir_read_dir(PyObject* self, PyObject* args)
 				typestr = snakeoil_LNKSTR;
 				break;
 			case DT_UNKNOWN:
+#endif /*HAVE_DIRENT_D_TYPE*/
 			{
 				/* both path components, the "/", the trailing null */
 				size_t size = pathlen + strlen(name) + 2;
@@ -296,12 +309,14 @@ snakeoil_readdir_read_dir(PyObject* self, PyObject* args)
 						typestr = snakeoil_UNKNOWNSTR;
 				}
 			}
+#ifdef HAVE_DIRENT_D_TYPE
 			break;
 
 			default:
 				/* XXX does this make sense? probably not. */
 				typestr = snakeoil_UNKNOWNSTR;
 		}
+#endif /*HAVE_DIRENT_D_TYPE*/
 
 		PyObject *namestr = PyString_FromString(name);
 		if (!namestr) {
