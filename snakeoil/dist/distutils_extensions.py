@@ -739,9 +739,24 @@ def print_check(message, if_yes='found', if_no='not found'):
     return sub_decorator
 
 
+def cache_check(cache_key):
+    """Method decorate to cache check result"""
+    def sub_decorator(f):
+        def sub_func(self, *args, **kwargs):
+            if cache_key in self.cache:
+                return self.cache[cache_key]
+            result = f(self, *args, **kwargs)
+            self.cache[cache_key] = result
+            return result
+        sub_func.pkgdist_config_decorated = True
+        return sub_func
+    return sub_decorator
+
+
 def check_define(define_name):
     """Method decorator to store check result"""
     def sub_decorator(f):
+        @cache_check(define_name)
         def sub_func(self, *args, **kwargs):
             result = f(self, *args, **kwargs)
             self.check_defines[define_name] = result
@@ -754,16 +769,45 @@ def check_define(define_name):
 class config(dst_config.config):
     """Perform platform checks for extension build"""
 
+    user_options = dst_config.config.user_options + [
+        ("cache-path", "C", "path to read/write configuration cache"),
+    ]
+
+    def initialize_options(self):
+        self.cache_path = None
+        self.build_base = None
+        dst_config.config.initialize_options(self)
+
+    def finalize_options(self):
+        if self.cache_path is None:
+            self.set_undefined_options('build',
+                                       ('build_base', 'build_base'))
+            self.cache_path = os.path.join(self.build_base, 'config.cache')
+        dst_config.config.finalize_options(self)
+
+    @cache_check('_sanity_check')
     @print_check('Performing basic C toolchain sanity check', 'works', 'broken')
     def _sanity_check(self):
         return self.try_link("int main(int argc, char *argv[]) { return 0; }")
 
     def run(self):
+        from snakeoil.pickling import dump, load
+
+        # try to load the cached results
+        try:
+            with open(self.cache_path, 'rb') as f:
+                cache_db = load(f)
+        except (OSError, IOError):
+            cache_db = {}
+        else:
+            sys.stderr.write('-- Using cache from %s\n' % self.cache_path)
+
+        self.cache = cache_db.get('cache', {})
+        self.check_defines = {}
+
         if not self._sanity_check():
             sys.stderr.write('The C toolchain is unable to compile & link a simple C program!\n')
             sys.exit(1)
-
-        self.check_defines = {}
 
         # run all decorated methods
         for k in dir(self):
@@ -774,6 +818,13 @@ class config(dst_config.config):
 
         # store results in Distribution instance
         self.distribution.check_defines = self.check_defines
+        # store updated cache
+        cache_db = {
+            'cache': self.cache,
+        }
+        self.mkpath(os.path.dirname(self.cache_path))
+        with open(self.cache_path, 'wb') as f:
+            dump(cache_db, f)
 
     # == methods for custom checks ==
     def check_struct_member(self, typename, member, headers=None,
