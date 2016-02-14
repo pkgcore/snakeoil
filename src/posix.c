@@ -777,6 +777,7 @@ snakeoil_closerange(PyObject *self, PyObject *args)
 	fd_dir = dirfd(dir_handle);
 
 	if (fd_dir < 0) {
+		closedir(dir_handle);
 		snakeoil_slow_closerange(from, to);
 		Py_RETURN_NONE;
 	}
