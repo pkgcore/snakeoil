@@ -396,8 +396,9 @@ class build_ext(dst_build_ext.build_ext):
         dst_build_ext.build_ext.finalize_options(self)
         if self.build_optional is None:
             self.build_optional = True
+        self.build_optional = bool(self.build_optional)
         if not self.build_optional:
-            self.extensions = [ext for ext in self.extensions if not isinstance(ext, OptionalExtension)] or None
+            self.extensions = [ext for ext in self.extensions if not isinstance(ext, OptionalExtension)]
 
         # add header install dir to the search path
         # (fixes virtualenv builds for consumer extensions)
