@@ -30,6 +30,9 @@ from distutils.command import (
     sdist as dst_sdist, build_ext as dst_build_ext, build_py as dst_build_py,
     build as dst_build, build_scripts as dst_build_scripts)
 
+# getting built by readthedocs
+READTHEDOCS = os.environ.get('READTHEDOCS', None) == 'True'
+
 # top level repo/tarball directory
 TOPDIR = os.path.dirname(os.path.abspath(inspect.stack(0)[1][1]))
 
@@ -394,7 +397,7 @@ class build_ext(dst_build_ext.build_ext):
 
     def finalize_options(self):
         dst_build_ext.build_ext.finalize_options(self)
-        if self.build_optional is None:
+        if self.build_optional is None and not READTHEDOCS:
             self.build_optional = True
         self.build_optional = bool(self.build_optional)
         if not self.build_optional:
