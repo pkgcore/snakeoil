@@ -5,6 +5,7 @@
 import argparse
 import errno
 import os
+import subprocess
 import sys
 import textwrap
 
@@ -59,10 +60,11 @@ def generate_html(project, project_dir):
 
     This uses sphinx-apidoc to auto-generate all the required rst files.
     """
-    from sphinx import apidoc
     apidir = os.path.join(project_dir, 'doc', 'api')
     print("Generating {} API docs in '{}'".format(project, apidir))
-    if apidoc.main(['sphinx-apidoc', '-Tef', '-o', apidir, project, os.path.join(project, 'test')]):
+    if subprocess.call(['sphinx-apidoc', '-Tef', '-o', apidir,
+                        os.path.join(project_dir, project),
+                        os.path.join(project_dir, project, 'test')]):
         raise RuntimeError('API doc generation failed')
 
 
