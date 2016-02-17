@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+"""Generate man page and html rst docs for a given project."""
+
 import argparse
 import errno
 import os
@@ -10,6 +12,11 @@ from snakeoil.dist.generate_man_rsts import ManConverter
 
 
 def generate_man(project, project_dir):
+    """Generate man page rst docs for a project's installed scripts.
+
+    This assumes that all the files in the 'bin' directory under the main
+    project root are targeted scripts.
+    """
     docdir = os.path.join(project_dir, 'doc')
     gendir = os.path.join(docdir, 'generated')
     print("Generating files for {} man pages in '{}'".format(project, gendir))
@@ -29,7 +36,7 @@ def generate_man(project, project_dir):
 
     for module, script in generated_man_pages:
         rst = script + '.rst'
-        # generate missing, generic man pages
+        # generate missing, generic man page rst docs
         if not os.path.isfile(os.path.join(docdir, 'man', rst)):
             with open(os.path.join(gendir, rst), 'w') as f:
                 f.write(textwrap.dedent("""\
@@ -48,6 +55,10 @@ def generate_man(project, project_dir):
 
 
 def generate_html(project, project_dir):
+    """Generate API rst docs for a project.
+
+    This uses sphinx-apidoc to auto-generate all the required rst files.
+    """
     from sphinx import apidoc
     apidir = os.path.join(project_dir, 'doc', 'api')
     print("Generating {} API docs in '{}'".format(project, apidir))
