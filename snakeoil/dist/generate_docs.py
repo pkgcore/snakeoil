@@ -79,7 +79,6 @@ if __name__ == '__main__':
     opts = argparser.parse_args()
     opts.project_dir = os.path.abspath(opts.project[0])
     opts.project = opts.project[1]
-    opts.module_dir = os.path.join(opts.project_dir, opts.project)
 
     libdir = os.path.abspath(os.path.join(opts.project_dir, 'build', 'lib'))
     if os.path.exists(libdir):
@@ -94,4 +93,4 @@ if __name__ == '__main__':
         generate_man(opts.project, opts.project_dir)
 
     if opts.html:
-        generate_html(opts.module_dir)
+        generate_html(opts.project, opts.project_dir)
