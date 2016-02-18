@@ -712,9 +712,7 @@ class PyTest(Command):
         if self.coverage and os.path.exists(os.path.join(TOPDIR, '.coveragerc')):
             shutil.copyfile(os.path.join(TOPDIR, '.coveragerc'),
                             os.path.join(builddir, '.coveragerc'))
-        os.chdir(builddir)
-        ret = subprocess.call([sys.executable, '-m', 'pytest'] + self.test_args)
-        os.chdir(TOPDIR)
+        ret = subprocess.call([sys.executable, '-m', 'pytest'] + self.test_args, cwd=builddir)
         sys.exit(ret)
 
 
