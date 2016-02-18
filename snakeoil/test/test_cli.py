@@ -2,7 +2,7 @@
 # License: GPL2/BSD 3 clause
 
 import argparse
-from unittest import TestCase
+from unittest import SkipTest, TestCase
 
 try:
     # py3
@@ -20,10 +20,16 @@ class TestCli(TestCase):
 
         parser = argparse.ArgumentParser()
         parser.add_argument('--foo', action='store_true')
-        # add_argument() doesn't support docs kwargs
-        with self.assertRaises(TypeError):
+        # add_argument() shouldn't support docs kwargs
+        # if it does, then likely it is patched already and we can't
+        # test properly
+        try:
             parser.add_argument(
                 '-b', '--blah', action='store_true', docs='Blah blah blah')
+        except TypeError:
+            pass
+        else:
+            raise SkipTest('argparse seems patched already')
 
         # monkeypatch add_argument() from argparse to allow docs kwargs
         from snakeoil import cli
