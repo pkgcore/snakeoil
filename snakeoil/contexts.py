@@ -26,6 +26,7 @@
 
 """Various with-statement context utilities."""
 
+from contextlib import contextmanager
 import errno
 import inspect
 import os
@@ -223,3 +224,21 @@ class SplitExec(object):
                 frame = frame.f_back
             self.__frame = frame  # pylint: disable=W0201
             return frame
+
+
+@contextmanager
+def chdir(path):
+    """Context manager that changes the current working directory.
+
+    On exiting the context, the current working directory is switched back to
+    its original value.
+
+    Args:
+        path: The directory path to change the working directory to.
+    """
+    orig_cwd = os.getcwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(orig_cwd)
