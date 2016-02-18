@@ -5,11 +5,15 @@ import argparse
 from unittest import TestCase
 
 try:
-    # py3
+    # py3.4 and up
     from importlib import reload
 except ImportError:
-    # py2
-    pass
+    try:
+        # py3.3
+        from imp import reload
+    except ImportError:
+        # py2
+        pass
 
 
 class TestCli(TestCase):
