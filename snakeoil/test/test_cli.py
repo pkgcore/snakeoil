@@ -4,12 +4,21 @@
 import argparse
 from unittest import TestCase
 
+try:
+    # py3
+    from importlib import reload
+except ImportError:
+    # py2
+    pass
+
 
 class TestCli(TestCase):
 
     def test_add_argument(self):
-        parser = argparse.ArgumentParser()
+        # force using an unpatched version of argparse
+        reload(argparse)
 
+        parser = argparse.ArgumentParser()
         parser.add_argument('--foo', action='store_true')
         # add_argument() doesn't support docs kwargs
         with self.assertRaises(TypeError):
@@ -18,6 +27,8 @@ class TestCli(TestCase):
 
         # monkeypatch add_argument() from argparse to allow docs kwargs
         from snakeoil import cli
+        # force argparse to be patched
+        reload(cli)
         action = parser.add_argument(
             '-b', '--blah', action='store_true', docs='Blah blah blah')
 
