@@ -62,5 +62,5 @@ For bugs and feature requests please create an issue in the `issue tracker`_.
 .. |coverage| image:: https://coveralls.io/repos/pkgcore/snakeoil/badge.png?branch=master
     :target: https://coveralls.io/r/pkgcore/snakeoil?branch=master
 .. |docs| image:: https://readthedocs.org/projects/snakeoil/badge/?version=latest
-    :target: https://readthedocs.org/projects/snakeoil/?badge=latest
+    :target: http://snakeoil.readthedocs.org/en/latest/
     :alt: Documentation Status
