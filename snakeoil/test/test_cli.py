@@ -16,31 +16,39 @@ except ImportError:
         pass
 
 
-class TestCli(TestCase):
+class TestArgparser(TestCase):
 
-    def test_add_argument(self):
+    def test_add_argument_docs(self):
         # force using an unpatched version of argparse
         reload(argparse)
 
         parser = argparse.ArgumentParser()
         parser.add_argument('--foo', action='store_true')
-        # add_argument() doesn't support docs kwargs
+
+        # vanilla argparse doesn't support docs kwargs
         with self.assertRaises(TypeError):
             parser.add_argument(
                 '-b', '--blah', action='store_true', docs='Blah blah blah')
+        with self.assertRaises(TypeError):
+            foo = parser.add_argument_group('fa', description='fa la la', docs='fa la la la')
+        with self.assertRaises(TypeError):
+            bar = parser.add_mutually_exclusive_group('fee', description='fi', docs='fo fum')
 
-        # monkeypatch add_argument() from argparse to allow docs kwargs
-        # force argparse to be patched
+        # forcibly monkey-patch argparse to allow docs kwargs
         from snakeoil.cli import argparser
         reload(argparser)
-        action = parser.add_argument(
-            '-b', '--blah', action='store_true', docs='Blah blah blah')
 
-        # docs attrs are discarded by default
-        self.assertIsNone(getattr(action, 'docs', None))
+        docs = 'blah blah'
+        for enable_docs, expected_docs in ((False, None), (True, docs)):
+            argparser._generate_docs = enable_docs
+            parser = argparse.ArgumentParser()
+            action = parser.add_argument(
+                '-b', '--blah', action='store_true', docs=docs)
+            arg_group = parser.add_argument_group('fa', description='fa la la', docs=docs)
+            mut_arg_group = parser.add_mutually_exclusive_group()
+            mut_action = mut_arg_group.add_argument(
+                '-f', '--fee', action='store_true', docs=docs)
 
-        # they're only enabled if the _generate_docs flag is set
-        argparser._generate_docs = True
-        action = parser.add_argument(
-            '-c', '--cat', action='store_true', docs='cat cat cat')
-        self.assertEqual(getattr(action, 'docs', None), 'cat cat cat')
+            self.assertEqual(getattr(action, 'docs', None), expected_docs)
+            self.assertEqual(getattr(arg_group, 'docs', None), expected_docs)
+            self.assertEqual(getattr(mut_action, 'docs', None), expected_docs)
