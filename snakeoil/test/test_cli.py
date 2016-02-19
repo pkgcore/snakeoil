@@ -16,7 +16,7 @@ except ImportError:
         pass
 
 
-class TestArgparser(TestCase):
+class TestArghparse(TestCase):
 
     def test_add_argument_docs(self):
         # force using an unpatched version of argparse
@@ -35,12 +35,12 @@ class TestArgparser(TestCase):
             bar = parser.add_mutually_exclusive_group('fee', description='fi', docs='fo fum')
 
         # forcibly monkey-patch argparse to allow docs kwargs
-        from snakeoil.cli import argparser
-        reload(argparser)
+        from snakeoil.cli import arghparse
+        reload(arghparse)
 
         docs = 'blah blah'
         for enable_docs, expected_docs in ((False, None), (True, docs)):
-            argparser._generate_docs = enable_docs
+            arghparse._generate_docs = enable_docs
             parser = argparse.ArgumentParser()
             action = parser.add_argument(
                 '-b', '--blah', action='store_true', docs=docs)
