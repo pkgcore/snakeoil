@@ -15,8 +15,11 @@ except ImportError:
         # py2
         pass
 
+from snakeoil.cli import arghparse
+from snakeoil.test import argparse_helpers
 
-class TestArghparse(TestCase):
+
+class TestArgparseDocs(TestCase):
 
     def test_add_argument_docs(self):
         # force using an unpatched version of argparse
@@ -30,12 +33,11 @@ class TestArghparse(TestCase):
             parser.add_argument(
                 '-b', '--blah', action='store_true', docs='Blah blah blah')
         with self.assertRaises(TypeError):
-            foo = parser.add_argument_group('fa', description='fa la la', docs='fa la la la')
+            parser.add_argument_group('fa', description='fa la la', docs='fa la la la')
         with self.assertRaises(TypeError):
-            bar = parser.add_mutually_exclusive_group('fee', description='fi', docs='fo fum')
+            parser.add_mutually_exclusive_group('fee', description='fi', docs='fo fum')
 
         # forcibly monkey-patch argparse to allow docs kwargs
-        from snakeoil.cli import arghparse
         reload(arghparse)
 
         docs = 'blah blah'
@@ -52,3 +54,47 @@ class TestArghparse(TestCase):
             self.assertEqual(getattr(action, 'docs', None), expected_docs)
             self.assertEqual(getattr(arg_group, 'docs', None), expected_docs)
             self.assertEqual(getattr(mut_action, 'docs', None), expected_docs)
+
+
+class ArgparseOptionsTest(TestCase):
+
+    def _parser(self, **kwargs):
+        return arghparse.ArgumentParser(**kwargs)
+
+    def test_debug(self):
+        namespace = self._parser().parse_args(["--debug"])
+        self.assertTrue(namespace.debug)
+        namespace = self._parser().parse_args([])
+        self.assertFalse(namespace.debug)
+
+        # ensure the option isn't there if disabled.
+        namespace = self._parser(debug=False).parse_args([])
+        self.assertFalse(hasattr(namespace, 'debug'))
+
+    def test_bool_type(self):
+        parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser())
+        parser.add_argument(
+            "--testing", action=arghparse.StoreBool, default=None)
+
+        for raw_val in ("n", "no", "false"):
+            for allowed in (raw_val.upper(), raw_val.lower()):
+                namespace = parser.parse_args(['--testing=' + allowed])
+                self.assertEqual(
+                    namespace.testing, False,
+                    msg="for --testing=%s, got %r, expected False" %
+                        (allowed, namespace.testing))
+
+        for raw_val in ("y", "yes", "true"):
+            for allowed in (raw_val.upper(), raw_val.lower()):
+                namespace = parser.parse_args(['--testing=' + allowed])
+                self.assertEqual(
+                    namespace.testing, True,
+                    msg="for --testing=%s, got %r, expected False" %
+                        (allowed, namespace.testing))
+
+        try:
+            parser.parse_args(["--testing=invalid"])
+        except argparse_helpers.Error:
+            pass
+        else:
+            self.fail("no error message thrown for --testing=invalid")
