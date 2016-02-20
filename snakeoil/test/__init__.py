@@ -349,5 +349,3 @@ def protect_process(functor, name=None):
             setattr(_inner_run, x, getattr(functor, x))
     method_name = getattr(functor, '__name__', None)
     return _inner_run
-
-

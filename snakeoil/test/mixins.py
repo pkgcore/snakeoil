@@ -2,7 +2,6 @@
 # Copyright: 2005 Marien Zwart <marienz@gentoo.org>
 # License: BSD/GPL2
 
-
 import errno
 import inspect
 import os
