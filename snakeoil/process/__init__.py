@@ -81,7 +81,7 @@ def get_physical_proc_count(force=False):
     """
     val = getattr(get_physical_proc_count, 'cached_result', None)
     if val is None or force:
-        if 'linux' in sys.platform:
+        if sys.platform.startswith('linux'):
             val = _get_linux_physical_proc_count()
         else:
             val = get_proc_count()
@@ -96,9 +96,9 @@ def get_proc_count(force=False):
     """
     val = getattr(get_proc_count, 'cached_result', None)
     if val is None or force:
-        if 'linux' in sys.platform:
+        if sys.platform.startswith('linux'):
             val = _get_linux_proc_count()
-        elif 'bsd' in sys.platform or 'darwin' in sys.platform:
+        elif sys.platform.startswith(('bsd', 'darwin')):
             val = _get_bsd_proc_count()
         if not val:
             val = 1
