@@ -411,6 +411,20 @@ def unlink_if_exists(path):
             raise
 
 
+def sizeof_fmt(size, binary=True):
+    if binary:
+        units = ('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')
+        increment = 1024.0
+    else:
+        units = ('B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')
+        increment = 1000.0
+
+    for i, x in enumerate(units):
+        if size < increment or i == len(units):
+            return "%3.1f %s" % (size, x)
+        size /= increment
+
+
 def stat_mtime_long(path, st=None):
     return (os.stat(path) if st is None else st)[stat.ST_MTIME]
 
