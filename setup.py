@@ -20,19 +20,20 @@ extra_kwargs = dict(
 
 extensions = []
 
+
 class config(pkgdist.config):
     if not pkgdist.is_py3k:
         @pkgdist.check_define('HAVE_STAT_TV_NSEC')
         @pkgdist.print_check("Checking for struct stat.st_mtim.tv_nsec")
         def check_HAVE_STAT_TV_NSEC(self):
-            return self.check_struct_member('struct stat', 'st_mtim.tv_nsec',
-                    ('sys/types.h', 'sys/stat.h'))
+            return self.check_struct_member(
+                'struct stat', 'st_mtim.tv_nsec', ('sys/types.h', 'sys/stat.h'))
 
         @pkgdist.check_define('HAVE_DIRENT_D_TYPE')
         @pkgdist.print_check("Checking for struct dirent.d_type")
         def check_HAVE_DIRENT_D_TYPE(self):
-            return self.check_struct_member('struct dirent', 'd_type',
-                    ('dirent.h',))
+            return self.check_struct_member(
+                'struct dirent', 'd_type', ('dirent.h',))
 
         @pkgdist.check_define('TIME_T_LONGER_THAN_LONG')
         @pkgdist.print_check("Checking if sizeof(time_t) > sizeof(long)", 'yes', 'no')
@@ -40,8 +41,8 @@ class config(pkgdist.config):
             # Ye old trick here: the conditional is const, so we can use it
             # as array size. If it evaluates to false, we return -1 which is
             # invalid and causes the compilation to fail.
-            return self.try_compile('int x[(sizeof(time_t) > sizeof(long)) ? 1 : -1];',
-                    ('sys/types.h',))
+            return self.try_compile(
+                'int x[(sizeof(time_t) > sizeof(long)) ? 1 : -1];', ('sys/types.h',))
 
 if not pkgdist.is_py3k:
     extensions.extend([

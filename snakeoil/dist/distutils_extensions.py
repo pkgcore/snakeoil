@@ -837,12 +837,11 @@ class config(dst_config.config):
             dump(cache_db, f)
 
     # == methods for custom checks ==
-    def check_struct_member(self, typename, member, headers=None,
-            include_dirs=None, lang="c"):
-        """Check whether type typename (which needs to be struct
-        or union) has the named member."""
-        return self.try_compile('int main() { %s x; (void) x.%s; return 0; }'
-                % (typename, member), headers, include_dirs, lang)
+    def check_struct_member(self, typename, member, headers=None, include_dirs=None, lang="c"):
+        """Check whether typename (must be struct or union) has the named member."""
+        return self.try_compile(
+            'int main() { %s x; (void) x.%s; return 0; }'
+            % (typename, member), headers, include_dirs, lang)
 
 
 # yes these are in snakeoil.compatibility; we can't rely on that module however
