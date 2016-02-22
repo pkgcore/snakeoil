@@ -102,7 +102,7 @@ def data_mapping(host_prefix, path, skip=None):
 
 
 class OptionalExtension(Extension):
-    """python extension that is optional to build.
+    """Python extension that is optional to build.
 
     If it's not required to have the exception built, just preferable,
     use this class instead of :py:class:`Extension` since the machinery
@@ -405,7 +405,9 @@ class build_ext(dst_build_ext.build_ext):
 
         # add header install dir to the search path
         # (fixes virtualenv builds for consumer extensions)
-        self.set_undefined_options('install', ('install_headers', 'default_header_install_dir'))
+        self.set_undefined_options(
+            'install',
+            ('install_headers', 'default_header_install_dir'))
         if self.default_header_install_dir:
             self.default_header_install_dir = os.path.dirname(self.default_header_install_dir)
             for e in self.extensions:
@@ -728,7 +730,7 @@ class PyTest(Command):
 
 
 def print_check(message, if_yes='found', if_no='not found'):
-    """Decorator to print pre/post-check messages"""
+    """Decorator to print pre/post-check messages."""
     def sub_decorator(f):
         def sub_func(*args, **kwargs):
             sys.stderr.write('-- %s\n' % (message,))
@@ -742,7 +744,7 @@ def print_check(message, if_yes='found', if_no='not found'):
 
 
 def cache_check(cache_key):
-    """Method decorate to cache check result"""
+    """Method decorate to cache check result."""
     def sub_decorator(f):
         def sub_func(self, *args, **kwargs):
             if cache_key in self.cache:
@@ -756,7 +758,7 @@ def cache_check(cache_key):
 
 
 def check_define(define_name):
-    """Method decorator to store check result"""
+    """Method decorator to store check result."""
     def sub_decorator(f):
         @cache_check(define_name)
         def sub_func(self, *args, **kwargs):
@@ -769,7 +771,7 @@ def check_define(define_name):
 
 
 class config(dst_config.config):
-    """Perform platform checks for extension build"""
+    """Perform platform checks for extension build."""
 
     user_options = dst_config.config.user_options + [
         ("cache-path", "C", "path to read/write configuration cache"),
@@ -782,8 +784,9 @@ class config(dst_config.config):
 
     def finalize_options(self):
         if self.cache_path is None:
-            self.set_undefined_options('build',
-                                       ('build_base', 'build_base'))
+            self.set_undefined_options(
+                'build',
+                ('build_base', 'build_base'))
             self.cache_path = os.path.join(self.build_base, 'config.cache')
         dst_config.config.finalize_options(self)
 
