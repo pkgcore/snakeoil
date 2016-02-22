@@ -710,7 +710,11 @@ class PyTest(Command):
         self.test_args.extend(shlex.split(self.pytest_args))
 
     def run(self):
-        import pytest
+        try:
+            import pytest
+        except ImportError:
+            sys.stderr.write('error: pytest is not installed\n')
+            sys.exit(1)
 
         # build extensions and byte-compile python
         build_ext = self.reinitialize_command('build_ext')
