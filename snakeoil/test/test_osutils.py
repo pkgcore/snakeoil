@@ -19,7 +19,7 @@ from snakeoil import osutils
 from snakeoil.fileutils import touch
 from snakeoil.test import TestCase, SkipTest, mk_cpy_loadable_testcase
 from snakeoil.osutils import native_readdir
-from snakeoil.osutils.mount import mount, umount, MS_BIND
+from snakeoil.osutils.mount import mount, umount, MNT_FORCE, MS_BIND
 from snakeoil.test.mixins import TempDirMixin
 
 pjoin = os.path.join
@@ -353,15 +353,16 @@ class FsLockTest(TempDirMixin):
 
 class TestAccess(TempDirMixin):
 
-    if osutils.access is os.access:
-        skip = "os.access is usable, no need to test"
-    elif os.getuid() != 0:
+    if os.getuid() != 0:
         skip = "these tests must be ran as root"
 
-    func = staticmethod(osutils.access)
+    func = staticmethod(osutils.fallback_access)
 
     def test_fallback(self):
         fp = pjoin(self.dir, "file")
+        # create the file
+        with open(fp, 'w') as f:
+            pass
         os.chmod(fp, 000)
         self.assertFalse(self.func(fp, os.X_OK))
         self.assertTrue(self.func(fp, os.W_OK))
@@ -395,6 +396,7 @@ class Mount(unittest.TestCase):
         os.rmdir(self.source)
         os.rmdir(self.target)
 
+    @unittest.skipIf(os.uname()[0].lower() != 'linux', 'supported on Linux only')
     def test_args_bytes(self):
         # The initial source, target, and fstype arguments to mount(2) must be
         # byte strings; if they are unicode strings the arguments get mangled
@@ -409,12 +411,14 @@ class Mount(unittest.TestCase):
                 for arg in mount_call[1][0:3]:
                     self.assertIsInstance(arg, bytes)
 
+    @unittest.skipIf(os.uname()[0].lower() != 'linux', 'supported on Linux only')
     def test_missing_dirs(self):
         with self.assertRaises(OSError) as cm:
             mount('source', 'target', None, MS_BIND)
         self.assertEqual(cm.exception.errno, errno.ENOENT)
 
     @unittest.skipIf(os.getuid() == 0, 'this test must be run as non-root')
+    @unittest.skipIf(os.uname()[0].lower() != 'linux', 'supported on Linux only')
     def test_no_perms(self):
         with self.assertRaises(OSError) as cm:
             mount(self.source, self.target, None, MS_BIND)
@@ -424,6 +428,7 @@ class Mount(unittest.TestCase):
         self.assertTrue(cm.exception.errno in (errno.EPERM, errno.EINVAL))
 
     @unittest.skipIf(os.getuid() != 0, 'this test must be run as root')
+    @unittest.skipIf(os.uname()[0].lower() != 'linux', 'supported on Linux only')
     def test_root(self):
         # test umount
         mount(self.source, self.target, None, MS_BIND)

@@ -21,7 +21,9 @@ class TestTouch(TempDirMixin):
         fp = pjoin(self.dir, 'file')
         fileutils.touch(fp)
         self.assertEqual(os.path.exists(fp), True)
-        self.assertEqual(os.stat(fp).st_mode & 0o4777, 0o644)
+        umask = os.umask(0o777)
+        os.umask(umask)
+        self.assertEqual(os.stat(fp).st_mode & 0o4777, 0o666 & ~umask)
 
     def test_set_times(self):
         fp = pjoin(self.dir, 'file')
