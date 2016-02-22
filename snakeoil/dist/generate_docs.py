@@ -64,7 +64,8 @@ def generate_html(project, project_dir):
     print("Generating {} API docs in '{}'".format(project, apidir))
     if subprocess.call(['sphinx-apidoc', '-Tef', '-o', apidir,
                         os.path.join(project_dir, project),
-                        os.path.join(project_dir, project, 'test')]):
+                        os.path.join(project_dir, project, 'test'),
+                        os.path.join(project_dir, project, 'scripts')]):
         raise RuntimeError('API doc generation failed')
 
 
