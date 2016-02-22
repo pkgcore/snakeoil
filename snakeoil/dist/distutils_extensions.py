@@ -15,6 +15,7 @@ import io
 import math
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -706,7 +707,7 @@ class PyTest(Command):
                 sys.exit(1)
 
         # add custom pytest args
-        self.test_args.extend(self.pytest_args.split())
+        self.test_args.extend(shlex.split(self.pytest_args))
 
     def run(self):
         import pytest
