@@ -38,7 +38,7 @@ class RawTextDocsFormatter(argparse.RawTextHelpFormatter):
                 # off first description summary line
                 docs = '\n'.join(docs)
             docs = '\n\t'.join(dedent(docs).strip().split('\n'))
-            l.append('\n\t' + docs + '\n')
+            l.append('\t' + docs + '\n')
 
         # Put the arguments first before their descriptions, has to be done
         # after processing docs due to conditionally overriding help.
