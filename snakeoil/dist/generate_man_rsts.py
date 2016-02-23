@@ -26,9 +26,8 @@ class RawTextDocsFormatter(argparse.RawTextHelpFormatter):
     """Add optional rST content from the docs keyword arg to help output."""
 
     def _format_action(self, action):
-        l = []
-        docs = getattr(action, 'docs', None)
-        if docs is not None:
+        docs = getattr(action, 'docs', '')
+        if docs:
             # docs overrides help
             action.help = None
 
@@ -37,14 +36,12 @@ class RawTextDocsFormatter(argparse.RawTextHelpFormatter):
                 # list args are often used if originator wanted to strip
                 # off first description summary line
                 docs = '\n'.join(docs)
-            docs = '\n\t'.join(dedent(docs).strip().split('\n'))
-            l.append('\t' + docs + '\n')
+            docs = '\t' + '\n\t'.join(dedent(docs).strip().split('\n')) + '\n'
 
         # Put the arguments first before their descriptions, has to be done
         # after processing docs due to conditionally overriding help.
-        l.insert(0, super(RawTextDocsFormatter, self)._format_action(action))
-
-        return ''.join(l)
+        action_args = super(RawTextDocsFormatter, self)._format_action(action)
+        return action_args + docs
 
 
 class ManConverter(object):
