@@ -40,20 +40,21 @@ class TestArgparseDocs(TestCase):
         # forcibly monkey-patch argparse to allow docs kwargs
         reload(arghparse)
 
+        default = 'baz baz'
         docs = 'blah blah'
-        for enable_docs, expected_docs in ((False, None), (True, docs)):
+        for enable_docs, expected_txt in ((False, default), (True, docs)):
             arghparse._generate_docs = enable_docs
             parser = argparse.ArgumentParser()
             action = parser.add_argument(
-                '-b', '--blah', action='store_true', docs=docs)
-            arg_group = parser.add_argument_group('fa', description='fa la la', docs=docs)
+                '-b', '--blah', action='store_true', help=default, docs=docs)
+            arg_group = parser.add_argument_group('fa', description=default, docs=docs)
             mut_arg_group = parser.add_mutually_exclusive_group()
             mut_action = mut_arg_group.add_argument(
-                '-f', '--fee', action='store_true', docs=docs)
+                '-f', '--fee', action='store_true', help=default, docs=docs)
 
-            self.assertEqual(getattr(action, 'docs', None), expected_docs)
-            self.assertEqual(getattr(arg_group, 'docs', None), expected_docs)
-            self.assertEqual(getattr(mut_action, 'docs', None), expected_docs)
+            self.assertEqual(getattr(action, 'help', None), expected_txt)
+            self.assertEqual(getattr(arg_group, 'description', None), expected_txt)
+            self.assertEqual(getattr(mut_action, 'help', None), expected_txt)
 
 
 class ArgparseOptionsTest(TestCase):

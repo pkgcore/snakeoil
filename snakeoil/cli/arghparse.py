@@ -15,6 +15,7 @@ from snakeoil.demandload import demandload
 demandload(
     'inspect',
     'logging',
+    'textwrap:dedent',
     'snakeoil:osutils',
     'snakeoil.version:get_version',
     'snakeoil.sequences:split_negations',
@@ -38,15 +39,26 @@ def _add_argument_docs(orig_func, self, *args, **kwargs):
 
     To use, import this module where argparse is used to create parsers so the
     'docs' keyword gets discarded during regular use. For document generation,
-    enable the global _generate_docs variable in order to add 'docs' attributes
-    to action objects that specify them. The strings from those attributes can
-    then be extracted and added to the correct locations in the generated docs,
-    see snakeoil.dist.generate_man_rsts for an example.
+    enable the global _generate_docs variable in order to replace the
+    summarized help strings with the extended doc strings.
     """
     docs = kwargs.pop('docs', None)
     obj = orig_func(self, *args, **kwargs)
     if _generate_docs and docs is not None:
-        obj.docs = docs
+        if isinstance(docs, (list, tuple)):
+            # list args are often used if originator wanted to strip
+            # off first description summary line
+            docs = '\n'.join(docs)
+        docs = '\n'.join(dedent(docs).strip().split('\n'))
+
+        if isinstance(obj, argparse.Action):
+            # docs override help for regular arguments
+            obj.help = docs
+        elif isinstance(obj, argparse._ActionsContainer):
+            # docs override description for argument groups
+            obj.description = docs
+        else:
+            obj.docs = docs
     return obj
 
 

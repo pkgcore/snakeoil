@@ -22,21 +22,6 @@ def _rst_header(char, text, leading=False):
     return [text, s, '']
 
 
-class RawTextDocsFormatter(argparse.RawTextHelpFormatter):
-    """Add optional rST content from the docs keyword arg to help output."""
-
-    def _format_action(self, action):
-        docs = getattr(action, 'docs', None)
-        if docs is not None:
-            if isinstance(docs, (list, tuple)):
-                # list args are often used if originator wanted to strip
-                # off first description summary line
-                docs = '\n'.join(docs)
-            # docs override help
-            action.help = '\n' + '\n'.join(dedent(docs).strip().split('\n'))
-        return super(RawTextDocsFormatter, self)._format_action(action)
-
-
 class ManConverter(object):
     """Convert argparse help docs into rST man pages."""
 
@@ -116,7 +101,7 @@ class ManConverter(object):
 
     @staticmethod
     def _get_formatter(parser, name):
-        return RawTextDocsFormatter(name, width=1000, max_help_position=1000)
+        return argparse.RawTextHelpFormatter(name, width=1000, max_help_position=1000)
 
     def process_positional(self, parser, name, action_group):
         l = []
@@ -125,10 +110,8 @@ class ManConverter(object):
         data = h.format_help().strip()
         if data:
             l.extend(_rst_header("=", action_group.title))
-            # Use extended docs if they exist, otherwise fallback to the description.
-            docs = getattr(action_group, 'docs', getattr(action_group, 'description', None))
-            if docs:
-                l.extend(dedent(docs).split("\n"))
+            if action_group.description:
+                l.extend(dedent(action_group.description).split("\n"))
             l.extend(self.positional_re(x) for x in data.split("\n"))
             l.append('')
         return l
@@ -141,10 +124,8 @@ class ManConverter(object):
         if data:
             assert len(action_group._group_actions) == 1
             l.extend(_rst_header("=", action_group.title))
-            # Use extended docs if they exist, otherwise fallback to the description.
-            docs = getattr(action_group, 'docs', getattr(action_group, 'description', None))
-            if docs:
-                l.extend(dedent(docs).split("\n"))
+            if action_group.description:
+                l.extend(dedent(action_group.description).split("\n"))
 
             for subcommand, parser in action_group._group_actions[0].choices.iteritems():
                 subdir_path = self.name.split()[1:]
@@ -183,10 +164,8 @@ class ManConverter(object):
             if not data:
                 continue
             l.extend(_rst_header("=", action_group.title))
-            # Use extended docs if they exist, otherwise fallback to the description.
-            docs = getattr(action_group, 'docs', getattr(action_group, 'description', None))
-            if docs:
-                l.extend(dedent(docs).lstrip('\n').rstrip('\n').splitlines())
+            if action_group.description:
+                l.extend(dedent(action_group.description).split("\n"))
                 l.append('')
             options = data.split('\n')
             for i, opt in enumerate(options):
