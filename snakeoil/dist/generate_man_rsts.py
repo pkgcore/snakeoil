@@ -26,22 +26,15 @@ class RawTextDocsFormatter(argparse.RawTextHelpFormatter):
     """Add optional rST content from the docs keyword arg to help output."""
 
     def _format_action(self, action):
-        docs = getattr(action, 'docs', '')
-        if docs:
-            # docs overrides help
-            action.help = None
-
-            # force indentation uniformity
+        docs = getattr(action, 'docs', None)
+        if docs is not None:
             if isinstance(docs, (list, tuple)):
                 # list args are often used if originator wanted to strip
                 # off first description summary line
                 docs = '\n'.join(docs)
-            docs = '\t' + '\n\t'.join(dedent(docs).strip().split('\n')) + '\n'
-
-        # Put the arguments first before their descriptions, has to be done
-        # after processing docs due to conditionally overriding help.
-        action_args = super(RawTextDocsFormatter, self)._format_action(action)
-        return action_args + docs
+            # docs override help
+            action.help = '\n' + '\n'.join(dedent(docs).strip().split('\n'))
+        return super(RawTextDocsFormatter, self)._format_action(action)
 
 
 class ManConverter(object):
