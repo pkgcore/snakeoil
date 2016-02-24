@@ -297,7 +297,7 @@ class _SubParser(argparse._SubParsersAction):
 class ArgumentParser(argparse.ArgumentParser):
 
     def __init__(self, suppress=False, color=True, debug=True, quiet=True, verbose=True, version=True,
-                 description=None, docs=None, **kwds):
+                 add_help=True, description=None, docs=None, **kwds):
         self.suppress = suppress
 
         if description is not None:
@@ -307,16 +307,23 @@ class ArgumentParser(argparse.ArgumentParser):
                 docs = description_lines[1]
         self.docs = docs
 
-        super(ArgumentParser, self).__init__(description=description, **kwds)
+        super(ArgumentParser, self).__init__(
+            description=description, add_help=False, **kwds)
 
-        # register our own subparser
+        # register our custom actions
         self.register('action', 'parsers', _SubParser)
-
-        # register custom actions
         self.register('action', 'extend_comma', ExtendCommaDelimited)
         self.register('action', 'extend_comma_toggle', ExtendCommaDelimitedToggle)
 
         if not self.suppress:
+            if add_help:
+                self.add_argument(
+                    '-h', '--help', action='help', default=argparse.SUPPRESS,
+                    help='show this help message and exit',
+                    docs="""
+                        Show this help message and exit. To get more
+                        information see the related man page.
+                    """)
             if version:
                 # Get the calling script's module and project names. This
                 # assumes a script module namespace layout where scripts are
