@@ -63,7 +63,10 @@ class PythonNamespaceWalker(object):
     # TODO: Update this for pypy's naming, and jythons.
     abi_target = 'cpython-%i%i' % tuple(sys.version_info[:2])
 
-    module_blacklist = set(['snakeoil.cli', 'snakeoil.dist.generate_man_rsts'])
+    module_blacklist = set([
+        'snakeoil.cli.arghparse', 'snakeoil.dist.generate_man_rsts',
+        'snakeoil.dist.distutils_extensions',
+    ])
     if not compatibility.is_py3k:
         module_blacklist.update(['snakeoil.dist.caching_2to3'])
     module_blacklist = frozenset(module_blacklist)
