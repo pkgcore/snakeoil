@@ -1,3 +1,4 @@
+# Copyright: 2015-2016 Tim Harder <radhermit@gmail.com>
 # Copyright: 2008-2011 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 

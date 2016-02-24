@@ -65,7 +65,6 @@ class PythonNamespaceWalker(object):
 
     module_blacklist = set([
         'snakeoil.cli.arghparse', 'snakeoil.dist.generate_man_rsts',
-        'snakeoil.dist.distutils_extensions',
     ])
     if not compatibility.is_py3k:
         module_blacklist.update(['snakeoil.dist.caching_2to3'])

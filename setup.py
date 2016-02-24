@@ -5,7 +5,7 @@ import sys
 
 from setuptools import setup, find_packages
 
-from snakeoil.dist import distutils_extensions as pkgdist
+import pkgdist
 OptionalExtension = pkgdist.OptionalExtension
 
 common_includes = [
