@@ -29,7 +29,10 @@ def get_version(project, repo_file, api_version=None):
     if _ver is None:
         version_info = None
         if api_version is None:
-            api_version = getattr(import_module(project), '__version__')
+            try:
+                api_version = getattr(import_module(project), '__version__')
+            except ImportError:
+                raise ValueError('no %s module in the syspath' % (project,))
         try:
             version_info = getattr(import_module(
                 '%s._verinfo' % (project,)), 'version_info')
