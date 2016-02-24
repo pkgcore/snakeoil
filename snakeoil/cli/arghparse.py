@@ -332,7 +332,14 @@ class ArgumentParser(argparse.ArgumentParser):
                 project = script.split(os.path.sep)[-3]
                 self.add_argument(
                     '--version', action='version', version=get_version(project, script),
-                    docs="Show this program's version number and exit.")
+                    help="show this program's version info and exit",
+                    docs="""
+                        Show this program's version information and exit.
+
+                        When running from within a git repo or a version
+                        installed from git the latest commit hash and date will
+                        be shown.
+                    """)
             if debug:
                 self.add_argument(
                     '--debug', action=EnableDebug, help='enable debugging checks',
