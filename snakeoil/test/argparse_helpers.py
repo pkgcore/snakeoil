@@ -12,26 +12,26 @@ from snakeoil.formatters import PlainTextFormatter
 class Exit(Exception):
     """Used to catch parser.exit."""
 
-    def __init__(self, status, msg):
-        Exception.__init__(self, msg)
+    def __init__(self, status, message):
+        Exception.__init__(self, message)
         self.status = status
-        self.msg = msg
+        self.message = message
 
 
 class Error(Exception):
     """Used to catch parser.error."""
 
-    def __init__(self, msg):
-        Exception.__init__(self, msg)
-        self.msg = msg
+    def __init__(self, message):
+        Exception.__init__(self, message)
+        self.message = message
 
 
-def noexit(status=0, msg=None):
-    raise Exit(status, msg)
+def noexit(status=0, message=None):
+    raise Exit(status, message)
 
 
-def noerror(msg=None):
-    raise Error(msg)
+def noerror(message=None):
+    raise Error(message)
 
 
 def mangle_parser(parser):
@@ -146,7 +146,7 @@ class ArgParseMixin(object):
         try:
             self.parse(*args, **kwargs)
         except Error as e:
-            self.assertEqual(message, e.msg)
+            self.assertEqual(message, e.message)
         else:
             self.fail('no error triggered')
 
@@ -155,7 +155,7 @@ class ArgParseMixin(object):
         try:
             self.parse(*args, **kwargs)
         except Exit as e:
-            self.assertEqual(message, e.msg)
+            self.assertEqual(message, e.message.strip())
             self.assertEqual(status, e.status)
         else:
             self.fail('no exit triggered')
