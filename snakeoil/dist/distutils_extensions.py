@@ -13,6 +13,7 @@ import errno
 import inspect
 import io
 import math
+import operator
 import os
 import re
 import shlex
@@ -461,6 +462,37 @@ class build_scripts(dst_build_scripts.build_scripts):
                     scripts.main(basename(__file__))
                 """ % (sys.executable, PROJECT)))
         self.copy_scripts()
+
+
+class build(dst_build.build):
+
+    user_options = dst_build.build.user_options[:]
+    user_options.append(('enable-man-pages', None, 'build man pages'))
+    user_options.append(('enable-html-docs', None, 'build html docs'))
+
+    boolean_options = dst_build.build.boolean_options[:]
+    boolean_options.extend(['enable-man-pages', 'enable-html-docs'])
+
+    sub_commands = dst_build.build.sub_commands[:]
+    sub_commands.append(('build_ext', None))
+    sub_commands.append(('build_py', None))
+    sub_commands.append(('build_scripts', None))
+    sub_commands.append(('build_docs', operator.attrgetter('enable_html_docs')))
+    sub_commands.append(('build_man', operator.attrgetter('enable_man_pages')))
+
+    def initialize_options(self):
+        dst_build.build.initialize_options(self)
+        self.enable_man_pages = False
+        self.enable_html_docs = False
+
+    def finalize_options(self):
+        dst_build.build.finalize_options(self)
+        if self.enable_man_pages is None:
+            path = os.path.dirname(os.path.abspath(__file__))
+            self.enable_man_pages = not os.path.exists(os.path.join(path, 'man'))
+
+        if self.enable_html_docs is None:
+            self.enable_html_docs = False
 
 
 class install_docs(Command):
