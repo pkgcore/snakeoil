@@ -593,8 +593,7 @@ def patch(cls, method, external_decorator=None):
     >>> @patch(math, 'ceil')
     >>> def ceil(orig_ceil, n):
     ...   return math.floor(n)
-    >>> n = 0.1
-    >>> assert math.ceil(n) == 0
+    >>> assert math.ceil(0.1) == 0
     """
     def decorator(func):
         # use the original function wrapper
