@@ -45,15 +45,22 @@ def find_project(topdir=TOPDIR):
     module.
     """
     topdir_depth = len(topdir.split('/'))
+    modules = []
 
     # look for a top-level module
     for root, dirs, files in os.walk(topdir):
+        # only descend at most one level
         if len(root.split('/')) > topdir_depth + 1:
             continue
         if '__init__.py' in files:
-            return os.path.basename(root)
+            modules.append(os.path.basename(root))
 
-    raise ValueError('No project module found')
+    if not modules:
+        raise ValueError('No project module found')
+    elif len(modules) > 1:
+        raise ValueError('Multiple project modules found: %s' % (', '.join(modules)))
+
+    return modules[0]
 
 
 # determine the project we're being imported into
