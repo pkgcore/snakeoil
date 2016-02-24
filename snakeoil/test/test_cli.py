@@ -45,6 +45,8 @@ class TestArgparseDocs(TestCase):
         for enable_docs, expected_txt in ((False, default), (True, docs)):
             arghparse._generate_docs = enable_docs
             parser = argparse.ArgumentParser()
+            subparsers = parser.add_subparsers(description=default, docs=docs)
+            subparser = subparsers.add_parser('foo', description=default, docs=docs)
             action = parser.add_argument(
                 '-b', '--blah', action='store_true', help=default, docs=docs)
             arg_group = parser.add_argument_group('fa', description=default, docs=docs)
@@ -52,6 +54,8 @@ class TestArgparseDocs(TestCase):
             mut_action = mut_arg_group.add_argument(
                 '-f', '--fee', action='store_true', help=default, docs=docs)
 
+            self.assertEqual(getattr(parser._subparsers, 'description', None), expected_txt)
+            self.assertEqual(getattr(subparser, 'description', None), expected_txt)
             self.assertEqual(getattr(action, 'help', None), expected_txt)
             self.assertEqual(getattr(arg_group, 'description', None), expected_txt)
             self.assertEqual(getattr(mut_action, 'help', None), expected_txt)

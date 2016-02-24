@@ -27,6 +27,8 @@ demandload(
 _generate_docs = False
 
 
+@patch(argparse.ArgumentParser, 'add_subparsers')
+@patch(argparse._SubParsersAction, 'add_parser')
 @patch(argparse._ActionsContainer, 'add_mutually_exclusive_group')
 @patch(argparse._ActionsContainer, 'add_argument_group')
 @patch(argparse._ActionsContainer, 'add_argument')
@@ -51,7 +53,10 @@ def _add_argument_docs(orig_func, self, *args, **kwargs):
             docs = '\n'.join(docs)
         docs = '\n'.join(dedent(docs).strip().split('\n'))
 
-        if isinstance(obj, argparse.Action):
+        if orig_func.__name__ == 'add_subparsers':
+            # docs override description for general subparsers argument groups
+            self._subparsers.description = docs
+        elif isinstance(obj, argparse.Action):
             # docs override help for regular arguments
             obj.help = docs
         elif isinstance(obj, argparse._ActionsContainer):
