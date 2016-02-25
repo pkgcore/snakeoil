@@ -22,6 +22,20 @@ def _rst_header(char, text, leading=False):
     return [text, s, '']
 
 
+class RawTextFormatter(argparse.RawTextHelpFormatter):
+    """Workaround man page generation issues with default rST output formatting."""
+
+    def _format_action(self, action):
+        if action.help is not None:
+            # Force help docs to be on a separate line from the options. Sphinx man page
+            # generation sometimes messes up formatting without this, e.g. for options with
+            # explicit choices the first line of the help docs is often on the same line as
+            # the argument and choices instead of matching the indentation level of other
+            # arguments.
+            action.help = '\n' + action.help.strip()
+        return super(RawTextFormatter, self)._format_action(action)
+
+
 class ManConverter(object):
     """Convert argparse help docs into rST man pages."""
 
@@ -101,7 +115,7 @@ class ManConverter(object):
 
     @staticmethod
     def _get_formatter(parser, name):
-        return argparse.RawTextHelpFormatter(name, width=1000, max_help_position=1000)
+        return RawTextFormatter(name, width=1000, max_help_position=1000)
 
     def process_positional(self, parser, name, action_group):
         l = []
