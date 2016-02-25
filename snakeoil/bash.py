@@ -1,9 +1,7 @@
 # Copyright: 2005-2011 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
-"""
-Functionality for reading bash like files
-
+"""Functionality for reading bash like files
 
 Please note that while this functionality can do variable interpolation,
 it strictly treats the source as non-executable code.  It cannot parse
@@ -13,15 +11,17 @@ Its primary usage is for reading things like gentoo make.conf's, or
 libtool .la files that are bash compatible, but non executable.
 """
 
-__all__ = ("iter_read_bash", "read_bash", "read_dict", "read_bash_dict",
-           "bash_parser", "BashParseError")
-
 import re
 from shlex import shlex
 
 from snakeoil.mappings import ProtectedDict
 from snakeoil.compatibility import raise_from
 from snakeoil.fileutils import readlines_utf8
+
+__all__ = (
+    "iter_read_bash", "read_bash", "read_dict", "read_bash_dict",
+    "bash_parser", "BashParseError")
+
 
 def iter_read_bash(bash_source, allow_inline_comments=True):
     """
@@ -50,21 +50,18 @@ def iter_read_bash(bash_source, allow_inline_comments=True):
 
 
 def read_bash(bash_source, allow_inline_comments=True):
+    """Read a file honoring bash commenting rules.
+
+    See :py:func:`iter_read_bash` for the details of parameters.
+
+    Returns a list of lines w/ comments stripped out.
     """
-    read a file honoring bash commenting rules
-
-    see :py:func:`iter_read_bash` for the details of parameters.
-
-    returns a list of lines w/ comments stripped out.
-
-    """
-    return list(iter_read_bash(bash_source,
-                               allow_inline_comments=allow_inline_comments))
+    return list(iter_read_bash(
+        bash_source, allow_inline_comments=allow_inline_comments))
 
 
 def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
-    """
-    read bash source, yielding a dict of vars
+    """Read bash source, yielding a dict of vars.
 
     :param bash_source: either a file to read from
         or a string holding the filename to open
@@ -139,8 +136,7 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
 
 def read_dict(bash_source, splitter="=", source_isiter=False,
               allow_inline_comments=True, strip=False, filename=None):
-    """
-    read key value pairs from a file, ignoring bash-style comments.
+    """Read key value pairs from a file, ignoring bash-style comments.
 
     :param splitter: the string to split on.  Can be None to
         default to str.split's default
@@ -153,8 +149,8 @@ def read_dict(bash_source, splitter="=", source_isiter=False,
     d = {}
     if not source_isiter:
         filename = bash_source
-        i = iter_read_bash(bash_source,
-                           allow_inline_comments=allow_inline_comments)
+        i = iter_read_bash(
+            bash_source, allow_inline_comments=allow_inline_comments)
     else:
         if filename is None:
             # XXX what to do?
@@ -192,17 +188,15 @@ def _nuke_backslash(s):
         return s[1]
 
 class bash_parser(shlex):
-
     """Fixed up shlex version correcting corner cases in quote expansion,
     and adding variable interpolation
 
     While it's a fair bit slower than stdlib shlex, it parses a more complete
-    subset of bash syntax than stdlib shlex
+    subset of bash syntax than stdlib shlex.
     """
 
     def __init__(self, source, sourcing_command=None, env=None, infile=None):
-        """
-        instantiate the parser
+        """instantiate the parser
 
         :param source: file handle to read from
         :param sourcing_command: token to treat as an include command
@@ -289,16 +283,15 @@ class bash_parser(shlex):
 
 
 class BashParseError(Exception):
-
-    """Exception thrown when a handle being parsed isn't valid bash"""
+    """Exception thrown when a handle being parsed isn't valid bash."""
 
     def __init__(self, filename, line, errmsg=None):
         if errmsg is not None:
-            Exception.__init__(self,
-                               "error parsing '%s' on or before line %i: err %s" %
-                               (filename, line, errmsg))
+            Exception.__init__(
+                self, "error parsing '%s' on or before line %i: err %s" %
+                (filename, line, errmsg))
         else:
-            Exception.__init__(self,
-                               "error parsing '%s' on or before line %i" %
-                               (filename, line))
+            Exception.__init__(
+                self, "error parsing '%s' on or before line %i" %
+                (filename, line))
         self.file, self.line, self.errmsg = filename, line, errmsg
