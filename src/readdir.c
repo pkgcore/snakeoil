@@ -87,7 +87,7 @@ snakeoil_readdir_actual_listdir(const char* path, int followsyms,
 			free(buffer);
 			if (ret != 0) {
 				if (followsyms && errno == ENOENT) {
-					/* hit a dangling symlimk; skip. */
+					/* hit a dangling symlink; skip. */
 					errno = 0;
 					continue;
 				}
