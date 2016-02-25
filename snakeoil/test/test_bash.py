@@ -2,18 +2,13 @@
 # Copyright: 2005 Marien Zwart <marienz@gentoo.org>
 # License: BSD/GPL2
 
-
 import os
 from StringIO import StringIO
 
+from snakeoil.bash import (
+    iter_read_bash, read_bash, read_dict, read_bash_dict, BashParseError)
 from snakeoil.test.mixins import mk_named_tempfile
 from snakeoil.test import TestCase
-
-pjoin = os.path.join
-
-from snakeoil.bash import (
-    iter_read_bash, read_bash, read_dict, read_bash_dict,
-    BashParseError)
 
 
 class TestBashCommentStripping(TestCase):
@@ -30,6 +25,65 @@ class TestBashCommentStripping(TestCase):
             list(iter_read_bash(StringIO(
                 'inline # comment '), allow_inline_comments=False)),
             ['inline # comment'])
+
+    def test_iter_read_bash_line_cont(self):
+        self.assertEqual(
+            list(iter_read_bash(StringIO(
+                '\n'
+                '# hi I am a comment\\\n'
+                'I am not \\\n'
+                'a comment \n'
+                ' asdf # inline comment\\\n'),
+                allow_line_cont=True)),
+            ['I am not a comment', 'asdf'])
+        self.assertEqual(
+            list(iter_read_bash(StringIO(
+                '\n'
+                '# hi I am a comment\n'
+                'I am \\\n'
+                'not a \\\n'
+                'comment # inline comment\n'),
+                allow_line_cont=True)),
+            ['I am not a comment'])
+        self.assertEqual(
+            list(iter_read_bash(StringIO(
+                '\n'
+                '# hi I am a comment\n'
+                'I am \\\n'
+                '\\\n'
+                'not a \\\n'
+                'comment\\\n'
+                '\\\n'),
+                allow_line_cont=True)),
+            ['I am not a comment'])
+        self.assertEqual(
+            list(iter_read_bash(StringIO(
+                '\\\n'
+                '# comment\\\n'
+                ' not a comment\n'
+                '\\\n'
+                ' # inner comment\n'
+                'also not\\\n'
+                '#\\\n'
+                'a comment\n'),
+                allow_line_cont=True)),
+            ['not a comment', 'also not#a comment'])
+        # Line continuations have to end with \<newline> without any backslash
+        # before the pattern.
+        self.assertEqual(
+            list(iter_read_bash(StringIO(
+                'I am \\ \n'
+                'not a comment'),
+                allow_line_cont=True)),
+            ['I am \\', 'not a comment'])
+        self.assertEqual(
+            list(iter_read_bash(StringIO(
+                '\\\n'
+                'I am \\\\\n'
+                'not a comment'),
+                allow_line_cont=True)),
+            ['I am \\\\', 'not a comment'])
+
 
     def test_read_bash(self):
         self.assertEqual(

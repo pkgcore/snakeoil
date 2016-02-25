@@ -14,18 +14,22 @@ libtool .la files that are bash compatible, but non executable.
 import re
 from shlex import shlex
 
-from snakeoil.mappings import ProtectedDict
 from snakeoil.compatibility import raise_from
+from snakeoil.demandload import demand_compile_regexp
 from snakeoil.fileutils import readlines_utf8
+from snakeoil.mappings import ProtectedDict
+
+demand_compile_regexp('line_cont_regexp', r'^(.*[^\\]|)\\$')
+demand_compile_regexp('inline_comment_regexp', r'^.*\s#.*$')
 
 __all__ = (
     "iter_read_bash", "read_bash", "read_dict", "read_bash_dict",
     "bash_parser", "BashParseError")
 
 
-def iter_read_bash(bash_source, allow_inline_comments=True):
-    """
-    iterate over a file honoring bash commenting rules.
+def iter_read_bash(bash_source, allow_inline_comments=True,
+                   allow_line_cont=False):
+    """Iterate over a file honoring bash commenting rules and line continuations.
 
     Note that it's considered good behaviour to close filehandles, as
     such, either iterate fully through this, or use read_bash instead.
@@ -37,16 +41,31 @@ def iter_read_bash(bash_source, allow_inline_comments=True):
         or a string holding the filename to open.
     :param allow_inline_comments: whether or not to prune characters
         after a # that isn't at the start of a line.
+    :param allow_line_cont: whether or not to respect line continuations
     :return: yields lines w/ commenting stripped out
     """
     if isinstance(bash_source, basestring):
         bash_source = readlines_utf8(bash_source, True)
-    for s in bash_source:
-        s = s.strip()
-        if s and s[0] != "#":
-            if allow_inline_comments:
-                s = s.split("#", 1)[0].rstrip()
-            yield s
+    s = ''
+    for line in bash_source:
+        if allow_line_cont and s:
+            s += line
+        else:
+            s = line.lstrip()
+
+        if s:
+            if s[0] != '#':
+                if allow_inline_comments:
+                    if (not allow_line_cont or
+                            (allow_line_cont and inline_comment_regexp.match(line))):
+                        s = s.split("#", 1)[0].rstrip()
+                if allow_line_cont and line_cont_regexp.match(line):
+                    s = s.rstrip('\\\n')
+                    continue
+                yield s.rstrip()
+            s = ''
+    if s:
+        yield s
 
 
 def read_bash(bash_source, allow_inline_comments=True):
