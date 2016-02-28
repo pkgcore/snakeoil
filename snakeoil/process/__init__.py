@@ -20,7 +20,7 @@ demandload(
 def is_running(pid):
     """Determine if a process is running or not.
 
-    Note that this returns False if process doesn't exist.
+    Note that this raises ProcessNotFound if process doesn't exist.
 
     :param pid: a process ID
     :return: boolean of whether the process is running or not
@@ -28,6 +28,11 @@ def is_running(pid):
     try:
         # see if the process exists
         os.kill(pid, 0)
+
+        # assume process existence is enough when Linux /proc is not
+        # available
+        if os.uname()[0].lower() != 'linux':
+            return True
 
         # get the process status
         with open("/proc/%s/status" % pid, 'r') as f:
