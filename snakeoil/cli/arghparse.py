@@ -402,13 +402,13 @@ class ArgumentParser(argparse.ArgumentParser):
             final_check(self, args)
         return args
 
-    def error(self, message):
+    def error(self, message, status=2):
         """Print an error message and exit.
 
         Similar to argparse's error() except usage information is not shown by
         default.
         """
-        self.exit(2, '%s: error: %s\n' % (self.prog, message))
+        self.exit(status, '%s: error: %s\n' % (self.prog, message))
 
     def bind_main_func(self, functor):
         self.set_defaults(main_func=functor)
