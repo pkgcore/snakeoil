@@ -7,6 +7,8 @@ import ctypes
 from ctypes.util import find_library
 import os
 
+from snakeoil.osutils import supported_systems
+
 # mount flags synced from sys/mount.h, see the mount(2) man page for details.
 MS_RDONLY = 1
 MS_NOSUID = 2
@@ -41,6 +43,7 @@ MNT_EXPIRE = 4
 UMOUNT_NOFOLLOW = 8
 
 
+@supported_systems('linux')
 def mount(source, target, fstype, flags, data=None):
     """Call mount(2); see the man page for details."""
     libc = ctypes.CDLL(find_library('c'), use_errno=True)
@@ -52,6 +55,7 @@ def mount(source, target, fstype, flags, data=None):
         raise OSError(e, os.strerror(e))
 
 
+@supported_systems('linux')
 def umount(target, flags=None):
     """Call umount or umount2; see the umount(2) man page for details."""
     libc = ctypes.CDLL(find_library('c'), use_errno=True)

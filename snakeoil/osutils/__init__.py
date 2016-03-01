@@ -41,12 +41,14 @@ __all__ = (
     'abspath', 'abssymlink', 'ensure_dirs', 'join', 'pjoin', 'listdir_files',
     'listdir_dirs', 'listdir', 'readdir', 'normpath', 'unlink_if_exists',
     'FsLock', 'GenericFailed', 'LockException', 'NonExistent',
+    'supported_systems',
 )
 
 import errno
 import fcntl
 import os
 import stat
+import sys
 
 # No name '_readdir' in module osutils
 # pylint: disable=E0611
@@ -68,6 +70,27 @@ listdir_files = module.listdir_files
 readdir = module.readdir
 
 del module
+
+
+def supported_systems(systems):
+    """
+    Decorator that limits the decorated function to be used only on specified
+    systems. When run on any other system (determined using sys.platform),
+    the function fails immediately with NonImplementedError.
+
+    :param systems: iterable of supported systems (sys.platform prefixes).
+    """
+    def _decorator(f):
+        def _wrapper(*args, **kwargs):
+            for s in systems:
+                if sys.platform.startswith(s):
+                    return f(*args, **kwargs)
+            else:
+                raise NotImplementedError('%s not supported on %s'
+                                          % (f.__name__, sys.platform))
+        return _wrapper
+    return _decorator
+
 
 def _safe_mkdir(path, mode):
     try:
