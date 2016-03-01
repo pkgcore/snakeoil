@@ -81,9 +81,8 @@ def supported_systems(*systems):
     """
     def _decorator(f):
         def _wrapper(*args, **kwargs):
-            for s in systems:
-                if sys.platform.startswith(s):
-                    return f(*args, **kwargs)
+            if sys.platform.startswith(systems):
+                return f(*args, **kwargs)
             else:
                 raise NotImplementedError('%s not supported on %s'
                                           % (f.__name__, sys.platform))
