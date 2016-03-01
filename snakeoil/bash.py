@@ -68,15 +68,14 @@ def iter_read_bash(bash_source, allow_inline_comments=True,
         yield s
 
 
-def read_bash(bash_source, allow_inline_comments=True):
+def read_bash(*args, **kwargs):
     """Read a file honoring bash commenting rules.
 
-    See :py:func:`iter_read_bash` for the details of parameters.
+    See :py:func:`iter_read_bash` for parameter details.
 
     Returns a list of lines w/ comments stripped out.
     """
-    return list(iter_read_bash(
-        bash_source, allow_inline_comments=allow_inline_comments))
+    return list(iter_read_bash(*args, **kwargs))
 
 
 def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
