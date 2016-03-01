@@ -19,7 +19,7 @@ except ImportError:
 from snakeoil import osutils
 from snakeoil.fileutils import touch
 from snakeoil.test import TestCase, SkipTest, mk_cpy_loadable_testcase
-from snakeoil.osutils import native_readdir
+from snakeoil.osutils import native_readdir, supported_systems
 from snakeoil.osutils.mount import mount, umount, MNT_FORCE, MS_BIND
 from snakeoil.test.mixins import TempDirMixin
 
@@ -425,6 +425,49 @@ class Test_unlink_if_exists(TempDirMixin):
         self.assertFalse(os.path.exists(path))
         # and once more for good measure...
         f(path)
+
+
+class SupportedSystems(unittest.TestCase):
+
+    def setUp(self):
+        self.orig_sys_platform = sys.platform
+
+    def tearDown(self):
+        sys.platform = self.orig_sys_platform
+
+    def test_supported_system(self):
+        @supported_systems('supported')
+        def func():
+            return True
+
+        sys.platform = 'supported'
+        self.assertTrue(func())
+
+    def test_unsupported_system(self):
+        @supported_systems('unsupported')
+        def func():
+            return True
+
+        with self.assertRaises(NotImplementedError):
+            func()
+
+        # make sure we're iterating through the system params correctly
+        sys.platform = 'u'
+        with self.assertRaises(NotImplementedError):
+            func()
+
+    def test_multiple_systems(self):
+        @supported_systems('darwin', 'linux')
+        def func():
+            return True
+
+        sys.platform = 'nonexistent'
+        with self.assertRaises(NotImplementedError):
+            func()
+        sys.platform = 'linux2'
+        self.assertTrue(func())
+        sys.platform = 'darwin'
+        self.assertTrue(func())
 
 
 class Mount(unittest.TestCase):
