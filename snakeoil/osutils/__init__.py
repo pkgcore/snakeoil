@@ -78,6 +78,26 @@ def supported_systems(*systems):
     Supported platforms are passed as string arguments. When run on any other
     system (determined using sys.platform), the function fails immediately with
     NotImplementedError.
+
+    Example usage:
+
+    >>> from snakeoil.osutils import supported_systems
+    >>> @supported_systems('linux', 'darwin')
+    >>> def func(param):
+    ...     return True
+    >>>
+    >>> if sys.platform.startswith(('linux', 'darwin')):
+    >>>     assert func() == True
+
+    NotImplementedError is raised on platforms that aren't supported.
+    >>> @supported_systems('nonexistent')
+    >>> def func2(param):
+    ...     return False
+    >>>
+    >>> func2()
+    Traceback (most recent call last):
+        ...
+    NotImplementedError: func2 not supported on nonexistent
     """
     def _decorator(f):
         def _wrapper(*args, **kwargs):
