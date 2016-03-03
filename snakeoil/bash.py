@@ -11,7 +11,6 @@ Its primary usage is for reading things like gentoo make.conf's, or
 libtool .la files that are bash compatible, but non executable.
 """
 
-import re
 from shlex import shlex
 
 from snakeoil.compatibility import raise_from
@@ -21,6 +20,8 @@ from snakeoil.mappings import ProtectedDict
 
 demand_compile_regexp('line_cont_regexp', r'^(.*[^\\]|)\\$')
 demand_compile_regexp('inline_comment_regexp', r'^.*\s#.*$')
+demand_compile_regexp('var_find', r'\\?(\${\w+}|\$\w+)')
+demand_compile_regexp('backslash_find', r'\\.')
 
 __all__ = (
     "iter_read_bash", "read_bash", "read_dict", "read_bash_dict",
@@ -194,8 +195,6 @@ def read_dict(bash_source, splitter="=", source_isiter=False,
     return d
 
 
-var_find = re.compile(r'\\?(\${\w+}|\$\w+)')
-backslash_find = re.compile(r'\\.')
 def _nuke_backslash(s):
     s = s.group()
     if s == "\\\n":
