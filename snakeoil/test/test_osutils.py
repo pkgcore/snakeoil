@@ -429,19 +429,14 @@ class Test_unlink_if_exists(TempDirMixin):
 
 class SupportedSystems(unittest.TestCase):
 
-    def setUp(self):
-        self.orig_sys_platform = sys.platform
-
-    def tearDown(self):
-        sys.platform = self.orig_sys_platform
-
     def test_supported_system(self):
         @supported_systems('supported')
         def func():
             return True
 
-        sys.platform = 'supported'
-        self.assertTrue(func())
+        with mock.patch('snakeoil.osutils.sys') as _sys:
+            _sys.configure_mock(platform='supported')
+            self.assertTrue(func())
 
     def test_unsupported_system(self):
         @supported_systems('unsupported')
@@ -452,22 +447,24 @@ class SupportedSystems(unittest.TestCase):
             func()
 
         # make sure we're iterating through the system params correctly
-        sys.platform = 'u'
-        with self.assertRaises(NotImplementedError):
-            func()
+        with mock.patch('snakeoil.osutils.sys') as _sys:
+            _sys.configure_mock(platform='u')
+            with self.assertRaises(NotImplementedError):
+                func()
 
     def test_multiple_systems(self):
         @supported_systems('darwin', 'linux')
         def func():
             return True
 
-        sys.platform = 'nonexistent'
-        with self.assertRaises(NotImplementedError):
-            func()
-        sys.platform = 'linux2'
-        self.assertTrue(func())
-        sys.platform = 'darwin'
-        self.assertTrue(func())
+        with mock.patch('snakeoil.osutils.sys') as _sys:
+            _sys.configure_mock(platform='nonexistent')
+            with self.assertRaises(NotImplementedError):
+                func()
+
+            for platform in ('linux2', 'darwin'):
+                _sys.configure_mock(platform=platform)
+                self.assertTrue(func())
 
 
 class Mount(unittest.TestCase):
