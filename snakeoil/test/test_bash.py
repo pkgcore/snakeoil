@@ -36,6 +36,8 @@ class TestBashCommentStripping(TestCase):
                 ' asdf # inline comment\\\n'),
                 allow_line_cont=True)),
             ['I am not a comment', 'asdf'])
+
+        # continuation into inline comment
         self.assertEqual(
             list(iter_read_bash(StringIO(
                 '\n'
@@ -45,6 +47,8 @@ class TestBashCommentStripping(TestCase):
                 'comment # inline comment\n'),
                 allow_line_cont=True)),
             ['I am not a comment'])
+
+        # ends with continuation
         self.assertEqual(
             list(iter_read_bash(StringIO(
                 '\n'
@@ -56,6 +60,8 @@ class TestBashCommentStripping(TestCase):
                 '\\\n'),
                 allow_line_cont=True)),
             ['I am not a comment'])
+
+        # embedded comment prefix via continued lines
         self.assertEqual(
             list(iter_read_bash(StringIO(
                 '\\\n'
@@ -68,6 +74,7 @@ class TestBashCommentStripping(TestCase):
                 'a comment\n'),
                 allow_line_cont=True)),
             ['not a comment', 'also not#a comment'])
+
         # Line continuations have to end with \<newline> without any backslash
         # before the pattern.
         self.assertEqual(
@@ -83,7 +90,6 @@ class TestBashCommentStripping(TestCase):
                 'not a comment'),
                 allow_line_cont=True)),
             ['I am \\\\', 'not a comment'])
-
 
     def test_read_bash(self):
         self.assertEqual(
