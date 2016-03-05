@@ -36,7 +36,7 @@ def namedtuple(typename, field_names):
 
 
 def split_negations(iterable, func=str):
-    """"Split a sequence into negative and positive elements.
+    """"Split an iterable into negative and positive elements.
 
     Args:
         iterable: iterable targeted for splitting
