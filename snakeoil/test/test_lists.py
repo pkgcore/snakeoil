@@ -71,6 +71,10 @@ class ChainedListsTest(TestCase):
     def test_len(self):
         self.assertEqual(100, len(self.gen_cl()))
 
+    def test_str(self):
+        l = lists.ChainedLists(range(3), range(3, 5))
+        self.assertEqual(str(l), '[ [0, 1, 2], [3, 4] ]')
+
     def test_getitem(self):
         cl = self.gen_cl()
         for x in (1, 2, 4, 98, -1, -99, 0):
