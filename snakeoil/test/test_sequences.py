@@ -1,9 +1,10 @@
 # Copyright: 2015 Tim Harder <radhermit@gmail.com>
 # License: GPL2/BSD 3 clause
 
+from itertools import chain
 from unittest import TestCase
 
-from snakeoil.sequences import namedtuple
+from snakeoil.sequences import namedtuple, split_negations
 
 
 class TestNamedTuple(TestCase):
@@ -37,3 +38,33 @@ class TestNamedTuple(TestCase):
         with self.assertRaises(TypeError):
             q = Point(x=1, y=2, z=3)
 
+
+class TestSplitNegations(TestCase):
+
+    def test_sequences(self):
+        # empty input
+        seq = ''
+        self.assertEqual(split_negations(seq), (tuple(), tuple()))
+
+        # no-value negation should raise a ValueError
+        seq = 'a b c - d f e'.split()
+        with self.assertRaises(ValueError):
+            split_negations(seq)
+
+        # all negs
+        seq = ('-' + str(x) for x in xrange(100))
+        self.assertEqual(split_negations(seq), (tuple(map(str, xrange(100))), tuple()))
+
+        # all pos
+        seq = (str(x) for x in xrange(100))
+        self.assertEqual(split_negations(seq), (tuple(), tuple(map(str, xrange(100)))))
+
+        # both
+        seq = (('-' + str(x), str(x)) for x in xrange(100))
+        seq = chain.from_iterable(seq)
+        self.assertEqual(split_negations(seq), (tuple(map(str, xrange(100))), tuple(map(str, xrange(100)))))
+
+        # converter method
+        seq = (('-' + str(x), str(x)) for x in xrange(100))
+        seq = chain.from_iterable(seq)
+        self.assertEqual(split_negations(seq, int), (tuple(xrange(100)), tuple(xrange(100))))
