@@ -60,6 +60,17 @@ class TestArgparseDocs(TestCase):
             self.assertEqual(getattr(arg_group, 'description', None), expected_txt)
             self.assertEqual(getattr(mut_action, 'help', None), expected_txt)
 
+        # list/tuple-based docs
+        arghparse._generate_docs = True
+        docs = 'foo bar'
+        parser = argparse.ArgumentParser()
+        list_action = parser.add_argument(
+            '-b', '--blah', action='store_true', help=default, docs=list(docs.split()))
+        tuple_action = parser.add_argument(
+            '-c', '--cat', action='store_true', help=default, docs=tuple(docs.split()))
+        self.assertEqual(getattr(list_action, 'help', None), 'foo\nbar')
+        self.assertEqual(getattr(tuple_action, 'help', None), 'foo\nbar')
+
 
 class ArgparseOptionsTest(TestCase):
 
