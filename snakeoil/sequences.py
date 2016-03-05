@@ -35,14 +35,22 @@ def namedtuple(typename, field_names):
     return kls
 
 
-def split_negations(data, func=str):
-    """"Split a sequence into negative and positive elements."""
+def split_negations(iterable, func=str):
+    """"Split a sequence into negative and positive elements.
+
+    Args:
+        iterable: iterable targeted for splitting
+        func: wrapper method to modify tokens
+
+    Returns:
+        Tuple containing negative and positive element tuples, respectively.
+    """
     neg, pos = [], []
-    for line in data:
-        if line[0] == '-':
-            if len(line) == 1:
+    for token in iterable:
+        if token[0] == '-':
+            if len(token) == 1:
                 raise ValueError("'-' negation without a token")
-            neg.append(func(line[1:]))
+            neg.append(func(token[1:]))
         else:
-            pos.append(func(line))
+            pos.append(func(token))
     return (tuple(neg), tuple(pos))
