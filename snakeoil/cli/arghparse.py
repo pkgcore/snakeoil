@@ -77,7 +77,7 @@ class ExtendCommaDelimited(argparse._AppendAction):
 
     def __call__(self, parser, namespace, values, option_string=None):
         items = []
-        if not self.nargs or self.nargs < 1:
+        if isinstance(values, basestring):
             items.extend(filter(None, values.split(',')))
         else:
             for value in values:
@@ -97,7 +97,7 @@ class ExtendCommaDelimitedToggle(argparse._AppendAction):
 
     def __call__(self, parser, namespace, values, option_string=None):
         disabled, enabled = [], []
-        if not self.nargs or self.nargs < 1:
+        if isinstance(values, basestring):
             values = [values]
         for value in values:
             neg, pos = split_negations(filter(None, value.split(',')))
