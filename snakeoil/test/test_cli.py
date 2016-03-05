@@ -134,3 +134,27 @@ class ArgparseOptionsTest(TestCase):
                 ])
             self.assertEqual(namespace.testing, expected)
             self.assertEqual(namespace.testing_nargs, expected * 2)
+
+    def test_extend_comma_toggle_action(self):
+        parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser())
+        parser.add_argument('--testing', action='extend_comma_toggle')
+        parser.add_argument('--testing-nargs', nargs='+', action='extend_comma_toggle')
+
+        test_values = (
+            ('', ((), ())),
+            (',', ((), ())),
+            (',,', ((), ())),
+            ('a', ((), ('a',))),
+            ('a,-b,-c,d', (('b', 'c'), ('a', 'd'))),
+        )
+        for raw_val, expected in test_values:
+            namespace = parser.parse_args([
+                '--testing=' + raw_val,
+                '--testing-nargs', raw_val, raw_val,
+                ])
+            self.assertEqual(namespace.testing, expected)
+            self.assertEqual(namespace.testing_nargs, (tuple(expected[0] * 2), tuple(expected[1] * 2)))
+
+        # start with negated arg
+        namespace = parser.parse_args(['--testing=-a'])
+        self.assertEqual(namespace.testing, (('a',), ()))
