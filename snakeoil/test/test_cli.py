@@ -114,3 +114,23 @@ class ArgparseOptionsTest(TestCase):
             pass
         else:
             self.fail("no error message thrown for --testing=invalid")
+
+    def test_extend_comma_action(self):
+        parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser())
+        parser.add_argument('--testing', action='extend_comma')
+        parser.add_argument('--testing-nargs', nargs='+', action='extend_comma')
+
+        test_values = (
+            ('', []),
+            (',', []),
+            (',,', []),
+            ('a', ['a']),
+            ('a,b,-c', ['a', 'b', '-c']),
+        )
+        for raw_val, expected in test_values:
+            namespace = parser.parse_args([
+                '--testing=' + raw_val,
+                '--testing-nargs', raw_val, raw_val,
+                ])
+            self.assertEqual(namespace.testing, expected)
+            self.assertEqual(namespace.testing_nargs, expected * 2)
