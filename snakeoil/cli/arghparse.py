@@ -62,8 +62,6 @@ def _add_argument_docs(orig_func, self, *args, **kwargs):
         elif isinstance(obj, argparse._ActionsContainer):
             # docs override description for argument groups
             obj.description = docs
-        else:
-            obj.docs = docs
     return obj
 
 
