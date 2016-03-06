@@ -53,7 +53,7 @@ if not pkgdist.is_py3k:
         OptionalExtension(
             'snakeoil._caching', ['src/caching.c'], **extra_kwargs),
         OptionalExtension(
-            'snakeoil._lists', ['src/lists.c'], **extra_kwargs),
+            'snakeoil._sequences', ['src/sequences.c'], **extra_kwargs),
         OptionalExtension(
             'snakeoil.osutils._readdir', ['src/readdir.c'], **extra_kwargs),
         OptionalExtension(

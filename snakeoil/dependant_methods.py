@@ -50,8 +50,8 @@ finish invoked
 
 from __future__ import print_function
 
-from snakeoil.lists import iflatten_instance
 from snakeoil.currying import pre_curry
+from snakeoil.sequences import iflatten_instance
 
 __all__ = ("ForcedDepends",)
 

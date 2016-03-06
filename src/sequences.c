@@ -211,7 +211,7 @@ PyDoc_STRVAR(
 static PyTypeObject snakeoil_iflatten_func_type = {
 	PyObject_HEAD_INIT(NULL)
 	0,											   /* ob_size*/
-	"snakeoil._lists.iflatten_func",				 /* tp_name*/
+	"snakeoil._sequences.iflatten_func",				 /* tp_name*/
 	sizeof(snakeoil_iflatten_func),				   /* tp_basicsize*/
 	0,											   /* tp_itemsize*/
 	(destructor)snakeoil_iflatten_func_dealloc,	   /* tp_dealloc*/
@@ -422,7 +422,7 @@ PyDoc_STRVAR(
 static PyTypeObject snakeoil_iflatten_instance_type = {
 	PyObject_HEAD_INIT(NULL)
 	0,											   /* ob_size*/
-	"snakeoil._lists.iflatten_instance",			 /* tp_name*/
+	"snakeoil._sequences.iflatten_instance",			 /* tp_name*/
 	sizeof(snakeoil_iflatten_instance),			   /* tp_basicsize*/
 	0,											   /* tp_itemsize*/
 	(destructor)snakeoil_iflatten_instance_dealloc,   /* tp_dealloc*/
@@ -465,14 +465,14 @@ static PyTypeObject snakeoil_iflatten_instance_type = {
 /* Initialization function for the module */
 
 PyDoc_STRVAR(
-	snakeoil_lists_documentation,
-	"C reimplementation of some of snakeoil.lists.");
+	snakeoil_sequences_documentation,
+	"C reimplementation of some of snakeoil.sequences.");
 
 PyMODINIT_FUNC
-init_lists(void)
+init_sequences(void)
 {
 	/* Create the module and add the functions */
-	PyObject *m = Py_InitModule3("_lists", NULL, snakeoil_lists_documentation);
+	PyObject *m = Py_InitModule3("_sequences", NULL, snakeoil_sequences_documentation);
 	if (!m)
 		return;
 
