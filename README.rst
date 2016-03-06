@@ -44,15 +44,13 @@ Note that mock_ is required for tests if you're using anything less than python
 Contact
 =======
 
-For support and development inquiries a `mailing list`_ is available or you can
-join `#pkgcore`_ on Freenode.
+For support and development inquiries join `#pkgcore`_ on Freenode.
 
-For bugs and feature requests please create an issue in the `issue tracker`_.
+For bugs and feature requests please create an issue on Github_.
 
 
-.. _`mailing list`: https://groups.google.com/forum/#!forum/python-snakeoil
 .. _#pkgcore: https://webchat.freenode.net?channels=%23pkgcore&uio=d4
-.. _`issue tracker`: https://github.com/pkgcore/snakeoil/issues
+.. _Github: https://github.com/pkgcore/snakeoil/issues
 .. _mock: https://pypi.python.org/pypi/mock
 
 .. |pypi| image:: https://img.shields.io/pypi/v/snakeoil.svg
