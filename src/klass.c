@@ -228,17 +228,19 @@ typedef struct {
 	PyObject *storage_attr;
 	PyObject *function;
 	PyObject *singleton;
+	PyObject *doc;
 	int use_setattr;
 	int use_singleton;
 } snakeoil_InternalJitAttr;
 
 static PyMemberDef snakeoil_InternalJitAttr_members[] = {
 	{"storage_attr", T_OBJECT_EX, offsetof(snakeoil_InternalJitAttr, storage_attr),
-		0, "attribute the value is cached in"},
+		READONLY, "attribute the value is cached in"},
 	{"function", T_OBJECT_EX, offsetof(snakeoil_InternalJitAttr, function),
-		0, "functor to cache values from"},
+		READONLY, "functor to cache values from"},
 	{"singleton", T_OBJECT_EX, offsetof(snakeoil_InternalJitAttr, singleton),
-		0, "singleton value to look for if regeneration is needed, or if unset"},
+		READONLY, "singleton value to look for if regeneration is needed, or if unset"},
+	{"__doc__", T_OBJECT, offsetof(snakeoil_InternalJitAttr,doc), READONLY},
 	{NULL}
 };
 
@@ -248,6 +250,7 @@ snakeoil_InternalJitAttr_clear(snakeoil_InternalJitAttr *self)
 	Py_CLEAR(self->storage_attr);
 	Py_CLEAR(self->function);
 	Py_CLEAR(self->singleton);
+	Py_CLEAR(self->doc);
 	return 0;
 }
 static void
@@ -262,17 +265,18 @@ snakeoil_InternalJitAttr_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	snakeoil_InternalJitAttr *self;
 	PyObject *attr = NULL, *func = NULL, *singleton = NULL,
-		*use_setattr_obj = NULL, *use_singleton_obj = NULL;
+		*use_setattr_obj = NULL, *use_singleton_obj = NULL,
+		*doc = NULL;
 
 	int use_setattr = 0;
 	int use_singleton = 1;
 
 	static char *kwlist[] = {"func", "attr_name", "singleton", "use_cls_setattr",
-		"use_singleton", NULL};
+		"use_singleton", "doc", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "OS|OOO:__new__",
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "OS|OOOO:__new__",
 		kwlist,
-		&func, &attr, &singleton, &use_setattr_obj, &use_singleton_obj))
+		&func, &attr, &singleton, &use_setattr_obj, &use_singleton_obj, &doc))
 		return NULL;
 
 	if (use_setattr_obj) {
@@ -285,6 +289,12 @@ snakeoil_InternalJitAttr_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 		if (-1 == (use_singleton = PyObject_IsTrue(use_singleton_obj))) {
 			return NULL;
 		}
+	}
+
+	if (doc == NULL || doc == Py_None) {
+		// Steal the doc from the func now.
+		doc = PyObject_GetAttrString(func, "__doc__");
+		PyErr_Clear();
 	}
 
 	self = (snakeoil_InternalJitAttr *)type->tp_alloc(type, 0);
@@ -300,6 +310,8 @@ snakeoil_InternalJitAttr_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 		self->singleton = singleton;
 		self->use_setattr = use_setattr;
 		self->use_singleton = use_singleton;
+		Py_INCREF(doc);
+		self->doc = doc;
 	}
 	return (PyObject *)self;
 }
