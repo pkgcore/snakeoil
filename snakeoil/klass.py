@@ -102,7 +102,9 @@ def native_reflective_hash(attr):
     return __hash__
 
 
-class _native_internal_jit_attr(object):
+def _native_internal_jit_attr(
+    func, attr_name, singleton=None,
+    use_cls_setattr=False, use_singleton=True, doc=None):
 
     """
     object implementing the descriptor protocol for use in Just In Time access to attributes.
@@ -110,6 +112,22 @@ class _native_internal_jit_attr(object):
     Consumers should likely be using the :py:func:`jit_func` line of helper functions
     instead of directly consuming this.
     """
+    doc = getattr(func, '__doc__', None) if doc is None else doc
+    kls = _raw_native_internal_jit_attr
+    if doc is not None:
+       class _native_internal_jit_attr(kls):
+           __doc__ = doc
+           __slots__ = ()
+       kls = _native_internal_jit_attr
+
+    return kls(
+        func, attr_name, singleton=singleton, use_cls_setattr=use_cls_setattr,
+        use_singleton=use_singleton)
+
+
+class _raw_native_internal_jit_attr(object):
+
+    """See _native_internal_jit_attr; this is an implementation detail of that"""
 
     __slots__ = ("storage_attr", "function", "_setter", "singleton", "use_singleton")
 
