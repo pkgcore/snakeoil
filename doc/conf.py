@@ -49,10 +49,9 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'snakeoil'
-authors_list = ['Brian Harring', 'Tim Harder']
-authors = ', '.join(authors_list)
-copyright = u'2010-2015, ' + authors
+project = 'snakeoil'
+authors = ''
+copyright = '2010-2016, snakeoil contributors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -89,7 +88,7 @@ exclude_patterns = ['_build']
 
 # If true, sectionauthor and moduleauthor directives will be shown in the
 # output. They are ignored by default.
-#show_authors = False
+show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
@@ -190,7 +189,7 @@ htmlhelp_basename = 'snakeoildoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ('index', 'snakeoil.tex', u'snakeoil Documentation',
+    ('index', 'snakeoil.tex', 'snakeoil Documentation',
      authors, 'manual'),
 ]
 
@@ -223,7 +222,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'snakeoil', u'snakeoil Documentation', authors_list, 1)
+    ('index', 'snakeoil', 'snakeoil Documentation', [], 1)
 ]
 
 
