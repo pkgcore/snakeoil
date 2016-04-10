@@ -141,11 +141,11 @@ class ArgparseOptionsTest(TestCase):
         parser.add_argument('--testing-nargs', nargs='+', action='extend_comma_toggle')
 
         test_values = (
-            ('', ((), ())),
-            (',', ((), ())),
-            (',,', ((), ())),
-            ('a', ((), ('a',))),
-            ('a,-b,-c,d', (('b', 'c'), ('a', 'd'))),
+            ('', ([], [])),
+            (',', ([], [])),
+            (',,', ([], [])),
+            ('a', ([], ['a'])),
+            ('a,-b,-c,d', (['b', 'c'], ['a', 'd'])),
         )
         for raw_val, expected in test_values:
             namespace = parser.parse_args([
@@ -153,8 +153,8 @@ class ArgparseOptionsTest(TestCase):
                 '--testing-nargs', raw_val, raw_val,
                 ])
             self.assertEqual(namespace.testing, expected)
-            self.assertEqual(namespace.testing_nargs, (tuple(expected[0] * 2), tuple(expected[1] * 2)))
+            self.assertEqual(namespace.testing_nargs, (expected[0] * 2, expected[1] * 2))
 
         # start with negated arg
         namespace = parser.parse_args(['--testing=-a'])
-        self.assertEqual(namespace.testing, (('a',), ()))
+        self.assertEqual(namespace.testing, (['a'], []))

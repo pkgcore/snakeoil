@@ -71,7 +71,7 @@ class ArgumentError(Exception):
 
 
 class ExtendCommaDelimited(argparse._AppendAction):
-    """Parse comma-separated values into a list."""
+    """Split comma-separated values into a list."""
 
     def __call__(self, parser, namespace, values, option_string=None):
         items = []
@@ -84,7 +84,7 @@ class ExtendCommaDelimited(argparse._AppendAction):
 
 
 class ExtendCommaDelimitedToggle(argparse._AppendAction):
-    """Parse comma-separated enabled and disabled values.
+    """Split comma-separated enabled and disabled values into lists.
 
     Disabled values are prefixed with "-" while enabled values are entered as
     is.
@@ -101,7 +101,7 @@ class ExtendCommaDelimitedToggle(argparse._AppendAction):
             neg, pos = split_negations(filter(None, value.split(',')))
             disabled.extend(neg)
             enabled.extend(pos)
-        setattr(namespace, self.dest, (tuple(disabled), tuple(enabled)))
+        setattr(namespace, self.dest, (disabled, enabled))
 
 
 class StoreBool(argparse._StoreAction):
