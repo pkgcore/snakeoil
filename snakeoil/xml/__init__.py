@@ -2,11 +2,16 @@
 # License: BSD/GPL2
 
 """
-Compatibility code, preferring cElementTree, falling back to ElementTree.
+Compatibility code, preferring lxml, then cElementTree, then falling
+back to ElementTree.
 """
 
 try:
     # pylint: disable=import-error
-    from xml.etree import cElementTree as etree
+    from lxml import etree
 except ImportError:
-    from xml.etree import ElementTree as etree
+    try:
+        # pylint: disable=import-error
+        from xml.etree import cElementTree as etree
+    except ImportError:
+        from xml.etree import ElementTree as etree
