@@ -16,13 +16,13 @@ from functools import partial
 import os
 import sys
 
+from weakref import ref, WeakKeyDictionary
 try:
     # No name in module
     # pylint: disable=E0611
     from snakeoil._caching import WeakValCache
-    from weakref import ref, WeakKeyDictionary
 except ImportError:
-    from weakref import WeakValueDictionary as WeakValCache, ref, WeakKeyDictionary
+    from weakref import WeakValueDictionary as WeakValCache
 
 from snakeoil.obj import make_kls, BaseDelayedObject
 
