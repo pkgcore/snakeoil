@@ -161,6 +161,24 @@ snakeoil_WeakValCache_heapyrelate(NyHeapRelate *r)
 	return 0;
 }
 
+static PyObject *
+snakeoil_WeakValCache_keys(snakeoil_WeakValCache *self)
+{
+	return PyDict_Keys(self->dict);
+}
+
+static PyObject *
+snakeoil_WeakValCache_values(snakeoil_WeakValCache *self)
+{
+	return PyDict_Values(self->dict);
+}
+
+static PyObject *
+snakeoil_WeakValCache_items(snakeoil_WeakValCache *self)
+{
+	return PyDict_Items(self->dict);
+}
+
 static int
 snakeoil_WeakValCache_clear(snakeoil_WeakValCache *self)
 {
@@ -281,6 +299,12 @@ static PyMappingMethods snakeoil_WeakValCache_as_mapping = {
 
 
 static PyMethodDef snakeoil_WeakValCache_methods[] = {
+	{"keys", (PyCFunction)snakeoil_WeakValCache_keys, METH_NOARGS,
+		"keys()"},
+	{"values", (PyCFunction)snakeoil_WeakValCache_values, METH_NOARGS,
+		"values()"},
+	{"items", (PyCFunction)snakeoil_WeakValCache_items, METH_NOARGS,
+		"items()"},
 	{"get", (PyCFunction)snakeoil_WeakValCache_get, METH_VARARGS,
 		"get(key, default=None)"},
 	{"clear", (PyCFunction)snakeoil_WeakValCache_clear_method, METH_NOARGS,
