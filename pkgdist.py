@@ -113,6 +113,45 @@ def data_mapping(host_prefix, path, skip=None):
                                if os.path.join(root, x) not in skip])
 
 
+def pkg_config(*packages, **kw):
+    """Translate pkg-config data to compatible Extension parameters.
+
+    Example usage:
+
+    >>> from distutils.extension import Extension
+    >>> from pkgdist import pkg_config
+    >>>
+    >>> ext_kwargs = dict(
+    ...     include_dirs=['include'],
+    ...     extra_compile_args=['-std=c++11'],
+    ... )
+    >>> extensions = [
+    ...     Extension('foo', ['foo.c']),
+    ...     Extension('bar', ['bar.c'], **pkg_config('lcms2')),
+    ...     Extension('ext', ['ext.cpp'], **pkg_config(('nss', 'libusb-1.0'), **ext_kwargs)),
+    ... ]
+    """
+    flag_map = {
+        '-I': 'include_dirs',
+        '-L': 'library_dirs',
+        '-l': 'libraries',
+    }
+
+    try:
+        tokens = subprocess.check_output(
+            ['pkg-config', '--libs', '--cflags'] + list(packages)).split()
+    except OSError as e:
+        sys.stderr.write('running pkg-config failed: {}\n'.format(e.strerror))
+        sys.exit(1)
+
+    for token in tokens:
+        if token[:2] in flag_map:
+            kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
+        else:
+            kw.setdefault('extra_compile_args', []).append(token)
+    return kw
+
+
 class OptionalExtension(Extension):
     """Python extension that is optional to build.
 
@@ -746,7 +785,7 @@ class PyTest(Command):
         self.test_args = [self.default_test_dir]
         self.coverage = bool(self.coverage)
         if self.match is not None:
-            self.match = tuple(set(self.match.split(',')))
+            self.test_args.extend(['-k', self.match])
 
         if self.coverage:
             try:
