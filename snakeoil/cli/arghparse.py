@@ -452,8 +452,9 @@ class ArgparseCommand(object):
 
 
 def existent_path(value):
+    """Check if file argument path exists."""
     if not os.path.exists(value):
-        raise ValueError("path %r doesn't exist on disk" % (value,))
+        raise argparse.ArgumentTypeError("nonexistent path: %r" % (value,))
     try:
         return osutils.abspath(value)
     except EnvironmentError as e:
