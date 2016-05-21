@@ -8,7 +8,7 @@ it strictly treats the source as non-executable code.  It cannot parse
 subshells, variable additions, etc.
 
 Its primary usage is for reading things like gentoo make.conf's, or
-libtool .la files that are bash compatible, but non executable.
+libtool .la files that are bash compatible, but non-executable.
 """
 
 from shlex import shlex
@@ -127,8 +127,9 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
                     continue
                 eq = s.get_token()
                 if eq != '=':
-                    raise BashParseError(bash_source, s.lineno,
-                                         "got token %r, was expecting '='" % eq)
+                    raise BashParseError(
+                        bash_source, s.lineno,
+                        "got token %r, was expecting '='" % eq)
                 val = s.get_token()
                 if val is None:
                     val = ''
@@ -204,17 +205,17 @@ def _nuke_backslash(s):
     except TypeError:
         return s[1]
 
-class bash_parser(shlex):
-    """Fixed up shlex version correcting corner cases in quote expansion,
-    and adding variable interpolation
 
+class bash_parser(shlex):
+    """Fixed up shlex version for bash parsing.
+
+    Corrects corner cases in quote expansion and adds variable interpolation.
     While it's a fair bit slower than stdlib shlex, it parses a more complete
     subset of bash syntax than stdlib shlex.
     """
 
     def __init__(self, source, sourcing_command=None, env=None, infile=None):
-        """instantiate the parser
-
+        """
         :param source: file handle to read from
         :param sourcing_command: token to treat as an include command
         :type sourcing_command: either None, or a string; if None, no includes
