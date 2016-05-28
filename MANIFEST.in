@@ -1,4 +1,4 @@
-include AUTHORS BSD GPL2 LICENSE *.rst tox.ini .coveragerc
+include AUTHORS BSD GPL2 LICENSE *.py *.rst tox.ini .coveragerc
 recursive-include doc *
 recursive-include include/snakeoil *.h
 recursive-include src *.[ch]
