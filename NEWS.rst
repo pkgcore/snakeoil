@@ -2,6 +2,26 @@
 Release Notes
 =============
 
+snakeoil 0.7.0 (2016-05-28)
+---------------------------
+
+- snakeoil.xml: Prefer lxml.etree when available.
+
+- snakeoil.bash: Conditional line continuation support for iter_read_bash().
+
+- snakeoil.dist.distutils_extensions: Move to external pkgdist project and
+  bundle the standalone module to circumvent pre-setup parsing dep cycles.
+
+- snakeoil.lists: Deprecated module name was renamed to snakeoil.sequences.
+  Stub will exist with warnings until 0.8.
+
+- snakeoil.osutils: Add supported_systems() decorator to support restricting
+  functions to set of supported systems.
+
+- snakeoil.process: Remove get_proc_count() and get_physical_proc_count().
+
+- snakeoil.cli.arghparse: Add generic argparse related support from pkgcore.
+
 snakeoil 0.6.6 (2015-12-13)
 ---------------------------
 
