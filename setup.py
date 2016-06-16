@@ -85,7 +85,7 @@ setup(
     cmdclass={
         'sdist': pkgdist.sdist,
         'build_ext': pkgdist.build_ext,
-        'build_py': pkgdist.build_py,
+        'build_py': pkgdist.build_py2to3,
         'config': config,
         'test': pkgdist.test,
     },
