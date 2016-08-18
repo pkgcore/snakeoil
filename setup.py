@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import io
 import os
 import sys
 
@@ -74,14 +73,11 @@ test_requirements = []
 if sys.hexversion < 0x03030000:
     test_requirements.append('mock')
 
-with io.open(os.path.join(pkgdist.TOPDIR, 'README.rst'), encoding='utf-8') as f:
-    readme = f.read()
-
 setup(
-    name='snakeoil',
+    name=pkgdist.PROJECT,
     version=pkgdist.version(),
     description='misc common functionality and useful optimizations',
-    long_description=readme,
+    long_description=pkgdist.readme(),
     url='https://github.com/pkgcore/snakeoil',
     license='BSD',
     author='Brian Harring, Tim Harder',
