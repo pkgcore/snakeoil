@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import io
+import os
 import sys
 
 from setuptools import setup, find_packages
@@ -47,26 +48,33 @@ class config(pkgdist.config):
 if not pkgdist.is_py3k:
     extensions.extend([
         OptionalExtension(
-            'snakeoil._posix', ['src/posix.c'], **extra_kwargs),
+            'snakeoil._posix',
+            [os.path.join(pkgdist.TOPDIR, 'src', 'posix.c')], **extra_kwargs),
         OptionalExtension(
-            'snakeoil._klass', ['src/klass.c'], **extra_kwargs),
+            'snakeoil._klass',
+            [os.path.join(pkgdist.TOPDIR, 'src', 'klass.c')], **extra_kwargs),
         OptionalExtension(
-            'snakeoil._caching', ['src/caching.c'], **extra_kwargs),
+            'snakeoil._caching',
+            [os.path.join(pkgdist.TOPDIR, 'src', 'caching.c')], **extra_kwargs),
         OptionalExtension(
-            'snakeoil._sequences', ['src/sequences.c'], **extra_kwargs),
+            'snakeoil._sequences',
+            [os.path.join(pkgdist.TOPDIR, 'src', 'sequences.c')], **extra_kwargs),
         OptionalExtension(
-            'snakeoil.osutils._readdir', ['src/readdir.c'], **extra_kwargs),
+            'snakeoil.osutils._readdir',
+            [os.path.join(pkgdist.TOPDIR, 'src', 'readdir.c')], **extra_kwargs),
         OptionalExtension(
-            'snakeoil._formatters', ['src/formatters.c'], **extra_kwargs),
+            'snakeoil._formatters',
+            [os.path.join(pkgdist.TOPDIR, 'src', 'formatters.c')], **extra_kwargs),
         OptionalExtension(
-            'snakeoil.chksum._whirlpool_cdo', ['src/whirlpool_cdo.c'], **extra_kwargs),
+            'snakeoil.chksum._whirlpool_cdo',
+            [os.path.join(pkgdist.TOPDIR, 'src', 'whirlpool_cdo.c')], **extra_kwargs),
         ])
 
 test_requirements = []
 if sys.hexversion < 0x03030000:
     test_requirements.append('mock')
 
-with io.open('README.rst', encoding='utf-8') as f:
+with io.open(os.path.join(pkgdist.TOPDIR, 'README.rst'), encoding='utf-8') as f:
     readme = f.read()
 
 setup(
