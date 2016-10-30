@@ -329,7 +329,11 @@ def simple_unshare(mount=True, uts=True, ipc=True, net=False, pid=False,
         # Avoid mounts in the new namespace from affecting the parent namespace
         # on systems that share the rootfs by default, but allow events in the
         # parent to propagate down.
-        _mount(None, '/', None, MS_REC | MS_SLAVE)
+        try:
+            _mount(None, '/', None, MS_REC | MS_SLAVE)
+        except OSError as e:
+            if e.errno != errno.EINVAL:
+                raise
 
     if uts:
         create_utsns(hostname)
