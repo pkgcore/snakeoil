@@ -38,8 +38,7 @@ the following::
 
     tox -e py27
 
-Note that mock_ is required for tests if you're using anything less than python
-3.3.
+Note that mock_ is required for tests if you're using python-2.7.
 
 Contact
 =======
