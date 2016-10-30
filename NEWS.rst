@@ -2,6 +2,15 @@
 Release Notes
 =============
 
+snakeoil 0.7.1 (2016-10-30)
+---------------------------
+
+- Drop py3.3 support.
+
+- snakeoil.process.namespaces: Ignore recursive remounting errors for the root
+  directory. When layering namespaces only the first mount() call in this case
+  will work, subsequent calls will raise invalid argument errors.
+
 snakeoil 0.7.0 (2016-05-28)
 ---------------------------
 
