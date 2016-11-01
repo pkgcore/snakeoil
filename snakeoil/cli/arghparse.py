@@ -344,7 +344,7 @@ class ArgumentParser(argparse.ArgumentParser):
                                     be shown.
                                 """)
                             break
-                    except IndexError:
+                    except (IndexError, KeyError):
                         # failed getting version info
                         break
             if debug:
