@@ -14,6 +14,7 @@ from snakeoil.demandload import demandload
 
 demandload(
     'inspect',
+    'itertools',
     'logging',
     'textwrap:dedent',
     'snakeoil:osutils',
@@ -326,8 +327,15 @@ class ArgumentParser(argparse.ArgumentParser):
                 # Get the calling script's module and project names. This
                 # assumes a script module namespace layout where scripts are
                 # located in project.scripts.script_name.
-                script = inspect.stack(0)[1][0].f_globals['__file__']
-                project = script.split(os.path.sep)[-3]
+                for level in itertools.count(1):
+                    try:
+                        pyfile = inspect.stack(0)[level][0].f_globals['__file__']
+                        if pyfile.split(os.path.sep)[-2] == 'scripts':
+                            script = pyfile
+                            project = pyfile.split(os.path.sep)[-3]
+                            break
+                    except IndexError:
+                        self.error("failed getting version info")
                 self.add_argument(
                     '--version', action='version', version=get_version(project, script),
                     help="show this program's version info and exit",
