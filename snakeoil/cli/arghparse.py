@@ -325,27 +325,28 @@ class ArgumentParser(argparse.ArgumentParser):
                     """)
             if version:
                 # Get the calling script's module and project names. This
-                # assumes a script module namespace layout where scripts are
-                # located in project.scripts.script_name.
+                # verifies the script uses a module namespace layout where
+                # scripts are located in project.scripts.script_name.
                 for level in itertools.count(1):
                     try:
                         pyfile = inspect.stack(0)[level][0].f_globals['__file__']
                         if pyfile.split(os.path.sep)[-2] == 'scripts':
                             script = pyfile
                             project = pyfile.split(os.path.sep)[-3]
+                            self.add_argument(
+                                '--version', action='version', version=get_version(project, script),
+                                help="show this program's version info and exit",
+                                docs="""
+                                    Show this program's version information and exit.
+
+                                    When running from within a git repo or a version
+                                    installed from git the latest commit hash and date will
+                                    be shown.
+                                """)
                             break
                     except IndexError:
-                        self.error("failed getting version info")
-                self.add_argument(
-                    '--version', action='version', version=get_version(project, script),
-                    help="show this program's version info and exit",
-                    docs="""
-                        Show this program's version information and exit.
-
-                        When running from within a git repo or a version
-                        installed from git the latest commit hash and date will
-                        be shown.
-                    """)
+                        # failed getting version info
+                        break
             if debug:
                 self.add_argument(
                     '--debug', action=EnableDebug, help='enable debugging checks',
