@@ -58,7 +58,7 @@ except process.CommandNotFound:
 
 def compress_data(data, level=9, parallelize=False):
     if parallelize and parallelizable:
-        return _util.compress_data(lbzip2_path, data, level=level,
+        return _util.compress_data(lbzip2_path, data, compresslevel=level,
                                    extra_args=lbzip2_compress_args)
     return _compress_data(data, compresslevel=level)
 
@@ -70,11 +70,11 @@ def decompress_data(data, parallelize=False):
 
 def compress_handle(handle, level=9, parallelize=False):
     if parallelize and parallelizable:
-        return _util.compress_handle(lbzip2_path, handle, level=level,
+        return _util.compress_handle(lbzip2_path, handle, compresslevel=level,
                                      extra_args=lbzip2_compress_args)
     elif native and isinstance(handle, basestring):
         return BZ2File(handle, mode='w', compresslevel=level)
-    return _compress_handle(handle, level=level)
+    return _compress_handle(handle, compresslevel=level)
 
 def decompress_handle(handle, parallelize=False):
     if parallelize and parallelizable:

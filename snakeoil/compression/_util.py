@@ -24,8 +24,8 @@ def _drive_process(args, mode, data):
         if p is not None and p.returncode is None:
             p.kill()
 
-def compress_data(binary, data, level=9, extra_args=()):
-    args = [binary, '-%ic' % level]
+def compress_data(binary, data, compresslevel=9, extra_args=()):
+    args = [binary, '-%ic' % compresslevel]
     args.extend(extra_args)
     return _drive_process(args, 'compression', data)
 
@@ -168,8 +168,8 @@ class _process_handle(object):
         self.close()
 
 
-def compress_handle(binary_path, handle, level=9, extra_args=()):
-    args = [binary_path, '-%ic' % level]
+def compress_handle(binary_path, handle, compresslevel=9, extra_args=()):
+    args = [binary_path, '-%ic' % compresslevel]
     args.extend(extra_args)
     return _process_handle(handle, args, False)
 
