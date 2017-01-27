@@ -29,7 +29,7 @@ class TestDelayedInstantiation(TestCase):
 
     def test_descriptor_awareness(self):
         def assertKls(cls, ignores=(),
-                      default_ignores=("__new__", "__init__",
+                      default_ignores=("__new__", "__init__", "__init_subclass__"
                                        "__getattribute__", "__class__",
                                        "__getnewargs__", "__doc__")):
             required = set(x for x in dir(cls)
@@ -53,7 +53,7 @@ class TestDelayedInstantiation(TestCase):
         # assert that all methods/descriptors of object
         # are covered via the base.
         o = set(dir(object)).difference("__%s__" % x for x in [
-            "class", "getattribute", "new", "init", "doc"])
+            "class", "getattribute", "new", "init", "init_subclass", "doc"])
         diff = o.difference(obj.base_kls_descriptors)
         self.assertFalse(diff, msg=(
             "base delayed instantiation class should cover all of object, but "
