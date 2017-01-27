@@ -1,4 +1,4 @@
-# Copyright: 2015-2016 Tim Harder <radhermit@gmail.com>
+# Copyright: 2015-2017 Tim Harder <radhermit@gmail.com>
 # Copyright: 2008-2011 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
@@ -212,9 +212,11 @@ class sdist(dst_sdist.sdist):
         """
 
         if 'build_man' in self.distribution.cmdclass:
+            build_man = self.reinitialize_command('build_man')
+            build_man.ensure_finalized()
             self.run_command('build_man')
-            shutil.copytree(os.path.join(os.getcwd(), "build/sphinx/man"),
-                            os.path.join(base_dir, "man"))
+            shutil.copytree(os.path.join(os.getcwd(), build_man.content_search_path[0]),
+                            os.path.join(base_dir, build_man.content_search_path[1]))
 
         dst_sdist.sdist.make_release_tree(self, base_dir, files)
         self.generate_verinfo(base_dir)
@@ -849,11 +851,12 @@ class test(Command):
 
 
 class PyTest(Command):
-    """Run tests using pytest against a built copy."""
+    """Run tests using pytest."""
 
     user_options = [
         ('pytest-args=', 'a', 'arguments to pass to py.test'),
         ('coverage', 'c', 'generate coverage info'),
+        ('skip-build', 's', 'skip building the module'),
         ('report=', 'r', 'generate and/or show a coverage report'),
         ('jobs=', 'j', 'run X parallel tests at once'),
         ('match=', 'k', 'run only tests that match the provided expressions'),
@@ -864,6 +867,7 @@ class PyTest(Command):
     def initialize_options(self):
         self.pytest_args = ''
         self.coverage = False
+        self.skip_build = False
         self.match = None
         self.jobs = None
         self.report = None
@@ -871,6 +875,7 @@ class PyTest(Command):
     def finalize_options(self):
         self.test_args = [self.default_test_dir]
         self.coverage = bool(self.coverage)
+        self.skip_build = bool(self.skip_build)
         if self.match is not None:
             self.test_args.extend(['-k', self.match])
 
@@ -906,20 +911,25 @@ class PyTest(Command):
             sys.stderr.write('error: pytest is not installed\n')
             sys.exit(1)
 
-        # build extensions and byte-compile python
-        build_ext = self.reinitialize_command('build_ext')
-        build_py = self.reinitialize_command('build_py')
-        build_ext.ensure_finalized()
-        build_py.ensure_finalized()
-        self.run_command('build_ext')
-        self.run_command('build_py')
+        if self.skip_build:
+            # run tests from the parent directory to the local dir isn't used for module imports
+            builddir = os.path.abspath('..')
+        else:
+            # build extensions and byte-compile python
+            build_ext = self.reinitialize_command('build_ext')
+            build_py = self.reinitialize_command('build_py')
+            build_ext.ensure_finalized()
+            build_py.ensure_finalized()
+            self.run_command('build_ext')
+            self.run_command('build_py')
 
-        # Change the current working directory to the builddir during testing
-        # so coverage paths are correct.
-        builddir = os.path.abspath(build_py.build_lib)
-        if self.coverage and os.path.exists(os.path.join(TOPDIR, '.coveragerc')):
-            shutil.copyfile(os.path.join(TOPDIR, '.coveragerc'),
-                            os.path.join(builddir, '.coveragerc'))
+            # Change the current working directory to the builddir during testing
+            # so coverage paths are correct.
+            builddir = os.path.abspath(build_py.build_lib)
+            if self.coverage and os.path.exists(os.path.join(TOPDIR, '.coveragerc')):
+                shutil.copyfile(os.path.join(TOPDIR, '.coveragerc'),
+                                os.path.join(builddir, '.coveragerc'))
+
         ret = subprocess.call([sys.executable, '-m', 'pytest'] + self.test_args, cwd=builddir)
         sys.exit(ret)
 
