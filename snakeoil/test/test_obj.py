@@ -29,7 +29,7 @@ class TestDelayedInstantiation(TestCase):
 
     def test_descriptor_awareness(self):
         def assertKls(cls, ignores=(),
-                      default_ignores=("__new__", "__init__", "__init_subclass__"
+                      default_ignores=("__new__", "__init__", "__init_subclass__",
                                        "__getattribute__", "__class__",
                                        "__getnewargs__", "__doc__")):
             required = set(x for x in dir(cls)
