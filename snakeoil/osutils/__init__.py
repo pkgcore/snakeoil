@@ -227,6 +227,23 @@ def abssymlink(path):
     return normpath(mylink)
 
 
+def force_symlink(target, link):
+    """
+    Force a symlink to be created.
+
+    :param target: target to link to
+    :param link: link to create
+    """
+    try:
+        os.symlink(target, link)
+    except OSError as e:
+        if e.errno == errno.EEXIST:
+            os.remove(link)
+            os.symlink(target, link)
+        else:
+            raise
+
+
 def abspath(path):
     """
     resolve a path absolutely, including symlink resolving.
