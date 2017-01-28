@@ -3,7 +3,7 @@
 import os
 import sys
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, Extension
 
 import pkgdist
 OptionalExtension = pkgdist.OptionalExtension
@@ -44,7 +44,25 @@ class config(pkgdist.config):
             return self.try_compile(
                 'int x[(sizeof(time_t) > sizeof(long)) ? 1 : -1];', ('sys/types.h',))
 
-if not pkgdist.is_py3k:
+
+build_deps = []
+if pkgdist.is_py3k:
+    cython_exts = ('_posix.pyx',)
+
+    # make sure cython is installed if necessary
+    for x in cython_exts:
+        generated_ext = os.path.join('snakeoil', os.path.splitext(x)[0] + '.c')
+        if not os.path.exists(generated_ext):
+            build_deps.append('cython')
+            break
+
+    for ext in cython_exts:
+        extensions.extend([
+            Extension(
+                'snakeoil.' + os.path.splitext(ext)[0],
+                [os.path.join(pkgdist.TOPDIR, pkgdist.PROJECT, ext)], **extra_kwargs),
+        ])
+else:
     extensions.extend([
         OptionalExtension(
             'snakeoil._posix',
@@ -67,7 +85,8 @@ if not pkgdist.is_py3k:
         OptionalExtension(
             'snakeoil.chksum._whirlpool_cdo',
             [os.path.join(pkgdist.TOPDIR, 'src', 'whirlpool_cdo.c')], **extra_kwargs),
-        ])
+    ])
+
 
 test_requirements = []
 if sys.hexversion < 0x03030000:
@@ -84,6 +103,7 @@ setup(
     author_email='python-snakeoil@googlegroups.com',
     packages=find_packages(),
     ext_modules=extensions,
+    install_requires=build_deps,
     headers=common_includes,
     tests_require=test_requirements,
     cmdclass={
