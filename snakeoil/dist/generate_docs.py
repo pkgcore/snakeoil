@@ -10,6 +10,7 @@ import sys
 import textwrap
 
 from snakeoil.dist.generate_man_rsts import ManConverter
+from snakeoil.osutils import force_symlink
 
 
 def generate_man(project, project_dir):
@@ -49,9 +50,8 @@ def generate_man(project, project_dir):
                     .. include:: {script}/main_description.rst
                     .. include:: {script}/main_options.rst
                 """.format(header=('=' * len(script)), script=script)))
-            os.symlink(os.path.join(gendir, rst), os.path.join(docdir, 'man', rst))
-        if not os.path.exists(os.path.join(docdir, 'man', script)):
-            os.symlink(os.path.join(gendir, script), os.path.join(docdir, 'man', script))
+            force_symlink(os.path.join(gendir, rst), os.path.join(docdir, 'man', rst))
+        force_symlink(os.path.join(gendir, script), os.path.join(docdir, 'man', script))
         ManConverter.regen_if_needed(gendir, module, out_name=script)
 
 
