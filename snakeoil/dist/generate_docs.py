@@ -13,6 +13,41 @@ from snakeoil.dist.generate_man_rsts import ManConverter
 from snakeoil.osutils import force_symlink
 
 
+def _generate_custom(project, docdir, gendir):
+    """Generate custom rst docs defined by a project.
+
+    Projects needing custom docs generated should place executable scripts in
+    doc/generate that output rst data which gets written to the same
+    subdirectory paths under doc/generated.
+
+    For example, during doc build the executable python script
+    doc/generate/custom/doc.py gets run and the rst output gets written to
+    doc/generated/custom/doc.rst allowing it to be sourced by other rst files.
+    """
+    custom_dir = os.path.join(docdir, 'generate')
+    print("Generating custom docs for {} in '{}'".format(project, gendir))
+
+    for root, dirs, files in os.walk(custom_dir):
+        subdir = root.split(custom_dir, 1)[1].strip('/')
+        if subdir:
+            try:
+                os.mkdir(os.path.join(gendir, subdir))
+            except OSError as e:
+                if e.errno != errno.EEXIST:
+                    raise
+
+        for script in (x for x in files if not x.startswith('.')):
+            script_path = os.path.join(custom_dir, subdir, script)
+            if not os.access(script_path, os.X_OK):
+                continue
+            rst = os.path.splitext(script)[0] + '.rst'
+            with open(os.path.join(gendir, subdir, rst), 'w') as f:
+                try:
+                    subprocess.call(script_path, stdout=f)
+                except:
+                    raise RuntimeError('unable to run script: {}'.format(os.path.join(custom_dir, subdir, script)))
+
+
 def generate_man(project, project_dir):
     """Generate man page rst docs for a project's installed scripts.
 
@@ -21,7 +56,6 @@ def generate_man(project, project_dir):
     """
     docdir = os.path.join(project_dir, 'doc')
     gendir = os.path.join(docdir, 'generated')
-    print("Generating files for {} man pages in '{}'".format(project, gendir))
 
     try:
         os.mkdir(gendir)
@@ -29,6 +63,7 @@ def generate_man(project, project_dir):
         if e.errno != errno.EEXIST:
             raise
 
+    print("Generating files for {} man pages in '{}'".format(project, gendir))
     scripts = os.listdir(os.path.abspath(os.path.join(project_dir, 'bin')))
 
     # Replace '-' with '_' due to python namespace contraints.
@@ -53,6 +88,8 @@ def generate_man(project, project_dir):
             force_symlink(os.path.join(gendir, rst), os.path.join(docdir, 'man', rst))
         force_symlink(os.path.join(gendir, script), os.path.join(docdir, 'man', script))
         ManConverter.regen_if_needed(gendir, module, out_name=script)
+
+    _generate_custom(project, docdir, gendir)
 
 
 def generate_html(project, project_dir):
