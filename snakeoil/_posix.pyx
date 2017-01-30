@@ -1,6 +1,7 @@
 # distutils: language = c
 
 from cpython.mem cimport PyMem_Malloc
+from cpython.bytes cimport PyBytes_AsString
 from libc.string cimport strdup
 
 
@@ -16,8 +17,7 @@ cdef bytes _chars(s):
 
 
 def normpath(old_path):
-    cdef bytes old_path_bytes = _chars(old_path)
-    cdef char *path = old_path_bytes
+    cdef char *path = PyBytes_AsString(_chars(old_path))
     cdef char *new_path = strdup(path)
     cdef char *write = new_path
     cdef int depth = 0
@@ -86,18 +86,18 @@ def normpath(old_path):
 
 
 def join(*args):
-    if not args:
+    if not len(args):
         raise TypeError("join takes at least one argument (0 given)")
 
     cdef ssize_t end = len(args)
-    cdef ssize_t start = 0, length = 1, i = 0
+    cdef ssize_t start = 0, length = 0, i = 0
     cdef bint leading_slash = False
 
-    for i, x in enumerate(args):
-        if not isinstance(x, str):
+    for i in xrange(end):
+        if not isinstance(args[i], str):
             raise TypeError("all args must be strings")
 
-        if x and '/' == x[0]:
+        if len(args[i]) and '/' == args[i][0]:
             leading_slash = True
             start = i
 
@@ -106,9 +106,9 @@ def join(*args):
     cdef char *s_end
     cdef char *s
 
-    for i in range(start, end):
+    for i in xrange(start, end):
         # this is safe because we're using CheckExact above.
-        s_start = s = _chars(args[i])
+        s_start = s = PyBytes_AsString(_chars(args[i]))
         while '\0' != s[0]:
             s += 1
         if s_start == s:
@@ -127,7 +127,7 @@ def join(*args):
                 length -= s_end - s - 1
 
     # ok... we know the length.  allocate a string, and copy it.
-    cdef char *ret = <char *>PyMem_Malloc(length * sizeof(char))
+    cdef char *ret = <char *>PyMem_Malloc((length + 1) * sizeof(char))
     if not ret:
         raise MemoryError()
 
@@ -138,8 +138,8 @@ def join(*args):
         buf[0] = '/'
         buf += 1
 
-    for i in range(start, end):
-        s_start = s = _chars(args[i])
+    for i in xrange(start, end):
+        s_start = s = PyBytes_AsString(_chars(args[i]))
         if i == start and leading_slash:
             # a slash is inserted anyways, thus we skip one ahead
             # so it doesn't gain an extra.
