@@ -16,7 +16,7 @@ try:
 except ImportError:
     import mock
 
-from snakeoil import osutils
+from snakeoil import osutils, compatibility
 from snakeoil.fileutils import touch
 from snakeoil.test import TestCase, SkipTest, mk_cpy_loadable_testcase
 from snakeoil.osutils import native_readdir, supported_systems
@@ -269,6 +269,10 @@ class Native_NormPathTest(TestCase):
         check('/foo/../../..', '/')
         check('/tmp/foo/../dar/', '/tmp/dar')
         check('/tmp/foo/../dar', '/tmp/dar')
+
+        if compatibility.is_py3k:
+            check('/tmṕ/föo//../dár', '/tmṕ/dár')
+            check('/föó/..', '/')
 
 
 class Cpy_NormPathTest(Native_NormPathTest):
