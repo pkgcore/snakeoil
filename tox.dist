@@ -1,4 +1,4 @@
-# generate dist files, source tarball and wheels 
+# generate dist files -- source tarball and wheels
 [tox]
 envlist = py27, py34, py35, py36
 skipsdist = True
@@ -9,7 +9,7 @@ deps =
 	wheel
 	py36: auditwheel
 commands =
-	python "{toxinidir}/setup.py" bdist_wheel
-	py36: python "{toxinidir}/setup.py" sdist
+	python "{toxinidir}"/setup.py bdist_wheel
+	py36: python "{toxinidir}"/setup.py sdist
 	# create cross-distro wheels on Linux
 	py36: bash -c "if [[ $OSTYPE =~ linux-* ]]; then for wheel in dist/*.whl; do auditwheel repair -w dist $wheel && rm $wheel; done; fi"
