@@ -11,4 +11,5 @@ deps =
 commands =
 	python "{toxinidir}/setup.py" bdist_wheel
 	py36: python "{toxinidir}/setup.py" sdist
-	py36: bash -c "for wheel in dist/*.whl; do auditwheel repair -w dist $wheel && rm $wheel; done"
+	# create cross-distro wheels on Linux
+	py36: bash -c "if [[ $OSTYPE =~ linux-* ]]; then for wheel in dist/*.whl; do auditwheel repair -w dist $wheel && rm $wheel; done; fi"
