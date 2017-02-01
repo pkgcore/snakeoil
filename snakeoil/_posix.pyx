@@ -3,9 +3,12 @@
 from cpython.mem cimport PyMem_Malloc
 from cpython.bytes cimport PyBytes_AsString
 from libc.string cimport strdup
+from libc.stdio cimport snprintf
+from libc.stdlib cimport atoi
+from posix.unistd cimport close, getpid
 
 
-cdef extern from "snakeoil/macros.h":
+cdef extern from "snakeoil/macros.h" nogil:
     void SKIP_SLASHES(char *s)
 
 
@@ -182,3 +185,67 @@ def join(*args):
     if isinstance(args[0], unicode):
         return ret.decode('utf8')
     return ret
+
+
+cdef void slow_closerange(int start, int end):
+    cdef int i
+    for i in xrange(start, end):
+        close(i)
+
+
+cdef extern from "dirent.h" nogil:
+    cdef struct dirent:
+        char *d_name
+    ctypedef struct DIR
+    int dirfd(DIR *dirp)
+    DIR *opendir(char *name)
+    int closedir(DIR *dirp)
+    dirent *readdir(DIR *dirp)
+    int readdir_r(DIR *dirp, dirent *entry, dirent **result)
+
+cdef extern from "osdefs.h" nogil:
+    enum: MAXPATHLEN
+
+
+def closerange(int start, int end):
+    cdef int i, fd_dir
+
+    if start >= end:
+        return
+
+    cdef DIR *dir_handle
+    cdef dirent *entry
+    cdef char path[MAXPATHLEN]
+
+    # Note that the version I submitted to python upstream has this in a
+    # ALLOW_THREADS block; snakeoils doesn't since it's pointless.
+    # Realistically the only time this code is ever ran is immediately post
+    # fork- where no threads can be running. Thus no gain to releasing the GIL
+    # then reacquiring it, thus we skip it.
+
+    snprintf(path, MAXPATHLEN, "/proc/%i/fd", getpid())
+
+    if dir_handle != opendir(path):
+        slow_closerange(start, end)
+        return
+
+    fd_dir = dirfd(dir_handle)
+
+    if fd_dir < 0:
+        closedir(dir_handle)
+        slow_closerange(start, end)
+        return
+
+    while True:
+        entry = readdir(dir_handle)
+        if entry == NULL:
+            break
+
+        if not entry.d_name[0].isdigit():
+            continue
+
+        i = atoi(entry.d_name)
+        if i >= start and i < end and i != fd_dir:
+            close(i)
+
+    closedir(dir_handle)
