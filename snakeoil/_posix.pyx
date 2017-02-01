@@ -13,6 +13,7 @@ cdef extern from "snakeoil/macros.h" nogil:
 
 
 cdef bytes _chars(s):
+    """Convert input string to bytes."""
     if isinstance(s, unicode):
         # encode to the specific encoding used inside of the module
         s = (<unicode>s).encode('utf8')
@@ -20,6 +21,7 @@ cdef bytes _chars(s):
 
 
 def normpath(old_path):
+    """Normalize a path entry."""
     cdef char *path = PyBytes_AsString(_chars(old_path))
     cdef char *new_path = strdup(path)
     cdef char *write = new_path
@@ -89,6 +91,7 @@ def normpath(old_path):
 
 
 def join(*args):
+    """Join multiple path items."""
     if not len(args):
         raise TypeError("join takes at least one argument (0 given)")
 
@@ -208,6 +211,7 @@ cdef extern from "osdefs.h" nogil:
 
 
 def closerange(int start, int end):
+    """Close a range of fds."""
     cdef int i, fd_dir
 
     if start >= end:
