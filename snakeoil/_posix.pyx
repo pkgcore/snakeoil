@@ -86,7 +86,7 @@ def normpath(old_path):
 
     new_path[write - new_path] = 0
     if isinstance(old_path, unicode):
-        return new_path.decode('utf8')
+        return new_path.decode()
     return new_path
 
 
@@ -186,7 +186,7 @@ def join(*args):
 
     buf[0] = '\0'
     if isinstance(args[0], unicode):
-        return ret.decode('utf8')
+        return ret.decode()
     return ret
 
 
