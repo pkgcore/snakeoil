@@ -121,11 +121,11 @@ def _safe_mkdir(path, mode):
             return False
     return True
 
-def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
-    """
-    ensure dirs exist, creating as needed with (optional) gid, uid, and mode.
 
-    be forewarned- if mode is specified to a mode that blocks the euid
+def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
+    """ensure dirs exist, creating as needed with (optional) gid, uid, and mode.
+
+    Be forewarned- if mode is specified to a mode that blocks the euid
     from accessing the dir, this code *will* try to create the dir.
 
     :param path: directory to ensure exists on disk
@@ -212,8 +212,7 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
 
 
 def abssymlink(path):
-    """
-    Return the absolute path of a symlink
+    """Return the absolute path of a symlink
 
     :param path: filepath to resolve
     :return: resolved path
@@ -228,8 +227,7 @@ def abssymlink(path):
 
 
 def force_symlink(target, link):
-    """
-    Force a symlink to be created.
+    """Force a symlink to be created.
 
     :param target: target to link to
     :param link: link to create
@@ -245,8 +243,7 @@ def force_symlink(target, link):
 
 
 def abspath(path):
-    """
-    resolve a path absolutely, including symlink resolving.
+    """resolve a path absolutely, including symlink resolving.
 
     Note that if it's a symlink and the target doesn't exist, it'll still
     return the target.
@@ -266,8 +263,7 @@ def abspath(path):
 
 
 def native_normpath(mypath):
-    """
-    normalize path- //usr/bin becomes /usr/bin, /usr/../bin becomes /bin
+    """normalize path- //usr/bin becomes /usr/bin, /usr/../bin becomes /bin
 
     see :py:func:`os.path.normpath` for details- this function differs from
     `os.path.normpath` only in that it'll convert leading '//' into '/'
@@ -289,11 +285,13 @@ except ImportError:
 # convenience.  importing join into a namespace is ugly, pjoin less so
 pjoin = join
 
+
 class LockException(Exception):
     """Base lock exception class"""
     def __init__(self, path, reason):
         Exception.__init__(self, path, reason)
         self.path, self.reason = path, reason
+
 
 class NonExistent(LockException):
     """Missing file/dir exception"""
@@ -305,6 +303,7 @@ class NonExistent(LockException):
         return (
             "Lock action for '%s' failed due to not being a valid dir/file %s"
             % (self.path, self.reason))
+
 
 class GenericFailed(LockException):
     """The fallback lock exception class.
@@ -321,10 +320,7 @@ class GenericFailed(LockException):
 
 
 class FsLock(object):
-
-    """
-    fnctl based filesystem lock
-    """
+    """fnctl based filesystem lock"""
 
     __metaclass__ = WeakRefFinalizer
     __slots__ = ("path", "fd", "create")
@@ -367,7 +363,7 @@ class FsLock(object):
         # https://github.com/pkgcore/snakeoil/pull/23
         if not blocking and flags != fcntl.LOCK_UN:
             try:
-                fcntl.flock(self.fd, flags|fcntl.LOCK_NB)
+                fcntl.flock(self.fd, flags | fcntl.LOCK_NB)
             except IOError as ie:
                 if ie.errno == errno.EAGAIN:
                     return False
@@ -461,9 +457,9 @@ if os.uname()[0].lower() == 'sunos':
 else:
     access = os.access
 
+
 def unlink_if_exists(path):
-    """
-    wrap os.unlink, ignoring if the file doesn't exist
+    """wrap os.unlink, ignoring if the file doesn't exist
 
     :param path: a non directory target to ensure doesn't exist
     """
@@ -491,8 +487,10 @@ def sizeof_fmt(size, binary=True):
 def stat_mtime_long(path, st=None):
     return (os.stat(path) if st is None else st)[stat.ST_MTIME]
 
+
 def lstat_mtime_long(path, st=None):
     return (os.lstat(path) if st is None else st)[stat.ST_MTIME]
+
 
 def fstat_mtime_long(fd, st=None):
     return (os.fstat(fd) if st is None else st)[stat.ST_MTIME]
