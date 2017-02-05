@@ -40,8 +40,9 @@ def _generate_custom(project, docdir, gendir):
             script_path = os.path.join(custom_dir, subdir, script)
             if not os.access(script_path, os.X_OK):
                 continue
-            rst = os.path.splitext(script)[0] + '.rst'
-            with open(os.path.join(gendir, subdir, rst), 'w') as f:
+            rst = os.path.join(gendir, subdir, os.path.splitext(script)[0] + '.rst')
+            print("generating {}".format(rst))
+            with open(rst, 'w') as f:
                 try:
                     subprocess.check_call(script_path, stdout=f)
                 except subprocess.CalledProcessError:
