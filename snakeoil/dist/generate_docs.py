@@ -43,9 +43,9 @@ def _generate_custom(project, docdir, gendir):
             rst = os.path.splitext(script)[0] + '.rst'
             with open(os.path.join(gendir, subdir, rst), 'w') as f:
                 try:
-                    subprocess.call(script_path, stdout=f)
-                except:
-                    raise RuntimeError('unable to run script: {}'.format(os.path.join(custom_dir, subdir, script)))
+                    subprocess.check_call(script_path, stdout=f)
+                except subprocess.CalledProcessError:
+                    raise RuntimeError('script failed to run: {}'.format(os.path.join(custom_dir, subdir, script)))
 
 
 def generate_man(project, project_dir):
