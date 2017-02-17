@@ -47,7 +47,7 @@ class config(pkgdist.config):
 
 build_deps = []
 if pkgdist.is_py3k:
-    cython_exts = ('_posix.pyx',)
+    cython_exts = ('_posix.pyx', '_sequences.pyx')
 
     # make sure cython is installed if necessary
     for x in cython_exts:
