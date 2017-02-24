@@ -1,4 +1,6 @@
 # generate dist files -- source tarball and wheels
+#
+# Note that auditwheel requires patchelf to be installed.
 [tox]
 envlist = py27, py34, py35, py36
 skipsdist = True
