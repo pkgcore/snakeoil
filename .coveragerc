@@ -2,6 +2,7 @@
 source = snakeoil
 branch = True
 omit = snakeoil/test/*, snakeoil/dist/*
+plugins = Cython.Coverage
 
 [report]
 show_missing = True
