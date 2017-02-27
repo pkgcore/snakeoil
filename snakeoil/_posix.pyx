@@ -229,7 +229,8 @@ def closerange(int start, int end):
 
     snprintf(path, MAXPATHLEN, "/proc/%i/fd", getpid())
 
-    if dir_handle != opendir(path):
+    dir_handle = opendir(path)
+    if dir_handle == NULL:
         slow_closerange(start, end)
         return
 
