@@ -6,6 +6,7 @@ from functools import partial
 from importlib import import_module
 import os
 import re
+from string import capwords
 import sys
 from textwrap import dedent
 
@@ -15,8 +16,10 @@ from snakeoil.cli import arghparse
 arghparse._generate_docs = True
 
 
-def _rst_header(char, text, leading=False):
+def _rst_header(char, text, leading=False, capitalize=True):
     s = char * len(text)
+    if capitalize:
+        text = capwords(text)
     if leading:
         return [s, text, s, '']
     return [text, s, '']
