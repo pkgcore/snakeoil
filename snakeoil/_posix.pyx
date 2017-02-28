@@ -8,6 +8,9 @@ from libc.stdlib cimport atoi
 from posix.unistd cimport close, getpid
 
 
+cdef extern from "ctype.h" nogil:
+    int isdigit(int c)
+
 cdef extern from "snakeoil/macros.h" nogil:
     void SKIP_SLASHES(char *s)
 
@@ -246,7 +249,7 @@ def closerange(int start, int end):
         if entry == NULL:
             break
 
-        if not entry.d_name[0].isdigit():
+        if not isdigit(entry.d_name[0]):
             continue
 
         i = atoi(entry.d_name)
