@@ -88,6 +88,7 @@ class NativeReaddirTest(ReaddirCommon):
     def test_missing(self):
         return self._test_missing((self.module.readdir,))
 
+
 try:
     # No name "readdir" in module osutils
     # pylint: disable=E0611
@@ -249,6 +250,7 @@ class Native_NormPathTest(TestCase):
 
     def test_normpath(self):
         f = self.func
+
         def check(src, val):
             got = f(src)
             self.assertEqual(got, val, msg=(
@@ -286,7 +288,7 @@ class Cpy_NormPathTest(Native_NormPathTest):
 class Cpy_JoinTest(TestCase):
 
     if osutils.join is osutils.native_join:
-        skip = "etension isn't compiled"
+        skip = "extension isn't compiled"
 
     def assertSame(self, val):
         self.assertEqual(
@@ -304,10 +306,8 @@ class Cpy_JoinTest(TestCase):
                 ["foo", "/bar"],
                 ["/bar", "dar"],
                 ["/bar", "../dar"],
-                ["", "../dar"]
-            ]:
+                ["", "../dar"]]:
             self.assertSame(vals)
-
 
 
 # TODO: more error condition testing
@@ -407,14 +407,13 @@ class TestAccess(TempDirMixin):
     def test_fallback(self):
         fp = pjoin(self.dir, "file")
         # create the file
-        with open(fp, 'w') as f:
-            pass
+        touch(fp)
         os.chmod(fp, 000)
         self.assertFalse(self.func(fp, os.X_OK))
         self.assertTrue(self.func(fp, os.W_OK))
         self.assertTrue(self.func(fp, os.R_OK))
-        self.assertTrue(self.func(fp, os.W_OK|os.R_OK))
-        self.assertFalse(self.func(fp, os.W_OK|os.R_OK|os.X_OK))
+        self.assertTrue(self.func(fp, os.W_OK | os.R_OK))
+        self.assertFalse(self.func(fp, os.W_OK | os.R_OK | os.X_OK))
 
 
 class Test_unlink_if_exists(TempDirMixin):
