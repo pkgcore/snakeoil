@@ -47,7 +47,7 @@ def is_running(pid):
     return status in ('R', 'S', 'D')
 
 
-def find_binary(binary, paths=None):
+def find_binary(binary, paths=None, fallback=None):
     """look through the PATH environment, finding the binary to execute"""
 
     if os.path.isabs(binary):
@@ -62,6 +62,9 @@ def find_binary(binary, paths=None):
         filename = os.path.join(path, binary)
         if access(filename, os.X_OK) and os.path.isfile(filename):
             return filename
+
+    if fallback is not None:
+        return fallback
 
     raise CommandNotFound(binary)
 
