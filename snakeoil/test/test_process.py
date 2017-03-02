@@ -5,6 +5,7 @@ import os
 import signal
 import sys
 import time
+import tempfile
 
 try:
     from unittest import mock
@@ -47,6 +48,14 @@ class TestFindBinary(mixins.TempDirMixin, TestCase):
         self.assertIn(self.dir, process.find_binary(script_name))
         self.assertIn(self.dir, process.find_binary(fp))
         os.unlink(fp)
+
+        # check PATH override
+        tempdir = tempfile.mkdtemp(dir=self.dir)
+        fp = os.path.join(tempdir, script_name)
+        touch(fp)
+        os.chmod(fp, 0o750)
+        self.assertRaises(process.CommandNotFound, process.find_binary, fp)
+        self.assertEqual(fp, process.find_binary(fp, paths=[tempdir]))
 
         # make sure dirs aren't returned as binaries
         self.assertRaises(
