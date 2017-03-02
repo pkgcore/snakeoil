@@ -28,9 +28,15 @@ class TestFindBinary(mixins.TempDirMixin, TestCase):
         mixins.TempDirMixin.tearDown(self)
 
     def test_find_binary(self):
-        script_name = "pkgcore-findpath-test.sh"
+        script_name = "findpath-test.sh"
         self.assertRaises(process.CommandNotFound,
                           process.find_binary, script_name)
+
+        # check fallback
+        self.assertEqual(
+            process.find_binary(script_name, fallback=os.path.join('usr', 'bin', script_name)),
+            os.path.join('usr', 'bin', script_name))
+
         fp = os.path.join(self.dir, script_name)
         touch(fp)
         os.chmod(fp, 0o640)
