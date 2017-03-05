@@ -168,6 +168,16 @@ def pkg_config(*packages, **kw):
     return kw
 
 
+def cython_exts(path=PROJECT):
+    """Return all available cython extensions under a given path."""
+    cython_exts = []
+    for root, _dirs, files in os.walk(path):
+        for f in files:
+            if f.endswith('.pyx'):
+                cython_exts.append(os.path.join(root, f))
+    return cython_exts
+
+
 class OptionalExtension(Extension):
     """Python extension that is optional to build.
 
@@ -225,12 +235,10 @@ class sdist(dst_sdist.sdist):
         build_ext.ensure_finalized()
 
         # generate cython extensions if any exist
-        cython = any(
-            os.path.splitext(f)[1] == '.pyx' for e in
-            build_ext.extensions for f in e.sources)
-        if cython:
+        extensions = cython_exts()
+        if extensions:
             from Cython.Build import cythonize
-            cythonize(build_ext.extensions)
+            cythonize(extensions)
 
         dst_sdist.sdist.run(self)
 
