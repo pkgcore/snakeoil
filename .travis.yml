@@ -12,7 +12,7 @@ sudo: false
 cache:
   directories:
     - $HOME/.cache/pip
-install: pip install tox coveralls codecov
+install: pip install tox coveralls codecov cython
 script: tox -e travis
 after_success:
   # upload coverage data
