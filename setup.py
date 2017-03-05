@@ -47,20 +47,25 @@ class config(pkgdist.config):
 
 build_deps = []
 if pkgdist.is_py3k:
-    cython_exts = pkgdist.cython_exts()
+    exts = []
+    cython_exts = []
 
-    # make sure cython is installed if necessary
-    for ext in cython_exts:
-        generated_ext = os.path.join('snakeoil', os.path.splitext(ext)[0] + '.c')
-        if not os.path.exists(generated_ext):
-            build_deps.append('cython')
-            break
+    # regenerate cython exts as necessary
+    for ext in pkgdist.cython_exts():
+        cythonized_ext = os.path.join('snakeoil', os.path.splitext(ext)[0] + '.c')
+        if os.path.exists(cythonized_ext):
+            exts.append(cythonized_ext)
+        else:
+            cython_exts.append(ext)
+
+    # require cython to build exts as necessary
+    if cython_exts:
+        build_deps.append('cython')
+        exts.extend(cython_exts)
 
     extensions.extend([
-        Extension(
-            'snakeoil.' + os.path.splitext(ext)[0],
-            [os.path.join(pkgdist.TOPDIR, pkgdist.PROJECT, ext)], **extra_kwargs)
-        for ext in cython_exts
+        Extension(os.path.splitext(ext)[0], [ext], **extra_kwargs)
+        for ext in exts
     ])
 else:
     extensions.extend([
