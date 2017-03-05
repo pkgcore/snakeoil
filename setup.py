@@ -47,11 +47,7 @@ class config(pkgdist.config):
 
 build_deps = []
 if pkgdist.is_py3k:
-    cython_exts = []
-    for _root, _dirs, files in os.walk(pkgdist.TOPDIR):
-        for f in files:
-            if f.endswith('.pyx'):
-                cython_exts.append(f)
+    cython_exts = pkgdist.cython_exts()
 
     # make sure cython is installed if necessary
     for ext in cython_exts:
