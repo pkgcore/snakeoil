@@ -12,7 +12,6 @@ Specifically, this module is only meant to be imported in setup.py scripts.
 
 import copy
 import errno
-import inspect
 import io
 import math
 import operator
@@ -40,7 +39,7 @@ from distutils.command import (
 READTHEDOCS = os.environ.get('READTHEDOCS', None) == 'True'
 
 # top level repo/tarball directory
-TOPDIR = os.path.dirname(os.path.abspath(inspect.stack(0)[1][1]))
+TOPDIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def find_project(topdir=TOPDIR):
@@ -63,7 +62,7 @@ def find_project(topdir=TOPDIR):
     if not modules:
         raise ValueError('No project module found')
     elif len(modules) > 1:
-        raise ValueError('Multiple project modules found: %s' % (', '.join(modules)))
+        raise ValueError('Multiple project modules found in %r: %s' % (topdir, ', '.join(modules)))
 
     return modules[0]
 
