@@ -293,6 +293,18 @@ class _SubParser(argparse._SubParsersAction):
             getattr(namespace, argparse._UNRECOGNIZED_ARGS_ATTR).extend(arg_strings)
 
 
+class HelpFormatter(argparse.HelpFormatter):
+    """Add custom help formatting for comma-separated list actions."""
+
+    def _format_args(self, action, default_metavar):
+        get_metavar = self._metavar_formatter(action, default_metavar)
+        if isinstance(action, (ExtendCommaDelimited, ExtendCommaDelimitedToggle)):
+            result = '%s[,%s,...]' % get_metavar(2)
+        else:
+            result = super(HelpFormatter, self)._format_args(action, default_metavar)
+        return result
+
+
 class ArgumentParser(argparse.ArgumentParser):
 
     def __init__(self, suppress=False, color=True, debug=True, quiet=True, verbose=True, version=True,
@@ -307,7 +319,7 @@ class ArgumentParser(argparse.ArgumentParser):
         self.docs = docs
 
         super(ArgumentParser, self).__init__(
-            description=description, add_help=False, **kwds)
+            description=description, formatter_class=HelpFormatter, add_help=False, **kwds)
 
         # register our custom actions
         self.register('action', 'parsers', _SubParser)
