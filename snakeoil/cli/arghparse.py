@@ -307,6 +307,16 @@ class HelpFormatter(argparse.HelpFormatter):
         return result
 
 
+class RawDescriptionHelpFormatter(HelpFormatter):
+    """Stub to override argparse's help formatter."""
+    pass
+
+
+class RawTextHelpFormatter(RawDescriptionHelpFormatter):
+    """Stub to override argparse's help formatter."""
+    pass
+
+
 class ArgumentParser(argparse.ArgumentParser):
 
     def __init__(self, suppress=False, color=True, debug=True, quiet=True, verbose=True, version=True,
