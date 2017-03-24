@@ -298,8 +298,10 @@ class HelpFormatter(argparse.HelpFormatter):
 
     def _format_args(self, action, default_metavar):
         get_metavar = self._metavar_formatter(action, default_metavar)
-        if isinstance(action, (ExtendCommaDelimited, ExtendCommaDelimitedToggle)):
+        if isinstance(action, ExtendCommaDelimited):
             result = '%s[,%s,...]' % get_metavar(2)
+        elif isinstance(action, ExtendCommaDelimitedToggle):
+            result = '%s[,-%s,...]' % get_metavar(2)
         else:
             result = super(HelpFormatter, self)._format_args(action, default_metavar)
         return result
