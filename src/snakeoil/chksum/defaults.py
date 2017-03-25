@@ -33,6 +33,10 @@ rmd160_size = 40
 sha256_size = 64
 sha512_size = 128
 whirlpool_size = 128
+sha3_256_size = 64
+sha3_512_size = 128
+blake2b_size = 128
+blake2s_size = 64
 
 
 def chf_thread(queue, callback):
@@ -231,6 +235,10 @@ for hashlibname, chksumname, size in [
 for hashlibname, chksumname, size in [
         ('ripemd160', 'rmd160', rmd160_size),
         ('whirlpool', 'whirlpool', whirlpool_size),
+        ('sha3_256', 'sha3_256', sha3_256_size),
+        ('sha3_512', 'sha3_512', sha3_512_size),
+        ('blake2b', 'blake2b', blake2b_size),
+        ('blake2s', 'blake2s', blake2s_size),
     ]:
     try:
         hashlib.new(hashlibname)
