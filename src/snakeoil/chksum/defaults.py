@@ -47,17 +47,21 @@ def chf_thread(queue, callback):
         data = qget()
 
 
-def chksum_loop_over_file(filename, chfs, parallelize=True):
+def chksum_loop_over_file(filename, chfs, parallelize=True, can_mmap=True):
     chfs = [chf() for chf in chfs]
-    loop_over_file(filename, [chf.update for chf in chfs], parallelize=parallelize)
+    loop_over_file(filename, [chf.update for chf in chfs], parallelize=parallelize,
+            can_mmap=can_mmap)
     return [long(chf.hexdigest(), 16) for chf in chfs]
 
 
-def loop_over_file(handle, callbacks, parallelize=True):
+def loop_over_file(handle, callbacks, parallelize=True, can_mmap=True):
     m = None
     close_f = True
     if isinstance(handle, basestring):
-        m, f = mmap_or_open_for_read(handle)
+        if can_mmap:
+            m, f = mmap_or_open_for_read(handle)
+        else:
+            f = open(handle, "rb")
     elif isinstance(handle, base_data_source):
         f = handle.bytes_fileobj()
     else:
@@ -117,10 +121,11 @@ def loop_over_file(handle, callbacks, parallelize=True):
 
 class Chksummer(object):
 
-    def __init__(self, chf_type, obj, str_size):
+    def __init__(self, chf_type, obj, str_size, can_mmap=True):
         self.obj = obj
         self.chf_type = chf_type
         self.str_size = str_size
+        self.can_mmap = can_mmap
 
     def new(self):
         return self.obj
@@ -133,7 +138,8 @@ class Chksummer(object):
         return long(val, 16)
 
     def __call__(self, filename):
-        return chksum_loop_over_file(filename, [self.obj])[0]
+        return chksum_loop_over_file(filename, [self.obj],
+                can_mmap=self.can_mmap)[0]
 
     def __str__(self):
         return "%s chksummer" % self.chf_type
@@ -268,7 +274,7 @@ for k, v, str_size in (
         continue
     try:
         chksum_types[k] = Chksummer(k, modules.load_attribute(
-            "Crypto.Hash.%s.new" % v), str_size)
+            "Crypto.Hash.%s.new" % v), str_size, can_mmap=False)
     except modules.FailedImport:
         pass
 
@@ -281,7 +287,8 @@ for k, v, str_size in (
         continue
     try:
         chksum_types[k] = Chksummer(k, partial(modules.load_attribute(
-            "Crypto.Hash.%s.new" % v), digest_bytes=str_size//2), str_size)
+            "Crypto.Hash.%s.new" % v), digest_bytes=str_size//2), str_size,
+            can_mmap=False)
     except modules.FailedImport:
         pass
 
