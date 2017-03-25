@@ -261,6 +261,8 @@ for k, v, str_size in (
         ("sha256", "SHA256", sha256_size),
         ("sha512", "SHA512", sha512_size),
         ("rmd160", "RIPEMD", rmd160_size),
+        ("sha3_256", "SHA3_256", sha3_256_size),
+        ("sha3_512", "SHA3_512", sha3_512_size),
     ):
     if k in chksum_types:
         continue
@@ -269,6 +271,20 @@ for k, v, str_size in (
             "Crypto.Hash.%s.new" % v), str_size)
     except modules.FailedImport:
         pass
+
+# BLAKE2 in pycryptodome needs explicit length parameter
+for k, v, str_size in (
+        ("blake2b", "BLAKE2b", blake2b_size),
+        ("blake2s", "BLAKE2s", blake2s_size),
+    ):
+    if k in chksum_types:
+        continue
+    try:
+        chksum_types[k] = Chksummer(k, partial(modules.load_attribute(
+            "Crypto.Hash.%s.new" % v), digest_bytes=str_size//2), str_size)
+    except modules.FailedImport:
+        pass
+
 # pylint: disable=undefined-loop-variable
 del k, v
 
