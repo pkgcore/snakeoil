@@ -124,8 +124,11 @@ def get_chksums(location, *chksums, **kwds):
         parallelize = False
     else:
         parallelize = kwds.get("parallelize", True)
+    can_mmap = True
+    for k in chksums:
+        can_mmap &= handlers[k].can_mmap
     return chksum_loop_over_file(location, [handlers[k].new() for k in chksums],
-                                 parallelize=parallelize)
+                                 parallelize=parallelize, can_mmap=can_mmap)
 
 
 class LazilyHashedPath(object):
