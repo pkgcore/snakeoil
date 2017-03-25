@@ -13,15 +13,24 @@ from snakeoil.data_source import data_source, local_source
 data = "afsd123klawerponzzbnzsdf;h89y23746123;haas"
 multi = 40000
 
+
+def require_chf(func):
+    def subfunc(self):
+        if self.chf is None:
+            raise SkipTest(
+                'no handler for %s, do you need to install PyCrypto or mhash?'
+                % (self.chf_type,))
+        func(self)
+    return subfunc
+
+
 class base(object):
 
     def get_chf(self):
         try:
             self.chf = chksum.get_handler(self.chf_type)
         except KeyError:
-            raise SkipTest(
-                'no handler for %s, do you need to install PyCrypto or mhash?'
-                % (self.chf_type,))
+            self.chf = None
 
     def setUp(self):
         self.get_chf()
@@ -36,13 +45,16 @@ class base(object):
         except IOError:
             pass
 
+    @require_chf
     def test_fp_check(self):
         self.assertEqual(self.chf(self.fn), self.expected_long)
 
+    @require_chf
     def test_fileobj_check(self):
         with open(self.fn, "r") as f:
             self.assertEqual(self.chf(f), self.expected_long)
 
+    @require_chf
     def test_data_source_check(self):
         self.assertEqual(self.chf(local_source(self.fn)), self.expected_long)
         self.assertEqual(
@@ -50,6 +62,7 @@ class base(object):
 
 class ChksumTest(base):
 
+    @require_chf
     def test_str2long(self):
         self.assertEqual(self.chf.str2long(self.expected_str),
                          self.expected_long)
@@ -58,6 +71,7 @@ class ChksumTest(base):
         for x in extra_chksums.get(self.chf_type, ()):
             self.assertEqual(self.chf.str2long(x), long(x, 16))
 
+    @require_chf
     def test_long2str(self):
         self.assertEqual(self.chf.long2str(self.expected_long),
                          self.expected_str)
