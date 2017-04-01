@@ -3,10 +3,8 @@
 """string related methods"""
 
 
-def pluralism(obj, suffixes=(None, '', 's')):
+def pluralism(obj, none=None, singular='', plural='s'):
     """Return singular or plural suffix depending on object's length or value."""
-    none, singular, plural = suffixes
-
     # default to plural for empty objects, e.g. there are 0 repos
     if none is None:
         none = plural
