@@ -330,6 +330,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
     def __init__(self, suppress=False, color=True, debug=True, quiet=True, verbose=True, version=True,
                  add_help=True, description=None, docs=None, **kwds):
+        self.debug = debug and '--debug' in sys.argv[1:]
         self.suppress = suppress
 
         if description is not None:
