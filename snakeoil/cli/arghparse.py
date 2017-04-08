@@ -340,8 +340,14 @@ class ArgumentParser(argparse.ArgumentParser):
                 docs = description_lines[1]
         self.docs = docs
 
+        # output help in a sorted format if debug mode is enabled
+        if self.debug:
+            formatter = SortedHelpFormatter
+        else:
+            formatter = HelpFormatter
+
         super(ArgumentParser, self).__init__(
-            description=description, formatter_class=HelpFormatter, add_help=False, **kwds)
+            description=description, formatter_class=formatter, add_help=False, **kwds)
 
         # register our custom actions
         self.register('action', 'parsers', _SubParser)
