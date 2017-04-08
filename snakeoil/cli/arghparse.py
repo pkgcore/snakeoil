@@ -15,6 +15,7 @@ from snakeoil.demandload import demandload
 demandload(
     'inspect',
     'itertools',
+    'operator:attrgetter',
     'logging',
     'textwrap:dedent',
     'snakeoil:osutils',
@@ -305,6 +306,14 @@ class HelpFormatter(argparse.HelpFormatter):
         else:
             result = super(HelpFormatter, self)._format_args(action, default_metavar)
         return result
+
+
+class SortedHelpFormatter(HelpFormatter):
+    """Help formatter that sorts arguments by option strings."""
+
+    def add_arguments(self, actions):
+        actions = sorted(actions, key=attrgetter('option_strings'))
+        super(SortedHelpFormatter, self).add_arguments(actions)
 
 
 class RawDescriptionHelpFormatter(HelpFormatter):
