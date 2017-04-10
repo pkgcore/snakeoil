@@ -67,11 +67,6 @@ def _add_argument_docs(orig_func, self, *args, **kwargs):
     return obj
 
 
-class ArgumentError(Exception):
-    """Generic error relating to argument creation or usage."""
-    pass
-
-
 class ExtendCommaDelimited(argparse._AppendAction):
     """Split comma-separated values into a list."""
 
@@ -438,7 +433,7 @@ class ArgumentParser(argparse.ArgumentParser):
                 delayed(args, attr)
         except (TypeError, ValueError) as err:
             self.error("failed loading/parsing '%s': %s" % (attr, str(err)))
-        except (ArgumentError, argparse.ArgumentError):
+        except argparse.ArgumentError:
             err = sys.exc_info()[1]
             self.error(str(err))
 
