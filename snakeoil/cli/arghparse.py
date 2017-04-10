@@ -331,14 +331,14 @@ class ArgumentParser(argparse.ArgumentParser):
     def __init__(self, suppress=False, color=True, debug=True, quiet=True, verbose=True, version=True,
                  add_help=True, description=None, docs=None, **kwds):
         self.debug = debug and '--debug' in sys.argv[1:]
-        self.suppress = suppress
+        self._suppress = suppress
 
         if description is not None:
             description_lines = description.split('\n', 1)
             description = description_lines[0]
             if docs is None and len(description_lines) == 2:
                 docs = description_lines[1]
-        self.docs = docs
+        self._docs = docs
 
         # output help in a sorted format if debug mode is enabled
         if self.debug:
@@ -354,7 +354,7 @@ class ArgumentParser(argparse.ArgumentParser):
         self.register('action', 'extend_comma', ExtendCommaDelimited)
         self.register('action', 'extend_comma_toggle', ExtendCommaDelimitedToggle)
 
-        if not self.suppress:
+        if not self._suppress:
             if add_help:
                 self.add_argument(
                     '-h', '--help', action='help', default=argparse.SUPPRESS,
