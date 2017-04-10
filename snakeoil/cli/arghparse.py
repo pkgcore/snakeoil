@@ -329,7 +329,7 @@ class RawTextHelpFormatter(RawDescriptionHelpFormatter):
 class ArgumentParser(argparse.ArgumentParser):
 
     def __init__(self, suppress=False, color=True, debug=True, quiet=True, verbose=True, version=True,
-                 add_help=True, description=None, docs=None, **kwds):
+                 add_help=True, sorted_help=False, description=None, docs=None, **kwds):
         self.debug = debug and '--debug' in sys.argv[1:]
         self._suppress = suppress
 
@@ -340,8 +340,7 @@ class ArgumentParser(argparse.ArgumentParser):
                 docs = description_lines[1]
         self._docs = docs
 
-        # output help in a sorted format if debug mode is enabled
-        if self.debug:
+        if sorted_help:
             formatter = SortedHelpFormatter
         else:
             formatter = HelpFormatter
