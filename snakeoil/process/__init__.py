@@ -59,7 +59,7 @@ def find_binary(binary, paths=None, fallback=None):
         paths = os.environ.get("PATH", "").split(":")
 
     for path in paths:
-        filename = os.path.join(path, binary)
+        filename = os.path.join(os.path.abspath(path), binary)
         if access(filename, os.X_OK) and os.path.isfile(filename):
             return filename
 
