@@ -34,7 +34,7 @@ except ImportError:
     max_fd_limit = 256
 
 
-def spawn_bash(mycommand, debug=False, name=None, **keywords):
+def spawn_bash(mycommand, debug=False, name=None, **kwds):
     """spawn the command via bash -c"""
 
     args = [BASH_BINARY, '--norc', '--noprofile']
@@ -48,14 +48,14 @@ def spawn_bash(mycommand, debug=False, name=None, **keywords):
         args.extend(mycommand)
     if name is None:
         name = os.path.basename(args[3])
-    return spawn(args, name=name, **keywords)
+    return spawn(args, name=name, **kwds)
 
 
-def spawn_sandbox(mycommand, name=None, **keywords):
+def spawn_sandbox(mycommand, name=None, **kwds):
     """spawn the command under sandboxed"""
 
     if not is_sandbox_capable():
-        return spawn_bash(mycommand, name=name, **keywords)
+        return spawn_bash(mycommand, name=name, **kwds)
     args = [SANDBOX_BINARY]
     if isinstance(mycommand, str):
         args.extend(mycommand.split())
@@ -63,7 +63,7 @@ def spawn_sandbox(mycommand, name=None, **keywords):
         args.extend(mycommand)
     if name is None:
         name = os.path.basename(args[1])
-    return spawn(args, name=name, **keywords)
+    return spawn(args, name=name, **kwds)
 
 
 _exithandlers = []
@@ -304,7 +304,7 @@ def _exec(binary, mycommand, name=None, fd_pipes=None, env=None, gid=None,
 
 
 def spawn_get_output(mycommand, spawn_type=None, raw_exit_code=False, collect_fds=(1,),
-                     fd_pipes=None, split_lines=True, **keywords):
+                     fd_pipes=None, split_lines=True, **kwds):
 
     """Call spawn, collecting the output to fd's specified in collect_fds list.
 
@@ -325,8 +325,8 @@ def spawn_get_output(mycommand, spawn_type=None, raw_exit_code=False, collect_fd
         pr, pw = os.pipe()
         for x in collect_fds:
             fd_pipes[x] = pw
-        keywords["returnpid"] = True
-        mypid = spawn_type(mycommand, fd_pipes=fd_pipes, **keywords)
+        kwds["returnpid"] = True
+        mypid = spawn_type(mycommand, fd_pipes=fd_pipes, **kwds)
         os.close(pw)
         pw = None
 
