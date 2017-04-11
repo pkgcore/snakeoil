@@ -67,6 +67,12 @@ def _add_argument_docs(orig_func, self, *args, **kwargs):
     return obj
 
 
+# TODO: deprecated, remove in 0.8.0
+class ArgumentError(Exception):
+    """Generic error relating to argument creation or usage."""
+    pass
+
+
 class ExtendCommaDelimited(argparse._AppendAction):
     """Split comma-separated values into a list."""
 
