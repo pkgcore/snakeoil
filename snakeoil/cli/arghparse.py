@@ -332,7 +332,7 @@ class ArgumentParser(argparse.ArgumentParser):
     def __init__(self, suppress=False, color=True, debug=True, quiet=True, verbose=True, version=True,
                  add_help=True, sorted_help=False, description=None, docs=None, **kwds):
         self.debug = debug and '--debug' in sys.argv[1:]
-        self._suppress = suppress
+        self.suppress = suppress  # TODO: deprecated, drop in 0.8.0
 
         if description is not None:
             description_lines = description.split('\n', 1)
@@ -354,7 +354,7 @@ class ArgumentParser(argparse.ArgumentParser):
         self.register('action', 'extend_comma', ExtendCommaDelimited)
         self.register('action', 'extend_comma_toggle', ExtendCommaDelimitedToggle)
 
-        if not self._suppress:
+        if not suppress:
             if add_help:
                 self.add_argument(
                     '-h', '--help', action='help', default=argparse.SUPPRESS,
