@@ -109,7 +109,6 @@ setup(
     packages=find_packages(),
     ext_modules=extensions,
     setup_requires=build_deps,
-    install_requires=build_deps,
     headers=common_includes,
     tests_require=test_requirements,
     cmdclass={
