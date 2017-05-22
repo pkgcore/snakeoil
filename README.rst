@@ -21,7 +21,7 @@ Installing from git in a virtualenv::
 
 Installing from a tarball or git repo::
 
-    python setup.py install
+    python setup.py install install_headers
 
 Tests
 =====
