@@ -20,20 +20,12 @@ cache:
 install:
   - pip install --upgrade pip
   - pip install --only-binary ":all:" tox codecov cython
-script: tox -e travis
+script:
+  - tox -e travis
+  # build/upload dist files for tagged builds
+  - .travis/build-dist-files.sh
 after_success:
   # upload coverage data
   - pushd .tox/travis/lib/python*/site-packages
   - codecov
   - popd
-
-  # build/upload dist files for tagged builds
-  - |
-      if [[ $TRAVIS_PYTHON_VERSION == "2.7" ]] && [[ -n $TRAVIS_TAG ]]; then
-        python3 -m pip install --only-binary ':all:' cython
-        python3 setup.py sdist
-        pip install cibuildwheel
-        cibuildwheel --output-dir dist
-        pip install twine
-        twine upload dist/*
-      fi
