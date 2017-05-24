@@ -20,10 +20,10 @@ cache:
 install:
   - pip install --upgrade pip
   - pip install --only-binary ":all:" tox codecov cython
+before_script: git clone https://github.com/pkgcore/pkgdist.git
 script:
   - tox -e travis
-  # build/upload dist files for tagged builds
-  - .travis/build-dist-files.sh
+  - pkgdist/build-dist-files.sh
 after_success:
   # upload coverage data
   - pushd .tox/travis/lib/python*/site-packages
