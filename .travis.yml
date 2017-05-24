@@ -10,7 +10,7 @@ env:
     - secure: "QdJ5ybg/mB+AXIWnLlUW2IA8h/MGuIsQoThe7AplSd/Ol6ZCe1idORH9P+ebroG4SRKGXUKnk5+QY6TX/gBg4LEt3ja/ELUf8eSkq5tkl5mGfm3nstsBuDDPLx2ogpIuqyoZ5k2wqjHs5q7+HrLvmAeTU7S+qWuwdZ3CNrS+x0I="
     - CIBW_PLATFORM=linux
     - CIBW_SKIP="cp26-* cp33-*"
-    - CIBW_BEFORE_BUILD="{pip} install --only-binary ':all:' cython"
+    - CIBW_BEFORE_BUILD="{pip} install -r requirements.txt"
 sudo: required
 services:
   - docker
@@ -19,7 +19,8 @@ cache:
     - $HOME/.cache/pip
 install:
   - pip install --upgrade pip
-  - pip install --only-binary ":all:" tox codecov cython
+  - pip install --only-binary ":all:" tox codecov
+  - pip install -r requirements.txt
 before_script: git clone https://github.com/pkgcore/pkgdist.git
 script:
   - tox -e travis
