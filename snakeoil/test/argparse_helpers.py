@@ -40,6 +40,8 @@ def mangle_parser(parser):
     parser = copy(parser)
     parser.exit = noexit
     parser.error = noerror
+    parser.out = FakeStreamFormatter()
+    parser.err = FakeStreamFormatter()
     return parser
 
 
