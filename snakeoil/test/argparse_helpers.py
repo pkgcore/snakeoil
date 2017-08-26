@@ -133,7 +133,7 @@ class ArgParseMixin(object):
 
         args are passed to parse_args
         """
-        return self.parser.parse_args(list(args))
+        return self.parser.parse_args(*args, **kwargs)
 
     @property
     def parser(self):
