@@ -4,6 +4,7 @@
 
 import argparse
 import errno
+from importlib import import_module
 import os
 import subprocess
 import sys
@@ -43,6 +44,15 @@ def _generate_custom(project, docdir, gendir):
             rst = os.path.join(gendir, subdir, os.path.splitext(script)[0] + '.rst')
             print("generating {}".format(rst))
             with open(rst, 'w') as f:
+                # add script docstring to output doc
+                orig_syspath = sys.path
+                sys.path.insert(0, os.path.dirname(script_path))
+                module = import_module(os.path.basename(os.path.splitext(script_path)[0]))
+                if module.__doc__:
+                    f.write(module.__doc__.strip() + '\n')
+                    f.flush()
+                sys.path = orig_syspath
+
                 try:
                     subprocess.check_call(script_path, stdout=f)
                 except subprocess.CalledProcessError:
