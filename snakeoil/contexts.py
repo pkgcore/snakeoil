@@ -1,5 +1,18 @@
 # Copyright: 2015 Tim Harder <radhermit@gmail.com>
-#
+
+"""Various with-statement context utilities."""
+
+from contextlib import contextmanager
+import errno
+import inspect
+from importlib import import_module
+import os
+from multiprocessing.connection import Pipe
+import sys
+import threading
+import traceback
+
+
 # Ideas and code for SplitExec have been borrowed from withhacks
 # (https://pypi.python.org/pypi/withhacks) governed by the MIT license found
 # below.
@@ -23,18 +36,6 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-
-"""Various with-statement context utilities."""
-
-from contextlib import contextmanager
-import errno
-import inspect
-import os
-from multiprocessing.connection import Pipe
-import sys
-import threading
-import traceback
-
 
 class SplitExec(object):
     """Context manager separating code execution across parent/child processes.
