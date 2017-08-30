@@ -243,3 +243,73 @@ def chdir(path):
         yield
     finally:
         os.chdir(orig_cwd)
+
+
+# Ideas and code for the patch context manager have been borrowed from mock
+# (https://github.com/testing-cabal/mock) governed by the BSD-2 license found
+# below.
+#
+# Copyright (c) 2007-2013, Michael Foord & the mock team
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above
+#       copyright notice, this list of conditions and the following
+#       disclaimer in the documentation and/or other materials provided
+#       with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+@contextmanager
+def patch(target, new):
+    """Simplified module monkey patching via context manager.
+
+    Args:
+        target: Target class or object.
+        new: Object or value to replace the target with.
+    """
+
+    def _import_module(target):
+        components = target.split('.')
+        import_path = components.pop(0)
+        module = import_module(import_path)
+        for comp in components:
+            try:
+                module = getattr(module, comp)
+            except AttributeError:
+                import_path += ".%s" % comp
+                module = import_module(import_path)
+        return module
+
+    def _get_target(target):
+        try:
+            module, attr = target.rsplit('.', 1)
+        except (TypeError, ValueError):
+            raise TypeError("invalid target: %r" % (target,))
+        module = _import_module(module)
+        return module, attr
+
+    module, attr = _get_target(target)
+    orig_attr = getattr(module, attr)
+    setattr(module, attr, new)
+
+    try:
+        yield
+    finally:
+        setattr(module, attr, orig_attr)
