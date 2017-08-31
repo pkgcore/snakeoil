@@ -29,11 +29,11 @@ demandload(
 _generate_docs = False
 
 
-@patch(argparse.ArgumentParser, 'add_subparsers')
-@patch(argparse._SubParsersAction, 'add_parser')
-@patch(argparse._ActionsContainer, 'add_mutually_exclusive_group')
-@patch(argparse._ActionsContainer, 'add_argument_group')
-@patch(argparse._ActionsContainer, 'add_argument')
+@patch('argparse.ArgumentParser.add_subparsers')
+@patch('argparse._SubParsersAction.add_parser')
+@patch('argparse._ActionsContainer.add_mutually_exclusive_group')
+@patch('argparse._ActionsContainer.add_argument_group')
+@patch('argparse._ActionsContainer.add_argument')
 def _add_argument_docs(orig_func, self, *args, **kwargs):
     """Enable docs keyword argument support for argparse arguments.
 

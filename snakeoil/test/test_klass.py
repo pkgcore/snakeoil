@@ -2,7 +2,19 @@
 # License: BSD/GPL2
 
 from functools import partial
+import math
 from time import time
+
+try:
+    # py3.4 and up
+    from importlib import reload
+except ImportError:
+    try:
+        # py3.3
+        from imp import reload
+    except ImportError:
+        # py2
+        pass
 
 from snakeoil import klass
 from snakeoil.compatibility import cmp, is_py3k
@@ -628,47 +640,30 @@ class TestAliasMethod(TestCase):
 class TestPatch(TestCase):
 
     def test_patch(self):
-        import math
+        # force using an unpatched version of math
+        reload(math)
 
         n = 0.1
         self.assertEqual(math.ceil(n), 1)
 
-        @klass.patch(math, 'ceil')
+        @klass.patch('math.ceil')
         def ceil(orig_ceil, n):
             return math.floor(n)
 
         self.assertEqual(math.ceil(n), 0)
 
     def test_multiple_patches(self):
-        class kls(object):
-            def false(self, *arg, **kwargs):
-                return False
+        # force using an unpatched version of math
+        reload(math)
 
-        class kls2(object):
-            def false(self, *arg, **kwargs):
-                return False
+        n = 1.1
+        self.assertEqual(math.ceil(n), 2)
+        self.assertEqual(math.floor(n), 1)
 
-        self.assertFalse(kls().false())
-        self.assertFalse(kls2().false())
+        @klass.patch('math.ceil')
+        @klass.patch('math.floor')
+        def zero(orig_func, n):
+            return 0
 
-        @klass.patch(kls2, 'false')
-        @klass.patch(kls, 'false')
-        def true(orig_func, *args, **kwargs):
-            return True
-
-        self.assertTrue(kls().false())
-        self.assertTrue(kls2().false())
-
-    def test_patch_external_decorator(self):
-        class kls(object):
-            @staticmethod
-            def false(*arg, **kwargs):
-                return False
-
-        self.assertFalse(kls.false())
-
-        @klass.patch(kls, 'false', staticmethod)
-        def false(orig_func, *args, **kwargs):
-            return True
-
-        self.assertTrue(kls.false())
+        self.assertEqual(math.ceil(n), 0)
+        self.assertEqual(math.floor(n), 0)
