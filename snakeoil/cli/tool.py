@@ -117,9 +117,7 @@ class Tool(object):
             options = self.parse_args(args=self.args, namespace=self.options)
             main_func = getattr(options, 'main_func', None)
             if main_func is None:
-                raise Exception(
-                    "parser %r lacks a main method- internal bug.\nGot namespace %r\n"
-                    % (self.parser, options))
+                raise RuntimeError("argparser missing main method")
             exitstatus = main_func(options, self.out, self.err)
         except KeyboardInterrupt:
             self._errfile.write('keyboard interrupted- exiting')
