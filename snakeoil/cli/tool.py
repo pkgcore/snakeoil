@@ -21,11 +21,19 @@ demandload(
 class Tool(object):
     """Abstraction for commandline tools."""
 
-    def __init__(self, parser, args=None, namespace=None, outfile=None, errfile=None):
+    # TODO: parser param deprecated, drop in 0.8.0
+    def __init__(self, module, parser=None):
         """Initialize the utility to run.
 
+        :param module: imported script module to run
         :type parser: :obj:`ArgumentParser` subclass instance
         :param parser: argparser instance defining valid arguments for the given tool.
+        """
+        self.parser = parser if parser is not None else getattr(module, 'argparser', None)
+
+    def __call__(self, args=None, namespace=None, outfile=None, errfile=None):
+        """Run the utility.
+
         :type args: sequence of strings
         :param args: arguments to parse, defaulting to C{sys.argv[1:]}.
         :type namespace: argparse.Namespace object
@@ -35,7 +43,6 @@ class Tool(object):
         :type errfile: file-like object
         :param errfile: File to use for stderr, defaults to C{sys.stderr}.
         """
-        self.parser = parser
         self.args = args
         self.options = namespace
 
@@ -72,8 +79,11 @@ class Tool(object):
 
         self._outfile = outfile
         self._errfile = errfile
-        self.out = parser.out = formatters.PlainTextFormatter(outfile)
-        self.err = parser.err = formatters.PlainTextFormatter(errfile)
+        self.out = self.parser.out = formatters.PlainTextFormatter(outfile)
+        self.err = self.parser.err = formatters.PlainTextFormatter(errfile)
+
+        # run script and return exit status
+        return self.main()
 
     def parse_args(self, args=None, namespace=None):
         """Parse the given arguments using argparse.
@@ -139,7 +149,7 @@ class Tool(object):
             else:
                 self.out.title('%s succeeded' % (self.options.prog,))
 
-        raise SystemExit(exitstatus)
+        return exitstatus
 
 
 class FormattingHandler(logging.Handler):
