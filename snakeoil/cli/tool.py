@@ -114,11 +114,11 @@ class Tool(object):
         signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
         try:
-            options = self.parse_args(args=self.args, namespace=self.options)
-            main_func = getattr(options, 'main_func', None)
+            self.options = self.parse_args(args=self.args, namespace=self.options)
+            main_func = getattr(self.options, 'main_func', None)
             if main_func is None:
                 raise RuntimeError("argparser missing main method")
-            exitstatus = main_func(options, self.out, self.err)
+            exitstatus = main_func(self.options, self.out, self.err)
         except KeyboardInterrupt:
             self._errfile.write('keyboard interrupted- exiting')
             if self.parser.debug:
@@ -132,12 +132,12 @@ class Tool(object):
             # handle custom execution-related exceptions
             self.handle_exec_exception(e)
 
-        if options is not None:
+        if self.options is not None:
             # set terminal title on exit
             if exitstatus:
-                self.out.title('%s failed' % (options.prog,))
+                self.out.title('%s failed' % (self.options.prog,))
             else:
-                self.out.title('%s succeeded' % (options.prog,))
+                self.out.title('%s succeeded' % (self.options.prog,))
 
         raise SystemExit(exitstatus)
 
