@@ -101,6 +101,10 @@ class DictMixin(object):
     def __iter__(self):
         return self.iterkeys()
 
+    @steal_docs(dict)
+    def __str__(self):
+        return str(dict(self.iteritems()))
+
     def iteritems(self):
         for k in self:
             yield k, self[k]
