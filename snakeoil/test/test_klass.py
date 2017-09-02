@@ -5,17 +5,6 @@ from functools import partial
 import math
 from time import time
 
-try:
-    # py3.4 and up
-    from importlib import reload
-except ImportError:
-    try:
-        # py3.3
-        from imp import reload
-    except ImportError:
-        # py2
-        pass
-
 from snakeoil import klass
 from snakeoil.compatibility import cmp, is_py3k
 from snakeoil.test import TestCase, mk_cpy_loadable_testcase, not_a_test
@@ -639,10 +628,17 @@ class TestAliasMethod(TestCase):
 
 class TestPatch(TestCase):
 
-    def test_patch(self):
-        # force using an unpatched version of math
-        reload(math)
+    def setUp(self):
+        # cache original methods
+        self._math_ceil = math.ceil
+        self._math_floor = math.floor
 
+    def tearDown(self):
+        # restore original methods
+        math.ceil = self._math_ceil
+        math.floor = self._math_floor
+
+    def test_patch(self):
         n = 0.1
         self.assertEqual(math.ceil(n), 1)
 
@@ -653,9 +649,6 @@ class TestPatch(TestCase):
         self.assertEqual(math.ceil(n), 0)
 
     def test_multiple_patches(self):
-        # force using an unpatched version of math
-        reload(math)
-
         n = 1.1
         self.assertEqual(math.ceil(n), 2)
         self.assertEqual(math.floor(n), 1)
