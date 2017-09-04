@@ -56,8 +56,8 @@ For bugs and feature requests please create an issue on Github_.
     :target: https://pypi.python.org/pypi/snakeoil
 .. |test| image:: https://travis-ci.org/pkgcore/snakeoil.svg?branch=master
     :target: https://travis-ci.org/pkgcore/snakeoil
-.. |coverage| image:: https://coveralls.io/repos/pkgcore/snakeoil/badge.png?branch=master
-    :target: https://coveralls.io/r/pkgcore/snakeoil?branch=master
+.. |coverage| image:: https://codecov.io/gh/pkgcore/snakeoil/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/pkgcore/snakeoil
 .. |docs| image:: https://readthedocs.org/projects/snakeoil/badge/?version=latest
     :target: http://snakeoil.readthedocs.org/
     :alt: Documentation Status
