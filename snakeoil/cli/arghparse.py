@@ -349,6 +349,7 @@ class ArgumentParser(argparse.ArgumentParser):
             raise ValueError('argparser missing or invalid script=(__file__, __name__) attribute')
 
         project = script_module.split('.')[0]
+        prog = script_module.split('.')[-1]
 
         if sorted_help:
             formatter = SortedHelpFormatter
@@ -356,7 +357,8 @@ class ArgumentParser(argparse.ArgumentParser):
             formatter = HelpFormatter
 
         super(ArgumentParser, self).__init__(
-            description=description, formatter_class=formatter, add_help=False, **kwds)
+            description=description, formatter_class=formatter,
+            prog=prog, add_help=False, **kwds)
 
         # register our custom actions
         self.register('action', 'parsers', _SubParser)
