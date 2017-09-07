@@ -488,6 +488,7 @@ class ArgumentParser(argparse.ArgumentParser):
     def add_subparsers(self, **kwargs):
         kwargs.setdefault('title', 'subcommands')
         kwargs.setdefault('dest', 'subcommand')
+        kwargs.setdefault('prog', self.prog)
         subparsers = argparse.ArgumentParser.add_subparsers(self, **kwargs)
         subparsers.required = True
         return subparsers
