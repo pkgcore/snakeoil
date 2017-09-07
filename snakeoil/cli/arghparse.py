@@ -328,8 +328,9 @@ class RawTextHelpFormatter(RawDescriptionHelpFormatter):
 
 class ArgumentParser(argparse.ArgumentParser):
 
-    def __init__(self, suppress=False, color=True, debug=True, quiet=True, verbose=True, version=True,
-                 add_help=True, sorted_help=False, description=None, docs=None, script=None, **kwds):
+    def __init__(self, suppress=False, color=True, debug=True, quiet=True,
+                 verbose=True, version=True, add_help=True, sorted_help=False,
+                 description=None, docs=None, script=None, prog=None, **kwds):
         self.debug = debug and '--debug' in sys.argv[1:]
         self.suppress = suppress  # TODO: deprecated, drop in 0.8.0
 
@@ -340,16 +341,20 @@ class ArgumentParser(argparse.ArgumentParser):
                 docs = description_lines[1]
         self._docs = docs
 
-        # All consumers must provide the 'script=(__file__, __name__)' param.
-        try:
-            script_path, script_module = script
-            if not os.path.exists(script_path):
-                raise TypeError
-        except TypeError:
-            raise ValueError('argparser missing or invalid script=(__file__, __name__) attribute')
+        # Consumers can provide the 'script=(__file__, __name__)' parameter in
+        # order for version and prog values to be automatically extracted.
+        if script is not None:
+            try:
+                script_path, script_module = script
+                if not os.path.exists(script_path):
+                    raise TypeError
+            except TypeError:
+                raise ValueError(
+                    "invalid script parameter, should be (__file__, __name__)")
 
-        project = script_module.split('.')[0]
-        prog = script_module.split('.')[-1]
+            project = script_module.split('.')[0]
+            if prog is None:
+                prog = script_module.split('.')[-1]
 
         if sorted_help:
             formatter = SortedHelpFormatter
@@ -374,9 +379,12 @@ class ArgumentParser(argparse.ArgumentParser):
                         Show this help message and exit. To get more
                         information see the related man page.
                     """)
-            if version:
+            if version and script is not None:
+                # Note that this option will currently only be available on the
+                # base command, not on subcommands.
                 self.add_argument(
-                    '--version', action='version', version=get_version(project, script_path),
+                    '--version', action='version',
+                    version=get_version(project, script_path),
                     help="show this program's version info and exit",
                     docs="""
                         Show this program's version information and exit.
