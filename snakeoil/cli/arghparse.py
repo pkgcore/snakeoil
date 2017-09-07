@@ -13,7 +13,6 @@ from snakeoil.klass import patch
 from snakeoil.demandload import demandload
 
 demandload(
-    'inspect',
     'itertools',
     'operator:attrgetter',
     'logging',
@@ -330,7 +329,7 @@ class RawTextHelpFormatter(RawDescriptionHelpFormatter):
 class ArgumentParser(argparse.ArgumentParser):
 
     def __init__(self, suppress=False, color=True, debug=True, quiet=True, verbose=True, version=True,
-                 add_help=True, sorted_help=False, description=None, docs=None, **kwds):
+                 add_help=True, sorted_help=False, description=None, docs=None, script=None, **kwds):
         self.debug = debug and '--debug' in sys.argv[1:]
         self.suppress = suppress  # TODO: deprecated, drop in 0.8.0
 
@@ -340,6 +339,16 @@ class ArgumentParser(argparse.ArgumentParser):
             if docs is None and len(description_lines) == 2:
                 docs = description_lines[1]
         self._docs = docs
+
+        # All consumers must provide the 'script=(__file__, __name__)' param.
+        try:
+            script_path, script_module = script
+            if not os.path.exists(script_path):
+                raise TypeError
+        except TypeError:
+            raise ValueError('argparser missing or invalid script=(__file__, __name__) attribute')
+
+        project = script_module.split('.')[0]
 
         if sorted_help:
             formatter = SortedHelpFormatter
@@ -364,29 +373,16 @@ class ArgumentParser(argparse.ArgumentParser):
                         information see the related man page.
                     """)
             if version:
-                # Get the calling script's module and project names. This
-                # verifies the script uses a module namespace layout where
-                # scripts are located in project.scripts.script_name.
-                for level in itertools.count(1):
-                    try:
-                        pyfile = inspect.stack(0)[level][0].f_globals['__file__']
-                        if pyfile.split(os.path.sep)[-2] == 'scripts':
-                            script = pyfile
-                            project = pyfile.split(os.path.sep)[-3]
-                            self.add_argument(
-                                '--version', action='version', version=get_version(project, script),
-                                help="show this program's version info and exit",
-                                docs="""
-                                    Show this program's version information and exit.
+                self.add_argument(
+                    '--version', action='version', version=get_version(project, script_path),
+                    help="show this program's version info and exit",
+                    docs="""
+                        Show this program's version information and exit.
 
-                                    When running from within a git repo or a version
-                                    installed from git the latest commit hash and date will
-                                    be shown.
-                                """)
-                            break
-                    except (IndexError, KeyError):
-                        # failed getting version info
-                        break
+                        When running from within a git repo or a version
+                        installed from git the latest commit hash and date will
+                        be shown.
+                    """)
             if debug:
                 self.add_argument(
                     '--debug', action=EnableDebug, help='enable debugging checks',
