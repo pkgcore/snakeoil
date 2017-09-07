@@ -22,29 +22,19 @@ class Tool(object):
     """Abstraction for commandline tools."""
 
     # TODO: parser param deprecated, drop in 0.8.0
-    def __init__(self, module, parser=None):
+    def __init__(self, module, parser=None, outfile=None, errfile=None):
         """Initialize the utility to run.
 
         :param module: imported script module to run
         :type parser: :obj:`ArgumentParser` subclass instance
         :param parser: argparser instance defining valid arguments for the given tool.
-        """
-        self.parser = parser if parser is not None else getattr(module, 'argparser', None)
-
-    def __call__(self, args=None, namespace=None, outfile=None, errfile=None):
-        """Run the utility.
-
-        :type args: sequence of strings
-        :param args: arguments to parse, defaulting to C{sys.argv[1:]}.
-        :type namespace: argparse.Namespace object
-        :param namespace: Namespace object to use for created attributes.
         :type outfile: file-like object
         :param outfile: File to use for stdout, defaults to C{sys.stdout}.
         :type errfile: file-like object
         :param errfile: File to use for stderr, defaults to C{sys.stderr}.
         """
-        self.args = args
-        self.options = namespace
+        self.parser = parser if parser is not None else getattr(module, 'argparser', None)
+        self.options = None
 
         if outfile is None:
             outfile = sys.stdout
@@ -82,6 +72,13 @@ class Tool(object):
         self.out = self.parser.out = formatters.PlainTextFormatter(outfile)
         self.err = self.parser.err = formatters.PlainTextFormatter(errfile)
 
+    def __call__(self, args=None):
+        """Run the utility.
+
+        :type args: sequence of strings
+        :param args: arguments to parse, defaulting to C{sys.argv[1:]}.
+        """
+        self.args = args
         # run script and return exit status
         return self.main()
 
