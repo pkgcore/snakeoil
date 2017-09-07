@@ -3,15 +3,19 @@
 """Various with-statement context utilities."""
 
 from contextlib import contextmanager
-import errno
-import inspect
-from importlib import import_module
 import os
-from multiprocessing.connection import Pipe
 import sys
-import threading
-import traceback
 
+from snakeoil.demandload import demandload
+
+demandload(
+    'errno',
+    'inspect',
+    'multiprocessing.connection:Pipe',
+    'threading',
+    'traceback',
+    'importlib:import_module',
+)
 
 # Ideas and code for SplitExec have been borrowed from withhacks
 # (https://pypi.python.org/pypi/withhacks) governed by the MIT license found
