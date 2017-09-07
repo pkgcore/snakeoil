@@ -419,7 +419,13 @@ class ArgumentParser(argparse.ArgumentParser):
                     """)
 
     def parse_args(self, args=None, namespace=None):
-        args = argparse.ArgumentParser.parse_args(self, args, namespace)
+        args, unknown_args = self.parse_known_args(args, namespace)
+
+        # make sure prog is updated if running a subcommand
+        self.prog = getattr(args, 'prog', self.prog)
+
+        if unknown_args:
+            self.error('unrecognized arguments: %s' % ' '.join(unknown_args))
 
         # two runs are required; first, handle any suppression defaults
         # introduced.  subparsers defaults cannot override the parent parser,
@@ -465,7 +471,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
     def bind_main_func(self, functor):
         self.set_defaults(main_func=functor)
-        # override main prog with subcmd prog
+        # override main prog with subcommand prog
         self.set_defaults(prog=self.prog)
         return functor
 
