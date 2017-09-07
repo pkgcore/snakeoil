@@ -129,6 +129,9 @@ class Tool(object):
             if main_func is None:
                 raise RuntimeError("argparser missing main method")
             exitstatus = main_func(self.options, self.out, self.err)
+        except SystemExit as e:
+            # handle argparse or other modules using sys.exit internally
+            exitstatus = e.code
         except KeyboardInterrupt:
             self._errfile.write('keyboard interrupted- exiting')
             if self.parser.debug:
