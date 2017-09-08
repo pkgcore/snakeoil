@@ -56,16 +56,16 @@ class SplitExec(object):
         self.__pipe = None
         self.childpid = None
 
-    def parent_setup(self):
+    def _parent_setup(self):
         """Initialization for parent process."""
 
-    def child_setup(self):
+    def _child_setup(self):
         """Initialization for child process."""
 
-    def cleanup(self):
+    def _cleanup(self):
         """Parent process clean up on termination of the child."""
 
-    def exception_cleanup(self):
+    def _exception_cleanup(self):
         """Parent process clean up after the child throws an exception."""
         self.cleanup()
 
@@ -74,7 +74,7 @@ class SplitExec(object):
         childpid = os.fork()
 
         if childpid != 0:
-            self.parent_setup()
+            self._parent_setup()
             self.childpid = childpid
             self.__pipe = parent_pipe
             frame = self.__get_context_frame()
@@ -86,7 +86,7 @@ class SplitExec(object):
             self.__pipe = child_pipe
 
             try:
-                self.child_setup()
+                self._child_setup()
 
             # pylint: disable=W0703
             # need to catch all exceptions here since we are passing them to
@@ -116,7 +116,7 @@ class SplitExec(object):
 
             if not isinstance(exception, SystemExit):
                 os.waitpid(self.childpid, 0)
-                self.exception_cleanup()
+                self._exception_cleanup()
                 sys.excepthook = self.__excepthook
                 raise exception
 
@@ -141,7 +141,7 @@ class SplitExec(object):
 
         # wait for child process to exit
         os.waitpid(self.childpid, 0)
-        self.cleanup()
+        self._cleanup()
 
         return True
 
