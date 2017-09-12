@@ -10,6 +10,7 @@ import signal
 import sys
 
 from snakeoil import compatibility, formatters
+from snakeoil.obj import popattr
 from snakeoil.demandload import demandload
 
 demandload(
@@ -122,7 +123,7 @@ class Tool(object):
 
         try:
             self.options = self.parse_args(args=self.args, namespace=self.options)
-            main_func = getattr(self.options, 'main_func', None)
+            main_func = popattr(self.options, 'main_func', None)
             if main_func is None:
                 raise RuntimeError("argparser missing main method")
             exitstatus = main_func(self.options, self.out, self.err)
