@@ -104,12 +104,12 @@ if base_kls_descriptors_compat:
         base_kls_descriptors_compat)
 
 if hasattr(object, '__sizeof__'):
-    # python 2.6/3.0
+    # python >=2.6
     base_kls_descriptors = base_kls_descriptors.union([
         '__sizeof__', '__format__', '__subclasshook__'])
 
 if hasattr(object, '__dir__'):
-    # python 3.3
+    # python >=3.3
     base_kls_descriptors = base_kls_descriptors.union(['__dir__'])
 
 
