@@ -67,7 +67,7 @@ class SplitExec(object):
 
     def _exception_cleanup(self):
         """Parent process clean up after the child throws an exception."""
-        self.cleanup()
+        self._cleanup()
 
     def __enter__(self):
         parent_pipe, child_pipe = Pipe()
