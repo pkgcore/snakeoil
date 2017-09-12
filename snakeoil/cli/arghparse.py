@@ -432,6 +432,9 @@ class ArgumentParser(argparse.ArgumentParser):
                     """)
 
     def parse_args(self, args=None, namespace=None):
+        if namespace is None:
+            namespace = Namespace()
+
         args, unknown_args = self.parse_known_args(args, namespace)
 
         # make sure prog is updated if running a subcommand
