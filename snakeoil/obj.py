@@ -78,7 +78,7 @@ try to proxy builtin objects like tuples, lists, dicts, sets, etc.
 
 from __future__ import print_function
 
-__all__ = ("DelayedInstantiation", "DelayedInstantiation_kls", "make_kls",)
+__all__ = ("DelayedInstantiation", "DelayedInstantiation_kls", "make_kls", "popattr")
 
 from snakeoil import compatibility, klass
 
@@ -111,6 +111,17 @@ if hasattr(object, '__sizeof__'):
 if hasattr(object, '__dir__'):
     # python 3.3
     base_kls_descriptors = base_kls_descriptors.union(['__dir__'])
+
+
+def popattr(obj, name, default=klass._sentinel):
+    """Remove and return an attribute from an object if it exists."""
+    try:
+        return obj.__dict__.pop(name)
+    except KeyError:
+        if default is not klass._sentinel:
+            return default
+        # force AttributeError to be raised
+        getattr(obj, name)
 
 
 class BaseDelayedObject(object):

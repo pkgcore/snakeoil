@@ -1,6 +1,8 @@
 # Copyright: 2006-2011 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
+import unittest
+
 from snakeoil.test import TestCase
 from snakeoil import obj
 
@@ -111,3 +113,32 @@ class TestDelayedInstantiation(TestCase):
                          "in accessing __doc__, the instance was generated- "
                          "this is a class level attribute, thus shouldn't "
                          "trigger instantiation")
+
+
+class TestPopattr(unittest.TestCase):
+
+    class Object(object):
+        pass
+
+    def test_popattr(self):
+        o = self.Object()
+
+        # object without any attrs
+        with self.assertRaises(AttributeError):
+            obj.popattr(o, 'nonexistent')
+
+        o.test = 1
+
+        # object with attr trying to get nonexistent attr
+        with self.assertRaises(AttributeError):
+            obj.popattr(o, 'nonexistent')
+
+        # object with attr trying to get nonexistent attr using fallback
+        value = obj.popattr(o, 'nonexistent', 2)
+        self.assertEqual(value, 2)
+
+        value = obj.popattr(o, 'test')
+        self.assertEqual(value, 1)
+        # verify that attr was removed from the object
+        with self.assertRaises(AttributeError):
+            obj.popattr(o, 'test')
