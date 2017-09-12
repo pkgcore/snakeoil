@@ -8,8 +8,7 @@ from functools import partial
 import os
 import sys
 
-from snakeoil import compatibility
-from snakeoil.klass import patch
+from snakeoil import compatibility, klass
 from snakeoil.demandload import demandload
 
 demandload(
@@ -18,6 +17,7 @@ demandload(
     'logging',
     'textwrap:dedent',
     'snakeoil:osutils',
+    'snakeoil.obj:popattr',
     'snakeoil.version:get_version',
     'snakeoil.sequences:split_negations',
 )
@@ -28,11 +28,11 @@ demandload(
 _generate_docs = False
 
 
-@patch('argparse.ArgumentParser.add_subparsers')
-@patch('argparse._SubParsersAction.add_parser')
-@patch('argparse._ActionsContainer.add_mutually_exclusive_group')
-@patch('argparse._ActionsContainer.add_argument_group')
-@patch('argparse._ActionsContainer.add_argument')
+@klass.patch('argparse.ArgumentParser.add_subparsers')
+@klass.patch('argparse._SubParsersAction.add_parser')
+@klass.patch('argparse._ActionsContainer.add_mutually_exclusive_group')
+@klass.patch('argparse._ActionsContainer.add_argument_group')
+@klass.patch('argparse._ActionsContainer.add_argument')
 def _add_argument_docs(orig_func, self, *args, **kwargs):
     """Enable docs keyword argument support for argparse arguments.
 
@@ -324,6 +324,19 @@ class RawDescriptionHelpFormatter(HelpFormatter):
 class RawTextHelpFormatter(RawDescriptionHelpFormatter):
     """Stub to override argparse's help formatter."""
     pass
+
+
+class Namespace(argparse.Namespace):
+    """Add support for popping attrs from the namespace."""
+
+    def pop(self, key, default=klass._sentinel):
+        """Remove and return an object from the namespace if it exists."""
+        try:
+            return popattr(self, key)
+        except AttributeError:
+            if default is not klass._sentinel:
+                return default
+            raise
 
 
 class ArgumentParser(argparse.ArgumentParser):
