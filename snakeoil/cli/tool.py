@@ -6,7 +6,7 @@
 from functools import partial
 import logging
 import os
-import signal
+from signal import signal, SIGPIPE, SIG_DFL, SIGINT
 import sys
 
 from snakeoil import compatibility, formatters
@@ -118,7 +118,7 @@ class Tool(object):
         exitstatus = -10
 
         # ignore broken pipes
-        signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+        signal(SIGPIPE, SIG_DFL)
 
         try:
             self.options = self.parse_args(args=self.args, namespace=self.options)
@@ -134,8 +134,8 @@ class Tool(object):
             if self.parser.debug:
                 self._errfile.write('\n')
                 traceback.print_exc()
-            signal.signal(signal.SIGINT, signal.SIG_DFL)
-            os.killpg(os.getpgid(0), signal.SIGINT)
+            signal(SIGINT, SIG_DFL)
+            os.killpg(os.getpgid(0), SIGINT)
         except compatibility.IGNORED_EXCEPTIONS:
             raise
         except Exception as e:
