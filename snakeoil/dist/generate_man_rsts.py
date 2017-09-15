@@ -25,7 +25,7 @@ def _rst_header(char, text, leading=False, capitalize=True):
     return [text, s, '']
 
 
-class RawTextFormatter(arghparse.RawTextHelpFormatter):
+class RawTextFormatter(argparse.RawTextHelpFormatter):
     """Workaround man page generation issues with default rST output formatting."""
 
     def _format_action(self, action):
