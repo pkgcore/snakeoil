@@ -136,8 +136,6 @@ class Tool(object):
                 traceback.print_exc()
             signal(SIGINT, SIG_DFL)
             os.killpg(os.getpgid(0), SIGINT)
-        except compatibility.IGNORED_EXCEPTIONS:
-            raise
         except Exception as e:
             # handle custom execution-related exceptions
             self.handle_exec_exception(e)
