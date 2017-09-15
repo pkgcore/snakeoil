@@ -21,11 +21,9 @@ demandload(
 class Tool(object):
     """Abstraction for commandline tools."""
 
-    # TODO: parser param deprecated, drop in 0.8.0
-    def __init__(self, module, parser=None, outfile=None, errfile=None):
+    def __init__(self, parser, outfile=None, errfile=None):
         """Initialize the utility to run.
 
-        :param module: imported script module to run
         :type parser: :obj:`ArgumentParser` subclass instance
         :param parser: argparser instance defining valid arguments for the given tool.
         :type outfile: file-like object
@@ -33,7 +31,9 @@ class Tool(object):
         :type errfile: file-like object
         :param errfile: File to use for stderr, defaults to C{sys.stderr}.
         """
-        self.parser = parser if parser is not None else getattr(module, 'argparser', None)
+        if parser is None:
+            raise ValueError("invalid argparser")
+        self.parser = parser
         self.options = None
 
         if outfile is None:
