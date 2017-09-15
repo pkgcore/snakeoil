@@ -16,4 +16,5 @@ This library is a bit of a grabbag of the following:
 * optimized implementations of common patterns
 """
 
+__title__ = 'snakeoil'
 __version__ = '0.7.2'
