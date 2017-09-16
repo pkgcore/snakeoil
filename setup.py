@@ -63,10 +63,10 @@ if pkgdist.is_py3k:
         build_deps.append('cython')
         exts.extend(cython_exts)
 
-    #extensions.extend([
-    #    Extension(os.path.splitext(ext)[0], [ext], **extra_kwargs)
-    #    for ext in exts
-    #])
+    extensions.extend([
+       Extension(os.path.splitext(ext)[0], [ext], **extra_kwargs)
+       for ext in exts
+    ])
 else:
     extensions.extend([
         OptionalExtension(
