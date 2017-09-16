@@ -2,6 +2,25 @@
 Release Notes
 =============
 
+snakeoil 0.7.2 (2017-09-??)
+---------------------------
+
+- snakeoil.contexts: Add patch context manager for modifying module
+  attributes.
+
+- snakeoil.cli.tool: New module for running scripts -- abstraction of pkgcore's
+  method for running its commandline tools.
+
+- snakeoil.process.spawn: Imported from pkgcore.spawn.
+
+- snakeoil.process: Add fallback parameter to find_binary().
+
+- snakeoil.strings: New module for string-related methods.
+
+- snakeoil.dist.generate_docs: Support custom doc generation by projects.
+
+- snakeoil.osutils: Add force_symlink() method.
+
 snakeoil 0.7.1 (2016-10-30)
 ---------------------------
 
