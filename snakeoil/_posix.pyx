@@ -1,6 +1,6 @@
 # distutils: language = c
 
-from cpython.mem cimport PyMem_Malloc
+from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from cpython.bytes cimport PyBytes_AsString
 from libc.string cimport strdup
 from libc.stdio cimport snprintf
@@ -28,6 +28,7 @@ def normpath(old_path):
     cdef char *path = PyBytes_AsString(_chars(old_path))
     cdef char *new_path = strdup(path)
     cdef char *write = new_path
+    cdef bytes py_path
     cdef int depth = 0
     cdef bint is_absolute = '/' == path[0]
 
@@ -88,9 +89,14 @@ def normpath(old_path):
         write -= 1
 
     new_path[write - new_path] = 0
+    try:
+        py_path = new_path
+    finally:
+        PyMem_Free(new_path)
+
     if isinstance(old_path, unicode):
-        return new_path.decode()
-    return new_path
+        return py_path.decode()
+    return py_path
 
 
 def join(*args):
@@ -142,6 +148,7 @@ def join(*args):
 
     cdef char *tmp_s
     cdef char *buf = ret
+    cdef bytes py_path
 
     if leading_slash:
         buf[0] = '/'
@@ -188,9 +195,15 @@ def join(*args):
             buf += 1
 
     buf[0] = '\0'
+
+    try:
+        py_path = ret
+    finally:
+        PyMem_Free(ret)
+
     if isinstance(args[0], unicode):
-        return ret.decode()
-    return ret
+        return py_path.decode()
+    return py_path
 
 
 cdef void slow_closerange(int start, int end):
