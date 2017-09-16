@@ -1,4 +1,5 @@
 # distutils: language = c
+# cython: language_level = 3
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from cpython.bytes cimport PyBytes_AsString
@@ -30,19 +31,19 @@ def normpath(old_path):
     cdef char *write = new_path
     cdef bytes py_path
     cdef int depth = 0
-    cdef bint is_absolute = '/' == path[0]
+    cdef bint is_absolute = b'/' == path[0]
 
     if is_absolute:
         depth -= 1
 
-    while '\0' != path[0]:
-        if '/' == path[0]:
-            write[0] = '/'
+    while b'\0' != path[0]:
+        if b'/' == path[0]:
+            write[0] = b'/'
             write += 1
             SKIP_SLASHES(path)
             depth += 1
-        elif '.' == path[0]:
-            if '.' == path[1] and ('/' == path[2] or '\0' == path[2]):
+        elif b'.' == path[0]:
+            if b'.' == path[1] and (b'/' == path[2] or b'\0' == path[2]):
                 if depth == 1:
                     if is_absolute:
                         write = new_path
@@ -50,13 +51,13 @@ def normpath(old_path):
                         # why -2?  because write is at an empty char.
                         # we need to jump back past it and /
                         write -= 2
-                        while '/' != write[0]:
+                        while b'/' != write[0]:
                             write -= 1
                     write += 1
                     depth = 0
                 elif depth:
                     write -= 2
-                    while '/' != write[0]:
+                    while b'/' != write[0]:
                         write -= 1
                     write += 1
                     depth -= 1
@@ -64,28 +65,28 @@ def normpath(old_path):
                     if is_absolute:
                         write = new_path + 1
                     else:
-                        write[0] = '.'
-                        write[1] = '.'
-                        write[2] = '/'
+                        write[0] = b'.'
+                        write[1] = b'.'
+                        write[2] = b'/'
                         write += 3
                 path += 2
                 SKIP_SLASHES(path)
-            elif '/' == path[1]:
+            elif b'/' == path[1]:
                 path += 2
                 SKIP_SLASHES(path)
-            elif '\0' == path[1]:
+            elif b'\0' == path[1]:
                 path += 1
             else:
-                write[0] = '.'
+                write[0] = b'.'
                 path += 1
                 write += 1
         else:
-            while '/' != path[0] and '\0' != path[0]:
+            while b'/' != path[0] and b'\0' != path[0]:
                 write[0] = path[0]
                 write += 1
                 path += 1
 
-    if write - 1 > new_path and '/' == write[-1]:
+    if write - 1 > new_path and b'/' == write[-1]:
         write -= 1
 
     new_path[write - new_path] = 0
@@ -112,7 +113,7 @@ def join(*args):
         if not isinstance(args[i], str):
             raise TypeError("all args must be strings")
 
-        if len(args[i]) and '/' == args[i][0]:
+        if len(args[i]) and b'/' == args[i][0]:
             leading_slash = True
             start = i
 
@@ -124,7 +125,7 @@ def join(*args):
     for i in xrange(start, end):
         # this is safe because we're using CheckExact above.
         s_start = s = PyBytes_AsString(_chars(args[i]))
-        while '\0' != s[0]:
+        while b'\0' != s[0]:
             s += 1
         if s_start == s:
             continue
@@ -132,7 +133,7 @@ def join(*args):
         s_end = s
         if i + 1 != end:
             # cut the length down for trailing duplicate slashes
-            while s != s_start and '/' == s[-1]:
+            while s != s_start and b'/' == s[-1]:
                 s -= 1
             # allocate for a leading slash if needed
             if (s_end == s and (s_start != s or
@@ -151,7 +152,7 @@ def join(*args):
     cdef bytes py_path
 
     if leading_slash:
-        buf[0] = '/'
+        buf[0] = b'/'
         buf += 1
 
     for i in xrange(start, end):
@@ -162,39 +163,39 @@ def join(*args):
             s_start += 1
             s = s_start
 
-        if '\0' == s[0]:
+        if b'\0' == s[0]:
             continue
-        while '\0' != s[0]:
+        while b'\0' != s[0]:
             buf[0] = s[0]
             buf += 1
-            if '/' == s[0]:
+            if b'/' == s[0]:
                 tmp_s = s + 1
                 SKIP_SLASHES(s)
-                if '\0' == s[0]:
+                if b'\0' == s[0]:
                     if i + 1  != end:
                         buf -= 1
                     else:
                         # copy the cracked out trailing slashes on the
                         # last item
                         while tmp_s < s:
-                            buf[0] = '/'
+                            buf[0] = b'/'
                             buf += 1
                             tmp_s += 1
                     break
                 else:
                     # copy the cracked out intermediate slashes.
                     while tmp_s < s:
-                        buf[0] = '/'
+                        buf[0] = b'/'
                         buf += 1
                         tmp_s += 1
             else:
                 s += 1
 
         if i + 1 != end:
-            buf[0] = '/'
+            buf[0] = b'/'
             buf += 1
 
-    buf[0] = '\0'
+    buf[0] = b'\0'
 
     try:
         py_path = ret
@@ -208,7 +209,7 @@ def join(*args):
 
 cdef void slow_closerange(int start, int end):
     cdef int i
-    for i in xrange(start, end):
+    for i in range(start, end):
         close(i)
 
 

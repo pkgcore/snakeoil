@@ -1,4 +1,5 @@
 # distutils: language = c
+# cython: language_level = 3
 
 _str_kls = (str, bytes)
 def iflatten_instance(l, skip_flattening=_str_kls):
