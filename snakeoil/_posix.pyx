@@ -109,11 +109,11 @@ def join(*args):
     cdef ssize_t start = 0, length = 0, i = 0
     cdef bint leading_slash = False
 
-    for i in xrange(end):
-        if not isinstance(args[i], str):
+    for i, x in enumerate(args):
+        if not isinstance(x, str):
             raise TypeError("all args must be strings")
 
-        if len(args[i]) and b'/' == args[i][0]:
+        if x and '/' == x[0]:
             leading_slash = True
             start = i
 
@@ -122,8 +122,8 @@ def join(*args):
     cdef char *s_end
     cdef char *s
 
-    for i in xrange(start, end):
-        # this is safe because we're using CheckExact above.
+    for i in range(start, end):
+        # this is safe because we're checking types above
         s_start = s = PyBytes_AsString(_chars(args[i]))
         while b'\0' != s[0]:
             s += 1
@@ -155,7 +155,7 @@ def join(*args):
         buf[0] = b'/'
         buf += 1
 
-    for i in xrange(start, end):
+    for i in range(start, end):
         s_start = s = PyBytes_AsString(_chars(args[i]))
         if i == start and leading_slash:
             # a slash is inserted anyways, thus we skip one ahead
