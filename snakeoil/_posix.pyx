@@ -108,11 +108,14 @@ def join(*args):
     cdef ssize_t end = len(args)
     cdef ssize_t start = 0, length = 0, i = 0
     cdef bint leading_slash = False
+    cdef list paths = []
 
     for i, x in enumerate(args):
         if not isinstance(x, str):
             raise TypeError("all args must be strings")
 
+        paths.append(_chars(x))
+        # find the right most item with a prefixed '/', else 0
         if x and '/' == x[0]:
             leading_slash = True
             start = i
@@ -124,7 +127,7 @@ def join(*args):
 
     for i in range(start, end):
         # this is safe because we're checking types above
-        s_start = s = PyBytes_AsString(_chars(args[i]))
+        s_start = s = paths[i]
         while b'\0' != s[0]:
             s += 1
         if s_start == s:
@@ -137,7 +140,7 @@ def join(*args):
                 s -= 1
             # allocate for a leading slash if needed
             if (s_end == s and (s_start != s or
-                (s_end == s_start and i != start))):
+                    (s_end == s_start and i != start))):
                 length += 1
             elif s_start != s:
                 length -= s_end - s - 1
@@ -156,7 +159,7 @@ def join(*args):
         buf += 1
 
     for i in range(start, end):
-        s_start = s = PyBytes_AsString(_chars(args[i]))
+        s_start = s = paths[i]
         if i == start and leading_slash:
             # a slash is inserted anyways, thus we skip one ahead
             # so it doesn't gain an extra.
