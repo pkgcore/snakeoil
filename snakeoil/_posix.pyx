@@ -26,6 +26,9 @@ cdef bytes _chars(s):
 
 def normpath(old_path):
     """Normalize a path entry."""
+    if not isinstance(old_path, (str, bytes)):
+        raise TypeError("expected str or bytes arg")
+
     cdef char *path = PyBytes_AsString(_chars(old_path))
     cdef char *new_path = strdup(path)
     cdef char *write = new_path
