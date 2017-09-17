@@ -114,8 +114,8 @@ def join(*args):
     cdef list paths = []
 
     for i, x in enumerate(args):
-        if not isinstance(x, str):
-            raise TypeError("all args must be strings")
+        if not isinstance(x, (str, bytes)):
+            raise TypeError("all args must be str or bytes")
 
         paths.append(_chars(x))
         # find the right most item with a prefixed '/', else 0

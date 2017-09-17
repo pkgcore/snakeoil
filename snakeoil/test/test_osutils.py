@@ -300,14 +300,23 @@ class Cpy_JoinTest(TestCase):
                 osutils.join(*val)))
 
     def test_reimplementation(self):
-        for vals in [
-                ["", "foo"],
-                ["foo", "dar"],
-                ["foo", "/bar"],
-                ["/bar", "dar"],
-                ["/bar", "../dar"],
-                ["", "../dar"]]:
-            self.assertSame(vals)
+        vals = [
+            ["", "foo"],
+            ["foo", "dar"],
+            ["foo", "/bar"],
+            ["/bar", "dar"],
+            ["/bar", "../dar"],
+            ["", "../dar"]
+        ]
+
+        if compatibility.is_py3k:
+            vals.extend([
+                [u"/bár", u"dãr"],
+                [b"/b\xc3\xa1r", b"d\xc3\xa3r"],
+            ])
+
+        for val in vals:
+            self.assertSame(val)
 
 
 # TODO: more error condition testing
