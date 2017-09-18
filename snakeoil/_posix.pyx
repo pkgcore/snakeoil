@@ -20,8 +20,11 @@ cdef bytes _chars(s):
     """Convert input string to bytes."""
     if isinstance(s, unicode):
         # encode to the specific encoding used inside of the module
-        s = (<unicode>s).encode('utf8')
-    return s
+        return (<unicode>s).encode('utf8')
+    elif isinstance(s, bytes):
+        return s
+    else:
+        raise TypeError("arg must be str or bytes")
 
 
 def normpath(old_path):
