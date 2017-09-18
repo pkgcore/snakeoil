@@ -108,15 +108,13 @@ def join(*args):
     cdef ssize_t end = len(args)
     cdef ssize_t start = 0, length = 0, i = 0
     cdef bint leading_slash = False
-    cdef bytes py_path_piece
     cdef char **paths = <char **>PyMem_Malloc(end * sizeof(char *))
 
     if not end:
         raise TypeError("join takes at least one argument (0 given)")
 
     for i in range(end):
-        py_path_piece = _chars(args[i])
-        paths[i] = PyBytes_AS_STRING(py_path_piece)
+        paths[i] = strdup(PyBytes_AS_STRING(_chars(args[i])))
 
         # find the right most item with a prefixed '/', else 0
         if b'/' == paths[i][0]:
