@@ -278,17 +278,14 @@ class Native_NormPathTest(TestCase):
             check('/föó/..', '/')
 
 
+@unittest.skipIf(osutils.normpath is osutils.native_normpath, "extension isn't compiled")
 class Cpy_NormPathTest(Native_NormPathTest):
 
     func = staticmethod(osutils.normpath)
-    if osutils.normpath is osutils.native_normpath:
-        skip = "extension isn't compiled"
 
 
-class Cpy_JoinTest(TestCase):
-
-    if osutils.join is osutils.native_join:
-        skip = "extension isn't compiled"
+@unittest.skipIf(osutils.join is osutils.native_join, "extension isn't compiled")
+class Cpy_JoinTest(unittest.TestCase):
 
     def assertSame(self, val):
         self.assertEqual(
@@ -298,10 +295,6 @@ class Cpy_JoinTest(TestCase):
                 val,
                 osutils.native_join(*val),
                 osutils.join(*val)))
-
-    def assertRaise(self, val):
-        self.assertRaises(TypeError, osutils.native_join, *val)
-        self.assertRaises(TypeError, osutils.join, *val)
 
     def test_reimplementation(self):
         vals = [
@@ -321,6 +314,12 @@ class Cpy_JoinTest(TestCase):
                 [b"/b\xc3\xa1r", b"d\xc3\xa3r"],
             ])
 
+        for x in vals:
+            self.assertSame(x)
+
+    # skip py2 since it doesn't do the same type checking as py3
+    @unittest.skipUnless(compatibility.is_py3k, 'requires py3')
+    def test_reimplementation_errors(self):
         # various type errors
         errors = [
             [],
@@ -329,10 +328,11 @@ class Cpy_JoinTest(TestCase):
             ["foo", "/bar", []],
         ]
 
-        for x in vals:
-            self.assertSame(x)
         for x in errors:
-            self.assertRaise(x)
+            with self.assertRaises(TypeError):
+                osutils.native_join(*x)
+            with self.assertRaises(TypeError):
+                osutils.join(*x)
 
 
 # TODO: more error condition testing
