@@ -24,14 +24,11 @@ cdef bytes _chars(s):
     elif isinstance(s, bytes):
         return s
     else:
-        raise TypeError("arg must be str or bytes")
+        raise TypeError("arg must be str or bytes, not %s" % type(s).__name__)
 
 
 def normpath(old_path):
     """Normalize a path entry."""
-    if not isinstance(old_path, (str, bytes)):
-        raise TypeError("expected str or bytes arg")
-
     cdef char *path = PyBytes_AS_STRING(_chars(old_path))
     cdef char *new_path = strdup(path)
     cdef char *write = new_path
@@ -118,9 +115,6 @@ def join(*args):
         raise TypeError("join takes at least one argument (0 given)")
 
     for i in range(end):
-        if not isinstance(args[i], (str, bytes)):
-            raise TypeError("all args must be str or bytes")
-
         py_path_piece = _chars(args[i])
         paths[i] = PyBytes_AS_STRING(py_path_piece)
 
