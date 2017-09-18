@@ -274,8 +274,10 @@ class Native_NormPathTest(TestCase):
         check('/tmp/foo/../dar', '/tmp/dar')
 
         if compatibility.is_py3k:
-            check('/tmṕ/föo//../dár', '/tmṕ/dár')
-            check('/föó/..', '/')
+            check(u'/tmṕ/föo//../dár', u'/tmṕ/dár')
+            check(b'/tm\xe1\xb9\x95/f\xc3\xb6o//../d\xc3\xa1r', b'/tm\xe1\xb9\x95/d\xc3\xa1r')
+            check(u'/föó/..', u'/')
+            check(b'/f\xc3\xb6\xc3\xb3/..', b'/')
 
 
 @unittest.skipIf(osutils.normpath is osutils.native_normpath, "extension isn't compiled")
