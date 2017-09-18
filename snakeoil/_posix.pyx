@@ -100,7 +100,7 @@ def normpath(old_path):
         PyMem_Free(new_path)
 
     if isinstance(old_path, unicode):
-        return py_path.decode()
+        return py_path.decode('utf-8', 'strict')
     return py_path
 
 
@@ -209,7 +209,7 @@ def join(*args):
         PyMem_Free(paths)
 
     if isinstance(args[0], unicode):
-        return py_path.decode()
+        return py_path.decode('utf-8', 'strict')
     return py_path
 
 
