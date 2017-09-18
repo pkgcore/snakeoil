@@ -2,7 +2,7 @@
 # cython: language_level = 3
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
-from cpython.bytes cimport PyBytes_AsString
+from cpython.bytes cimport PyBytes_AS_STRING
 from libc.string cimport strdup
 from libc.stdio cimport snprintf
 from libc.stdlib cimport atoi
@@ -32,7 +32,7 @@ def normpath(old_path):
     if not isinstance(old_path, (str, bytes)):
         raise TypeError("expected str or bytes arg")
 
-    cdef char *path = PyBytes_AsString(_chars(old_path))
+    cdef char *path = PyBytes_AS_STRING(_chars(old_path))
     cdef char *new_path = strdup(path)
     cdef char *write = new_path
     cdef bytes py_path
@@ -108,21 +108,24 @@ def normpath(old_path):
 
 def join(*args):
     """Join multiple path items."""
-    if not len(args):
-        raise TypeError("join takes at least one argument (0 given)")
-
     cdef ssize_t end = len(args)
     cdef ssize_t start = 0, length = 0, i = 0
     cdef bint leading_slash = False
-    cdef list paths = []
+    cdef bytes py_path_piece
+    cdef char **paths = <char **>PyMem_Malloc(end * sizeof(char *))
 
-    for i, x in enumerate(args):
-        if not isinstance(x, (str, bytes)):
+    if not end:
+        raise TypeError("join takes at least one argument (0 given)")
+
+    for i in range(end):
+        if not isinstance(args[i], (str, bytes)):
             raise TypeError("all args must be str or bytes")
 
-        paths.append(_chars(x))
+        py_path_piece = _chars(args[i])
+        paths[i] = PyBytes_AS_STRING(py_path_piece)
+
         # find the right most item with a prefixed '/', else 0
-        if x and '/' == x[0]:
+        if b'/' == paths[i][0]:
             leading_slash = True
             start = i
 
@@ -210,6 +213,7 @@ def join(*args):
         py_path = ret
     finally:
         PyMem_Free(ret)
+        PyMem_Free(paths)
 
     if isinstance(args[0], unicode):
         return py_path.decode()
