@@ -316,16 +316,6 @@ class SortedHelpFormatter(HelpFormatter):
         super(SortedHelpFormatter, self).add_arguments(actions)
 
 
-class RawDescriptionHelpFormatter(HelpFormatter):
-    """Stub to override argparse's help formatter."""
-    pass
-
-
-class RawTextHelpFormatter(RawDescriptionHelpFormatter):
-    """Stub to override argparse's help formatter."""
-    pass
-
-
 class Namespace(argparse.Namespace):
     """Add support for popping attrs from the namespace."""
 
