@@ -95,7 +95,7 @@ def normpath(old_path):
 
     cdef bytes py_path
     try:
-        py_path = new_path
+        py_path = new_path[:write - new_path]
     finally:
         PyMem_Free(new_path)
 
@@ -203,7 +203,7 @@ def join(*args):
 
     cdef bytes py_path
     try:
-        py_path = ret
+        py_path = ret[:length]
     finally:
         PyMem_Free(ret)
         PyMem_Free(paths)
