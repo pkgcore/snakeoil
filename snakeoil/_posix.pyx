@@ -32,7 +32,6 @@ def normpath(old_path):
     cdef char *path = PyBytes_AS_STRING(_chars(old_path))
     cdef char *new_path = strdup(path)
     cdef char *write = new_path
-    cdef bytes py_path
     cdef int depth = 0
     cdef bint is_absolute = b'/' == path[0]
 
@@ -93,6 +92,8 @@ def normpath(old_path):
         write -= 1
 
     new_path[write - new_path] = 0
+
+    cdef bytes py_path
     try:
         py_path = new_path
     finally:
@@ -153,7 +154,6 @@ def join(*args):
 
     cdef char *tmp_s
     cdef char *buf = ret
-    cdef bytes py_path
 
     if leading_slash:
         buf[0] = b'/'
@@ -201,6 +201,7 @@ def join(*args):
 
     buf[0] = b'\0'
 
+    cdef bytes py_path
     try:
         py_path = ret
     finally:
