@@ -299,8 +299,14 @@ class Cpy_JoinTest(TestCase):
                 osutils.native_join(*val),
                 osutils.join(*val)))
 
+    def assertRaise(self, val):
+        self.assertRaises(TypeError, osutils.native_join, *val)
+        self.assertRaises(TypeError, osutils.join, *val)
+
     def test_reimplementation(self):
         vals = [
+            [""],
+            ["foo"],
             ["", "foo"],
             ["foo", "dar"],
             ["foo", "/bar"],
@@ -315,8 +321,18 @@ class Cpy_JoinTest(TestCase):
                 [b"/b\xc3\xa1r", b"d\xc3\xa3r"],
             ])
 
-        for val in vals:
-            self.assertSame(val)
+        # various type errors
+        errors = [
+            [],
+            [1],
+            ["foo", 1],
+            ["foo", "/bar", []],
+        ]
+
+        for x in vals:
+            self.assertSame(x)
+        for x in errors:
+            self.assertRaise(x)
 
 
 # TODO: more error condition testing
