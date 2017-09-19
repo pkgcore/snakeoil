@@ -269,7 +269,8 @@ def native_normpath(mypath):
     `os.path.normpath` only in that it'll convert leading '//' into '/'
     """
     newpath = os.path.normpath(mypath)
-    if newpath.startswith('//'):
+    double_sep = b'//' if isinstance(newpath, bytes) else u'//'
+    if newpath.startswith(double_sep):
         return newpath[1:]
     return newpath
 
