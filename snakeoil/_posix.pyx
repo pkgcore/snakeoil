@@ -1,11 +1,10 @@
 # distutils: language = c
 # cython: language_level = 3
 
-from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from cpython.bytes cimport PyBytes_AS_STRING
 from libc.string cimport strdup
 from libc.stdio cimport snprintf
-from libc.stdlib cimport atoi
+from libc.stdlib cimport atoi, malloc, free
 from posix.unistd cimport close, getpid
 
 
@@ -29,7 +28,8 @@ cdef bytes _chars(s):
 
 def normpath(old_path):
     """Normalize a path entry."""
-    cdef char *path = PyBytes_AS_STRING(_chars(old_path))
+    cdef char *path = strdup(PyBytes_AS_STRING(_chars(old_path)))
+    cdef char *read = path
     cdef char *new_path = strdup(path)
     cdef char *write = new_path
     cdef int depth = 0
@@ -38,14 +38,14 @@ def normpath(old_path):
     if is_absolute:
         depth -= 1
 
-    while b'\0' != path[0]:
-        if b'/' == path[0]:
+    while b'\0' != read[0]:
+        if b'/' == read[0]:
             write[0] = b'/'
             write += 1
-            SKIP_SLASHES(path)
+            SKIP_SLASHES(read)
             depth += 1
-        elif b'.' == path[0]:
-            if b'.' == path[1] and (b'/' == path[2] or b'\0' == path[2]):
+        elif b'.' == read[0]:
+            if b'.' == read[1] and (b'/' == read[2] or b'\0' == read[2]):
                 if depth == 1:
                     if is_absolute:
                         write = new_path
@@ -71,22 +71,22 @@ def normpath(old_path):
                         write[1] = b'.'
                         write[2] = b'/'
                         write += 3
-                path += 2
-                SKIP_SLASHES(path)
-            elif b'/' == path[1]:
-                path += 2
-                SKIP_SLASHES(path)
-            elif b'\0' == path[1]:
-                path += 1
+                read += 2
+                SKIP_SLASHES(read)
+            elif b'/' == read[1]:
+                read += 2
+                SKIP_SLASHES(read)
+            elif b'\0' == read[1]:
+                read += 1
             else:
                 write[0] = b'.'
-                path += 1
+                read += 1
                 write += 1
         else:
-            while b'/' != path[0] and b'\0' != path[0]:
-                write[0] = path[0]
+            while b'/' != read[0] and b'\0' != read[0]:
+                write[0] = read[0]
                 write += 1
-                path += 1
+                read += 1
 
     if write - 1 > new_path and b'/' == write[-1]:
         write -= 1
@@ -97,7 +97,8 @@ def normpath(old_path):
     try:
         py_path = new_path[:write - new_path]
     finally:
-        PyMem_Free(new_path)
+        free(new_path)
+        free(path)
 
     if isinstance(old_path, unicode):
         return py_path.decode('utf-8', 'strict')
@@ -109,7 +110,7 @@ def join(*args):
     cdef ssize_t end = len(args)
     cdef ssize_t start = 0, length = 0, i = 0
     cdef bint leading_slash = False
-    cdef char **paths = <char **>PyMem_Malloc(end * sizeof(char *))
+    cdef char **paths = <char **>malloc(end * sizeof(char *))
 
     if not end:
         raise TypeError("join takes at least one argument (0 given)")
@@ -148,7 +149,7 @@ def join(*args):
                 length -= s_end - s - 1
 
     # ok... we know the length.  allocate a string, and copy it.
-    cdef char *ret = <char *>PyMem_Malloc((length + 1) * sizeof(char))
+    cdef char *ret = <char *>malloc((length + 1) * sizeof(char))
     if not ret:
         raise MemoryError()
 
@@ -205,8 +206,10 @@ def join(*args):
     try:
         py_path = ret[:length]
     finally:
-        PyMem_Free(ret)
-        PyMem_Free(paths)
+        free(ret)
+        for i in range(end):
+            free(paths[i])
+        free(paths)
 
     if isinstance(args[0], unicode):
         return py_path.decode('utf-8', 'strict')
