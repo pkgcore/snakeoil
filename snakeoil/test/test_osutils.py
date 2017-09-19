@@ -319,8 +319,8 @@ class Cpy_JoinTest(unittest.TestCase):
         for x in vals:
             self.assertSame(x)
 
-    # skip py2 since it doesn't do the same type checking as py3
-    @unittest.skipUnless(compatibility.is_py3k, 'requires py3')
+    # proper type checking was done in py3.5
+    @unittest.skipUnless(sys.hexversion >= 0x03050000, 'requires >=py3.5')
     def test_reimplementation_errors(self):
         # various type errors
         errors = [
