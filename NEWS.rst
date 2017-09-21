@@ -2,8 +2,13 @@
 Release Notes
 =============
 
-snakeoil 0.7.2 (2017-09-??)
+snakeoil 0.7.2 (2017-09-21)
 ---------------------------
+
+- snakeoil.cli.arghparse: Add support to specify a default subparser for parser
+  instances. This allows for things such as adding conflicting options to both
+  the root command and subcommands without causing issues in addition to helping
+  support default subparsers.
 
 - Add initial support to replace C extensions with cython modules.
 
