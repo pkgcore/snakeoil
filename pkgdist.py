@@ -188,21 +188,24 @@ def pkg_config(*packages, **kw):
     return kw
 
 
+def cython_pyx(path=PROJECT):
+    """Return all available cython extensions under a given path."""
+    for root, _dirs, files in os.walk(path):
+        for f in files:
+            if f.endswith('.pyx'):
+                yield os.path.join(root, f)
+
+
 def cython_exts(build_deps=None, build_exts=None, build_opts=None, path=PROJECT):
     """Prepare all cython extensions under a given path to be built."""
     build_deps = build_deps if build_deps is not None else []
     build_exts = build_exts if build_exts is not None else []
     build_opts = build_opts if build_opts is not None else {}
 
-    pyx_files = (
-        os.path.join(root, f) for root, _dirs, files in os.walk(path)
-        for f in files if f.endswith('.pyx')
-    )
-
     exts = []
     cython_exts = []
 
-    for ext in pyx_files:
+    for ext in cython_pyx():
         cythonized = os.path.join(path, os.path.splitext(ext)[0] + '.c')
         if os.path.exists(cythonized):
             exts.append(cythonized)
@@ -278,7 +281,7 @@ class sdist(dst_sdist.sdist):
         build_ext.ensure_finalized()
 
         # generate cython extensions if any exist
-        extensions = cython_exts()
+        extensions = list(cython_pyx())
         if extensions:
             from Cython.Build import cythonize
             cythonize(extensions, nthreads=cpu_count())
