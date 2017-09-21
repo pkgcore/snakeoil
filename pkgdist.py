@@ -205,8 +205,8 @@ def cython_exts(build_deps=None, build_exts=None, build_opts=None, path=PROJECT)
     exts = []
     cython_exts = []
 
-    for ext in cython_pyx():
-        cythonized = os.path.join(path, os.path.splitext(ext)[0] + '.c')
+    for ext in cython_pyx(path):
+        cythonized = os.path.splitext(ext)[0] + '.c'
         if os.path.exists(cythonized):
             exts.append(cythonized)
         else:
