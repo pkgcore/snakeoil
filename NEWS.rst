@@ -5,6 +5,8 @@ Release Notes
 snakeoil 0.7.2 (2017-09-??)
 ---------------------------
 
+- Add initial support to replace C extensions with cython modules.
+
 - snakeoil.contexts: Add patch context manager for modifying module
   attributes.
 
