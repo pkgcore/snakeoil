@@ -107,6 +107,7 @@ class ExtendCommaDelimitedToggle(argparse._AppendAction):
 
 
 class StoreBool(argparse._StoreAction):
+
     def __init__(self,
                  option_strings,
                  dest,
@@ -330,6 +331,7 @@ class Namespace(argparse.Namespace):
 
 
 class ArgumentParser(argparse.ArgumentParser):
+    """Extended, argparse-compatible argument parser."""
 
     def __init__(self, suppress=False, color=True, debug=True, quiet=True,
                  verbose=True, version=True, add_help=True, sorted_help=False,
@@ -337,7 +339,7 @@ class ArgumentParser(argparse.ArgumentParser):
         self.debug = debug and '--debug' in sys.argv[1:]
         self.suppress = suppress  # TODO: deprecated, drop in 0.8.0
 
-        # default subparser to use if none is passed on the command line and one is required
+        # subparser to use if none is specified on the command line and one is required
         self._default_subparser = None
 
         # Core parser for all parent parsers, allows for separating parsing
@@ -436,7 +438,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
     @property
     def subparsers(self):
-        """Return the set of registered subparsers for the given parser."""
+        """Return the set of registered subparsers."""
         parsers = set()
         if self._subparsers is not None:
             for x in self._subparsers._actions:
@@ -527,6 +529,7 @@ class ArgumentParser(argparse.ArgumentParser):
         self.exit(status, '%s: error: %s\n' % (self.prog, message))
 
     def bind_main_func(self, functor):
+        """Decorator to set a main function for the parser."""
         self.set_defaults(main_func=functor)
         # override main prog with subcommand prog
         self.set_defaults(prog=self.prog)
@@ -558,6 +561,7 @@ class ArgumentParser(argparse.ArgumentParser):
         return subparsers
 
     def bind_final_check(self, functor):
+        """Decorator to bind a function for argument validation."""
         self.set_defaults(final_check=functor)
         return functor
 
