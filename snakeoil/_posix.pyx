@@ -29,8 +29,12 @@ cdef bytes _chars(s):
 def normpath(old_path):
     """Normalize a path entry."""
     cdef char *path = strdup(PyBytes_AS_STRING(_chars(old_path)))
+    if not path:
+        raise MemoryError()
     cdef char *read = path
     cdef char *new_path = strdup(path)
+    if not new_path:
+        raise MemoryError()
     cdef char *write = new_path
     cdef int depth = 0
     cdef bint is_absolute = b'/' == path[0]
