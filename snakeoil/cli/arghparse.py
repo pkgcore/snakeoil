@@ -352,13 +352,17 @@ class ArgumentParser(argparse.ArgumentParser):
             self._parent = argparse.ArgumentParser(
                 add_help=False, parents=kwds.get('parents', ()))
 
-        # extract description to use for generated docs
+        # Extract the description to use, assumes first line is the short
+        # description and the remainder should be used for generated docs.
+        # Generally this works properly if a module's __doc__ attr is assigned
+        # to the description parameter.
+        description_lines = []
+        if description is not None:
+            description_lines = description.strip().split('\n', 1)
+            description = description_lines[0]
         if _generate_docs:
-            if description is not None:
-                description_lines = description.split('\n', 1)
-                description = description_lines[0]
-                if docs is None and len(description_lines) == 2:
-                    docs = description_lines[1]
+            if docs is None and len(description_lines) == 2:
+                docs = description_lines[1]
             self._docs = docs
 
         # Consumers can provide the 'script=(__file__, __name__)' parameter in
