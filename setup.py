@@ -13,7 +13,7 @@ common_includes = [
     'include/snakeoil/common.h',
 ]
 
-extra_kwargs = dict(
+ext_build_options = dict(
     depends=common_includes,
     include_dirs=['include'],
 )
@@ -47,49 +47,30 @@ class config(pkgdist.config):
 
 build_deps = []
 if pkgdist.is_py3k:
-    exts = []
-    cython_exts = []
-
-    # regenerate cython exts as necessary
-    for ext in pkgdist.cython_exts():
-        cythonized_ext = os.path.join('snakeoil', os.path.splitext(ext)[0] + '.c')
-        if os.path.exists(cythonized_ext):
-            exts.append(cythonized_ext)
-        else:
-            cython_exts.append(ext)
-
-    # require cython to build exts as necessary
-    if cython_exts:
-        build_deps.append('cython')
-        exts.extend(cython_exts)
-
-    extensions.extend([
-       Extension(os.path.splitext(ext)[0], [ext], **extra_kwargs)
-       for ext in exts
-    ])
+    pkgdist.cython_exts(build_deps, extensions, ext_build_options)
 else:
     extensions.extend([
         OptionalExtension(
             'snakeoil._posix',
-            [os.path.join(pkgdist.TOPDIR, 'src', 'posix.c')], **extra_kwargs),
+            [os.path.join(pkgdist.TOPDIR, 'src', 'posix.c')], **ext_build_options),
         OptionalExtension(
             'snakeoil._klass',
-            [os.path.join(pkgdist.TOPDIR, 'src', 'klass.c')], **extra_kwargs),
+            [os.path.join(pkgdist.TOPDIR, 'src', 'klass.c')], **ext_build_options),
         OptionalExtension(
             'snakeoil._caching',
-            [os.path.join(pkgdist.TOPDIR, 'src', 'caching.c')], **extra_kwargs),
+            [os.path.join(pkgdist.TOPDIR, 'src', 'caching.c')], **ext_build_options),
         OptionalExtension(
             'snakeoil._sequences',
-            [os.path.join(pkgdist.TOPDIR, 'src', 'sequences.c')], **extra_kwargs),
+            [os.path.join(pkgdist.TOPDIR, 'src', 'sequences.c')], **ext_build_options),
         OptionalExtension(
             'snakeoil.osutils._readdir',
-            [os.path.join(pkgdist.TOPDIR, 'src', 'readdir.c')], **extra_kwargs),
+            [os.path.join(pkgdist.TOPDIR, 'src', 'readdir.c')], **ext_build_options),
         OptionalExtension(
             'snakeoil._formatters',
-            [os.path.join(pkgdist.TOPDIR, 'src', 'formatters.c')], **extra_kwargs),
+            [os.path.join(pkgdist.TOPDIR, 'src', 'formatters.c')], **ext_build_options),
         OptionalExtension(
             'snakeoil.chksum._whirlpool_cdo',
-            [os.path.join(pkgdist.TOPDIR, 'src', 'whirlpool_cdo.c')], **extra_kwargs),
+            [os.path.join(pkgdist.TOPDIR, 'src', 'whirlpool_cdo.c')], **ext_build_options),
     ])
 
 
