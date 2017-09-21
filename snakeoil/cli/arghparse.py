@@ -466,7 +466,7 @@ class ArgumentParser(argparse.ArgumentParser):
         namespace, arg_strings = self._parent._parse_known_args(arg_strings, namespace)
 
         # add default subparser to args if one was specified
-        if self._default_subparser is not None:
+        if self._default_subparser:
             if self._default_subparser not in self.subparsers:
                 raise ValueError(
                     'unknown subparser %r (available subparsers %s)' % (
