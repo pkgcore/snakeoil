@@ -352,12 +352,14 @@ class ArgumentParser(argparse.ArgumentParser):
             self._parent = argparse.ArgumentParser(
                 add_help=False, parents=kwds.get('parents', ()))
 
-        if description is not None:
-            description_lines = description.split('\n', 1)
-            description = description_lines[0]
-            if docs is None and len(description_lines) == 2:
-                docs = description_lines[1]
-        self._docs = docs
+        # extract description to use for generated docs
+        if _generate_docs:
+            if description is not None:
+                description_lines = description.split('\n', 1)
+                description = description_lines[0]
+                if docs is None and len(description_lines) == 2:
+                    docs = description_lines[1]
+            self._docs = docs
 
         # Consumers can provide the 'script=(__file__, __name__)' parameter in
         # order for version and prog values to be automatically extracted.
