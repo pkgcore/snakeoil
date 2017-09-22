@@ -79,7 +79,7 @@ if sys.hexversion < 0x03030000:
     test_requirements.append('mock')
 
 setup(
-    name=pkgdist.PROJECT,
+    name=pkgdist.MODULE,
     version=pkgdist.version(),
     description='misc common functionality and useful optimizations',
     long_description=pkgdist.readme(),
