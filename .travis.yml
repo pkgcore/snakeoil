@@ -6,8 +6,8 @@ python:
   - 3.6
 env:
   global:
-    - secure: "MwrWS6pO8qyerApKbDQ6kwgf8zO5jj5PCoqPlk5cS1IPrBqBj5PknPuLbrbzmCQq4+WjxxUhf3Ij3IrrefH0s/CffHGC0Sr5EwJNJuiJAAeODH/lRbNWJLW+T+iOH6vVhXRK5Kk68pX/JMJqH3lOxN4QzvYwSQoyl1Gmj8hRF24="
-    - secure: "PBcqHye5lfkmWudQeuH5uqx7w1PcVqxafLrlnJjYJesTWbaW19l66596YNxMXQz1CBjKrz2oEoN2L5iW52UMuiXJ4ceJBvmqJp8Q707dikARoJVk9+gp0FfIyh5dGxclBZ9UgC9RmfS8fmrCgh/ODsp/PqasmKH7ODI0Rqe8gQ4="
+    - secure: MwrWS6pO8qyerApKbDQ6kwgf8zO5jj5PCoqPlk5cS1IPrBqBj5PknPuLbrbzmCQq4+WjxxUhf3Ij3IrrefH0s/CffHGC0Sr5EwJNJuiJAAeODH/lRbNWJLW+T+iOH6vVhXRK5Kk68pX/JMJqH3lOxN4QzvYwSQoyl1Gmj8hRF24=
+    - secure: PBcqHye5lfkmWudQeuH5uqx7w1PcVqxafLrlnJjYJesTWbaW19l66596YNxMXQz1CBjKrz2oEoN2L5iW52UMuiXJ4ceJBvmqJp8Q707dikARoJVk9+gp0FfIyh5dGxclBZ9UgC9RmfS8fmrCgh/ODsp/PqasmKH7ODI0Rqe8gQ4=
     - CIBW_PLATFORM=linux
     - CIBW_SKIP="cp26-* cp33-*"
     - CIBW_BEFORE_BUILD="{pip} install -r requirements/wheel.txt"
@@ -16,12 +16,12 @@ services:
   - docker
 cache:
   directories:
-    - $HOME/.cache/pip
+    - "$HOME/.cache/pip"
 install:
   - pip install -U pip
 before_script: git clone https://github.com/pkgcore/pkgdist.git
 script:
-  - cp -av pkgdist/requirements/* requirements/
+  - cp -R pkgdist/requirements/* requirements/
   - pip install -r requirements/ci.txt
   - tox -e travis
   - pkgdist/build-dist-files.sh
@@ -29,3 +29,14 @@ after_success:
   # upload coverage data
   - tox -e coverage-report
   - codecov
+
+# push release tarballs to github
+deploy:
+  provider: releases
+  api_key:
+    secure: d1KgGpoHFf/au8m+08NItMGuENBZB5qwuVpobhtmZ2RQUo/uS6e0GoGa/k7OD0+3dQwzsSvJNMs6tfeiYdXnI+3c5BRfyfvtUnLJKs3zSdUsobfUdLrWalNVMAON0EWQIwWOagjFTsxU2/ZKEjgKvD7MjMzdL0xSdv504E+Cmpc=
+  file_glob: true
+  file: dist/snakeoil-*.tar.gz
+  skip_cleanup: true
+  on:
+    tags: true
