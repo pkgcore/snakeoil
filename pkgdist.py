@@ -317,7 +317,8 @@ class sdist(dst_sdist.sdist):
         This is used by the --version option in interactive programs among
         other things.
         """
-        from snakeoil.version import get_git_version
+        with syspath(MODULEDIRNAME, MODULE == 'snakeoil'):
+            from snakeoil.version import get_git_version
         log.info('generating _verinfo')
         data = get_git_version(base_dir)
         if not data:
