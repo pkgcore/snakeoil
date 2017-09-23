@@ -1,8 +1,13 @@
 [run]
 source = snakeoil
 branch = True
-omit = snakeoil/test/*, snakeoil/dist/*
-plugins = Cython.Coverage
+omit = src/snakeoil/test/*, src/snakeoil/dist/*, */_verinfo.py
+
+[paths]
+source =
+	src/snakeoil
+	.tox/*/lib/python*/site-packages/snakeoil
+	.tox/pypy*/site-packages/snakeoil
 
 [report]
 show_missing = True

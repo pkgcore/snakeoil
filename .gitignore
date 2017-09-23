@@ -3,7 +3,7 @@
 .*.un~
 
 # C extensions
-/snakeoil/*.c
+/src/snakeoil/*.c
 *.so
 
 /build

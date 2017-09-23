@@ -152,7 +152,7 @@ class AtomicWriteFile_mixin(object):
         old_umask = None
         if perms:
             # give it just write perms
-            old_umask = os.umask(0200)
+            old_umask = os.umask(0o0200)
         try:
             self._actual_init()
         finally:

@@ -10,7 +10,7 @@ env:
     - secure: "PBcqHye5lfkmWudQeuH5uqx7w1PcVqxafLrlnJjYJesTWbaW19l66596YNxMXQz1CBjKrz2oEoN2L5iW52UMuiXJ4ceJBvmqJp8Q707dikARoJVk9+gp0FfIyh5dGxclBZ9UgC9RmfS8fmrCgh/ODsp/PqasmKH7ODI0Rqe8gQ4="
     - CIBW_PLATFORM=linux
     - CIBW_SKIP="cp26-* cp33-*"
-    - CIBW_BEFORE_BUILD="{pip} install -r requirements.txt"
+    - CIBW_BEFORE_BUILD="{pip} install -r requirements/wheel.txt"
 sudo: required
 services:
   - docker
@@ -18,15 +18,14 @@ cache:
   directories:
     - $HOME/.cache/pip
 install:
-  - pip install --upgrade pip
-  - pip install --only-binary ":all:" tox codecov
-  - pip install -r requirements.txt
+  - pip install -U pip
 before_script: git clone https://github.com/pkgcore/pkgdist.git
 script:
+  - cp -av pkgdist/requirements/* requirements/
+  - pip install -r requirements/ci.txt
   - tox -e travis
   - pkgdist/build-dist-files.sh
 after_success:
   # upload coverage data
-  - pushd .tox/travis/lib/python*/site-packages
+  - tox -e coverage-report
   - codecov
-  - popd
