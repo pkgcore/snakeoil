@@ -4,16 +4,6 @@ python:
   - 3.4
   - 3.5
   - 3.6
-env:
-  global:
-    - secure: MwrWS6pO8qyerApKbDQ6kwgf8zO5jj5PCoqPlk5cS1IPrBqBj5PknPuLbrbzmCQq4+WjxxUhf3Ij3IrrefH0s/CffHGC0Sr5EwJNJuiJAAeODH/lRbNWJLW+T+iOH6vVhXRK5Kk68pX/JMJqH3lOxN4QzvYwSQoyl1Gmj8hRF24=
-    - secure: PBcqHye5lfkmWudQeuH5uqx7w1PcVqxafLrlnJjYJesTWbaW19l66596YNxMXQz1CBjKrz2oEoN2L5iW52UMuiXJ4ceJBvmqJp8Q707dikARoJVk9+gp0FfIyh5dGxclBZ9UgC9RmfS8fmrCgh/ODsp/PqasmKH7ODI0Rqe8gQ4=
-    - CIBW_PLATFORM=linux
-    - CIBW_SKIP="cp26-* cp33-*"
-    - CIBW_BEFORE_BUILD="{pip} install -r requirements/wheel.txt"
-sudo: required
-services:
-  - docker
 cache:
   directories:
     - "$HOME/.cache/pip"
@@ -21,10 +11,9 @@ install:
   - pip install -U pip
 before_script:
   - git clone https://github.com/pkgcore/pkgdist.git
-script:
   - cp -R pkgdist/requirements/* requirements/
   - pip install -r requirements/ci.txt
-  - tox -e travis
+script: tox -e travis
 after_success:
   # upload coverage data
   - tox -e coverage-report
@@ -42,13 +31,28 @@ jobs:
     # push tarball and wheels to pypi
     - stage: deploy
       python: 3.6
-      script: pkgdist/build-dist-files.sh
+      sudo: required
+      services:
+        - docker
+      env:
+        - secure: MwrWS6pO8qyerApKbDQ6kwgf8zO5jj5PCoqPlk5cS1IPrBqBj5PknPuLbrbzmCQq4+WjxxUhf3Ij3IrrefH0s/CffHGC0Sr5EwJNJuiJAAeODH/lRbNWJLW+T+iOH6vVhXRK5Kk68pX/JMJqH3lOxN4QzvYwSQoyl1Gmj8hRF24=
+        - secure: PBcqHye5lfkmWudQeuH5uqx7w1PcVqxafLrlnJjYJesTWbaW19l66596YNxMXQz1CBjKrz2oEoN2L5iW52UMuiXJ4ceJBvmqJp8Q707dikARoJVk9+gp0FfIyh5dGxclBZ9UgC9RmfS8fmrCgh/ODsp/PqasmKH7ODI0Rqe8gQ4=
+        - CIBW_PLATFORM=linux
+        - CIBW_SKIP="cp26-* cp33-*"
+        - CIBW_BEFORE_BUILD="{pip} install -r requirements/wheel.txt"
+      before_script:
+        - git clone https://github.com/pkgcore/pkgdist.git
+        - cp -av pkgdist/requirements/* requirements/
+      script: ./pkgdist/build-dist-files.sh
+
     # push tarball to github
     - stage: deploy
       python: 3.6
-      script:
-        - pip install requirements/docs.txt
-        - python setup.py sdist
+      before_script:
+        - git clone https://github.com/pkgcore/pkgdist.git
+        - cp -av pkgdist/requirements/* requirements/
+        - pip install -r requirements/docs.txt
+      script: python setup.py sdist
       deploy:
         provider: releases
         api_key:
