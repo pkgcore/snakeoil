@@ -115,7 +115,7 @@ if __name__ == '__main__':
     argparser.add_argument('--man', action='store_true', help='generate man files')
     argparser.add_argument('--html', action='store_true', help='generate API files')
     argparser.add_argument(
-        'project', nargs=2, metavar='REPO_DIR PACKAGE_DIR MODULE',
+        'project', nargs=3, metavar='REPO_DIR PACKAGE_DIR MODULE',
         help='package directory and main module name')
 
     opts = argparser.parse_args()
