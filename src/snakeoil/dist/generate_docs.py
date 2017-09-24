@@ -51,13 +51,13 @@ def _generate_custom(project, docdir, gendir):
                 sys.path = orig_syspath
 
 
-def generate_man(project, project_dir):
-    """Generate man page rst docs for a project's installed scripts.
+def generate_man(repo_dir, package_dir, module):
+    """Generate man page rst docs for a module's installed scripts.
 
     This assumes that all the files in the 'bin' directory under the main
-    project root are targeted scripts.
+    repo root are targeted scripts.
     """
-    docdir = os.path.join(project_dir, 'doc')
+    docdir = os.path.join(repo_dir, 'doc')
     gendir = os.path.join(docdir, 'generated')
 
     try:
@@ -66,12 +66,12 @@ def generate_man(project, project_dir):
         if e.errno != errno.EEXIST:
             raise
 
-    print("Generating files for {} man pages in '{}'".format(project, gendir))
-    scripts = os.listdir(os.path.abspath(os.path.join(project_dir, 'bin')))
+    print("Generating files for {} man pages in '{}'".format(module, gendir))
+    scripts = os.listdir(os.path.abspath(os.path.join(repo_dir, 'bin')))
 
     # Replace '-' with '_' due to python namespace contraints.
     generated_man_pages = [
-        ('%s.scripts.' % (project) + s.replace('-', '_'), s) for s in scripts
+        ('%s.scripts.' % (module) + s.replace('-', '_'), s) for s in scripts
     ]
 
     for module, script in generated_man_pages:
@@ -92,21 +92,22 @@ def generate_man(project, project_dir):
         force_symlink(os.path.join(gendir, script), os.path.join(docdir, 'man', script))
         ManConverter.regen_if_needed(gendir, module, out_name=script)
 
-    _generate_custom(project, docdir, gendir)
+    _generate_custom(module, docdir, gendir)
 
 
-def generate_html(project, project_dir):
+def generate_html(repo_dir, package_dir, module):
     """Generate API rst docs for a project.
 
     This uses sphinx-apidoc to auto-generate all the required rst files.
     """
-    apidir = os.path.join(project_dir, 'doc', 'api')
-    print("Generating {} API docs in '{}'".format(project, apidir))
+    apidir = os.path.join(repo_dir, 'doc', 'api')
+    print("Generating {} API docs in '{}'".format(module, apidir))
     if subprocess.call(['sphinx-apidoc', '-Tef', '-o', apidir,
-                        os.path.join(project_dir, project),
-                        os.path.join(project_dir, project, 'test'),
-                        os.path.join(project_dir, project, 'scripts')]):
-        raise RuntimeError('API doc generation failed')
+                        os.path.join(package_dir, module),
+                        os.path.join(package_dir, module, 'test'),
+                        os.path.join(package_dir, module, 'scripts')]):
+        raise RuntimeError(
+            'API doc generation failed for %s' % (module,))
 
 
 if __name__ == '__main__':
@@ -114,24 +115,25 @@ if __name__ == '__main__':
     argparser.add_argument('--man', action='store_true', help='generate man files')
     argparser.add_argument('--html', action='store_true', help='generate API files')
     argparser.add_argument(
-        'project', nargs=2, metavar='PROJECT_DIR PROJECT',
-        help='project root directory and main module name')
+        'project', nargs=2, metavar='REPO_DIR PACKAGE_DIR MODULE',
+        help='package directory and main module name')
 
     opts = argparser.parse_args()
-    opts.project_dir = os.path.abspath(opts.project[0])
-    opts.project = opts.project[1]
+    opts.repo_dir = os.path.abspath(opts.project[0])
+    opts.package_dir = opts.project[1]
+    opts.module = opts.project[2]
 
-    libdir = os.path.abspath(os.path.join(opts.project_dir, 'build', 'lib'))
+    libdir = os.path.abspath(os.path.join(opts.repo_dir, 'build', 'lib'))
     if os.path.exists(libdir):
         sys.path.insert(0, libdir)
-    sys.path.insert(1, opts.project_dir)
+    sys.path.insert(1, opts.repo_dir)
 
     # if run with no args, build all docs
     if not opts.man and not opts.html:
         opts.man = opts.html = True
 
     if opts.man:
-        generate_man(opts.project, opts.project_dir)
+        generate_man(opts.repo_dir, opts.package_dir, opts.module)
 
     if opts.html:
-        generate_html(opts.project, opts.project_dir)
+        generate_html(opts.repo_dir, opts.package_dir, opts.module)

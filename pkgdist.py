@@ -97,7 +97,7 @@ def find_moduledir(searchdir=TOPDIR):
 
 # determine the main module we're being used to package
 MODULEDIR = find_moduledir()
-MODULEDIRNAME = os.path.dirname(MODULEDIR)
+PACKAGEDIR = os.path.dirname(MODULEDIR)
 MODULE = os.path.basename(MODULEDIR)
 
 
@@ -145,8 +145,8 @@ def setup():
         'name': MODULE,
         'version': version(),
         'long_description': readme(),
-        'packages': find_packages(MODULEDIRNAME),
-        'package_dir': {'':os.path.basename(MODULEDIRNAME)},
+        'packages': find_packages(PACKAGEDIR),
+        'package_dir': {'':os.path.basename(PACKAGEDIR)},
         'install_requires': install_requires(),
     }
 
@@ -317,7 +317,7 @@ class sdist(dst_sdist.sdist):
         This is used by the --version option in interactive programs among
         other things.
         """
-        with syspath(MODULEDIRNAME, MODULE == 'snakeoil'):
+        with syspath(PACKAGEDIR, MODULE == 'snakeoil'):
             from snakeoil.version import get_git_version
         log.info('generating _verinfo')
         data = get_git_version(base_dir)
@@ -386,7 +386,7 @@ class build_py(dst_build_py.build_py):
             self.build_lib, (MODULE,), '_verinfo')
         # this should check mtime...
         if not os.path.exists(ver_path):
-            with syspath(MODULEDIRNAME, MODULE == 'snakeoil'):
+            with syspath(PACKAGEDIR, MODULE == 'snakeoil'):
                 from snakeoil.version import get_git_version
             log.info('generating _verinfo')
             with open(ver_path, 'w') as f:
@@ -431,7 +431,7 @@ class build_py2to3(build_py):
 
     def get_py2to3_converter(self, options=None, proc_count=0):
         from lib2to3 import refactor as ref_mod
-        with syspath(MODULEDIRNAME, MODULE == 'snakeoil'):
+        with syspath(PACKAGEDIR, MODULE == 'snakeoil'):
             from snakeoil.dist import caching_2to3
 
         if proc_count == 0:
@@ -553,7 +553,7 @@ class build_man(Command):
                 # generate man page content for scripts we create
                 if 'build_scripts' in self.distribution.cmdclass:
                     from snakeoil.dist.generate_docs import generate_man
-                    generate_man(MODULE, TOPDIR)
+                    generate_man(TOPDIR, PACKAGEDIR, MODULE)
 
                 # generate man pages
                 build_sphinx = self.reinitialize_command('build_sphinx')
@@ -584,7 +584,7 @@ class build_docs(build_man):
 
             # generate API docs
             from snakeoil.dist.generate_docs import generate_html
-            generate_html(MODULE, MODULEDIRNAME)
+            generate_html(TOPDIR, PACKAGEDIR, MODULE)
 
             # generate html docs -- allow build_sphinx cmd to run again
             build_sphinx = self.reinitialize_command('build_sphinx')
@@ -1181,7 +1181,7 @@ class config(dst_config.config):
         return self.try_link("int main(int argc, char *argv[]) { return 0; }")
 
     def run(self):
-        with syspath(MODULEDIRNAME, MODULE == 'snakeoil'):
+        with syspath(PACKAGEDIR, MODULE == 'snakeoil'):
             from snakeoil.pickling import dump, load
 
         # try to load the cached results
