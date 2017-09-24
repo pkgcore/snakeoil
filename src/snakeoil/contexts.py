@@ -249,6 +249,26 @@ def chdir(path):
         os.chdir(orig_cwd)
 
 
+@contextmanager
+def syspath(path, condition=True, position=0):
+    """Context manager that mangles sys.path and then reverts on exit.
+
+    Args:
+        path: The directory path to add to sys.path.
+        condition: Optional boolean that decides whether sys.path is mangled or
+            not, defaults to being enabled.
+        position: Optional integer that is the place where the path is inserted
+            in sys.path, defaults to prepending.
+    """
+    syspath = sys.path[:]
+    if condition:
+        sys.path.insert(position, path)
+    try:
+        yield
+    finally:
+        sys.path = syspath
+
+
 # Ideas and code for the patch context manager have been borrowed from mock
 # (https://github.com/testing-cabal/mock) governed by the BSD-2 license found
 # below.

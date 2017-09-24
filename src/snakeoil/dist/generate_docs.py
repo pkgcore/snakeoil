@@ -12,6 +12,7 @@ import textwrap
 
 from snakeoil.dist.generate_man_rsts import ManConverter
 from snakeoil.osutils import force_symlink
+from snakeoil.contexts import syspath
 
 
 def _generate_custom(project, docdir, gendir):
@@ -44,11 +45,9 @@ def _generate_custom(project, docdir, gendir):
             rst = os.path.join(gendir, subdir, os.path.splitext(script)[0] + '.rst')
             print("generating {}".format(rst))
             with open(rst, 'w') as f:
-                orig_syspath = sys.path
-                sys.path.insert(0, os.path.dirname(script_path))
-                module = import_module(os.path.basename(os.path.splitext(script_path)[0]))
-                module.main(f)
-                sys.path = orig_syspath
+                with syspath(os.path.dirname(script_path)):
+                    module = import_module(os.path.basename(os.path.splitext(script_path)[0]))
+                    module.main(f)
 
 
 def generate_man(repo_dir, package_dir, module):
