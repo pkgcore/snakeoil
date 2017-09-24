@@ -12,6 +12,7 @@ demandload(
     'errno',
     'inspect',
     'multiprocessing.connection:Pipe',
+    'signal',
     'threading',
     'traceback',
     'importlib:import_module',
@@ -56,8 +57,20 @@ class SplitExec(object):
         self.__pipe = None
         self.childpid = None
 
+    def _parent_handler(self, signum, frame):
+        """Signal handler for the parent process.
+
+        By default this runs the parent cleanup and then resends the original
+        signal to the parent process.
+        """
+        self._cleanup()
+        signal.signal(signum, signal.SIG_DFL)
+        os.kill(os.getpid(), signum)
+
     def _parent_setup(self):
         """Initialization for parent process."""
+        signal.signal(signal.SIGINT, self._parent_handler)
+        signal.signal(signal.SIGTERM, self._parent_handler)
 
     def _child_setup(self):
         """Initialization for child process."""
