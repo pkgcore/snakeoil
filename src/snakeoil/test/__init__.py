@@ -164,12 +164,12 @@ class TestCase(unittest.TestCase, object):
         except IGNORED_EXCEPTIONS:
             raise
         except Exception as e:
-            tb = traceback.format_exc()
+            ex_type, ex, tb = sys.exc_info()
 
             new_exc = AssertionError(
                 "expected an exception of %r type from invocation of-\n"
                 "%s(*%r, **%r)\n\ninstead, got the following traceback:\n%s" %
-                (excClass, callableObj, args, kwargs, tb))
+                (excClass, callableObj, args, kwargs, traceback.format_exc()))
             new_exc.__cause__ = e
             new_exc.__traceback__ = tb
             raise new_exc
