@@ -4,6 +4,11 @@ python:
   - 3.4
   - 3.5
   - 3.6
+  - 3.7-dev
+matrix:
+  fast_finish: true
+  allow_failures:
+  - python: 3.7-dev
 cache:
   directories:
     - "$HOME/.cache/pip"
@@ -42,7 +47,7 @@ jobs:
         - CIBW_BEFORE_BUILD="{pip} install -r requirements/wheel.txt"
       before_script:
         - git clone https://github.com/pkgcore/pkgdist.git
-        - cp -av pkgdist/requirements/* requirements/
+        - cp -R pkgdist/requirements/* requirements/
       script: ./pkgdist/build-dist-files.sh
 
     # push tarball to github
@@ -50,7 +55,7 @@ jobs:
       python: 3.6
       before_script:
         - git clone https://github.com/pkgcore/pkgdist.git
-        - cp -av pkgdist/requirements/* requirements/
+        - cp -R pkgdist/requirements/* requirements/
         - pip install -r requirements/docs.txt
       script: python setup.py sdist
       deploy:
