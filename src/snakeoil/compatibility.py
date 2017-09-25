@@ -93,8 +93,12 @@ if is_py3k:
         return string.encode()
 
     class ConfigParser(configparser.ConfigParser):
-        pass
 
+        exceptions = (
+            configparser.ParsingError,
+            configparser.DuplicateOptionError,
+            configparser.DuplicateSectionError,
+        )
 else:
     # note that 2to3 screws this up... non issue however, since
     # this codepath won't be executed.
@@ -112,6 +116,8 @@ else:
     # elsewhere- note that read_file actually was added in 3.2, but we don't
     # support 3.1
     class ConfigParser(configparser.SafeConfigParser):
+
+        exceptions = (configparser.ParsingError,)
 
         def read_file(self, f, source=None):
             self.readfp(f, filename=source)
