@@ -3,6 +3,7 @@
 
 import errno
 import os
+import tempfile
 import unittest
 
 try:
@@ -70,6 +71,28 @@ class TestVersion(unittest.TestCase):
                 version.get_version('snakeoil', __file__, verinfo['tag']),
                 'snakeoil %s, released %s' % (verinfo['tag'], verinfo['date']))
 
+    def test_get_version_no_git_version(self):
+        with mock.patch('snakeoil.version.import_module') as import_module, \
+                mock.patch('snakeoil.version.get_git_version') as get_git_version:
+            import_module.side_effect = ImportError
+            get_git_version.return_value = None
+            self.assertEqual(
+                version.get_version('snakeoil', 'nonexistent', __version__),
+                '%s %s, extended version info unavailable' % ('snakeoil', __version__))
+
+    def test_get_version_caching(self):
+        # retrieved version info is cached in a module attr
+        v = version.get_version('snakeoil', __file__)
+        self.assertTrue(v.startswith('%s %s' % ('snakeoil', __version__)))
+
+        # re-running get_version returns the cached attr instead of reprocessing
+        with mock.patch('snakeoil.version.import_module') as import_module:
+            v = version.get_version('snakeoil', __file__)
+        assert not import_module.called
+
+
+class TestGitVersion(unittest.TestCase):
+
     def test_get_git_version_not_available(self):
         with mock.patch('snakeoil.version._run_git') as run_git:
             run_git.side_effect = EnvironmentError(errno.ENOENT, 'git not found')
@@ -79,6 +102,13 @@ class TestVersion(unittest.TestCase):
         with mock.patch('snakeoil.version._run_git') as run_git:
             run_git.return_value = (b'foo', 1)
             self.assertEqual(version.get_git_version('nonexistent'), None)
+
+    def test_get_git_version_non_repo(self):
+        # test our basic git cmd running
+        # TODO: switch to TemporaryDirectory context manager when py3 only
+        tempdir = tempfile.mkdtemp()
+        self.assertEqual(version.get_git_version(tempdir), None)
+        os.rmdir(tempdir)
 
     def test_get_git_version_exc(self):
         with self.assertRaises(OSError):
@@ -125,22 +155,3 @@ class TestVersion(unittest.TestCase):
             self.assertEqual(version._get_git_tag('foo', 'bar'), '1.1.1')
             run_git.return_value = (b'ab38751890efa8be96b7f95938d6b868b769bab6 tags/1.1.1', 0)
             self.assertEqual(version._get_git_tag('foo', 'bar'), '1.1.1')
-
-    def test_get_version_no_git_version(self):
-        with mock.patch('snakeoil.version.import_module') as import_module, \
-                mock.patch('snakeoil.version.get_git_version') as get_git_version:
-            import_module.side_effect = ImportError
-            get_git_version.return_value = None
-            self.assertEqual(
-                version.get_version('snakeoil', 'nonexistent', __version__),
-                '%s %s, extended version info unavailable' % ('snakeoil', __version__))
-
-    def test_get_version_caching(self):
-        # retrieved version info is cached in a module attr
-        v = version.get_version('snakeoil', __file__)
-        self.assertTrue(v.startswith('%s %s' % ('snakeoil', __version__)))
-
-        # re-running get_version returns the cached attr instead of reprocessing
-        with mock.patch('snakeoil.version.import_module') as import_module:
-            v = version.get_version('snakeoil', __file__)
-        assert not import_module.called
