@@ -8,12 +8,8 @@ try:
     # py3.4 and up
     from importlib import reload
 except ImportError:
-    try:
-        # py3.3
-        from imp import reload
-    except ImportError:
-        # py2
-        pass
+    # py2
+    pass
 
 from snakeoil.cli import arghparse
 from snakeoil.test import argparse_helpers
