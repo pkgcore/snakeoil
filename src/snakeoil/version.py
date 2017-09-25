@@ -38,14 +38,11 @@ def get_version(project, repo_file, api_version=None):
                 '%s._verinfo' % (project,)), 'version_info')
         except ImportError:
             # we're probably in a git repo
-            try:
-                cwd = os.path.dirname(os.path.abspath(repo_file))
-                version_info = get_git_version(cwd)
-            except ImportError:
-                pass
+            cwd = os.path.dirname(os.path.abspath(repo_file))
+            version_info = get_git_version(cwd)
 
         if version_info is None:
-            s = "extended version info unavailable"
+            s = ", extended version info unavailable"
         elif version_info['tag'] == api_version:
             s = ', released %s' % (version_info['date'],)
         else:
@@ -91,7 +88,7 @@ def get_git_version(cwd):
         # ENOENT is thrown when the git binary can't be found.
         if e.errno != errno.ENOENT:
             raise
-        return {'rev': 'unknown', 'date': 'unknown', 'tag': 'unknown'}
+        return None
 
 
 def _get_git_tag(cwd, rev):
@@ -103,8 +100,6 @@ def _get_git_tag(cwd, rev):
     if not tag.startswith("tags/"):
         return None
     tag = tag[len("tags/"):]
-    if tag.endswith("^0"):
-        tag = tag[:-2]
     if tag.startswith("v"):
         tag = tag[1:]
     return tag
