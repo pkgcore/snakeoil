@@ -21,19 +21,7 @@ from snakeoil import __version__
 from snakeoil import version
 
 
-# fake _verinfo module object
-class Verinfo(object):
-
-    version_info={
-        'rev': 'ab38751890efa8be96b7f95938d6b868b769bab6',
-        'date': 'Thu Sep 21 15:57:38 2017 -0400',
-        'tag': __version__,
-    }
-
-
 class TestVersion(unittest.TestCase):
-
-    verinfo = Verinfo()
 
     def setUp(self):
         # reset the cached version in the module
@@ -51,42 +39,78 @@ class TestVersion(unittest.TestCase):
         self.assertTrue(v.startswith('snakeoil 9.9.9'))
 
     def test_get_version_git_dev(self):
-        try:
-            import snakeoil._verinfo
-        except ImportError:
-            v = version.get_version('snakeoil', __file__)
-            self.assertTrue(v.startswith('%s %s-g' % ('snakeoil', __version__)))
-
-            # technically a nonexistent file will work too
-            reload(version)
-            v = version.get_version('snakeoil', 'nonexistent')
-            self.assertTrue(v.startswith('%s %s-g' % ('snakeoil', __version__)))
-        else:
-            raise unittest.SkipTest('running on a release version')
-
-    def test_get_version_git_mock_release(self):
-        with mock.patch('snakeoil.version.import_module') as import_module:
-            import_module.return_value = self.verinfo
-            v = version.get_version('snakeoil', __file__, __version__)
-            self.assertEqual(v, '%s %s, released %s' % (
-                'snakeoil', __version__, self.verinfo.version_info['date']))
-
-    def test_get_version_git_not_available(self):
-        with mock.patch('snakeoil.version.import_module') as import_module:
+        with mock.patch('snakeoil.version.import_module') as import_module, \
+                mock.patch('snakeoil.version.get_git_version') as get_git_version:
             import_module.side_effect = ImportError
+            verinfo = {
+                'rev': '1ff76b021d208f7df38ac524537b6419404f1c64',
+                'date': 'Mon Sep 25 13:50:24 2017 -0400',
+                'tag': None
+            }
+            get_git_version.return_value = verinfo
+
+            self.assertEqual(
+                version.get_version('snakeoil', __file__, __version__),
+                'snakeoil %s-g%s, %s' % (__version__, verinfo['rev'][:7], verinfo['date']))
+
+    def test_get_version_git_release(self):
+        verinfo={
+            'rev': 'ab38751890efa8be96b7f95938d6b868b769bab6',
+            'date': 'Thu Sep 21 15:57:38 2017 -0400',
+            'tag': '2.3.4',
+        }
+
+        # fake snakeoil._verinfo module object
+        class Verinfo(object):
+            version_info=verinfo
+
+        with mock.patch('snakeoil.version.import_module') as import_module:
+            import_module.return_value = Verinfo()
+            self.assertEqual(
+                version.get_version('snakeoil', __file__, verinfo['tag']),
+                'snakeoil %s, released %s' % (verinfo['tag'], verinfo['date']))
+
+    def test_get_git_version_not_available(self):
+        with mock.patch('snakeoil.version._run_git') as run_git:
+            run_git.side_effect = EnvironmentError(errno.ENOENT, 'git not found')
+            self.assertEqual(version.get_git_version('nonexistent'), None)
+
+    def test_get_git_version_error(self):
+        with mock.patch('snakeoil.version._run_git') as run_git:
+            run_git.return_value = (b'foo', 1)
+            self.assertEqual(version.get_git_version('nonexistent'), None)
+
+    def test_get_git_version_exc(self):
+        with self.assertRaises(OSError):
             with mock.patch('snakeoil.version._run_git') as run_git:
-                run_git.side_effect = EnvironmentError(errno.ENOENT, 'git not found')
-                v = version.get_version('snakeoil', __file__, __version__)
-            self.assertEqual(v, '%s %s, extended version info unavailable' % (
-                'snakeoil', __version__))
+                run_git.side_effect = OSError(errno.EIO, 'Input/output error')
+                version.get_git_version('nonexistent')
 
-    def test_get_version_git_error(self):
-        with mock.patch('snakeoil.version.import_module') as import_module:
-            import_module.side_effect = ImportError
-            with self.assertRaises(OSError):
-                with mock.patch('snakeoil.version._run_git') as run_git:
-                    run_git.side_effect = OSError(errno.EIO, 'Input/output error')
-                    version.get_version('snakeoil', __file__, __version__)
+    def test_get_git_version_good_dev(self):
+        with mock.patch('snakeoil.version._run_git') as run_git:
+            # dev version
+            run_git.return_value = (
+                b'1ff76b021d208f7df38ac524537b6419404f1c64\nMon Sep 25 13:50:24 2017 -0400', 0)
+            self.assertEqual(
+                version.get_git_version('nonexistent'),
+                {'rev': '1ff76b021d208f7df38ac524537b6419404f1c64',
+                 'date': 'Mon Sep 25 13:50:24 2017 -0400',
+                 'tag': None
+                })
+
+    def test_get_git_version_good_tag(self):
+        with mock.patch('snakeoil.version._run_git') as run_git, \
+                mock.patch('snakeoil.version._get_git_tag') as get_git_tag:
+            # tagged, release version
+            run_git.return_value = (
+                b'1ff76b021d208f7df38ac524537b6419404f1c64\nMon Sep 25 13:50:24 2017 -0400', 0)
+            get_git_tag.return_value = '1.1.1'
+            self.assertEqual(
+                version.get_git_version('nonexistent'),
+                {'rev': '1ff76b021d208f7df38ac524537b6419404f1c64',
+                 'date': 'Mon Sep 25 13:50:24 2017 -0400',
+                 'tag': '1.1.1'
+                })
 
     def test_get_git_tag_bad_output(self):
         with mock.patch('snakeoil.version._run_git') as run_git:
@@ -102,11 +126,13 @@ class TestVersion(unittest.TestCase):
             run_git.return_value = (b'ab38751890efa8be96b7f95938d6b868b769bab6 tags/1.1.1', 0)
             self.assertEqual(version._get_git_tag('foo', 'bar'), '1.1.1')
 
-    def test_get_version_simple(self):
-        with mock.patch('snakeoil.version.import_module') as import_module:
+    def test_get_version_no_git_version(self):
+        with mock.patch('snakeoil.version.import_module') as import_module, \
+                mock.patch('snakeoil.version.get_git_version') as get_git_version:
             import_module.side_effect = ImportError
+            get_git_version.return_value = None
             self.assertEqual(
-                version.get_version('snakeoil', '/tmp', __version__),
+                version.get_version('snakeoil', 'nonexistent', __version__),
                 '%s %s, extended version info unavailable' % ('snakeoil', __version__))
 
     def test_get_version_caching(self):
