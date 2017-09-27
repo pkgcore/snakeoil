@@ -80,6 +80,7 @@ if is_py3k:
         return raw_cmp(obj1, obj2)
 
     intern = sys.intern
+    input = input
 
     def sorted_cmp(sequence, func, key=None, reverse=False):
         return sorted(sequence, reverse=reverse,
@@ -103,6 +104,9 @@ else:
     # note that 2to3 screws this up... non issue however, since
     # this codepath won't be executed.
     from __builtin__ import cmp, intern
+
+    # make input() default to raw_input() like py3
+    input = raw_input
 
     def sorted_cmp(sequence, func, key=None, reverse=False):
         return sorted(sequence, cmp=func, key=key, reverse=reverse)
