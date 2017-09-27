@@ -34,6 +34,30 @@ except ImportError:
     max_fd_limit = 256
 
 
+def bash_version(force=False):
+    """Get the system bash version of the form major.minor.patch."""
+    if not force:
+        try:
+            return bash_version.cached_result
+        except AttributeError:
+            pass
+    try:
+        ret, ver = spawn_get_output(
+            [BASH_BINARY, '--norc', '--noprofile', '-c',
+             'printf ${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]}.${BASH_VERSINFO[2]}'])
+        if ret == 0:
+            try:
+                ver = ver[0]
+            except IndexError:
+                ver = None
+        else:
+            ver = None
+    except ExecutionFailure:
+        ver = None
+    bash_version.cached_result = ver
+    return ver
+
+
 def spawn_bash(mycommand, debug=False, name=None, **kwds):
     """spawn the command via bash -c"""
 
