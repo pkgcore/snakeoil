@@ -88,9 +88,9 @@ def userquery(prompt, out, err, responses=None, default_answer=None, limit=3):
             raise
         if not response:
             return default_answer
-        results = set(
+        results = sorted(set(
             (key, value) for key, value in responses.iteritems()
-            if key[:len(response)].lower() == response.lower())
+            if key[:len(response)].lower() == response.lower()))
         if not results:
             err.write('Sorry, response %r not understood.' % (response,))
         elif len(results) > 1:

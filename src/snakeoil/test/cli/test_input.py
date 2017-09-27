@@ -28,6 +28,44 @@ class TestUserQuery(unittest.TestCase):
         self.assertEqual(self.query('foo'), True)
 
     @patch.object(compat, 'input')
+    def test_tuple_prompt(self, fake_input):
+        fake_input.return_value = ''
+        prompt = 'perhaps a tuple'
+        self.assertEqual(self.query(tuple(prompt.split())), True)
+        output = ''.join(prompt.split())
+        self.assertEqual(
+            self.out.get_text_stream().strip().split('\n')[0][:len(output)],
+            output)
+
+    @patch.object(compat, 'input')
+    def test_no_default_answer(self, fake_input):
+        responses = {
+            'a': ('z', 'Yes'),
+            'b': ('y', 'No'),
+        }
+        # no default answer returns None for empty input
+        fake_input.return_value = ''
+        self.assertEqual(self.query('foo', responses=responses), None)
+        fake_input.return_value = 'a'
+        self.assertEqual(self.query('foo', responses=responses), 'z')
+        fake_input.return_value = 'b'
+        self.assertEqual(self.query('foo', responses=responses), 'y')
+
+    @patch.object(compat, 'input')
+    def test_ambiguous_input(self, fake_input):
+        responses = {
+            'a': ('z', 'Yes'),
+            'A': ('y', 'No'),
+        }
+        fake_input.return_value = 'a'
+        with self.assertRaises(input_mod.NoChoice):
+            self.query('foo', responses=responses)
+        self.assertEqual(
+            self.err.get_text_stream().strip().split('\n')[1],
+            'Response %r is ambiguous (%s)' % (
+                fake_input.return_value, ', '.join(sorted(responses.iterkeys()))))
+
+    @patch.object(compat, 'input')
     def test_default_correct_input(self, fake_input):
         for input, output in (('no', False),
                               ('No', False),
