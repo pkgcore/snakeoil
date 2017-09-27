@@ -2,6 +2,17 @@
 Release Notes
 =============
 
+snakeoil 0.7.3 (2017-09-27)
+---------------------------
+
+- snakeoil.contexts: SplitExec(): Run clean up method by default on SIGINT or
+  SIGTERM.
+
+- snakeoil.contexts: Add syspath() context manager that mangles sys.path as
+  requested and reverts on exit.
+
+- Fix documentation generation for modules with custom package dirs.
+
 snakeoil 0.7.2 (2017-09-21)
 ---------------------------
 
