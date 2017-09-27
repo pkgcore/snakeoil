@@ -3,7 +3,9 @@
 
 """Various methods involving user input."""
 
-from snakeoil.compatibility import raise_from
+import errno
+
+from snakeoil import compatibility as compat
 
 
 class NoChoice(KeyboardInterrupt):
@@ -53,6 +55,9 @@ def userquery(prompt, out, err, responses=None, default_answer=None, limit=3):
         for val in responses.itervalues():
             if val[0] == default_answer:
                 default_answer_name = val[1:]
+                break
+        else:
+            raise ValueError('default answer matches no responses')
     for i in xrange(limit):
         # XXX see docstring about crummyness
         if isinstance(prompt, tuple):
@@ -72,14 +77,14 @@ def userquery(prompt, out, err, responses=None, default_answer=None, limit=3):
             out.write(')', autoline=False)
         out.write(': ', autoline=False)
         try:
-            response = raw_input()
+            response = compat.input()
         except EOFError:
             out.write("\nNot answerable: EOF on STDIN")
-            raise_from(NoChoice())
+            compat.raise_from(NoChoice())
         except IOError as e:
             if e.errno == errno.EBADF:
                 out.write("\nNot answerable: STDIN is either closed, or not readable")
-                raise_from(NoChoice())
+                compat.raise_from(NoChoice())
             raise
         if not response:
             return default_answer
@@ -87,10 +92,10 @@ def userquery(prompt, out, err, responses=None, default_answer=None, limit=3):
             (key, value) for key, value in responses.iteritems()
             if key[:len(response)].lower() == response.lower())
         if not results:
-            err.write('Sorry, response "%s" not understood.' % (response,))
+            err.write('Sorry, response %r not understood.' % (response,))
         elif len(results) > 1:
             err.write(
-                'Response "%s" is ambiguous (%s)' %
+                'Response %r is ambiguous (%s)' %
                 (response, ', '.join(key for key, val in results)))
         else:
             return list(results)[0][1][0]
