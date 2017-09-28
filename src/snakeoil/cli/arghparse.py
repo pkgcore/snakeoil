@@ -342,15 +342,12 @@ class ArgumentParser(argparse.ArgumentParser):
         # subparser to use if none is specified on the command line and one is required
         self._default_subparser = None
 
-        # Core parser for all parent parsers, allows for separating parsing
-        # args meant for the root command with args targeted to subcommands. This
-        # allows for things such as adding conflicting options to both the root command
-        # and subcommands without causing issues in addition to helping support default
-        # subparsers.
-        self._parent = None
-        if kwds.get('parents', False):
-            self._parent = argparse.ArgumentParser(
-                add_help=False, parents=kwds.get('parents', ()))
+        # Store parent parsers allowing for separating parsing args meant for
+        # the root command with args targeted to subcommands. This enables
+        # usage such as adding conflicting options to both the root command and
+        # subcommands without causing issues in addition to helping support
+        # default subparsers.
+        self._parents = kwds.get('parents', ())
 
         # Extract the description to use, assumes first line is the short
         # description and the remainder should be used for generated docs.
@@ -442,7 +439,7 @@ class ArgumentParser(argparse.ArgumentParser):
                         where stdout is not a tty.
                     """)
 
-    @property
+    @klass.cached_property
     def subparsers(self):
         """Return the set of registered subparsers."""
         parsers = set()
@@ -454,28 +451,17 @@ class ArgumentParser(argparse.ArgumentParser):
 
     def _parse_known_args(self, arg_strings, namespace):
         """Add support for using a specified, default subparser."""
-        # we don't need to determine which subparser to use
-        done = (
-            self._parent is None or  # parser has no root command
-            not arg_strings or  # no args passed in
-            {'-h', '--help'}.intersection(arg_strings) or  # help requested
-            arg_strings[0] in self.subparsers or  # subparser already determined
-            getattr(namespace, 'subcommand', klass._sentinel) == klass._sentinel # no subparsers exist
-        )
-
-        if done:
-            return super(ArgumentParser, self)._parse_known_args(arg_strings, namespace)
-
-        # parse all options the parent parsers know about
-        namespace, arg_strings = self._parent._parse_known_args(arg_strings, namespace)
-
-        # add default subparser to args if one was specified
-        if self._default_subparser:
+        if self._default_subparser and arg_strings[0] not in self.subparsers:
             if self._default_subparser not in self.subparsers:
                 raise ValueError(
                     'unknown subparser %r (available subparsers %s)' % (
                     self._default_subparser, ', '.join(sorted(self.subparsers))))
-            arg_strings = [self._default_subparser] + arg_strings
+            # parse all options the parent parsers know about
+            for parser in self._parents:
+                namespace, arg_strings = parser._parse_known_args(arg_strings, namespace)
+            # if the next arg to parse isn't a subcmd, prepend the default
+            if arg_strings[0] not in self.subparsers:
+                arg_strings = [self._default_subparser] + arg_strings
 
         # parse the remaining args
         return super(ArgumentParser, self)._parse_known_args(arg_strings, namespace)
