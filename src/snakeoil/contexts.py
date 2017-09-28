@@ -56,6 +56,7 @@ class SplitExec(object):
         self.__injected_trace_funcs = {}
         self.__pipe = None
         self.childpid = None
+        self.exit_status = -1
 
     def _parent_handler(self, signum, frame):
         """Signal handler for the parent process.
@@ -153,7 +154,8 @@ class SplitExec(object):
             os._exit(0)  # pylint: disable=W0212
 
         # wait for child process to exit
-        os.waitpid(self.childpid, 0)
+        _pid, exit_status = os.waitpid(self.childpid, 0)
+        self.exit_status = exit_status >> 8
         self._cleanup()
 
         return True
