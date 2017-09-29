@@ -342,6 +342,8 @@ class ArgumentParser(argparse.ArgumentParser):
 
         # subparser to use if none is specified on the command line and one is required
         self.__default_subparser = None
+        # subparsers action object from calling add_subparsers()
+        self.__subparsers = None
 
         # Store parent parsers allowing for separating parsing args meant for
         # the root command with args targeted to subcommands. This enables
@@ -548,11 +550,17 @@ class ArgumentParser(argparse.ArgumentParser):
         # set the default subparser to use
         self.__default_subparser = default
 
+        # If add_subparsers() has already been called return the previous
+        # object as argparse doesn't allow multiple objects of this type.
+        if self.__subparsers is not None:
+            return self.__subparsers
+
         kwargs.setdefault('title', 'subcommands')
         kwargs.setdefault('dest', 'subcommand')
         kwargs.setdefault('prog', self.prog)
         subparsers = argparse.ArgumentParser.add_subparsers(self, **kwargs)
         subparsers.required = True
+        self.__subparsers = subparsers
         return subparsers
 
     def bind_final_check(self, functor):
