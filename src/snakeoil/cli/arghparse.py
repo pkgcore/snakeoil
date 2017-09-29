@@ -341,7 +341,7 @@ class ArgumentParser(argparse.ArgumentParser):
         self.suppress = suppress  # TODO: deprecated, drop in 0.8.0
 
         # subparser to use if none is specified on the command line and one is required
-        self._default_subparser = None
+        self.__default_subparser = None
 
         # Store parent parsers allowing for separating parsing args meant for
         # the root command with args targeted to subcommands. This enables
@@ -452,17 +452,17 @@ class ArgumentParser(argparse.ArgumentParser):
 
     def _parse_known_args(self, arg_strings, namespace):
         """Add support for using a specified, default subparser."""
-        if self._default_subparser and arg_strings[0] not in self.subparsers:
-            if self._default_subparser not in self.subparsers:
+        if self.__default_subparser and arg_strings[0] not in self.subparsers:
+            if self.__default_subparser not in self.subparsers:
                 raise ValueError(
                     'unknown subparser %r (available subparsers %s)' % (
-                    self._default_subparser, ', '.join(sorted(self.subparsers))))
+                    self.__default_subparser, ', '.join(sorted(self.subparsers))))
             # parse all options the parent parsers know about
             for parser in self._parents:
                 namespace, arg_strings = parser._parse_known_args(arg_strings, namespace)
             # if the next arg to parse isn't a subcmd, prepend the default
             if arg_strings[0] not in self.subparsers:
-                arg_strings = [self._default_subparser] + arg_strings
+                arg_strings = [self.__default_subparser] + arg_strings
 
         # parse the remaining args
         return super(ArgumentParser, self)._parse_known_args(arg_strings, namespace)
@@ -545,7 +545,9 @@ class ArgumentParser(argparse.ArgumentParser):
         return f
 
     def add_subparsers(self, default=None, **kwargs):
-        self._default_subparser = default
+        # set the default subparser to use
+        self.__default_subparser = default
+
         kwargs.setdefault('title', 'subcommands')
         kwargs.setdefault('dest', 'subcommand')
         kwargs.setdefault('prog', self.prog)
