@@ -344,6 +344,8 @@ class ArgumentParser(argparse.ArgumentParser):
         self.__default_subparser = None
         # subparsers action object from calling add_subparsers()
         self.__subparsers = None
+        # function to execute for this parser
+        self.__main_func = None
 
         # Store parent parsers allowing for separating parsing args meant for
         # the root command with args targeted to subcommands. This enables
@@ -475,8 +477,13 @@ class ArgumentParser(argparse.ArgumentParser):
 
         args, unknown_args = self.parse_known_args(args, namespace)
 
-        # make sure prog is updated if running a subcommand
-        self.prog = getattr(args, 'prog', self.prog)
+        # make sure the correct function and prog are set if running a subcommand
+        subcmd_parser = self.subparsers.get(getattr(args, 'subcommand', None), None)
+        if subcmd_parser is not None:
+            namespace.prog = subcmd_parser.prog
+            # override the function to be run if the subcommand sets one
+            if subcmd_parser.__main_func is not None:
+                namespace.main_func = subcmd_parser.__main_func
 
         if unknown_args:
             self.error('unrecognized arguments: %s' % ' '.join(unknown_args))
@@ -526,6 +533,7 @@ class ArgumentParser(argparse.ArgumentParser):
     def bind_main_func(self, functor):
         """Decorator to set a main function for the parser."""
         self.set_defaults(main_func=functor)
+        self.__main_func = functor
         # override main prog with subcommand prog
         self.set_defaults(prog=self.prog)
         return functor
