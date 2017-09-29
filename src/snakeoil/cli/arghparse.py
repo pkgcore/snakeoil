@@ -10,6 +10,7 @@ import sys
 
 from snakeoil import compatibility, klass
 from snakeoil.demandload import demandload
+from snakeoil.mappings import ImmutableDict
 
 demandload(
     'itertools',
@@ -442,12 +443,12 @@ class ArgumentParser(argparse.ArgumentParser):
     @klass.cached_property
     def subparsers(self):
         """Return the set of registered subparsers."""
-        parsers = set()
+        parsers = {}
         if self._subparsers is not None:
             for x in self._subparsers._actions:
                 if isinstance(x, argparse._SubParsersAction):
-                    parsers.update(x._name_parser_map.keys())
-        return parsers
+                    parsers.update(x._name_parser_map)
+        return ImmutableDict(parsers)
 
     def _parse_known_args(self, arg_strings, namespace):
         """Add support for using a specified, default subparser."""
