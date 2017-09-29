@@ -91,6 +91,9 @@ class Tool(object):
         :param namespace: Namespace object to use for created attributes.
         """
         options = self.parser.parse_args(args=args, namespace=namespace)
+        main_func = options.pop('main_func', None)
+        if main_func is None:
+            raise RuntimeError("argparser missing main method")
 
         # reconfigure formatters for colored output if enabled
         if getattr(options, 'color', True):
@@ -104,7 +107,7 @@ class Tool(object):
             logging.root.handlers.pop(0)
         logging.root.addHandler(FormattingHandler(self.err))
 
-        return options
+        return options, main_func
 
     def handle_exec_exception(self, e):
         """Handle custom runtime exceptions."""
@@ -121,11 +124,8 @@ class Tool(object):
         signal(SIGPIPE, SIG_DFL)
 
         try:
-            self.options = self.parse_args(args=self.args, namespace=self.options)
-            main_func = self.options.pop('main_func', None)
-            if main_func is None:
-                raise RuntimeError("argparser missing main method")
-            exitstatus = main_func(self.options, self.out, self.err)
+            self.options, func = self.parse_args(args=self.args, namespace=self.options)
+            exitstatus = func(self.options, self.out, self.err)
         except SystemExit as e:
             # handle argparse or other modules using sys.exit internally
             exitstatus = e.code
