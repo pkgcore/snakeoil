@@ -2,6 +2,22 @@
 Release Notes
 =============
 
+snakeoil 0.7.4 (2017-10-04)
+---------------------------
+
+- snakeoil.cli.arghparse: ArgumentParser: Allow add_subparsers() to be called
+  multiple times, returning a cached action object for subsequent calls.
+
+- snakeoil.cli.arghparse: ArgumentParser: Change subparsers property into an
+  immutable dictionary with keys and values as subparser names and objects,
+  respectively.
+
+- snakeoil.contexts: SplitExec: Add support for passing back the exit status
+  of the child process as the 'exit_status' attribute on the context manager.
+
+- snakeoil.process.spawn: Add bash_version method to get the system bash
+  shell version in the form of MAJOR.MINOR.PATCH.
+
 snakeoil 0.7.3 (2017-09-27)
 ---------------------------
 
