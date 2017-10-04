@@ -322,11 +322,11 @@ class sdist(dst_sdist.sdist):
         """
         with syspath(PACKAGEDIR, MODULE == 'snakeoil'):
             from snakeoil.version import get_git_version
-        log.info('generating _verinfo')
         data = get_git_version(base_dir)
         if not data:
             return
         path = os.path.join(base_dir, '_verinfo.py')
+        log.info('generating version info: %s' % path)
         with open(path, 'w') as f:
             f.write('version_info=%r' % (data,))
 
@@ -391,7 +391,7 @@ class build_py(dst_build_py.build_py):
         if not os.path.exists(ver_path):
             with syspath(PACKAGEDIR, MODULE == 'snakeoil'):
                 from snakeoil.version import get_git_version
-            log.info('generating _verinfo')
+            log.info('generating version info: %s' % ver_path)
             with open(ver_path, 'w') as f:
                 f.write("version_info=%r" % (get_git_version('.'),))
             self.byte_compile([ver_path])
