@@ -100,6 +100,8 @@ def _get_git_tag(cwd, rev):
     if not tag.startswith("tags/"):
         return None
     tag = tag[len("tags/"):]
+    if tag.endswith("^0"):
+        tag = tag[:-2]
     if tag.startswith("v"):
         tag = tag[1:]
     return tag

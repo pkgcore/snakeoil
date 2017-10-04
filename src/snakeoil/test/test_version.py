@@ -1,5 +1,8 @@
 # Copyright: 2017 Tim Harder <radhermit@gmail.com>
 # License: BSD/GPL2
+#
+# TODO: Rework to use the project's git repo when tests are moved to project's
+# root dir instead of mocking everything.
 
 import errno
 import os
@@ -151,6 +154,8 @@ class TestGitVersion(unittest.TestCase):
             self.assertEqual(version._get_git_tag('foo', 'bar'), None)
 
             # expected output formats
+            run_git.return_value = (b'ab38751890efa8be96b7f95938d6b868b769bab6 tags/v1.1.1^0', 0)
+            self.assertEqual(version._get_git_tag('foo', 'bar'), '1.1.1')
             run_git.return_value = (b'ab38751890efa8be96b7f95938d6b868b769bab6 tags/v1.1.1', 0)
             self.assertEqual(version._get_git_tag('foo', 'bar'), '1.1.1')
             run_git.return_value = (b'ab38751890efa8be96b7f95938d6b868b769bab6 tags/1.1.1', 0)
