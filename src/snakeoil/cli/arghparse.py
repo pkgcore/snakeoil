@@ -456,7 +456,13 @@ class ArgumentParser(argparse.ArgumentParser):
 
     def _parse_known_args(self, arg_strings, namespace):
         """Add support for using a specified, default subparser."""
-        if self.__default_subparser and arg_strings[0] not in self.subparsers:
+        skip_subparser_fallback = (
+            self.__default_subparser is None or  # no default requested
+            {'-h', '--help'}.intersection(arg_strings) or  # help requested
+            arg_strings[0] in self.subparsers  # subparser already determined
+        )
+
+        if not skip_subparser_fallback:
             if self.__default_subparser not in self.subparsers:
                 raise ValueError(
                     'unknown subparser %r (available subparsers %s)' % (
