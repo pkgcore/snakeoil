@@ -459,7 +459,7 @@ class ArgumentParser(argparse.ArgumentParser):
         skip_subparser_fallback = (
             self.__default_subparser is None or  # no default requested
             {'-h', '--help'}.intersection(arg_strings) or  # help requested
-            arg_strings[0] in self.subparsers  # subparser already determined
+            (arg_strings and arg_strings[0] in self.subparsers)  # subparser already determined
         )
 
         if not skip_subparser_fallback:
@@ -470,9 +470,8 @@ class ArgumentParser(argparse.ArgumentParser):
             # parse all options the parent parsers know about
             for parser in self._parents:
                 namespace, arg_strings = parser._parse_known_args(arg_strings, namespace)
-            # if the next arg to parse isn't a subcmd, prepend the default
-            if arg_strings[0] not in self.subparsers:
-                arg_strings = [self.__default_subparser] + arg_strings
+            # prepend the default subcommand to the current arg list
+            arg_strings = [self.__default_subparser] + arg_strings
 
         # parse the remaining args
         return super(ArgumentParser, self)._parse_known_args(arg_strings, namespace)
