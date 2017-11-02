@@ -346,6 +346,8 @@ class ArgumentParser(argparse.ArgumentParser):
         self.__subparsers = None
         # function to execute for this parser
         self.__main_func = None
+        # arg checking function to execute for this parser
+        self.__final_check = None
 
         # Store parent parsers allowing for separating parsing args meant for
         # the root command with args targeted to subcommands. This enables
@@ -489,6 +491,9 @@ class ArgumentParser(argparse.ArgumentParser):
             # override the function to be run if the subcommand sets one
             if subcmd_parser.__main_func is not None:
                 namespace.main_func = subcmd_parser.__main_func
+            # override the arg checking function if the subcommand sets one
+            if subcmd_parser.__final_check is not None:
+                namespace.final_check = subcmd_parser.__final_check
 
         if unknown_args:
             self.error('unrecognized arguments: %s' % ' '.join(unknown_args))
@@ -579,6 +584,7 @@ class ArgumentParser(argparse.ArgumentParser):
     def bind_final_check(self, functor):
         """Decorator to bind a function for argument validation."""
         self.set_defaults(final_check=functor)
+        self.__final_check = functor
         return functor
 
 
