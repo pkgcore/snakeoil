@@ -221,6 +221,7 @@ class Chksummer(object):
 # Hash function we use is:
 # - hashlib attr if available
 # - hashlib through new() if available.
+# - pyblake2/pysha3
 # - PyCrypto
 
 chksum_types = {}
@@ -260,6 +261,21 @@ if 'whirlpool' not in chksum_types:
     chksum_types['whirlpool'] = Chksummer(
         'whirlpool', modules.load_attribute('snakeoil.chksum._whirlpool.Whirlpool'),
         whirlpool_size)
+
+# prefer lightweight extensions over big pycryptodome
+for k, modattr, str_size in (
+        ('sha3_256', 'sha3.sha3_256', sha3_256_size),
+        ('sha3_512', 'sha3.sha3_512', sha3_512_size),
+        ('blake2b', 'pyblake2.blake2b', blake2b_size),
+        ('blake2s', 'pyblake2.blake2s', blake2s_size),
+    ):
+    if k in chksum_types:
+        continue
+    try:
+        chksum_types[k] = Chksummer(k, modules.load_attribute(
+            modattr), str_size, can_mmap=False)
+    except modules.FailedImport:
+        pass
 
 # expand this to load all available at some point
 for k, v, str_size in (
