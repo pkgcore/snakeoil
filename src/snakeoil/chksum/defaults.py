@@ -33,6 +33,10 @@ rmd160_size = 40
 sha256_size = 64
 sha512_size = 128
 whirlpool_size = 128
+sha3_256_size = 64
+sha3_512_size = 128
+blake2b_size = 128
+blake2s_size = 64
 
 
 def chf_thread(queue, callback):
@@ -43,17 +47,21 @@ def chf_thread(queue, callback):
         data = qget()
 
 
-def chksum_loop_over_file(filename, chfs, parallelize=True):
+def chksum_loop_over_file(filename, chfs, parallelize=True, can_mmap=True):
     chfs = [chf() for chf in chfs]
-    loop_over_file(filename, [chf.update for chf in chfs], parallelize=parallelize)
+    loop_over_file(filename, [chf.update for chf in chfs], parallelize=parallelize,
+            can_mmap=can_mmap)
     return [long(chf.hexdigest(), 16) for chf in chfs]
 
 
-def loop_over_file(handle, callbacks, parallelize=True):
+def loop_over_file(handle, callbacks, parallelize=True, can_mmap=True):
     m = None
     close_f = True
     if isinstance(handle, basestring):
-        m, f = mmap_or_open_for_read(handle)
+        if can_mmap:
+            m, f = mmap_or_open_for_read(handle)
+        else:
+            f = open(handle, "rb")
     elif isinstance(handle, base_data_source):
         f = handle.bytes_fileobj()
     else:
@@ -113,10 +121,11 @@ def loop_over_file(handle, callbacks, parallelize=True):
 
 class Chksummer(object):
 
-    def __init__(self, chf_type, obj, str_size):
+    def __init__(self, chf_type, obj, str_size, can_mmap=True):
         self.obj = obj
         self.chf_type = chf_type
         self.str_size = str_size
+        self.can_mmap = can_mmap
 
     def new(self):
         return self.obj
@@ -129,7 +138,8 @@ class Chksummer(object):
         return long(val, 16)
 
     def __call__(self, filename):
-        return chksum_loop_over_file(filename, [self.obj])[0]
+        return chksum_loop_over_file(filename, [self.obj],
+                can_mmap=self.can_mmap)[0]
 
     def __str__(self):
         return "%s chksummer" % self.chf_type
@@ -211,6 +221,7 @@ class Chksummer(object):
 # Hash function we use is:
 # - hashlib attr if available
 # - hashlib through new() if available.
+# - pyblake2/pysha3
 # - PyCrypto
 
 chksum_types = {}
@@ -231,6 +242,10 @@ for hashlibname, chksumname, size in [
 for hashlibname, chksumname, size in [
         ('ripemd160', 'rmd160', rmd160_size),
         ('whirlpool', 'whirlpool', whirlpool_size),
+        ('sha3_256', 'sha3_256', sha3_256_size),
+        ('sha3_512', 'sha3_512', sha3_512_size),
+        ('blake2b', 'blake2b', blake2b_size),
+        ('blake2s', 'blake2s', blake2s_size),
     ]:
     try:
         hashlib.new(hashlibname)
@@ -247,20 +262,52 @@ if 'whirlpool' not in chksum_types:
         'whirlpool', modules.load_attribute('snakeoil.chksum._whirlpool.Whirlpool'),
         whirlpool_size)
 
+# prefer lightweight extensions over big pycryptodome
+for k, modattr, str_size in (
+        ('sha3_256', 'sha3.sha3_256', sha3_256_size),
+        ('sha3_512', 'sha3.sha3_512', sha3_512_size),
+        ('blake2b', 'pyblake2.blake2b', blake2b_size),
+        ('blake2s', 'pyblake2.blake2s', blake2s_size),
+    ):
+    if k in chksum_types:
+        continue
+    try:
+        chksum_types[k] = Chksummer(k, modules.load_attribute(
+            modattr), str_size, can_mmap=False)
+    except modules.FailedImport:
+        pass
+
 # expand this to load all available at some point
 for k, v, str_size in (
         ("sha1", "SHA", sha1_size),
         ("sha256", "SHA256", sha256_size),
         ("sha512", "SHA512", sha512_size),
         ("rmd160", "RIPEMD", rmd160_size),
+        ("sha3_256", "SHA3_256", sha3_256_size),
+        ("sha3_512", "SHA3_512", sha3_512_size),
     ):
     if k in chksum_types:
         continue
     try:
         chksum_types[k] = Chksummer(k, modules.load_attribute(
-            "Crypto.Hash.%s.new" % v), str_size)
+            "Crypto.Hash.%s.new" % v), str_size, can_mmap=False)
     except modules.FailedImport:
         pass
+
+# BLAKE2 in pycryptodome needs explicit length parameter
+for k, v, str_size in (
+        ("blake2b", "BLAKE2b", blake2b_size),
+        ("blake2s", "BLAKE2s", blake2s_size),
+    ):
+    if k in chksum_types:
+        continue
+    try:
+        chksum_types[k] = Chksummer(k, partial(modules.load_attribute(
+            "Crypto.Hash.%s.new" % v), digest_bytes=str_size//2), str_size,
+            can_mmap=False)
+    except modules.FailedImport:
+        pass
+
 # pylint: disable=undefined-loop-variable
 del k, v
 

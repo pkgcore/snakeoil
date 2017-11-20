@@ -13,15 +13,24 @@ from snakeoil.data_source import data_source, local_source
 data = "afsd123klawerponzzbnzsdf;h89y23746123;haas"
 multi = 40000
 
+
+def require_chf(func):
+    def subfunc(self):
+        if self.chf is None:
+            raise SkipTest(
+                'no handler for %s, do you need to install PyCrypto or mhash?'
+                % (self.chf_type,))
+        func(self)
+    return subfunc
+
+
 class base(object):
 
     def get_chf(self):
         try:
             self.chf = chksum.get_handler(self.chf_type)
         except KeyError:
-            raise SkipTest(
-                'no handler for %s, do you need to install PyCrypto or mhash?'
-                % (self.chf_type,))
+            self.chf = None
 
     def setUp(self):
         self.get_chf()
@@ -36,13 +45,16 @@ class base(object):
         except IOError:
             pass
 
+    @require_chf
     def test_fp_check(self):
         self.assertEqual(self.chf(self.fn), self.expected_long)
 
+    @require_chf
     def test_fileobj_check(self):
         with open(self.fn, "r") as f:
             self.assertEqual(self.chf(f), self.expected_long)
 
+    @require_chf
     def test_data_source_check(self):
         self.assertEqual(self.chf(local_source(self.fn)), self.expected_long)
         self.assertEqual(
@@ -50,6 +62,7 @@ class base(object):
 
 class ChksumTest(base):
 
+    @require_chf
     def test_str2long(self):
         self.assertEqual(self.chf.str2long(self.expected_str),
                          self.expected_long)
@@ -58,6 +71,7 @@ class ChksumTest(base):
         for x in extra_chksums.get(self.chf_type, ()):
             self.assertEqual(self.chf.str2long(x), long(x, 16))
 
+    @require_chf
     def test_long2str(self):
         self.assertEqual(self.chf.long2str(self.expected_long),
                          self.expected_str)
@@ -73,6 +87,10 @@ checksums = {
     "sha256": "68ae37b45e4a4a5df252db33c0cbf79baf5916b5ff6fc15e8159163b6dbe3bae",
     "sha512": "cdc2b749d28cd9c5fca45d3ca6b65661445decd992da93054fd6f4f3e4013ca8b44b0ba159d1cf1f58f9af2b9d267343b9e10f611494c0850fdcebe0379135c6",
     "whirlpool": "3f683be80ee004962cfbd1ddb99437f5f3c9f0fd024e18525b6aa080c9fd9d060415d9a8383462b9ddc065f176f5cb257728c33d8e12bbdd47216320350943aa",
+    "sha3_256": "33e910cd302a2a210ccd9bc5331d61c164aa228a23af2ae97edc9eb60ddb01f9",
+    "sha3_512": "820e3526c76ca2c41582439c50b395aef7560ae57c5d6273fe7dbaa01f4f1f121ddbb147cf42fc23e0a2823bf0bb4c47027cd35620141126d374c6782a512f95",
+    "blake2b": "9f9bbd37d28994c871fffbc21358358e79c85c80fad70a0c0ce5998ff9ff04001f4984ec46e596bd4c482adc701cca44f70318c389dc6014c1bb5818d6991c7f",
+    "blake2s": "805b836cb59b5144b2a738422b342a90fbdc0dd8e75321eb3022766ff333a7b1",
 }
 checksums.update((k, (long(v, 16), v)) for k, v in checksums.iteritems())
 checksums["size"] = (long(len(data) * multi), str(long(len(data) * multi)))
