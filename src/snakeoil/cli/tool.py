@@ -37,7 +37,11 @@ class Tool(object):
         self.options = None
 
         if outfile is None:
-            outfile = sys.stdout
+            if sys.stdout.isatty():
+                outfile = sys.stdout
+            else:
+                # if redirecting/piping stdout use line buffering
+                outfile = os.fdopen(sys.stdout.fileno(), 'w', 1)
         if errfile is None:
             errfile = sys.stderr
 
