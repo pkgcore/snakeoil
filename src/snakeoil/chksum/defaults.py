@@ -15,10 +15,11 @@ import hashlib
 import threading
 import Queue
 
-from snakeoil.data_source import base as base_data_source
 from snakeoil import modules
 from snakeoil.compatibility import intern, is_py3k
+from snakeoil.data_source import base as base_data_source
 from snakeoil.demandload import demandload
+
 demandload(
     'multiprocessing:cpu_count',
     'os',
@@ -49,8 +50,9 @@ def chf_thread(queue, callback):
 
 def chksum_loop_over_file(filename, chfs, parallelize=True, can_mmap=True):
     chfs = [chf() for chf in chfs]
-    loop_over_file(filename, [chf.update for chf in chfs], parallelize=parallelize,
-            can_mmap=can_mmap)
+    loop_over_file(
+        filename, [chf.update for chf in chfs],
+        parallelize=parallelize, can_mmap=can_mmap)
     return [long(chf.hexdigest(), 16) for chf in chfs]
 
 
@@ -138,8 +140,8 @@ class Chksummer(object):
         return long(val, 16)
 
     def __call__(self, filename):
-        return chksum_loop_over_file(filename, [self.obj],
-                can_mmap=self.can_mmap)[0]
+        return chksum_loop_over_file(
+            filename, [self.obj], can_mmap=self.can_mmap)[0]
 
     def __str__(self):
         return "%s chksummer" % self.chf_type
