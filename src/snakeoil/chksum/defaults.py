@@ -333,10 +333,8 @@ class SizeChksummer(Chksummer):
     """
 
     def __init__(self):
-        pass
-    obj = SizeUpdater
-    str_size = 1000000000
-    chf_type = 'size'
+        super(SizeChksummer, self).__init__(
+            chf_type='size', obj=SizeUpdater, str_size=1000000000)
 
     @staticmethod
     def long2str(val):
