@@ -7,6 +7,7 @@ import errno
 import fcntl
 import grp
 import os
+import shutil
 import stat
 import sys
 import tempfile
@@ -18,10 +19,11 @@ except ImportError:
     import mock
 
 from snakeoil import osutils, compatibility
+from snakeoil.contexts import Namespace
 from snakeoil.fileutils import touch
 from snakeoil.test import TestCase, SkipTest, mk_cpy_loadable_testcase
 from snakeoil.osutils import native_readdir, supported_systems
-from snakeoil.osutils.mount import mount, umount, MNT_FORCE, MS_BIND
+from snakeoil.osutils.mount import mount, umount, MS_BIND, MNT_DETACH
 from snakeoil.test.mixins import TempDirMixin
 
 pjoin = os.path.join
@@ -498,6 +500,8 @@ class SupportedSystems(unittest.TestCase):
                 self.assertTrue(func())
 
 
+# TODO: switch to TempDirMixin once we move to pytest or when snakeoil's
+# TestCase.assertRaises context manager is fixed to act like unittest's.
 class Mount(unittest.TestCase):
 
     def setUp(self):
@@ -505,8 +509,8 @@ class Mount(unittest.TestCase):
         self.target = tempfile.mkdtemp()
 
     def tearDown(self):
-        os.rmdir(self.source)
-        os.rmdir(self.target)
+        shutil.rmtree(self.source)
+        shutil.rmtree(self.target)
 
     @unittest.skipUnless(sys.platform.startswith('linux'), 'supported on Linux only')
     def test_args_bytes(self):
@@ -539,15 +543,24 @@ class Mount(unittest.TestCase):
             umount(self.target)
         self.assertTrue(cm.exception.errno in (errno.EPERM, errno.EINVAL))
 
-    @unittest.skipIf(os.getuid() != 0, 'this test must be run as root')
     @unittest.skipUnless(sys.platform.startswith('linux'), 'supported on Linux only')
-    def test_root(self):
-        # test umount
-        mount(self.source, self.target, None, MS_BIND)
-        umount(self.target)
-        # test umount2
-        mount(self.source, self.target, None, MS_BIND)
-        umount(self.target, MNT_FORCE)
+    def test_bind_mounts(self):
+        src_file = pjoin(self.source, 'file')
+        touch(src_file)
+        bind_file = pjoin(self.target, 'file')
+
+        with Namespace(user=True, mount=True):
+            # test bind mount/umount
+            mount(self.source, self.target, None, MS_BIND)
+            self.assertTrue(os.path.exists(bind_file))
+            umount(self.target)
+            self.assertFalse(os.path.exists(bind_file))
+
+            # test bind mount/umount2
+            mount(self.source, self.target, None, MS_BIND)
+            self.assertTrue(os.path.exists(bind_file))
+            umount(self.target, MNT_DETACH)
+            self.assertFalse(os.path.exists(bind_file))
 
 
 cpy_readdir_loaded_Test = mk_cpy_loadable_testcase(
