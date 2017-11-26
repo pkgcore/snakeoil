@@ -27,7 +27,7 @@ after_success:
 stages:
   - test
   - name: deploy
-    if: (branch = travis-ci AND type = push) OR (branch = master AND type IN (push, api) AND tag IS present)
+    if: (type IN (api, cron)) OR (branch = travis-ci AND type = push) OR (branch = master AND type IN (push, api) AND tag IS present)
 
 jobs:
   include:
