@@ -2,6 +2,14 @@
 Release Notes
 =============
 
+snakeoil 0.7.5 (2017-11-26)
+---------------------------
+
+- snakeoil.cli.tool: Tool: Force line buffering if redirecting or piping stdout.
+
+- snakeoil.chksum: Add support for SHA3 and BLAKE2 hash functions -- BLAKE2 is
+  now required by pkgcore to generate new manifests in the gentoo repo.
+
 snakeoil 0.7.4 (2017-10-04)
 ---------------------------
 
