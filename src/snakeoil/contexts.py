@@ -16,6 +16,7 @@ demandload(
     'threading',
     'traceback',
     'importlib:import_module',
+    'snakeoil.process:namespaces',
 )
 
 # Ideas and code for SplitExec have been borrowed from withhacks
@@ -244,6 +245,21 @@ class SplitExec(object):
                 frame = frame.f_back
             self.__frame = frame  # pylint: disable=W0201
             return frame
+
+
+class Namespace(SplitExec):
+    """Context manager that provides Linux namespace support."""
+
+    def __init__(self, mount=True, uts=True, ipc=True, net=False, pid=False,
+                 user=False, hostname=None):
+        self._hostname = hostname
+        self._namespaces = {
+            'mount': mount, 'uts': uts, 'ipc': ipc, 'net': net, 'pid': pid, 'user': user,
+        }
+        super(Namespace, self).__init__()
+
+    def _child_setup(self):
+        namespaces.simple_unshare(hostname=self._hostname, **self._namespaces)
 
 
 @contextmanager
