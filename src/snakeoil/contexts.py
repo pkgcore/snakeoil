@@ -71,8 +71,12 @@ class SplitExec(object):
 
     def _parent_setup(self):
         """Initialization for parent process."""
-        signal.signal(signal.SIGINT, self._parent_handler)
-        signal.signal(signal.SIGTERM, self._parent_handler)
+        try:
+            signal.signal(signal.SIGINT, self._parent_handler)
+            signal.signal(signal.SIGTERM, self._parent_handler)
+        except ValueError:
+            # skip if we're not in the main thread
+            pass
 
     def _child_setup(self):
         """Initialization for child process."""
