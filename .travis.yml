@@ -42,7 +42,8 @@ jobs:
         - secure: PBcqHye5lfkmWudQeuH5uqx7w1PcVqxafLrlnJjYJesTWbaW19l66596YNxMXQz1CBjKrz2oEoN2L5iW52UMuiXJ4ceJBvmqJp8Q707dikARoJVk9+gp0FfIyh5dGxclBZ9UgC9RmfS8fmrCgh/ODsp/PqasmKH7ODI0Rqe8gQ4=
         - CIBW_PLATFORM=linux
         - CIBW_SKIP="cp26-* cp33-*"
-        - CIBW_BEFORE_BUILD="{pip} install -r requirements/wheel.txt"
+        - CIBW_BEFORE_BUILD="{pip} install -r requirements/wheel.txt -r requirements/test.txt"
+        - CIBW_TEST_COMMAND="py.test --pyargs snakeoil"
       before_script:
         - git clone https://github.com/pkgcore/pkgdist.git
         - cp -R pkgdist/requirements/* requirements/
