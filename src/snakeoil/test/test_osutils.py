@@ -544,6 +544,9 @@ class Mount(unittest.TestCase):
         self.assertTrue(cm.exception.errno in (errno.EPERM, errno.EINVAL))
 
     @unittest.skipUnless(sys.platform.startswith('linux'), 'supported on Linux only')
+    @unittest.skipUnless(
+        os.path.exists('/proc/self/ns/mnt') and os.path.exists('/proc/self/ns/user'),
+        'user and mount namespace support required')
     def test_bind_mounts(self):
         src_file = pjoin(self.source, 'file')
         touch(src_file)
