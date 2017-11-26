@@ -58,13 +58,13 @@ jobs:
         - cp -R pkgdist/requirements/* requirements/
         - pip install -r requirements/sdist.txt
       script: python setup.py sdist
-      after_success:
+      after_success: tar -ztf dist/*.tar.gz | sort
       deploy:
         provider: releases
         api_key:
           secure: d1KgGpoHFf/au8m+08NItMGuENBZB5qwuVpobhtmZ2RQUo/uS6e0GoGa/k7OD0+3dQwzsSvJNMs6tfeiYdXnI+3c5BRfyfvtUnLJKs3zSdUsobfUdLrWalNVMAON0EWQIwWOagjFTsxU2/ZKEjgKvD7MjMzdL0xSdv504E+Cmpc=
         file_glob: true
-        file: dist/snakeoil-*.tar.gz
+        file: dist/*.tar.gz
         skip_cleanup: true
         on:
           tags: true
