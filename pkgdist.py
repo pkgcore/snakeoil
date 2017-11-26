@@ -152,6 +152,7 @@ def setup():
 
     cmds = {
         'sdist': sdist,
+        'build_py': build_py,
     }
 
     # check for scripts
@@ -161,11 +162,13 @@ def setup():
 
     # check for docs
     if os.path.exists(os.path.join(TOPDIR, 'doc')):
+        cmds['build'] = build
         cmds['build_docs'] = build_docs
         cmds['install_docs'] = install_docs
 
     # check for man pages
     if os.path.exists(os.path.join(TOPDIR, 'doc', 'man')):
+        cmds['build'] = build
         cmds['build_man'] = build_man
         cmds['install_man'] = install_man
 

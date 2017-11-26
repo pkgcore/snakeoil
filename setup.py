@@ -90,11 +90,11 @@ setup(
     headers=common_includes,
     tests_require=test_requirements,
     cmdclass=dict(
+        pkgdist_cmds,
         build_ext=pkgdist.build_ext,
         build_py=pkgdist.build_py2to3,
         config=config,
         test=pkgdist.test,
-        **pkgdist_cmds
     ),
     classifiers=(
         'Intended Audience :: Developers',
