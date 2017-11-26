@@ -110,7 +110,7 @@ class SpawnTest(TempDirMixin, TestCase):
 
     def generate_background_pid(self):
         try:
-            return spawn.spawn(["sleep", "60s"], returnpid=True)[0]
+            return spawn.spawn(["sleep", "5s"], returnpid=True)[0]
         except process.CommandNotFound:
             raise SkipTest(
                 "can't complete the test, sleep binary doesn't exist")
