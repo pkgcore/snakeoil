@@ -547,23 +547,49 @@ class Mount(unittest.TestCase):
     @unittest.skipUnless(
         os.path.exists('/proc/self/ns/mnt') and os.path.exists('/proc/self/ns/user'),
         'user and mount namespace support required')
-    def test_bind_mounts(self):
+    def test_bind_mount(self):
         src_file = pjoin(self.source, 'file')
-        touch(src_file)
         bind_file = pjoin(self.target, 'file')
+        touch(src_file)
 
         with Namespace(user=True, mount=True):
-            # test bind mount/umount
+            self.assertFalse(os.path.exists(bind_file))
             mount(self.source, self.target, None, MS_BIND)
             self.assertTrue(os.path.exists(bind_file))
             umount(self.target)
             self.assertFalse(os.path.exists(bind_file))
 
-            # test bind mount/umount2
+    @unittest.skipUnless(sys.platform.startswith('linux'), 'supported on Linux only')
+    @unittest.skipUnless(
+        os.path.exists('/proc/self/ns/mnt') and os.path.exists('/proc/self/ns/user'),
+        'user and mount namespace support required')
+    def test_lazy_unmount(self):
+        src_file = pjoin(self.source, 'file')
+        bind_file = pjoin(self.target, 'file')
+        touch(src_file)
+        with open(src_file, 'w') as f:
+            f.write('foo')
+
+        with Namespace(user=True, mount=True):
             mount(self.source, self.target, None, MS_BIND)
             self.assertTrue(os.path.exists(bind_file))
-            umount(self.target, MNT_DETACH)
-            self.assertFalse(os.path.exists(bind_file))
+
+            with open(bind_file) as f:
+                # can't unmount the target due to the open file
+                with self.assertRaises(OSError) as cm:
+                    umount(self.target)
+                self.assertEqual(cm.exception.errno, errno.EBUSY)
+                # lazily unmount instead
+                umount(self.target, MNT_DETACH)
+                # confirm the file doesn't exist in the bind mount anymore
+                self.assertFalse(os.path.exists(bind_file))
+                # but the file is still accessible to the process
+                self.assertEqual(f.read(), 'foo')
+
+            # trying to reopen causes IOError
+            with self.assertRaises(IOError) as cm:
+                f = open(bind_file)
+            self.assertEqual(cm.exception.errno, errno.ENOENT)
 
 
 cpy_readdir_loaded_Test = mk_cpy_loadable_testcase(
