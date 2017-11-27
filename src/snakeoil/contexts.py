@@ -88,6 +88,17 @@ class SplitExec(object):
         """Parent process clean up after the child throws an exception."""
         self._cleanup()
 
+    def _child_exit(self, exception):
+        try:
+            self.__pipe.send(exception)
+        except (BrokenPipeError if sys.hexversion >= 0x03030000  # pylint: disable=E0602
+                else OSError, IOError) as e:
+            if e.errno in (errno.EPIPE, errno.ESHUTDOWN):
+                pass
+            else:
+                raise
+        os._exit(0)  # pylint: disable=W0212
+
     def __enter__(self):
         parent_pipe, child_pipe = Pipe()
         childpid = os.fork()
@@ -110,19 +121,10 @@ class SplitExec(object):
             # pylint: disable=W0703
             # need to catch all exceptions here since we are passing them to
             # the parent process
-            except Exception as e:
-                e.__traceback_list__ = traceback.format_exc()
-                self.__pipe.send(e)
-                try:
-                    self.__pipe.send(SystemExit())
-                except (BrokenPipeError if sys.hexversion >= 0x03030000  # pylint: disable=E0602
-                        else OSError, IOError) as e:
-                    if e.errno in (errno.EPIPE, errno.ESHUTDOWN):
-                        pass
-                    else:
-                        raise
-                os._exit(0)  # pylint: disable=W0212
-                # we don't want SystemExit being caught here
+            except Exception as exc:
+                exc.__traceback_list__ = traceback.format_exc()
+                self.__pipe.send(exc)
+                self._child_exit(SystemExit())
 
             return self
 
@@ -153,16 +155,9 @@ class SplitExec(object):
                 # custom exception hook.
                 exc.__traceback_list__ = traceback.format_exc()
             else:
-                exception = SystemExit()
-            try:
-                self.__pipe.send(exception)
-            except (BrokenPipeError if sys.hexversion >= 0x03030000  # pylint: disable=E0602
-                    else OSError, IOError) as e:
-                if e.errno in (errno.EPIPE, errno.ESHUTDOWN):
-                    pass
-                else:
-                    raise
-            os._exit(0)  # pylint: disable=W0212
+                exc = SystemExit()
+
+            self._child_exit(exc)
 
         # wait for child process to exit
         _pid, exit_status = os.waitpid(self.childpid, 0)
