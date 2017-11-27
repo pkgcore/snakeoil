@@ -134,22 +134,24 @@ class SplitExec(object):
 
             # get exception from the child
             try:
-                exception = self.__pipe.recv()
+                exc = self.__pipe.recv()
             except EOFError as e:
-                exception = SystemExit(e)
-            if not isinstance(exception, SystemExit):
+                exc = SystemExit(e)
+
+            # handle child exiting abnormally
+            if not isinstance(exc, SystemExit):
                 os.waitpid(self.childpid, 0)
                 self._exception_cleanup()
                 sys.excepthook = self.__excepthook
-                raise exception
+                raise exc
         else:
             if exc_value is not None:
-                exception = exc_value
+                exc = exc_value
                 # Unfortunately, traceback objects can't be pickled so the relevant
                 # traceback from the code executing within the chroot context is
                 # placed in the __traceback_list__ attribute and printed by a
                 # custom exception hook.
-                exception.__traceback_list__ = traceback.format_exc()
+                exc.__traceback_list__ = traceback.format_exc()
             else:
                 exception = SystemExit()
             try:
@@ -178,7 +180,7 @@ class SplitExec(object):
             traceback.print_tb(exc_traceback)
 
     @staticmethod
-    def __dummy_sys_trace(*args, **_kwargs):
+    def __dummy_sys_trace(frame, event, arg):
         """Dummy trace function used to enable tracing."""
 
     class ParentException(Exception):
