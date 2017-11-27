@@ -127,29 +127,28 @@ class SplitExec(object):
             return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        if exc_type is self.ParentException:
+        if self.childpid is not None:
             try:
                 exception = self.__pipe.recv()
             except EOFError as e:
                 exception = SystemExit(e)
-
             if not isinstance(exception, SystemExit):
                 os.waitpid(self.childpid, 0)
                 self._exception_cleanup()
                 sys.excepthook = self.__excepthook
                 raise exception
-
-        elif exc_value is not None:
-            # Unfortunately, traceback objects can't be pickled so the relevant
-            # traceback from the code executing within the chroot context is
-            # placed in the __traceback_list__ attribute and printed by a
-            # custom exception hook.
-            exc_value.__traceback_list__ = traceback.format_exc()
-            self.__pipe.send(exc_value)
-
-        if self.childpid is None:
+        else:
+            if exc_value is not None:
+                exception = exc_value
+                # Unfortunately, traceback objects can't be pickled so the relevant
+                # traceback from the code executing within the chroot context is
+                # placed in the __traceback_list__ attribute and printed by a
+                # custom exception hook.
+                exception.__traceback_list__ = traceback.format_exc()
+            else:
+                exception = SystemExit()
             try:
-                self.__pipe.send(SystemExit())
+                self.__pipe.send(exception)
             except (BrokenPipeError if sys.hexversion >= 0x03030000  # pylint: disable=E0602
                     else OSError, IOError) as e:
                 if e.errno in (errno.EPIPE, errno.ESHUTDOWN):
