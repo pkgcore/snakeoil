@@ -59,9 +59,16 @@ class TestTouch(TempDirMixin):
         ns = (1, 1)
         fileutils.touch(fp, ns=ns)
         new_stat = os.stat(fp)
+
+        # system doesn't have nanosecond precision, try microseconds
+        if new_stat.st_atime == 0:
+            ns = (1000, 1000)
+            fileutils.touch(fp, ns=ns)
+            new_stat = os.stat(fp)
+
         self.assertNotEqual(orig_stat, new_stat)
-        self.assertEqual(1, new_stat.st_atime_ns)
-        self.assertEqual(1, new_stat.st_mtime_ns)
+        self.assertEqual(ns[0], new_stat.st_atime_ns)
+        self.assertEqual(ns[0], new_stat.st_mtime_ns)
 
 
 class TestAtomicWriteFile(TempDirMixin):
