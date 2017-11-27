@@ -182,21 +182,13 @@ class SplitExec(object):
         """Exception used to detect when the child terminates."""
 
     def __enable_tracing(self):
-        """Enable system-wide tracing.
+        """Enable system-wide tracing via a dummy method."""
+        self.__orig_sys_trace = sys.gettrace()
+        sys.settrace(self.__dummy_sys_trace)
 
-        If tracing is already enabled nothing is done.
-        """
-        try:
-            self.__orig_sys_trace = sys.gettrace()
-        except AttributeError:
-            self.__orig_sys_trace = None
-        if self.__orig_sys_trace is None:
-            sys.settrace(self.__dummy_sys_trace)
-
-    def __disable_tracing(self):
-        """Disable system-wide tracing, if it was specifically switched on."""
-        if self.__orig_sys_trace is None:
-            sys.settrace(None)
+    def __revert_tracing(self):
+        """Revert to previous system trace setting."""
+        sys.settrace(self.__orig_sys_trace)
 
     def __exit_context(self, _frame):
         """Simple function to throw a ParentException."""
@@ -230,7 +222,7 @@ class SplitExec(object):
             del self.__injected_trace_funcs[frame]
             with self.__trace_lock:
                 if len(self.__orig_trace_funcs) == 1:
-                    self.__disable_tracing()
+                    self.__revert_tracing()
                 frame.f_trace = self.__orig_trace_funcs.pop(frame)
 
     def __get_context_frame(self):
