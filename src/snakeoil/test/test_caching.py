@@ -2,6 +2,7 @@
 # License: BSD/GPL2
 
 import gc
+from types import FrameType
 
 from snakeoil.test import TestCase, mk_cpy_loadable_testcase, not_a_test
 from snakeoil import caching
@@ -165,14 +166,18 @@ def gen_test(WeakInstMeta):
             weak_inst.reset()
             unique = object()
             o = weak_inst(unique)
-            # make sure it's only strong reffed
+            # make sure it's only strong ref-ed
             self.assertEqual(weak_inst.counter, 1)
-            self.assertLen(gc.get_referrers(o), 1)
+            # skip refs from system tracers like coverage
+            refs = [x for x in gc.get_referrers(o) if isinstance(x, FrameType)]
+            self.assertLen(refs, 1)
             _myid = id(o)
             del o
             o = weak_inst(unique)
             self.assertEqual(weak_inst.counter, 2)
-            self.assertLen(gc.get_referrers(o), 1)
+            # skip refs from system tracers like coverage
+            refs = [x for x in gc.get_referrers(o) if isinstance(x, FrameType)]
+            self.assertLen(refs, 1)
 
     # Hack to make it show up with a different name in trial's output
     TestWeakInstMeta.__name__ = WeakInstMeta.__name__ + 'Test'
