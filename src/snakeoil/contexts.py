@@ -128,6 +128,11 @@ class SplitExec(object):
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         if self.childpid is not None:
+            # re-raise unknown exceptions from the parent
+            if exc_type is not self.ParentException:
+                raise exc_value
+
+            # get exception from the child
             try:
                 exception = self.__pipe.recv()
             except EOFError as e:
