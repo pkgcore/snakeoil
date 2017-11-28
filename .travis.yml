@@ -26,7 +26,7 @@ after_success:
   - codecov
 
 stages:
-  - test
+  - name: test
     if: NOT branch IN (lint, deploy)
   - name: deploy
     if: (type IN (api, cron)) OR (branch IN (travis-ci, deploy)) OR (branch = master AND type IN (push, api) AND tag IS present)
