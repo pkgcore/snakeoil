@@ -547,7 +547,6 @@ class Mount(unittest.TestCase):
     @unittest.skipUnless(
         os.path.exists('/proc/self/ns/mnt') and os.path.exists('/proc/self/ns/user'),
         'user and mount namespace support required')
-    @unittest.skipIf(os.getenv('CIBW'), 'fails under cibuildwheel env')
     def test_bind_mount(self):
         src_file = pjoin(self.source, 'file')
         bind_file = pjoin(self.target, 'file')
@@ -564,7 +563,6 @@ class Mount(unittest.TestCase):
     @unittest.skipUnless(
         os.path.exists('/proc/self/ns/mnt') and os.path.exists('/proc/self/ns/user'),
         'user and mount namespace support required')
-    @unittest.skipIf(os.getenv('CIBW'), 'fails under cibuildwheel env')
     def test_lazy_unmount(self):
         src_file = pjoin(self.source, 'file')
         bind_file = pjoin(self.target, 'file')
