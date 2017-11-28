@@ -10,8 +10,9 @@ matrix:
   allow_failures:
   - python: 3.7-dev
 cache:
+  pip: true
   directories:
-    - "$HOME/.cache/pip"
+    - $HOME/downloads
 install:
   - pip install -U pip
 before_script:
@@ -26,8 +27,9 @@ after_success:
 
 stages:
   - test
+    if: NOT branch IN (lint, deploy)
   - name: deploy
-    if: (type IN (api, cron)) OR (branch = travis-ci AND type = push) OR (branch = master AND type IN (push, api) AND tag IS present)
+    if: (type IN (api, cron)) OR (branch IN (travis-ci, deploy)) OR (branch = master AND type IN (push, api) AND tag IS present)
 
 jobs:
   include:
