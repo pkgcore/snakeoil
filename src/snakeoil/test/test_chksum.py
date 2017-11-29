@@ -33,10 +33,10 @@ class Test_funcs(test.TestCase):
         self.assertEqual(self._inited_count, 1)
 
     def test_get_handler(self):
-        self.assertRaises(KeyError, chksum.get_handler, "x")
+        self.assertRaises(chksum.MissingChksumHandler, chksum.get_handler, "x")
         self.assertEqual(self._inited_count, 1)
         chksum.chksum_types["x"] = 1
-        self.assertRaises(KeyError, chksum.get_handler, "y")
+        self.assertRaises(chksum.MissingChksumHandler, chksum.get_handler, "y")
         chksum.chksum_types["y"] = 2
         self.assertEqual(1, chksum.get_handler("x"))
         self.assertEqual(2, chksum.get_handler("y"))

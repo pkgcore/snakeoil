@@ -18,19 +18,24 @@ demandload(
 chksum_types = {}
 __inited__ = False
 
+
+class MissingChksumHandler(Exception):
+    """A requested checksum handler doesn't exist on the system."""
+
+
 def get_handler(requested):
 
     """
     get a chksum handler
 
-    :raise KeyError: if chksum type has no registered handler
+    :raise MissingChksumHandler: if chksum type has no registered handler
     :return: chksum handler (callable)
     """
 
     if not __inited__:
         init()
     if requested not in chksum_types:
-        raise KeyError("no handler for %s" % requested)
+        raise MissingChksumHandler("no handler for %s" % requested)
     return chksum_types[requested]
 
 
@@ -41,7 +46,7 @@ def get_handlers(requested=None):
 
     :param requested: None (all handlers), or a sequence of the specific
         handlers desired.
-    :raise KeyError: if requested chksum type has no registered handler
+    :raise MissingChksumHandler: if requested chksum type has no registered handler
     :return: dict of chksum_type:chksum handler
     """
 
@@ -152,7 +157,7 @@ class LazilyHashedPath(object):
         else:
             try:
                 val = get_chksums(self.path, attr)[0]
-            except KeyError:
+            except MissingChksumHandler:
                 compatibility.raise_from(AttributeError(attr))
         object.__setattr__(self, attr, val)
         return val

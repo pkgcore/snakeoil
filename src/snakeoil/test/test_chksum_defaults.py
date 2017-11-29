@@ -29,7 +29,7 @@ class base(object):
     def get_chf(self):
         try:
             self.chf = chksum.get_handler(self.chf_type)
-        except KeyError:
+        except chksum.MissingChksumHandler:
             self.chf = None
 
     def setUp(self):
