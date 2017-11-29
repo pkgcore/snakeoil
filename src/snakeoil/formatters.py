@@ -118,6 +118,9 @@ class Formatter(object):
     def title(self, string):
         """Set the title to string"""
 
+    def flush(self):
+        """Flush the underlying stream buffer."""
+
 
 class native_PlainTextFormatter(Formatter):
 
@@ -569,6 +572,10 @@ else:
                 self.stream.write(
                     tsl + string.encode(self.encoding, 'replace') + fsl)
                 self.stream.flush()
+
+        @steal_docs(Formatter)
+        def flush(self):
+            self.stream.flush()
 
 
 class ObserverFormatter(object):
