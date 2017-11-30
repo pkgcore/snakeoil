@@ -521,7 +521,7 @@ class ArgumentParser(argparse.ArgumentParser):
             for attr, delayed in sorted(i, key=lambda val: val[1].priority):
                 delayed(args, attr)
         except (TypeError, ValueError) as err:
-            self.error("failed loading/parsing '%s': %s" % (attr, str(err)))
+            raise TypeError("failed loading/parsing '%s': %s" % (attr, str(err)))
         except argparse.ArgumentError:
             err = sys.exc_info()[1]
             self.error(str(err))
