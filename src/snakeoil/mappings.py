@@ -852,7 +852,7 @@ def make_SlottedDict_kls(keys):
     >>> items = (("key1", 1), ("key2", 2), ("key3",3))
     >>> inst = dict(items)
     >>> slotted_inst = my_kls(items)
-    >>> print(sys.getsizeof(inst)) # note this is python2.6 functionality
+    >>> print(sys.getsizeof(inst))
     280
     >>> print(sys.getsizeof(slotted_inst))
     72
