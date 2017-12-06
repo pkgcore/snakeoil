@@ -330,6 +330,14 @@ class Namespace(argparse.Namespace):
                 return default
             raise
 
+    def __getattribute__(self, name):
+        val = super(Namespace, self).__getattribute__(name)
+        # collapse any delayed values accessed before arg parsing occurs
+        if isinstance(val, DelayedValue):
+            val(self, name)
+            val = super(Namespace, self).__getattribute__(name)
+        return val
+
 
 class ArgumentParser(argparse.ArgumentParser):
     """Extended, argparse-compatible argument parser."""
