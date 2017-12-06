@@ -70,27 +70,28 @@ class TestArgparseDocs(TestCase):
 
 class ArgparseOptionsTest(TestCase):
 
-    def _parser(self, **kwargs):
-        return arghparse.ArgumentParser(**kwargs)
+    def setUp(self):
+        self.parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser())
 
     def test_debug(self):
-        namespace = self._parser().parse_args(["--debug"])
+        namespace = self.parser.parse_args(["--debug"])
         self.assertTrue(namespace.debug)
-        namespace = self._parser().parse_args([])
+        namespace = self.parser.parse_args([])
         self.assertFalse(namespace.debug)
 
+    def test_debug_disabled(self):
         # ensure the option isn't there if disabled.
-        namespace = self._parser(debug=False).parse_args([])
+        parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser(debug=False))
+        namespace = parser.parse_args([])
         self.assertFalse(hasattr(namespace, 'debug'))
 
     def test_bool_type(self):
-        parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser())
-        parser.add_argument(
+        self.parser.add_argument(
             "--testing", action=arghparse.StoreBool, default=None)
 
         for raw_val in ("n", "no", "false"):
             for allowed in (raw_val.upper(), raw_val.lower()):
-                namespace = parser.parse_args(['--testing=' + allowed])
+                namespace = self.parser.parse_args(['--testing=' + allowed])
                 self.assertEqual(
                     namespace.testing, False,
                     msg="for --testing=%s, got %r, expected False" %
@@ -98,23 +99,22 @@ class ArgparseOptionsTest(TestCase):
 
         for raw_val in ("y", "yes", "true"):
             for allowed in (raw_val.upper(), raw_val.lower()):
-                namespace = parser.parse_args(['--testing=' + allowed])
+                namespace = self.parser.parse_args(['--testing=' + allowed])
                 self.assertEqual(
                     namespace.testing, True,
                     msg="for --testing=%s, got %r, expected False" %
                         (allowed, namespace.testing))
 
         try:
-            parser.parse_args(["--testing=invalid"])
+            self.parser.parse_args(["--testing=invalid"])
         except argparse_helpers.Error:
             pass
         else:
             self.fail("no error message thrown for --testing=invalid")
 
     def test_extend_comma_action(self):
-        parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser())
-        parser.add_argument('--testing', action='extend_comma')
-        parser.add_argument('--testing-nargs', nargs='+', action='extend_comma')
+        self.parser.add_argument('--testing', action='extend_comma')
+        self.parser.add_argument('--testing-nargs', nargs='+', action='extend_comma')
 
         test_values = (
             ('', []),
@@ -124,7 +124,7 @@ class ArgparseOptionsTest(TestCase):
             ('a,b,-c', ['a', 'b', '-c']),
         )
         for raw_val, expected in test_values:
-            namespace = parser.parse_args([
+            namespace = self.parser.parse_args([
                 '--testing=' + raw_val,
                 '--testing-nargs', raw_val, raw_val,
                 ])
@@ -132,9 +132,8 @@ class ArgparseOptionsTest(TestCase):
             self.assertEqual(namespace.testing_nargs, expected * 2)
 
     def test_extend_comma_toggle_action(self):
-        parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser())
-        parser.add_argument('--testing', action='extend_comma_toggle')
-        parser.add_argument('--testing-nargs', nargs='+', action='extend_comma_toggle')
+        self.parser.add_argument('--testing', action='extend_comma_toggle')
+        self.parser.add_argument('--testing-nargs', nargs='+', action='extend_comma_toggle')
 
         test_values = (
             ('', ([], [])),
@@ -144,7 +143,7 @@ class ArgparseOptionsTest(TestCase):
             ('a,-b,-c,d', (['b', 'c'], ['a', 'd'])),
         )
         for raw_val, expected in test_values:
-            namespace = parser.parse_args([
+            namespace = self.parser.parse_args([
                 '--testing=' + raw_val,
                 '--testing-nargs', raw_val, raw_val,
                 ])
@@ -152,5 +151,5 @@ class ArgparseOptionsTest(TestCase):
             self.assertEqual(namespace.testing_nargs, (expected[0] * 2, expected[1] * 2))
 
         # start with negated arg
-        namespace = parser.parse_args(['--testing=-a'])
+        namespace = self.parser.parse_args(['--testing=-a'])
         self.assertEqual(namespace.testing, (['a'], []))
