@@ -2,6 +2,7 @@
 # License: GPL2/BSD 3 clause
 
 import argparse
+from functools import partial
 from unittest import TestCase
 
 try:
@@ -153,3 +154,28 @@ class ArgparseOptionsTest(TestCase):
         # start with negated arg
         namespace = self.parser.parse_args(['--testing=-a'])
         self.assertEqual(namespace.testing, (['a'], []))
+
+
+class NamespaceTest(TestCase):
+
+    def setUp(self):
+        self.parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser())
+
+    def test_pop(self):
+        self.parser.set_defaults(test=True)
+        namespace = self.parser.parse_args([])
+        self.assertTrue(namespace.pop('test'))
+
+        # re-popping raises an exception since the attr has been removed
+        with self.assertRaises(AttributeError):
+            namespace.pop('test')
+
+        # popping a nonexistent attr with a fallback returns the fallback
+        self.assertEqual(namespace.pop('nonexistent', 'foo'), 'foo')
+
+    def test_collapse_delayed(self):
+        def _delayed_val(namespace, attr, val):
+            setattr(namespace, attr, val)
+        self.parser.set_defaults(delayed=arghparse.DelayedValue(partial(_delayed_val, val=42)))
+        namespace = self.parser.parse_args([])
+        self.assertEqual(namespace.delayed, 42)
