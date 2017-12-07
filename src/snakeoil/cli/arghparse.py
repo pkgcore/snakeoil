@@ -147,7 +147,7 @@ class EnableDebug(argparse._StoreTrueAction):
 
 class DelayedValue(object):
 
-    def __init__(self, invokable, priority):
+    def __init__(self, invokable, priority=0):
         self.priority = priority
         if not callable(invokable):
             raise TypeError("invokable must be callable")
