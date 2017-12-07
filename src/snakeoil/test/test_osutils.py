@@ -25,6 +25,7 @@ from snakeoil.test import TestCase, SkipTest, mk_cpy_loadable_testcase
 from snakeoil.osutils import native_readdir, supported_systems
 from snakeoil.osutils.mount import mount, umount, MS_BIND, MNT_DETACH
 from snakeoil.test.mixins import TempDirMixin
+from snakeoil.test import protect_process
 
 pjoin = os.path.join
 
@@ -543,6 +544,7 @@ class Mount(unittest.TestCase):
             umount(self.target)
         self.assertTrue(cm.exception.errno in (errno.EPERM, errno.EINVAL))
 
+    @protect_process
     @unittest.skipUnless(sys.platform.startswith('linux'), 'supported on Linux only')
     @unittest.skipUnless(
         os.path.exists('/proc/self/ns/mnt') and os.path.exists('/proc/self/ns/user'),
@@ -559,6 +561,7 @@ class Mount(unittest.TestCase):
             umount(self.target)
             self.assertFalse(os.path.exists(bind_file))
 
+    @protect_process
     @unittest.skipUnless(sys.platform.startswith('linux'), 'supported on Linux only')
     @unittest.skipUnless(
         os.path.exists('/proc/self/ns/mnt') and os.path.exists('/proc/self/ns/user'),
