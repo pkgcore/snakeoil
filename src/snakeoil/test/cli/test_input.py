@@ -11,7 +11,7 @@ except ImportError:
     from mock import patch
 
 from snakeoil import compatibility as compat
-from snakeoil.cli import input as input_mod
+from snakeoil.cli.input import userquery, NoChoice
 from snakeoil.test.argparse_helpers import FakeStreamFormatter
 
 
@@ -20,7 +20,7 @@ class TestUserQuery(unittest.TestCase):
     def setUp(self):
         self.out = FakeStreamFormatter()
         self.err = FakeStreamFormatter()
-        self.query = partial(input_mod.userquery, out=self.out, err=self.err)
+        self.query = partial(userquery, out=self.out, err=self.err)
 
     @patch.object(compat, 'input')
     def test_default_answer(self, fake_input):
@@ -58,7 +58,7 @@ class TestUserQuery(unittest.TestCase):
             'A': ('y', 'No'),
         }
         fake_input.return_value = 'a'
-        with self.assertRaises(input_mod.NoChoice):
+        with self.assertRaises(NoChoice):
             self.query('foo', responses=responses)
         self.assertEqual(
             self.err.get_text_stream().strip().split('\n')[1],
@@ -90,7 +90,7 @@ class TestUserQuery(unittest.TestCase):
     def test_eof_nochoice(self, fake_input):
         # user hits ctrl-d
         fake_input.side_effect = EOFError
-        with self.assertRaises(input_mod.NoChoice):
+        with self.assertRaises(NoChoice):
             self.query('foo')
         self.assertEqual(
             self.out.get_text_stream().strip().split('\n')[1],
@@ -99,7 +99,7 @@ class TestUserQuery(unittest.TestCase):
     @patch.object(compat, 'input')
     def test_stdin_closed_nochoice(self, fake_input):
         fake_input.side_effect = IOError(errno.EBADF, '')
-        with self.assertRaises(input_mod.NoChoice):
+        with self.assertRaises(NoChoice):
             self.query('foo')
         self.assertEqual(
             self.out.get_text_stream().strip().split('\n')[1],
@@ -115,7 +115,7 @@ class TestUserQuery(unittest.TestCase):
     def test_bad_choice_limit(self, fake_input):
         # user hits enters a bad choice 3 times in a row
         fake_input.return_value = 'bad'
-        with self.assertRaises(input_mod.NoChoice):
+        with self.assertRaises(NoChoice):
             self.query('foo')
         self.assertEqual(fake_input.call_count, 3)
         self.assertEqual(
@@ -126,7 +126,7 @@ class TestUserQuery(unittest.TestCase):
     def test_custom_choice_limit(self, fake_input):
         # user hits enters a bad choice 5 times in a row
         fake_input.return_value = 'haha'
-        with self.assertRaises(input_mod.NoChoice):
+        with self.assertRaises(NoChoice):
             self.query('foo', limit=5)
         self.assertEqual(fake_input.call_count, 5)
         self.assertEqual(
