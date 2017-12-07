@@ -3,6 +3,8 @@
 
 import argparse
 from functools import partial
+import os
+import tempfile
 from unittest import TestCase
 
 try:
@@ -11,6 +13,11 @@ try:
 except ImportError:
     # py2
     pass
+
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 from snakeoil.cli import arghparse
 from snakeoil.test import argparse_helpers
@@ -154,6 +161,25 @@ class ArgparseOptionsTest(TestCase):
         # start with negated arg
         namespace = self.parser.parse_args(['--testing=-a'])
         self.assertEqual(namespace.testing, (['a'], []))
+
+    def test_existent_path(self):
+        self.parser.add_argument('--path', type=arghparse.existent_path)
+
+        # nonexistent path arg raises an error
+        with self.assertRaises(argparse_helpers.Error):
+            self.parser.parse_args(['--path=/path/to/nowhere'])
+
+        dir = tempfile.mkdtemp()
+        # random OS/FS issues raise errors
+        with mock.patch('snakeoil.osutils.abspath') as abspath:
+            abspath.side_effect = OSError(19, 'Random OS error')
+            with self.assertRaises(argparse_helpers.Error):
+                self.parser.parse_args(['--path=%s' % dir])
+
+        # regular usage
+        namespace = self.parser.parse_args(['--path=%s' % dir])
+        self.assertEqual(namespace.path, dir)
+        os.rmdir(dir)
 
 
 class NamespaceTest(TestCase):
