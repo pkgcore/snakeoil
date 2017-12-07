@@ -187,6 +187,16 @@ class DelayedParse(DelayedValue):
         self.invokable()
 
 
+class OrderedParse(DelayedValue):
+
+    def __init__(self, invokable, priority):
+        super(OrderedParse, self).__init__(invokable, priority)
+
+    def __call__(self, namespace, attr):
+        self.invokable(namespace)
+        delattr(namespace, attr)
+
+
 class Delayed(argparse.Action):
 
     def __init__(self, option_strings, dest, target=None, priority=0, **kwds):
@@ -506,13 +516,12 @@ class ArgumentParser(argparse.ArgumentParser):
         if unknown_args:
             self.error('unrecognized arguments: %s' % ' '.join(unknown_args))
 
-        # two runs are required; first, handle any suppression defaults
-        # introduced.  subparsers defaults cannot override the parent parser,
-        # as such a subparser can't turn off config/domain for example.
-        # so we first find all DelayedDefault
-        # run them, then rescan for delayeds to run.
-        # this allows subparsers to introduce a default named for themselves
-        # that suppresses the parent.
+        # Two runs are required; first, handle any suppression defaults
+        # introduced. Subparsers defaults cannot override the parent parser, as
+        # such a subparser can't turn off config/domain for example. So we
+        # first find all DelayedDefault run them, then rescan for delayeds to
+        # run. This allows subparsers to introduce a default named for
+        # themselves that suppresses the parent.
 
         # intentionally no protection of suppression code; this should
         # just work.
@@ -522,7 +531,7 @@ class ArgumentParser(argparse.ArgumentParser):
         for attr, functor in sorted(i, key=lambda val: val[1].priority):
             functor(args, attr)
 
-        # now run the delays.
+        # now run the delays
         i = ((attr, val) for attr, val in args.__dict__.iteritems()
              if isinstance(val, DelayedValue))
         try:
@@ -569,6 +578,13 @@ class ArgumentParser(argparse.ArgumentParser):
             if name is None:
                 name = functor.__name__
             self.set_defaults(**{name: DelayedValue(functor, priority)})
+            return functor
+        return f
+
+    def bind_parse_priority(self, priority):
+        def f(functor):
+            name = functor.__name__
+            self.set_defaults(**{name: OrderedParse(functor, priority)})
             return functor
         return f
 
