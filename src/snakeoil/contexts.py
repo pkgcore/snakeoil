@@ -130,6 +130,8 @@ class SplitExec(object):
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         if self.childpid is not None:
+            # make sure system tracing function is reset
+            self.__revert_tracing(inspect.currentframe())
             # re-raise unknown exceptions from the parent
             if exc_type is not self.ParentException:
                 raise exc_value
@@ -186,11 +188,13 @@ class SplitExec(object):
         self.__orig_sys_trace = sys.gettrace()
         sys.settrace(self.__dummy_sys_trace)
 
-    def __revert_tracing(self):
+    def __revert_tracing(self, frame=None):
         """Revert to previous system trace setting."""
         sys.settrace(self.__orig_sys_trace)
+        if frame is not None:
+            frame.f_trace = self.__orig_sys_trace
 
-    def __exit_context(self, _frame):
+    def __exit_context(self, frame, event, arg):
         """Simple function to throw a ParentException."""
         raise self.ParentException()
 
@@ -209,7 +213,7 @@ class SplitExec(object):
                     self.__enable_tracing()
         self.__injected_trace_funcs[frame].append(func)
 
-    def __invoke_trace_funcs(self, frame, *_args, **_kwargs):
+    def __invoke_trace_funcs(self, frame, event, arg):
         """Invoke all trace funcs that have been injected.
 
         Once the injected functions have been executed all trace hooks are
@@ -217,7 +221,7 @@ class SplitExec(object):
         """
         try:
             for func in self.__injected_trace_funcs[frame]:
-                func(frame)
+                func(frame, event, arg)
         finally:
             del self.__injected_trace_funcs[frame]
             with self.__trace_lock:
@@ -233,11 +237,9 @@ class SplitExec(object):
         """
         try:
             return self.__frame
-
         except AttributeError:
             # an offset of two accounts for this method and its caller
             frame = inspect.stack(0)[2][0]
-
             while frame.f_locals.get('self') is self:
                 frame = frame.f_back
             self.__frame = frame  # pylint: disable=W0201
