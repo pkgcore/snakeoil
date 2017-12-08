@@ -18,6 +18,33 @@ from snakeoil import fileutils, klass
 from snakeoil.compatibility import IGNORED_EXCEPTIONS
 
 
+def coverage():
+    """Extract coverage instance (if it exists) from the current running context."""
+    cov = None
+    import inspect
+    try:
+        import coverage
+        frame = inspect.currentframe()
+        while frame is not None:
+            cov = getattr(frame.f_locals.get('self'), 'coverage', None)
+            if isinstance(cov, coverage.coverage):
+                break
+            frame = frame.f_back
+    except ImportError:
+        pass
+    return cov
+
+
+@klass.patch('os._exit')
+def _os_exit(orig_exit, val):
+    """Monkeypatch os._exit() to save coverage data before exit."""
+    cov = coverage()
+    if cov is not None:
+        cov.stop()
+        cov.save()
+    orig_exit(val)
+
+
 def _tryResultCall(result, methodname, *args):
     method = getattr(result, methodname, None)
     if method is not None:
