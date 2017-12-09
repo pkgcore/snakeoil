@@ -25,7 +25,6 @@ from snakeoil.test import TestCase, SkipTest, mk_cpy_loadable_testcase
 from snakeoil.osutils import native_readdir, supported_systems
 from snakeoil.osutils.mount import mount, umount, MS_BIND, MNT_DETACH
 from snakeoil.test.mixins import TempDirMixin
-from snakeoil.test import protect_process
 
 pjoin = os.path.join
 
@@ -503,6 +502,7 @@ class SupportedSystems(unittest.TestCase):
 
 # TODO: switch to TempDirMixin once we move to pytest or when snakeoil's
 # TestCase.assertRaises context manager is fixed to act like unittest's.
+@unittest.skipUnless(sys.platform.startswith('linux'), 'supported on Linux only')
 class Mount(unittest.TestCase):
 
     def setUp(self):
@@ -513,7 +513,6 @@ class Mount(unittest.TestCase):
         shutil.rmtree(self.source)
         shutil.rmtree(self.target)
 
-    @unittest.skipUnless(sys.platform.startswith('linux'), 'supported on Linux only')
     def test_args_bytes(self):
         # The initial source, target, and fstype arguments to mount(2) must be
         # byte strings; if they are unicode strings the arguments get mangled
@@ -528,14 +527,12 @@ class Mount(unittest.TestCase):
                 for arg in mount_call[1][0:3]:
                     self.assertIsInstance(arg, bytes)
 
-    @unittest.skipUnless(sys.platform.startswith('linux'), 'supported on Linux only')
     def test_missing_dirs(self):
         with self.assertRaises(OSError) as cm:
             mount('source', 'target', None, MS_BIND)
         self.assertEqual(cm.exception.errno, errno.ENOENT)
 
     @unittest.skipIf(os.getuid() == 0, 'this test must be run as non-root')
-    @unittest.skipUnless(sys.platform.startswith('linux'), 'supported on Linux only')
     def test_no_perms(self):
         with self.assertRaises(OSError) as cm:
             mount(self.source, self.target, None, MS_BIND)
@@ -544,7 +541,6 @@ class Mount(unittest.TestCase):
             umount(self.target)
         self.assertTrue(cm.exception.errno in (errno.EPERM, errno.EINVAL))
 
-    @unittest.skipUnless(sys.platform.startswith('linux'), 'supported on Linux only')
     @unittest.skipUnless(
         os.path.exists('/proc/self/ns/mnt') and os.path.exists('/proc/self/ns/user'),
         'user and mount namespace support required')
@@ -560,7 +556,6 @@ class Mount(unittest.TestCase):
             umount(self.target)
             self.assertFalse(os.path.exists(bind_file))
 
-    @unittest.skipUnless(sys.platform.startswith('linux'), 'supported on Linux only')
     @unittest.skipUnless(
         os.path.exists('/proc/self/ns/mnt') and os.path.exists('/proc/self/ns/user'),
         'user and mount namespace support required')
