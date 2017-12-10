@@ -2,9 +2,10 @@
 # License: GPL2/BSD 3 clause
 
 import os
+import random
 import sys
 
-from snakeoil.contexts import chdir, syspath
+from snakeoil.contexts import chdir, syspath, SplitExec
 from snakeoil.test.mixins import TempDirMixin
 
 
@@ -42,3 +43,36 @@ class TestContexts(TempDirMixin):
             # dir isn't added again due to condition
             with syspath(self.dir, condition=(self.dir not in sys.path)):
                 self.assertEqual(mangled_syspath, tuple(sys.path))
+
+
+class TestSplitExec(TempDirMixin):
+
+    def test_context_process(self):
+        # code inside the with statement is run in a separate process
+        pid = os.getpid()
+        with SplitExec() as c:
+            pass
+        self.assertIsNotNone(c.childpid)
+        self.assertNotEqual(pid, c.childpid)
+
+    def test_context_exit_status(self):
+        # exit status of the child process is available as a context attr
+        exit_status = random.randint(1, 255)
+        with SplitExec() as c:
+            os._exit(exit_status)
+        self.assertEqual(c.exit_status, exit_status)
+
+    def test_context_locals(self):
+        # code inside the with statement returns modified, pickleable locals
+        # via 'locals' attr of the context manager
+        a = 1
+        with SplitExec() as c:
+            self.assertEqual(a, 1)
+            a = 2
+            self.assertEqual(a, 2)
+            b = 3
+        # changes to locals aren't propagated back
+        self.assertEqual(a, 1)
+        self.assertNotIn('b', locals())
+        # but they're accessible via the 'locals' attr
+        self.assertEqual(c.locals, {'a': 2, 'b': 3})
