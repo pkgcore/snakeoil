@@ -12,6 +12,7 @@ demandload(
     'errno',
     'inspect',
     'multiprocessing.connection:Pipe',
+    'pickle',
     'signal',
     'threading',
     'traceback',
@@ -58,6 +59,7 @@ class SplitExec(object):
         self.__pipe = None
         self.childpid = None
         self.exit_status = -1
+        self.locals = {}
 
     def _parent_handler(self, signum, frame):
         """Signal handler for the parent process.
@@ -88,9 +90,21 @@ class SplitExec(object):
         """Parent process clean up after the child throws an exception."""
         self._cleanup()
 
-    def _child_exit(self, exception):
+    def _child_exit(self, exc):
+        # pass back changed local scope vars from the child that can be pickled
+        frame = self.__get_context_frame()
+        local_vars = {}
+        for k, v in frame.f_locals.iteritems():
+            if k not in self.__child_orig_locals or v != self.__child_orig_locals[k]:
+                try:
+                    pickle.dumps(v)
+                    local_vars[k] = v
+                except (TypeError, pickle.PicklingError):
+                    continue
+        exc._locals = local_vars
+
         try:
-            self.__pipe.send(exception)
+            self.__pipe.send(exc)
         except (BrokenPipeError if sys.hexversion >= 0x03030000  # pylint: disable=E0602
                 else OSError, IOError) as e:
             if e.errno in (errno.EPIPE, errno.ESHUTDOWN):
@@ -109,15 +123,14 @@ class SplitExec(object):
             self.__pipe = parent_pipe
             frame = self.__get_context_frame()
             self.__inject_trace_func(frame, self.__exit_context)
-
             return self
-
         else:
+            frame = self.__get_context_frame()
+            self.__child_orig_locals = dict(frame.f_locals)
             self.__pipe = child_pipe
 
             try:
                 self._child_setup()
-
             # pylint: disable=W0703
             # need to catch all exceptions here since we are passing them to
             # the parent process
@@ -139,6 +152,7 @@ class SplitExec(object):
             # get exception from the child
             try:
                 exc = self.__pipe.recv()
+                self.locals = exc._locals
             except EOFError as e:
                 exc = SystemExit(e)
 
