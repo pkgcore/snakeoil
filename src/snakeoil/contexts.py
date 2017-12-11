@@ -99,7 +99,7 @@ class SplitExec(object):
                 try:
                     pickle.dumps(v)
                     local_vars[k] = v
-                except (TypeError, pickle.PicklingError):
+                except (AttributeError, TypeError, pickle.PicklingError):
                     continue
         exc._locals = local_vars
 
