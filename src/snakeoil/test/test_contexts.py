@@ -79,6 +79,13 @@ class TestSplitExec(unittest.TestCase):
         # but they're accessible via the 'locals' attr
         self.assertEqual(c.locals, {'a': 2, 'b': 3})
 
+        # make sure unpickleables don't cause issues
+        with SplitExec() as c:
+            func = lambda x: x
+            import sys
+            a = 4
+        self.assertEqual(c.locals, {'a': 4})
+
     def test_context_exceptions(self):
         # exceptions in the child process are sent back to the parent and re-raised
         with self.assertRaises(IOError) as cm:
