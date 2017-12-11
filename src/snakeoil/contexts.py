@@ -262,7 +262,7 @@ class SplitExec(object):
 class Namespace(SplitExec):
     """Context manager that provides Linux namespace support."""
 
-    def __init__(self, mount=True, uts=True, ipc=True, net=False, pid=False,
+    def __init__(self, mount=False, uts=True, ipc=False, net=False, pid=False,
                  user=False, hostname=None):
         self._hostname = hostname
         self._namespaces = {

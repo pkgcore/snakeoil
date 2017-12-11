@@ -4,10 +4,11 @@
 import errno
 import os
 import random
+import socket
 import sys
 import unittest
 
-from snakeoil.contexts import chdir, syspath, SplitExec
+from snakeoil.contexts import chdir, syspath, SplitExec, Namespace
 from snakeoil.test.mixins import TempDirMixin
 
 
@@ -102,3 +103,22 @@ class TestSplitExec(unittest.TestCase):
             with ChildSetupException() as c:
                 pass
         self.assertEqual(cm.exception.errno, errno.EBUSY)
+
+
+@unittest.skipUnless(sys.platform.startswith('linux'), 'supported on Linux only')
+class TestNamespace(unittest.TestCase):
+
+    @unittest.skipUnless(os.path.exists('/proc/self/ns/user'),
+                         'user namespace support required')
+    def test_user_namespace(self):
+        with Namespace(user=True) as ns:
+            self.assertEqual(os.getuid(), 0)
+
+    @unittest.skipUnless(
+        os.path.exists('/proc/self/ns/uts') and os.path.exists('/proc/self/ns/user'),
+        'user and uts namespace support required')
+    def test_uts_namespace(self):
+        with Namespace(user=True, uts=True, hostname='host') as ns:
+            ns_hostname, _, ns_domainname = socket.getfqdn().partition('.')
+            self.assertEqual(ns_hostname, 'host')
+            self.assertEqual(ns_domainname, '')
