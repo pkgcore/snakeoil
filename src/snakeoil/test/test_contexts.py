@@ -85,3 +85,13 @@ class TestSplitExec(unittest.TestCase):
             with SplitExec() as c:
                 raise IOError(errno.EBUSY, 'random error')
         self.assertEqual(cm.exception.errno, errno.EBUSY)
+
+    def test_child_setup_raises_exception(self):
+        class ChildSetupException(SplitExec):
+            def _child_setup(self):
+                raise IOError(errno.EBUSY, 'random error')
+
+        with self.assertRaises(IOError) as cm:
+            with ChildSetupException() as c:
+                pass
+        self.assertEqual(cm.exception.errno, errno.EBUSY)

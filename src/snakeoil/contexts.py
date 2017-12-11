@@ -136,8 +136,7 @@ class SplitExec(object):
             # the parent process
             except Exception as exc:
                 exc.__traceback_list__ = traceback.format_exc()
-                self.__pipe.send(exc)
-                self._child_exit(SystemExit())
+                self._child_exit(exc)
 
             return self
 
