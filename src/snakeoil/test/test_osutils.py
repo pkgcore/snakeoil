@@ -510,8 +510,12 @@ class Mount(unittest.TestCase):
         self.target = tempfile.mkdtemp()
 
     def tearDown(self):
-        shutil.rmtree(self.source)
-        shutil.rmtree(self.target)
+        try:
+            shutil.rmtree(self.source)
+            shutil.rmtree(self.target)
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                raise
 
     def test_args_bytes(self):
         # The initial source, target, and fstype arguments to mount(2) must be
