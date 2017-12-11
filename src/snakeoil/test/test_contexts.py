@@ -1,9 +1,11 @@
 # Copyright: 2015 Tim Harder <radhermit@gmail.com>
 # License: GPL2/BSD 3 clause
 
+import errno
 import os
 import random
 import sys
+import unittest
 
 from snakeoil.contexts import chdir, syspath, SplitExec
 from snakeoil.test.mixins import TempDirMixin
@@ -45,7 +47,7 @@ class TestContexts(TempDirMixin):
                 self.assertEqual(mangled_syspath, tuple(sys.path))
 
 
-class TestSplitExec(TempDirMixin):
+class TestSplitExec(unittest.TestCase):
 
     def test_context_process(self):
         # code inside the with statement is run in a separate process
@@ -76,3 +78,10 @@ class TestSplitExec(TempDirMixin):
         self.assertNotIn('b', locals())
         # but they're accessible via the 'locals' attr
         self.assertEqual(c.locals, {'a': 2, 'b': 3})
+
+    def test_context_exceptions(self):
+        # exceptions in the child process are sent back to the parent and re-raised
+        with self.assertRaises(IOError) as cm:
+            with SplitExec() as c:
+                raise IOError(errno.EBUSY, 'random error')
+        self.assertEqual(cm.exception.errno, errno.EBUSY)
