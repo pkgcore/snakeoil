@@ -17,6 +17,7 @@ demandload(
     'operator:attrgetter',
     'logging',
     'textwrap:dedent',
+    'traceback',
     'snakeoil:osutils',
     'snakeoil.obj:popattr',
     'snakeoil.version:get_version',
@@ -555,6 +556,8 @@ class ArgumentParser(argparse.ArgumentParser):
         Similar to argparse's error() except usage information is not shown by
         default.
         """
+        if self.debug:
+            traceback.print_exc()
         self.exit(status, '%s: error: %s\n' % (self.prog, message))
 
     def bind_main_func(self, functor):
