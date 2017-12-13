@@ -323,4 +323,4 @@ def split_negations(iterable, func=str):
             neg.append(func(token[1:]))
         else:
             pos.append(func(token))
-    return (tuple(neg), tuple(pos))
+    return tuple(neg), tuple(pos)
