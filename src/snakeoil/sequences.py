@@ -320,7 +320,11 @@ def split_negations(iterable, func=str):
         if token[0] == '-':
             if len(token) == 1:
                 raise ValueError("'-' negation without a token")
-            neg.append(func(token[1:]))
+            token = token[1:]
+            l = neg
         else:
-            pos.append(func(token))
+            l = pos
+        obj = func(token)
+        if obj is not None:
+            l.append(obj)
     return tuple(neg), tuple(pos)
