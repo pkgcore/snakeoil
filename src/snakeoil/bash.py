@@ -29,7 +29,7 @@ __all__ = (
 
 
 def iter_read_bash(bash_source, allow_inline_comments=True,
-                   allow_line_cont=False):
+                   allow_line_cont=False, enum_line=False):
     """Iterate over a file honoring bash commenting rules and line continuations.
 
     Note that it's considered good behaviour to close filehandles, as
@@ -48,7 +48,7 @@ def iter_read_bash(bash_source, allow_inline_comments=True,
     if isinstance(bash_source, basestring):
         bash_source = readlines_utf8(bash_source, True)
     s = ''
-    for line in bash_source:
+    for lineno, line in enumerate(bash_source):
         if allow_line_cont and s:
             s += line
         else:
@@ -63,10 +63,16 @@ def iter_read_bash(bash_source, allow_inline_comments=True,
                 if allow_line_cont and line_cont_regexp.match(line):
                     s = s.rstrip('\\\n')
                     continue
-                yield s.rstrip()
+                if enum_line:
+                    yield lineno + 1, s.rstrip()
+                else:
+                    yield s.rstrip()
             s = ''
     if s:
-        yield s
+        if enum_line:
+            yield lineno + 1, s
+        else:
+            yield s
 
 
 def read_bash(*args, **kwargs):
