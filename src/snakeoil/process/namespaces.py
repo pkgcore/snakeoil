@@ -318,7 +318,7 @@ def simple_unshare(mount=True, uts=True, ipc=True, net=False, pid=False,
         hostname: hostname to use for the UTS namespace
     """
     # user namespace must be first
-    if user and os.getuid() != 0:
+    if user:
         create_userns()
 
     # The mount namespace is the only one really guaranteed to exist --
