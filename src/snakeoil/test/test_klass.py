@@ -3,6 +3,7 @@
 
 from functools import partial
 import math
+import re
 from time import time
 
 from snakeoil import klass
@@ -75,6 +76,41 @@ class Test_CPY_GetAttrProxy(Test_native_GetAttrProxy):
         o.obj = o
         # now it's cyclical.
         self.assertRaises((AttributeError, RuntimeError), getattr, o, "hooey")
+
+
+class TestDirProxy(TestCase):
+
+    @staticmethod
+    def noninternal_attrs(obj):
+        return sorted(x for x in dir(obj) if not re.match(r'__\w+__', x))
+
+    def test_combined(self):
+        class foo1(object):
+            def __init__(self, obj):
+                self.obj = obj
+            __dir__ = klass.DirProxy('obj')
+
+        class foo2(object):
+            def __init__(self):
+                self.attr = 'foo'
+
+        o2 = foo2()
+        o = foo1(o2)
+        self.assertEqual(self.noninternal_attrs(o), ['attr', 'obj'])
+
+    def test_empty(self):
+        class foo1(object):
+            def __init__(self, obj):
+                self.obj = obj
+            __dir__ = klass.DirProxy('obj')
+
+        class foo2(object):
+            pass
+
+        o2 = foo2()
+        o = foo1(o2)
+        self.assertEqual(self.noninternal_attrs(o2), [])
+        self.assertEqual(self.noninternal_attrs(o), ['obj'])
 
 
 class Test_native_contains(TestCase):

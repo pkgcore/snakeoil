@@ -38,7 +38,7 @@ def native_GetAttrProxy(target):
     return reflected_getattr
 
 
-def GetDirProxy(target):
+def DirProxy(target):
     def combined_dir(obj):
         target_attrs = dir(getattr(obj, target))
         return sorted(set(target_attrs + list(obj.__dict__.iterkeys())))
