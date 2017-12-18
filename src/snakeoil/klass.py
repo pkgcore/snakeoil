@@ -38,6 +38,13 @@ def native_GetAttrProxy(target):
     return reflected_getattr
 
 
+def GetDirProxy(target):
+    def combined_dir(obj):
+        target_attrs = dir(getattr(obj, target))
+        return sorted(set(target_attrs + list(obj.__dict__.iterkeys())))
+    return combined_dir
+
+
 def native_contains(self, key):
     """
     return True if key is in self, False otherwise
