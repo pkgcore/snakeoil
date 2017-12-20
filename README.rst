@@ -30,15 +30,13 @@ A standalone test runner is integrated in setup.py; to run, just execute::
 
     python setup.py test
 
-In addition, a tox config is provided so the testsuite can be run in a
-virtualenv setup against all supported python versions. To run tests for all
-environments just execute **tox** in the root directory of a repo or unpacked
-tarball. Otherwise, for a specific python version execute something similar to
-the following::
+Using tox for all supported python versions::
 
-    tox -e py27
+    tox
 
-Note that mock_ is required for tests when using python-2.7.
+Using tox for a specific python version::
+
+    tox -e py36
 
 Contact
 =======

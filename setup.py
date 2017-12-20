@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -75,10 +75,6 @@ else:
     ])
 
 
-test_requirements = []
-if sys.hexversion < 0x03030000:
-    test_requirements.append('mock')
-
 setup(**dict(pkgdist_setup,
     description='misc common functionality and useful optimizations',
     url='https://github.com/pkgcore/snakeoil',
@@ -87,11 +83,9 @@ setup(**dict(pkgdist_setup,
     ext_modules=extensions,
     setup_requires=build_deps,
     headers=common_includes,
-    tests_require=test_requirements,
     cmdclass=dict(
         pkgdist_cmds,
         build_ext=pkgdist.build_ext,
-        build_py=pkgdist.build_py2to3,
         config=config,
         test=pkgdist.test,
         ),
@@ -99,7 +93,6 @@ setup(**dict(pkgdist_setup,
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
