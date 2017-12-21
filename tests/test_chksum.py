@@ -1,18 +1,14 @@
 # Copyright: 2007 Brian Harring <ferringb@gmail.com>
 # License: GPL2/BSD
 
-from snakeoil import test, chksum
+import pytest
+
+from snakeoil import chksum
 
 
-class Test_funcs(test.TestCase):
+class Test_funcs(object):
 
-    # ensure we aren't mangling chksum state for other tests.
-    def tearDown(self):
-        chksum.__inited__ = False
-        chksum.chksum_types.clear()
-        chksum.init = self._saved_init
-
-    def setUp(self):
+    def setup_method(self, method):
         chksum.__inited__ = False
         chksum.chksum_types.clear()
         self._saved_init = chksum.init
@@ -22,23 +18,31 @@ class Test_funcs(test.TestCase):
             chksum.__inited__ = True
         chksum.init = f
 
+    # ensure we aren't mangling chksum state for other tests.
+    def teardown_method(self, method):
+        chksum.__inited__ = False
+        chksum.chksum_types.clear()
+        chksum.init = self._saved_init
+
     def test_get_handlers(self):
         expected = {"x": 1, "y": 2}
         chksum.chksum_types.update(expected)
-        self.assertEqual(expected, chksum.get_handlers())
-        self.assertEqual(self._inited_count, 1)
-        self.assertEqual(expected, chksum.get_handlers(None))
-        self.assertEqual({"x": 1}, chksum.get_handlers(["x"]))
-        self.assertEqual(expected, chksum.get_handlers(["x", "y"]))
-        self.assertEqual(self._inited_count, 1)
+        assert expected == chksum.get_handlers()
+        assert self._inited_count == 1
+        assert expected == chksum.get_handlers(None)
+        assert {"x": 1} == chksum.get_handlers(["x"])
+        assert expected == chksum.get_handlers(["x", "y"])
+        assert self._inited_count == 1
 
     def test_get_handler(self):
-        self.assertRaises(chksum.MissingChksumHandler, chksum.get_handler, "x")
-        self.assertEqual(self._inited_count, 1)
+        with pytest.raises(chksum.MissingChksumHandler):
+            chksum.get_handler("x")
+        assert self._inited_count == 1
         chksum.chksum_types["x"] = 1
-        self.assertRaises(chksum.MissingChksumHandler, chksum.get_handler, "y")
+        with pytest.raises(chksum.MissingChksumHandler):
+            chksum.get_handler("y")
         chksum.chksum_types["y"] = 2
-        self.assertEqual(1, chksum.get_handler("x"))
-        self.assertEqual(2, chksum.get_handler("y"))
-        self.assertEqual(self._inited_count, 1)
+        assert chksum.get_handler("x") == 1
+        assert chksum.get_handler("y") == 2
+        assert self._inited_count == 1
 

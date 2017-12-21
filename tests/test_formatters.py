@@ -13,19 +13,18 @@ import os
 import pty
 from tempfile import TemporaryFile
 
+import pytest
+
 from snakeoil import formatters
-from snakeoil.test import SkipTest, TestCase, mk_cpy_loadable_testcase, protect_process
+from snakeoil.test import mk_cpy_loadable_testcase, protect_process
 
 # protect against python issue 7567 for the curses module.
 issue7567 = protect_process
 
 
-class native_PlainTextFormatterTest(TestCase):
+class Test_native_PlainTextFormatter(object):
 
     kls = staticmethod(formatters.native_PlainTextFormatter)
-
-    def assertStreamEqual(self, output, stream):
-        self.assertEqual(output.encode(), stream.getvalue())
 
     def test_basics(self):
         # As many sporks as fit in 20 chars.
@@ -41,7 +40,7 @@ class native_PlainTextFormatterTest(TestCase):
             formatter = self.kls(stream, encoding='ascii')
             formatter.width = 20
             formatter.write(autoline=False, wrap=True, *inputs)
-            self.assertStreamEqual(output, stream)
+            assert output.encode() == stream.getvalue()
 
     def test_first_prefix(self):
         # As many sporks as fit in 20 chars.
@@ -61,9 +60,8 @@ class native_PlainTextFormatterTest(TestCase):
             stream = BytesIO()
             formatter = self.kls(stream, encoding='ascii')
             formatter.width = 20
-            formatter.write(autoline=False, wrap=True, first_prefix='foon:',
-                            *inputs)
-            self.assertStreamEqual(output, stream)
+            formatter.write(autoline=False, wrap=True, first_prefix='foon:', *inputs)
+            assert output.encode() == stream.getvalue()
 
     def test_later_prefix(self):
         for inputs, output in [
@@ -84,7 +82,7 @@ class native_PlainTextFormatterTest(TestCase):
             formatter.width = 20
             formatter.later_prefix = ['foon:']
             formatter.write(wrap=True, autoline=False, *inputs)
-            self.assertStreamEqual(output, stream)
+            assert output.encode() == stream.getvalue()
 
     def test_complex(self):
         stream = BytesIO()
@@ -93,11 +91,11 @@ class native_PlainTextFormatterTest(TestCase):
         formatter.first_prefix = ['foo', None, ' d']
         formatter.later_prefix = ['dorkey']
         formatter.write("dar bl", wrap=True, autoline=False)
-        self.assertStreamEqual("foo ddar\ndorkeybl", stream)
+        assert "foo ddar\ndorkeybl".encode() == stream.getvalue()
         formatter.write(" "*formatter.width, wrap=True, autoline=True)
         formatter.stream = stream = BytesIO()
         formatter.write("dar", " b", wrap=True, autoline=False)
-        self.assertStreamEqual("foo ddar\ndorkeyb", stream)
+        assert "foo ddar\ndorkeyb".encode() == stream.getvalue()
         output = \
 """     rdepends: >=dev-lang/python-2.3 >=sys-apps/sed-4.0.5
                        dev-python/python-fchksum
@@ -105,21 +103,21 @@ class native_PlainTextFormatterTest(TestCase):
         stream = BytesIO()
         formatter = self.kls(stream, encoding='ascii', width=80)
         formatter.wrap = True
-        self.assertEqual(formatter.autoline, True)
-        self.assertEqual(formatter.width, 80)
+        assert formatter.autoline
+        assert formatter.width == 80
         formatter.later_prefix = ['                       ']
         formatter.write("     rdepends: >=dev-lang/python-2.3 "
                         ">=sys-apps/sed-4.0.5 dev-python/python-fchksum")
-        self.assertLen(formatter.first_prefix, 0)
-        self.assertLen(formatter.later_prefix, 1)
-        self.assertStreamEqual(output, stream)
+        assert len(formatter.first_prefix) == 0
+        assert len(formatter.later_prefix) == 1
+        assert output.encode() == stream.getvalue()
         formatter.write()
         formatter.stream = stream = BytesIO()
         # push it right up to the limit.
         formatter.width = 82
         formatter.write("     rdepends: >=dev-lang/python-2.3 "
                         ">=sys-apps/sed-4.0.5 dev-python/python-fchksum")
-        self.assertStreamEqual(output, stream)
+        assert output.encode() == stream.getvalue()
 
         formatter.first_prefix = []
         formatter.later_prefix = ['                  ']
@@ -131,7 +129,7 @@ class native_PlainTextFormatterTest(TestCase):
         formatter.write(*input)
         output = ''.join(input).rsplit(" ", 1)
         output[1] = '                  %s' % output[1]
-        self.assertStreamEqual('\n'.join(output), stream)
+        assert '\n'.join(output).encode() == stream.getvalue()
 
 
     def test_wrap_autoline(self):
@@ -156,16 +154,16 @@ class native_PlainTextFormatterTest(TestCase):
             formatter.width = 10
             for input in inputs:
                 formatter.write(wrap=True, later_prefix='foon', *input)
-            self.assertStreamEqual(output, stream)
+            assert output.encode() == stream.getvalue()
 
 
-class cpy_PlainTextFormatterTest(native_PlainTextFormatterTest):
+@pytest.mark.skipif(formatters.native_PlainTextFormatter is formatters.PlainTextFormatter,
+                    reason="extension isn't compiled")
+class Test_cpy_PlainTextFormatter(Test_native_PlainTextFormatter):
     kls = staticmethod(formatters.PlainTextFormatter)
-    if formatters.native_PlainTextFormatter is formatters.PlainTextFormatter:
-        skip = "cpy extension isn't available"
 
 
-class TerminfoFormatterTest(TestCase):
+class TerminfoFormatterTest(object):
 
     def _test_stream(self, stream, formatter, inputs, output):
         stream.seek(0)
@@ -174,9 +172,8 @@ class TerminfoFormatterTest(TestCase):
         stream.seek(0)
         result = stream.read()
         output = ''.join(output)
-        self.assertEqual(output.encode(), result,
-                         msg="given(%r), expected(%r), got(%r)" %
-                         (inputs, output, result))
+        assert output.encode() == result, \
+            "given(%r), expected(%r), got(%r)" % (inputs, output, result)
 
     @issue7567
     def test_terminfo(self):
@@ -203,9 +200,8 @@ class TerminfoFormatterTest(TestCase):
 
     def test_terminfo_hates_term(self):
         stream = TemporaryFile()
-        self.assertRaises(
-            formatters.TerminfoHatesOurTerminal,
-            formatters.TerminfoFormatter, stream, term='dumb')
+        with pytest.raises(formatters.TerminfoHatesOurTerminal):
+            formatters.TerminfoFormatter(stream, term='dumb')
 
     @issue7567
     def test_title(self):
@@ -213,10 +209,10 @@ class TerminfoFormatterTest(TestCase):
         try:
             f = formatters.TerminfoFormatter(stream, 'xterm+sl', True, 'ascii')
         except curses.error:
-            raise SkipTest("xterm+sl not in terminfo db")
+            pytest.skip("xterm+sl not in terminfo db")
         f.title('TITLE')
         stream.seek(0)
-        self.assertEqual(b'\x1b]0;TITLE\x07', stream.read())
+        assert b'\x1b]0;TITLE\x07' == stream.read()
 
 
 def _with_term(term, func, *args, **kwargs):
@@ -238,36 +234,36 @@ def _get_pty_pair(encoding='ascii'):
     return master, out
 
 
-class GetFormatterTest(TestCase):
+class TestGetFormatter(object):
 
     @issue7567
     def test_dumb_terminal(self):
         master, _out = _get_pty_pair()
         formatter = _with_term('dumb', formatters.get_formatter, master)
-        self.assertTrue(isinstance(formatter, formatters.PlainTextFormatter))
+        assert isinstance(formatter, formatters.PlainTextFormatter)
 
     @issue7567
     def test_vt100_terminal(self):
         formatter = _with_term('vt100', formatters.get_formatter, master)
-        self.assertTrue(isinstance(formatter, formatters.PlainTextFormatter))
+        assert isinstance(formatter, formatters.PlainTextFormatter)
 
     @issue7567
     def test_smart_terminal(self):
         master, _out = _get_pty_pair()
         formatter = _with_term('xterm', formatters.get_formatter, master)
-        self.assertTrue(isinstance(formatter, formatters.TerminfoFormatter))
+        assert isinstance(formatter, formatters.TerminfoFormatter)
 
     @issue7567
     def test_not_a_tty(self):
         stream = TemporaryFile()
         formatter = _with_term('xterm', formatters.get_formatter, stream)
-        self.assertTrue(isinstance(formatter, formatters.PlainTextFormatter))
+        assert isinstance(formatter, formatters.PlainTextFormatter)
 
     @issue7567
     def test_no_fd(self):
         stream = BytesIO()
         formatter = _with_term('xterm', formatters.get_formatter, stream)
-        self.assertTrue(isinstance(formatter, formatters.PlainTextFormatter))
+        assert isinstance(formatter, formatters.PlainTextFormatter)
 
 
 cpy_loaded_Test = mk_cpy_loadable_testcase(

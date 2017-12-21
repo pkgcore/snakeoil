@@ -4,7 +4,8 @@
 
 import sre_constants
 
-from snakeoil.test import TestCase
+import pytest
+
 from snakeoil import demandload
 
 # few notes:
@@ -29,7 +30,7 @@ def reset_globals(functor):
     return f
 
 
-class ParserTest(TestCase):
+class TestParser(object):
 
     @reset_globals
     def test_parse(self):
@@ -40,33 +41,34 @@ class ParserTest(TestCase):
                 ('foo@bar', [('foo', 'bar')]),
                 ('foo_bar', [('foo_bar', 'foo_bar')]),
             ]:
-            self.assertEqual(output, list(demandload.parse_imports([input])))
-        self.assertRaises(ValueError, list, demandload.parse_imports(['a.b']))
-        self.assertRaises(ValueError, list, demandload.parse_imports(['a:,']))
-        self.assertRaises(ValueError, list, demandload.parse_imports(['a:b,x@']))
-        self.assertRaises(ValueError, list, demandload.parse_imports(['b-x']))
-        self.assertRaises(ValueError, list, demandload.parse_imports([' b_x']))
+            assert output == list(demandload.parse_imports([input]))
+        pytest.raises(ValueError, list, demandload.parse_imports(['a.b']))
+        pytest.raises(ValueError, list, demandload.parse_imports(['a:,']))
+        pytest.raises(ValueError, list, demandload.parse_imports(['a:b,x@']))
+        pytest.raises(ValueError, list, demandload.parse_imports(['b-x']))
+        pytest.raises(ValueError, list, demandload.parse_imports([' b_x']))
 
 
-class PlaceholderTest(TestCase):
+class TestPlaceholder(object):
 
     @reset_globals
     def test_getattr(self):
         scope = {}
         placeholder = demandload.Placeholder(scope, 'foo', list)
-        self.assertEqual(scope, object.__getattribute__(placeholder, '_scope'))
-        self.assertEqual(placeholder.__doc__, [].__doc__)
-        self.assertEqual(scope['foo'], [])
+        assert scope == object.__getattribute__(placeholder, '_scope')
+        assert placeholder.__doc__ == [].__doc__
+        assert scope['foo'] == []
         demandload._protection_enabled = lambda: True
-        self.assertRaises(ValueError, getattr, placeholder, '__doc__')
+        with pytest.raises(ValueError):
+            getattr(placeholder, '__doc__')
 
     @reset_globals
     def test__str__(self):
         scope = {}
         placeholder = demandload.Placeholder(scope, 'foo', list)
-        self.assertEqual(scope, object.__getattribute__(placeholder, '_scope'))
-        self.assertEqual(str(placeholder), str([]))
-        self.assertEqual(scope['foo'], [])
+        assert scope == object.__getattribute__(placeholder, '_scope')
+        assert str(placeholder) == str([])
+        assert scope['foo'] == []
 
     @reset_globals
     def test_call(self):
@@ -76,10 +78,9 @@ class PlaceholderTest(TestCase):
             return passthrough
         scope = {}
         placeholder = demandload.Placeholder(scope, 'foo', get_func)
-        self.assertEqual(scope, object.__getattribute__(placeholder, '_scope'))
-        self.assertEqual(
-            (('arg',), {'kwarg': 42}), placeholder('arg', kwarg=42))
-        self.assertIdentical(passthrough, scope['foo'])
+        assert scope == object.__getattribute__(placeholder, '_scope')
+        assert (('arg',), {'kwarg': 42}) == placeholder('arg', kwarg=42)
+        assert passthrough is scope['foo']
 
     @reset_globals
     def test_setattr(self):
@@ -90,41 +91,42 @@ class PlaceholderTest(TestCase):
         placeholder = demandload.Placeholder(scope, 'foo', Struct)
         placeholder.val = 7
         demandload._protection_enabled = lambda: True
-        self.assertRaises(ValueError, getattr, placeholder, 'val')
-        self.assertEqual(7, scope['foo'].val)
+        with pytest.raises(ValueError):
+            getattr(placeholder, 'val')
+        assert 7 == scope['foo'].val
 
 
-class ImportTest(TestCase):
+class TestImport(object):
 
     @reset_globals
     def test_demandload(self):
         scope = {}
         demandload.demandload('snakeoil:demandload', scope=scope)
-        self.assertNotIdentical(demandload, scope['demandload'])
-        self.assertIdentical(
-            demandload.demandload, scope['demandload'].demandload)
-        self.assertIdentical(demandload, scope['demandload'])
+        assert demandload is not scope['demandload']
+        assert demandload.demandload is scope['demandload'].demandload
+        assert demandload is scope['demandload']
 
     @reset_globals
     def test_disabled_demandload(self):
         scope = {}
         demandload.disabled_demandload('snakeoil:demandload', scope=scope)
-        self.assertIdentical(demandload, scope['demandload'])
+        assert demandload is scope['demandload']
 
 
-class DemandCompileRegexpTest(TestCase):
+class TestDemandCompileRegexp(object):
 
     @reset_globals
     def test_demand_compile_regexp(self):
         scope = {}
         demandload.demand_compile_regexp('foo', 'frob', scope=scope)
-        self.assertEqual(list(scope.keys()), ['foo'])
-        self.assertEqual('frob', scope['foo'].pattern)
-        self.assertEqual('frob', scope['foo'].pattern)
+        assert list(scope.keys()) == ['foo']
+        assert 'frob' == scope['foo'].pattern
+        assert 'frob' == scope['foo'].pattern
 
         # verify it's delayed via a bad regex.
         demandload.demand_compile_regexp('foo', 'f(', scope=scope)
-        self.assertEqual(list(scope.keys()), ['foo'])
+        assert list(scope.keys()) == ['foo']
         # should blow up on accessing an attribute.
         obj = scope['foo']
-        self.assertRaises(sre_constants.error, getattr, obj, 'pattern')
+        with pytest.raises(sre_constants.error):
+            getattr(obj, 'pattern')

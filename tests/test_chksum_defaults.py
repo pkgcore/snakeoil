@@ -4,8 +4,9 @@
 import os
 import tempfile
 
+import pytest
+
 from snakeoil import chksum, fileutils
-from snakeoil.test import TestCase, SkipTest
 from snakeoil.currying import post_curry
 from snakeoil.data_source import data_source, local_source
 
@@ -16,7 +17,7 @@ multi = 40000
 def require_chf(func):
     def subfunc(self):
         if self.chf is None:
-            raise SkipTest(
+            pytest.skip(
                 'no handler for %s, do you need to install PyCrypto or mhash?'
                 % (self.chf_type,))
         func(self)
@@ -31,14 +32,14 @@ class base(object):
         except chksum.MissingChksumHandler:
             self.chf = None
 
-    def setUp(self):
+    def setup_method(self, method):
         self.get_chf()
         fd, self.fn = tempfile.mkstemp()
         for i in range(multi):
             os.write(fd, data.encode())
         os.close(fd)
 
-    def tearDown(self):
+    def teardown_method(self, method):
         try:
             os.unlink(self.fn)
         except IOError:
@@ -46,38 +47,35 @@ class base(object):
 
     @require_chf
     def test_fp_check(self):
-        self.assertEqual(self.chf(self.fn), self.expected_long)
+        assert self.chf(self.fn) == self.expected_long
 
     @require_chf
     def test_fileobj_check(self):
         with open(self.fn, "r") as f:
-            self.assertEqual(self.chf(f), self.expected_long)
+            assert self.chf(f) == self.expected_long
 
     @require_chf
     def test_data_source_check(self):
-        self.assertEqual(self.chf(local_source(self.fn)), self.expected_long)
-        self.assertEqual(
-            self.chf(data_source(fileutils.readfile_ascii(self.fn))), self.expected_long)
+        assert self.chf(local_source(self.fn)) == self.expected_long
+        assert self.chf(data_source(fileutils.readfile_ascii(self.fn))) == self.expected_long
 
 class ChksumTest(base):
 
     @require_chf
     def test_str2long(self):
-        self.assertEqual(self.chf.str2long(self.expected_str),
-                         self.expected_long)
+        assert self.chf.str2long(self.expected_str) == self.expected_long
         if self.chf_type == 'size':
             return
         for x in extra_chksums.get(self.chf_type, ()):
-            self.assertEqual(self.chf.str2long(x), int(x, 16))
+            assert self.chf.str2long(x) == int(x, 16)
 
     @require_chf
     def test_long2str(self):
-        self.assertEqual(self.chf.long2str(self.expected_long),
-                         self.expected_str)
+        assert self.chf.long2str(self.expected_long) == self.expected_str
         if self.chf_type == 'size':
             return
         for x in extra_chksums.get(self.chf_type, ()):
-            self.assertEqual(self.chf.long2str(int(x, 16)), x)
+            assert self.chf.long2str(int(x == 16)), x
 
 checksums = {
     "rmd160": "b83ad488d624e7911f886420ab230f78f6368b9f",
@@ -106,16 +104,16 @@ for k, v in checksums.items():
 for chf_type, expected in checksums.items():
     expectedsum = expected[0]
     expectedstr = expected[1]
-    globals()[chf_type + 'ChksumTest'] = type(
-        chf_type + 'ChksumTest',
-        (ChksumTest, TestCase),
+    globals()['TestChksum' + chf_type.capitalize()] = type(
+        'TestChksum' + chf_type.capitalize(),
+        (ChksumTest,),
         dict(chf_type=chf_type, expected_long=expectedsum, expected_str=expectedstr))
 
 # pylint: disable=undefined-loop-variable
 del chf_type, expected
 
 
-class get_chksums_test(base, TestCase):
+class TestGetChksums(base):
 
     chfs = [k for k in sorted(checksums) if k in ('md5', 'sha1')]
     expected_long = [checksums[k][0] for k in chfs]

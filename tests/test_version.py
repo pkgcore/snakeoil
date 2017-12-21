@@ -1,23 +1,20 @@
 # Copyright: 2017 Tim Harder <radhermit@gmail.com>
 # License: BSD/GPL2
-#
-# TODO: Rework to use the project's git repo when tests are moved to project's
-# root dir instead of mocking everything.
 
 import errno
 from importlib import reload
 import os
-import tempfile
-import unittest
 from unittest import mock
+
+import pytest
 
 from snakeoil import __version__
 from snakeoil import version
 
 
-class TestVersion(unittest.TestCase):
+class TestVersion(object):
 
-    def setUp(self):
+    def setup_method(self, method):
         # reset the cached version in the module
         reload(version)
 
@@ -25,12 +22,12 @@ class TestVersion(unittest.TestCase):
         pass
 
     def test_get_version_unknown(self):
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             version.get_version('snakeoilfoo', __file__)
 
     def test_get_version_api(self):
         v = version.get_version('snakeoil', __file__, '9.9.9')
-        self.assertTrue(v.startswith('snakeoil 9.9.9'))
+        assert v.startswith('snakeoil 9.9.9')
 
     def test_get_version_git_dev(self):
         with mock.patch('snakeoil.version.import_module') as import_module, \
@@ -43,9 +40,9 @@ class TestVersion(unittest.TestCase):
             }
             get_git_version.return_value = verinfo
 
-            self.assertEqual(
-                version.get_version('snakeoil', __file__, __version__),
-                'snakeoil %s-g%s, %s' % (__version__, verinfo['rev'][:7], verinfo['date']))
+            result = version.get_version('snakeoil', __file__, __version__)
+            expected = 'snakeoil %s-g%s, %s' % (__version__, verinfo['rev'][:7], verinfo['date'])
+            assert result == expected
 
     def test_get_version_git_release(self):
         verinfo={
@@ -60,23 +57,23 @@ class TestVersion(unittest.TestCase):
 
         with mock.patch('snakeoil.version.import_module') as import_module:
             import_module.return_value = Verinfo()
-            self.assertEqual(
-                version.get_version('snakeoil', __file__, verinfo['tag']),
-                'snakeoil %s, released %s' % (verinfo['tag'], verinfo['date']))
+            result = version.get_version('snakeoil', __file__, verinfo['tag'])
+            expected = 'snakeoil %s, released %s' % (verinfo['tag'], verinfo['date'])
+            assert result == expected
 
     def test_get_version_no_git_version(self):
         with mock.patch('snakeoil.version.import_module') as import_module, \
                 mock.patch('snakeoil.version.get_git_version') as get_git_version:
             import_module.side_effect = ImportError
             get_git_version.return_value = None
-            self.assertEqual(
-                version.get_version('snakeoil', 'nonexistent', __version__),
-                '%s %s, extended version info unavailable' % ('snakeoil', __version__))
+            result = version.get_version('snakeoil', 'nonexistent', __version__)
+            expected = '%s %s, extended version info unavailable' % ('snakeoil', __version__)
+            assert result == expected
 
     def test_get_version_caching(self):
         # retrieved version info is cached in a module attr
         v = version.get_version('snakeoil', __file__)
-        self.assertTrue(v.startswith('%s %s' % ('snakeoil', __version__)))
+        assert v.startswith('%s %s' % ('snakeoil', __version__))
 
         # re-running get_version returns the cached attr instead of reprocessing
         with mock.patch('snakeoil.version.import_module') as import_module:
@@ -84,27 +81,23 @@ class TestVersion(unittest.TestCase):
         assert not import_module.called
 
 
-class TestGitVersion(unittest.TestCase):
+class TestGitVersion(object):
 
     def test_get_git_version_not_available(self):
         with mock.patch('snakeoil.version._run_git') as run_git:
             run_git.side_effect = EnvironmentError(errno.ENOENT, 'git not found')
-            self.assertEqual(version.get_git_version('nonexistent'), None)
+            assert version.get_git_version('nonexistent') is None
 
     def test_get_git_version_error(self):
         with mock.patch('snakeoil.version._run_git') as run_git:
             run_git.return_value = (b'foo', 1)
-            self.assertEqual(version.get_git_version('nonexistent'), None)
+            assert version.get_git_version('nonexistent') is None
 
-    def test_get_git_version_non_repo(self):
-        # test our basic git cmd running
-        # TODO: switch to TemporaryDirectory context manager when py3 only
-        tempdir = tempfile.mkdtemp()
-        self.assertEqual(version.get_git_version(tempdir), None)
-        os.rmdir(tempdir)
+    def test_get_git_version_non_repo(self, tmpdir):
+        assert version.get_git_version(str(tmpdir)) is None
 
     def test_get_git_version_exc(self):
-        with self.assertRaises(OSError):
+        with pytest.raises(OSError):
             with mock.patch('snakeoil.version._run_git') as run_git:
                 run_git.side_effect = OSError(errno.EIO, 'Input/output error')
                 version.get_git_version('nonexistent')
@@ -114,12 +107,13 @@ class TestGitVersion(unittest.TestCase):
             # dev version
             run_git.return_value = (
                 b'1ff76b021d208f7df38ac524537b6419404f1c64\nMon Sep 25 13:50:24 2017 -0400', 0)
-            self.assertEqual(
-                version.get_git_version('nonexistent'),
-                {'rev': '1ff76b021d208f7df38ac524537b6419404f1c64',
-                 'date': 'Mon Sep 25 13:50:24 2017 -0400',
-                 'tag': None
-                })
+            result = version.get_git_version('nonexistent')
+            expected = {
+                'rev': '1ff76b021d208f7df38ac524537b6419404f1c64',
+                'date': 'Mon Sep 25 13:50:24 2017 -0400',
+                'tag': None,
+                }
+            assert result == expected
 
     def test_get_git_version_good_tag(self):
         with mock.patch('snakeoil.version._run_git') as run_git, \
@@ -128,25 +122,26 @@ class TestGitVersion(unittest.TestCase):
             run_git.return_value = (
                 b'1ff76b021d208f7df38ac524537b6419404f1c64\nMon Sep 25 13:50:24 2017 -0400', 0)
             get_git_tag.return_value = '1.1.1'
-            self.assertEqual(
-                version.get_git_version('nonexistent'),
-                {'rev': '1ff76b021d208f7df38ac524537b6419404f1c64',
-                 'date': 'Mon Sep 25 13:50:24 2017 -0400',
-                 'tag': '1.1.1'
-                })
+            result = version.get_git_version('nonexistent')
+            expected = {
+                'rev': '1ff76b021d208f7df38ac524537b6419404f1c64',
+                'date': 'Mon Sep 25 13:50:24 2017 -0400',
+                'tag': '1.1.1',
+                }
+            assert result == expected
 
     def test_get_git_tag_bad_output(self):
         with mock.patch('snakeoil.version._run_git') as run_git:
             # unknown git tag rev output
             run_git.return_value = (b'a', 1)
-            self.assertEqual(version._get_git_tag('foo', 'bar'), None)
+            assert version._get_git_tag('foo', 'bar') is None
             run_git.return_value = (b'a foo/v0.7.2', 0)
-            self.assertEqual(version._get_git_tag('foo', 'bar'), None)
+            assert version._get_git_tag('foo', 'bar') is None
 
             # expected output formats
             run_git.return_value = (b'ab38751890efa8be96b7f95938d6b868b769bab6 tags/v1.1.1^0', 0)
-            self.assertEqual(version._get_git_tag('foo', 'bar'), '1.1.1')
+            assert version._get_git_tag('foo', 'bar') == '1.1.1'
             run_git.return_value = (b'ab38751890efa8be96b7f95938d6b868b769bab6 tags/v1.1.1', 0)
-            self.assertEqual(version._get_git_tag('foo', 'bar'), '1.1.1')
+            assert version._get_git_tag('foo', 'bar') == '1.1.1'
             run_git.return_value = (b'ab38751890efa8be96b7f95938d6b868b769bab6 tags/1.1.1', 0)
-            self.assertEqual(version._get_git_tag('foo', 'bar'), '1.1.1')
+            assert version._get_git_tag('foo', 'bar') == '1.1.1'

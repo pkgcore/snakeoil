@@ -3,12 +3,14 @@
 
 from functools import partial
 
+import pytest
+
 from snakeoil import compression, data_source
-from snakeoil.test import TestCase, mixins
 from snakeoil.osutils import pjoin
+from snakeoil.test.fixtures import TempDir
 
 
-class TestDataSource(TestCase):
+class TestDataSource(TempDir):
 
     supports_mutable = True
 
@@ -18,24 +20,25 @@ class TestDataSource(TestCase):
     def _test_fileobj_ro(self, attr, converter=str):
         obj = self.get_obj()
         # ensure that requesting mutable from an immutable isn't allowed
-        self.assertRaises(TypeError, getattr(obj, attr), True)
+        with pytest.raises(TypeError):
+            getattr(obj, attr)(True)
         handle = getattr(obj, attr)()
-        self.assertEqual(handle.read(), converter("foonani"))
-        self.assertRaises(handle.exceptions, handle.write,
-                          converter("monkey"))
+        assert handle.read() == converter("foonani")
+        with pytest.raises(handle.exceptions):
+            handle.write(converter("monkey"))
         handle.close()
 
     def _test_fileobj_wr(self, attr, converter=str):
         obj = self.get_obj(mutable=True)
         handle_f = getattr(obj, attr)
         f = handle_f()
-        self.assertEqual(f.read(), converter("foonani"))
+        assert f.read() == converter("foonani")
         f.close()
         f = handle_f(True)
         f.write(converter("dar"))
         f.close()
         f = handle_f(True)
-        self.assertEqual(f.read(), converter("darnani"))
+        assert f.read() == converter("darnani")
         f.close()
 
     def test_text_fileobj(self):
@@ -55,7 +58,7 @@ class TestDataSource(TestCase):
         reader_f.close()
         writer_data = writer_f.read()
         writer_f.close()
-        self.assertEqual(reader_data, writer_data)
+        assert reader_data == writer_data
 
     def _mk_data(self, size=(100000)):
         return ''.join("%s" % (x % 10)
@@ -72,7 +75,6 @@ class TestDataSource(TestCase):
 
         self.assertContents(reader, writer)
 
-    @mixins.tempdir_decorator
     def test_transfer_to_path(self):
         data = self._mk_data()
         reader = self.get_obj(data=data)
@@ -100,7 +102,7 @@ class TestDataSource(TestCase):
         self.assertContents(reader, writer)
 
 
-class TestLocalSource(mixins.TempDirMixin, TestDataSource):
+class TestLocalSource(TestDataSource):
 
     def get_obj(self, data="foonani", mutable=False, test_creation=False):
         self.fp = pjoin(self.dir, "localsource.test")
@@ -119,7 +121,7 @@ class TestLocalSource(mixins.TempDirMixin, TestDataSource):
         obj = self.get_obj(data=data)
         # this will blow up if tries to ascii decode it.
         f = obj.bytes_fileobj()
-        self.assertEqual(f.read(), data)
+        assert f.read() == data
         f.close()
 
     def test_bytes_fileobj_create(self):
@@ -127,15 +129,15 @@ class TestLocalSource(mixins.TempDirMixin, TestDataSource):
         obj = self.get_obj(test_creation=True, mutable=True)
         # this will blow up if tries to ascii decode it.
         f = obj.bytes_fileobj(True)
-        self.assertEqual(f.read(), ''.encode("utf8"))
+        assert f.read() == ''.encode("utf8")
         f.write(data)
         f.close()
         f = obj.bytes_fileobj()
-        self.assertEqual(f.read(), data)
+        assert f.read() == data
         f.close()
 
 
-class TestBz2Source(mixins.TempDirMixin, TestDataSource):
+class TestBz2Source(TestDataSource):
 
     def get_obj(self, data="foonani", mutable=False, test_creation=False):
         self.fp = pjoin(self.dir, "bz2source.test.bz2")
@@ -151,7 +153,7 @@ class TestBz2Source(mixins.TempDirMixin, TestDataSource):
         obj = self.get_obj(data=data)
         # this will blow up if tries to ascii decode it.
         f = obj.bytes_fileobj()
-        self.assertEqual(f.read(), data)
+        assert f.read() == data
         f.close()
 
 

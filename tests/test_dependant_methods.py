@@ -3,7 +3,6 @@
 
 from snakeoil import currying
 from snakeoil import dependant_methods as dm
-from snakeoil.test import TestCase
 
 
 def func(self, seq, data, val=True):
@@ -11,7 +10,7 @@ def func(self, seq, data, val=True):
     return val
 
 
-class TestDependantMethods(TestCase):
+class TestDependantMethods(object):
 
     @staticmethod
     def generate_instance(methods, dependencies):
@@ -23,7 +22,7 @@ class TestDependantMethods(TestCase):
         return Class()
 
     def test_no_dependant_methods(self):
-        self.assertTrue(self.generate_instance({}, {}))
+        assert self.generate_instance({}, {})
 
     def test_return_checking(self):
         results = []
@@ -31,15 +30,15 @@ class TestDependantMethods(TestCase):
             {str(x): currying.post_curry(func, results, x) for x in range(10)},
             {str(x): str(x - 1) for x in range(1, 10)})
         getattr(o, "9")()
-        self.assertEqual(results, list(range(10)))
+        assert results == list(range(10))
         results = []
         o = self.generate_instance(
             {str(x): currying.post_curry(func, results, x, False) for x in range(10)},
             {str(x): str(x - 1) for x in range(1, 10)})
         getattr(o, "9")()
-        self.assertEqual(results, [0])
+        assert results == [0]
         getattr(o, "9")()
-        self.assertEqual(results, [0, 0])
+        assert results == [0, 0]
 
     def test_stage_awareness(self):
         results = []
@@ -47,17 +46,17 @@ class TestDependantMethods(TestCase):
             {str(x): currying.post_curry(func, results, x) for x in range(10)},
             {str(x): str(x - 1) for x in range(1, 10)})
         getattr(o, "1")()
-        self.assertEqual(results, [0, 1])
+        assert results == [0, 1]
         getattr(o, "2")()
-        self.assertEqual(results, [0, 1, 2])
+        assert results == [0, 1, 2]
         getattr(o, "2")()
-        self.assertEqual(results, [0, 1, 2])
+        assert results == [0, 1, 2]
         o.__set_stage_state__(["0", "1"])
         l = []
         o.__stage_step_callback__ = l.append
         getattr(o, "2")()
-        self.assertEqual(results, [0, 1, 2, 2])
-        self.assertEqual(l, ["2"])
+        assert results == [0, 1, 2, 2]
+        assert l == ["2"]
 
     def test_stage_depends(self):
         results = []
@@ -67,9 +66,9 @@ class TestDependantMethods(TestCase):
         methods["a"] = currying.post_curry(func, results, "a")
         o = self.generate_instance(methods, deps)
         getattr(o, "1")()
-        self.assertEqual(results, [0, "a", 1])
+        assert results == [0, "a", 1]
         getattr(o, "2")()
-        self.assertEqual(results, [0, "a", 1, 2])
+        assert results == [0, "a", 1, 2]
 
     def test_ignore_deps(self):
         results = []
@@ -77,7 +76,7 @@ class TestDependantMethods(TestCase):
             {str(x): currying.post_curry(func, results, x) for x in range(10)},
             {str(x): str(x - 1) for x in range(1, 10)})
         getattr(o, '2')(ignore_deps=True)
-        self.assertEqual([2], results)
+        assert [2] == results
 
     def test_no_deps(self):
         results = []
@@ -85,4 +84,4 @@ class TestDependantMethods(TestCase):
             {str(x): currying.post_curry(func, results, x) for x in range(10)},
             {})
         getattr(o, '2')()
-        self.assertEqual([2], results)
+        assert [2] == results

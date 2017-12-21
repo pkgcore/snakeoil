@@ -4,11 +4,12 @@
 import gc
 from types import FrameType
 
-from snakeoil.test import TestCase, mk_cpy_loadable_testcase, not_a_test
+import pytest
+
+from snakeoil.test import mk_cpy_loadable_testcase
 from snakeoil import caching
 
 
-@not_a_test
 def gen_test(WeakInstMeta):
     class weak_slotted(object, metaclass=WeakInstMeta):
         __inst_caching__ = True
@@ -35,32 +36,30 @@ def gen_test(WeakInstMeta):
     class reenabled_weak_inst(automatic_disabled_weak_inst):
         __inst_caching__ = True
 
-    class TestWeakInstMeta(TestCase):
+    class TestWeakInstMeta(object):
 
         def test_reuse(self, kls=weak_inst):
             kls.reset()
             o = kls()
-            self.assertIdentical(o, kls())
-            self.assertEqual(kls.counter, 1)
+            assert o is kls()
+            assert kls.counter == 1
             del o
             kls()
-            self.assertEqual(kls.counter, 2)
+            assert kls.counter == 2
 
         def test_disabling_inst(self):
             weak_inst.reset()
             for x in (1, 2):
                 o = weak_inst(disable_inst_caching=True)
-                self.assertIdentical(weak_inst.counter, x)
+                assert weak_inst.counter is x
             del o
             o = weak_inst()
-            self.assertFalse(o is weak_inst(disable_inst_caching=True))
+            assert o is not weak_inst(disable_inst_caching=True)
 
         def test_class_disabling(self):
             automatic_disabled_weak_inst.reset()
-            self.assertNotIdentical(
-                automatic_disabled_weak_inst(), automatic_disabled_weak_inst())
-            self.assertNotIdentical(
-                explicit_disabled_weak_inst(), explicit_disabled_weak_inst())
+            assert automatic_disabled_weak_inst() is not automatic_disabled_weak_inst()
+            assert explicit_disabled_weak_inst() is not explicit_disabled_weak_inst()
 
         def test_reenabled(self):
             self.test_reuse(reenabled_weak_inst)
@@ -100,6 +99,9 @@ def gen_test(WeakInstMeta):
         # warning messages contain a different classname
         # (RaisingHashFor...).
 
+        # UserWarning is ignored and everything other warning is an error.
+        @pytest.mark.filterwarnings('ignore::UserWarning')
+        @pytest.mark.filterwarnings('error')
         def test_uncachable(self):
             weak_inst.reset()
 
@@ -110,18 +112,13 @@ def gen_test(WeakInstMeta):
                 def __hash__(self):
                     raise self.error
 
-            self.assertTrue(weak_inst([]) is not weak_inst([]))
-            self.assertEqual(weak_inst.counter, 2)
+            assert weak_inst([]) is not weak_inst([])
+            assert weak_inst.counter == 2
             for x in (TypeError, NotImplementedError):
-                self.assertNotIdentical(
-                    weak_inst(RaisingHashForTestUncachable(x)),
-                    weak_inst(RaisingHashForTestUncachable(x)))
+                assert weak_inst(RaisingHashForTestUncachable(x)) is not \
+                    weak_inst(RaisingHashForTestUncachable(x))
 
-        # These are applied in reverse order. Effect is UserWarning is
-        # ignored and everything else is an error.
-        test_uncachable.suppress = [
-            (('error',), {}), (('ignore',), {'category': UserWarning})]
-
+        @pytest.mark.filterwarnings('error::UserWarning')
         def test_uncachable_warning_msg(self):
             # This name is *important*, see above.
             class RaisingHashForTestUncachableWarnings(object):
@@ -131,26 +128,22 @@ def gen_test(WeakInstMeta):
                     raise self.error
 
             for x in (TypeError, NotImplementedError):
-                self.assertRaises(UserWarning, weak_inst,
-                                  RaisingHashForTestUncachableWarnings(x))
-
-        test_uncachable_warning_msg.suppress = [
-            (('error',), {'category': UserWarning})]
+                with pytest.raises(UserWarning):
+                    weak_inst(RaisingHashForTestUncachableWarnings(x))
 
         def test_hash_collision(self):
             class BrokenHash(object):
                 def __hash__(self):
                     return 1
-            self.assertNotIdentical(weak_inst(BrokenHash()),
-                                    weak_inst(BrokenHash()))
+            assert weak_inst(BrokenHash()) is not weak_inst(BrokenHash())
 
         def test_weak_slot(self):
             weak_slotted()
 
         def test_keyword_args(self):
             o = weak_inst(argument=1)
-            self.assertIdentical(o, weak_inst(argument=1))
-            self.assertNotIdentical(o, weak_inst(argument=2))
+            assert o is weak_inst(argument=1)
+            assert o is not weak_inst(argument=2)
 
         def test_existing_weakref_slot(self):
             # The actual test is that the class definition works.
@@ -158,27 +151,24 @@ def gen_test(WeakInstMeta):
                 __inst_caching__ = True
                 __slots__ = ('one', '__weakref__')
 
-            self.assertTrue(ExistingWeakrefSlot())
+            assert ExistingWeakrefSlot()
 
         def test_weakref(self):
             weak_inst.reset()
             unique = object()
             o = weak_inst(unique)
             # make sure it's only strong ref-ed
-            self.assertEqual(weak_inst.counter, 1)
+            assert weak_inst.counter == 1
             # skip refs from system tracers like coverage
             refs = [x for x in gc.get_referrers(o) if isinstance(x, FrameType)]
-            self.assertLen(refs, 1)
+            assert len(refs) == 1
             _myid = id(o)
             del o
             o = weak_inst(unique)
-            self.assertEqual(weak_inst.counter, 2)
+            assert weak_inst.counter == 2
             # skip refs from system tracers like coverage
             refs = [x for x in gc.get_referrers(o) if isinstance(x, FrameType)]
-            self.assertLen(refs, 1)
-
-    # Hack to make it show up with a different name in trial's output
-    TestWeakInstMeta.__name__ = WeakInstMeta.__name__ + 'Test'
+            assert len(refs) == 1
 
     return TestWeakInstMeta
 
@@ -188,11 +178,12 @@ def gen_test(WeakInstMeta):
 TestNativeWeakInstMeta = gen_test(caching.native_WeakInstMeta)
 
 if caching.cpy_WeakInstMeta is not None:
-    CPY_TestWeakInstMeta = gen_test(caching.cpy_WeakInstMeta)
+    Test_CPY_WeakInstMeta = gen_test(caching.cpy_WeakInstMeta)
 else:
-    # generate fake test and mark it as skip
-    CPY_TestWeakInstMeta = gen_test(type)
-    CPY_TestWeakInstMeta.skip = "cpython extension isn't available"
+    # generate fake test and skip it
+    @pytest.mark.skip("cpython extension isn't available")
+    class Test_CPY_WeakInstMeta(gen_test(type)):
+        pass
 
-cpy_loaded_Test = mk_cpy_loadable_testcase(
+Test_cpy_loaded = mk_cpy_loadable_testcase(
     "snakeoil._caching", "snakeoil.caching", "WeakInstMeta", "WeakInstMeta")

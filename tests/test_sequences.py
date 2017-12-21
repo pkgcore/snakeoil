@@ -5,11 +5,12 @@
 from collections import OrderedDict
 from itertools import chain
 from operator import itemgetter
-import unittest
+
+import pytest
 
 from snakeoil import sequences
 from snakeoil.sequences import namedtuple, split_negations
-from snakeoil.test import TestCase, mk_cpy_loadable_testcase
+from snakeoil.test import mk_cpy_loadable_testcase
 
 
 class UnhashableComplex(complex):
@@ -18,28 +19,26 @@ class UnhashableComplex(complex):
         raise TypeError
 
 
-class UniqueTest(TestCase):
+class TestStableUnique(object):
 
     def common_check(self, func):
         # silly
-        self.assertEqual(func(()), [])
+        assert func(()) == []
         # hashable
-        self.assertEqual(sorted(func([1, 1, 2, 3, 2])), [1, 2, 3])
+        assert sorted(func([1, 1, 2, 3, 2])) == [1, 2, 3]
         # neither
 
     def test_stable_unique(self, func=sequences.stable_unique):
-        self.assertEqual(
-            list(set([1, 2, 3])), [1, 2, 3],
-            "this test is reliant on the interpretter hasing 1,2,3 into a specific ordering- "
-            "for whatever reason, ordering differs, thus this test can't verify it")
-        self.assertEqual(func([3, 2, 1]), [3, 2, 1])
+        assert list(set([1, 2, 3])) == [1, 2, 3], \
+            "this test is reliant on the interpretter hasing 1,2,3 into a specific ordering- " \
+            "for whatever reason, ordering differs, thus this test can't verify it"
+        assert func([3, 2, 1]) == [3, 2, 1]
 
     def test_iter_stable_unique(self):
         self.test_stable_unique(lambda x: list(sequences.iter_stable_unique(x)))
         o = UnhashableComplex()
         l = [1, 2, 3, o, UnhashableComplex(), 4, 3, UnhashableComplex()]
-        self.assertEqual(list(sequences.iter_stable_unique(l)),
-                         [1, 2, 3, o, 4])
+        assert list(sequences.iter_stable_unique(l)) == [1, 2, 3, o, 4]
 
     def _generator(self):
         for x in range(5, -1, -1):
@@ -50,34 +49,36 @@ class UniqueTest(TestCase):
         uc = UnhashableComplex
         res = sequences.unstable_unique([uc(1, 0), uc(0, 1), uc(1, 0)])
         # sortable
-        self.assertEqual(sorted(sequences.unstable_unique(
-            [[1, 2], [1, 3], [1, 2], [1, 3]])), [[1, 2], [1, 3]])
-        self.assertTrue(
-            res == [uc(1, 0), uc(0, 1)] or res == [uc(0, 1), uc(1, 0)], res)
-        self.assertEqual(sorted(sequences.unstable_unique(self._generator())),
-                         sorted(range(6)))
+        assert sorted(sequences.unstable_unique(
+            [[1, 2], [1, 3], [1, 2], [1, 3]])) == [[1, 2], [1, 3]]
+        assert res == [uc(1, 0), uc(0, 1)] or res == [uc(0, 1), uc(1, 0)]
+        assert sorted(sequences.unstable_unique(self._generator())) == sorted(range(6))
 
 
-class ChainedListsTest(TestCase):
+class TestChainedLists(object):
 
     @staticmethod
     def gen_cl():
-        return sequences.ChainedLists(list(range(3)), list(range(3, 6)), list(range(6, 100)))
+        return sequences.ChainedLists(
+            list(range(3)),
+            list(range(3, 6)),
+            list(range(6, 100))
+        )
 
     def test_contains(self):
         cl = self.gen_cl()
         for x in (1, 2, 4, 99):
-            self.assertTrue(x in cl)
+            assert x in cl
 
     def test_iter(self):
-        self.assertEqual(list(self.gen_cl()), list(range(100)))
+        assert list(self.gen_cl()) == list(range(100))
 
     def test_len(self):
-        self.assertEqual(100, len(self.gen_cl()))
+        assert len(self.gen_cl()) == 100
 
     def test_str(self):
         l = sequences.ChainedLists(list(range(3)), list(range(3, 5)))
-        self.assertEqual(str(l), '[ [0, 1, 2], [3, 4] ]')
+        assert str(l) == '[ [0, 1, 2], [3, 4] ]'
 
     def test_getitem(self):
         cl = self.gen_cl()
@@ -85,25 +86,29 @@ class ChainedListsTest(TestCase):
             # "Statement seems to have no effect"
             # pylint: disable=W0104
             cl[x]
-        self.assertRaises(IndexError, cl.__getitem__, 100)
-        self.assertRaises(IndexError, cl.__getitem__, -101)
+        with pytest.raises(IndexError):
+            cl.__getitem__(100)
+        with pytest.raises(IndexError):
+            cl.__getitem__(-101)
 
     def test_mutable(self):
-        self.assertRaises(TypeError, self.gen_cl().__delitem__, 1)
-        self.assertRaises(TypeError, self.gen_cl().__setitem__, 1, 2)
+        with pytest.raises(TypeError):
+            self.gen_cl().__delitem__(1)
+        with pytest.raises(TypeError):
+            self.gen_cl().__setitem__(1, 2)
 
     def test_append(self):
         cl = self.gen_cl()
         cl.append(list(range(10)))
-        self.assertEqual(110, len(cl))
+        assert len(cl) == 110
 
     def test_extend(self):
         cl = self.gen_cl()
         cl.extend(list(range(10)) for i in range(5))
-        self.assertEqual(150, len(cl))
+        assert len(cl) == 150
 
 
-class Test_iflatten_instance(TestCase):
+class Test_iflatten_instance(object):
     func = staticmethod(sequences.native_iflatten_instance)
 
     def test_it(self):
@@ -119,29 +124,31 @@ class Test_iflatten_instance(TestCase):
                 (1, [1], int),
                 ):
             iterator = self.func(l, skip)
-            self.assertEqual(list(iterator), correct)
-            self.assertEqual([], list(iterator))
+            assert list(iterator) == correct
+            assert list(iterator) == []
 
         # There is a small difference between the cpython and native
         # version: the cpython one raises immediately, for native we
         # have to iterate.
         def fail():
             return list(self.func(None))
-        self.assertRaises(TypeError, fail)
+        with pytest.raises(TypeError):
+            fail()
 
         # Yes, no sane code does this, but even insane code shouldn't
         # kill the cpython version.
         iters = []
         iterator = self.func(iters)
         iters.append(iterator)
-        self.assertRaises(ValueError, iterator.__next__)
+        with pytest.raises(ValueError):
+            next(iterator)
 
         # Regression test: this was triggered through demandload.
         # **{} is there to explicitly force a dict.
-        self.assertTrue(self.func((), **{}))
+        assert self.func((), **{})
 
 
-class Test_iflatten_func(TestCase):
+class Test_iflatten_func(object):
     func = staticmethod(sequences.native_iflatten_func)
 
     def test_it(self):
@@ -155,117 +162,128 @@ class Test_iflatten_func(TestCase):
                 (1, [1], int),
                 ):
             iterator = self.func(l, lambda x: isinstance(x, skip))
-            self.assertEqual(list(iterator), correct)
-            self.assertEqual(list(iterator), [])
+            assert list(iterator) == correct
+            assert list(iterator) == []
 
         # There is a small difference between the cpython and native
         # version: the cpython one raises immediately, for native we
         # have to iterate.
         def fail():
             return list(self.func(None, lambda x: False))
-        self.assertRaises(TypeError, fail)
+        with pytest.raises(TypeError):
+            fail()
 
         # Yes, no sane code does this, but even insane code shouldn't
         # kill the cpython version.
         iters = []
         iterator = self.func(iters, lambda x: False)
         iters.append(iterator)
-        self.assertRaises(ValueError, iterator.__next__)
+        with pytest.raises(ValueError):
+            next(iterator)
 
         # Regression test: this was triggered through demandload.
         # **{} is there to explicitly force a dict to the underly cpy
-        self.assertTrue(self.func((), lambda x: True, **{}))
+        assert self.func((), lambda x: True, **{})
 
 
-class CPY_Test_iflatten_instance(Test_iflatten_instance):
+@pytest.mark.skipif(not sequences.cpy_builtin, reason="cpython extension isn't available")
+class Test_CPY_iflatten_instance(Test_iflatten_instance):
     func = staticmethod(sequences.iflatten_instance)
-    if not sequences.cpy_builtin:
-        skip = "cpython extension isn't available"
 
 
-class CPY_Test_iflatten_func(Test_iflatten_func):
+@pytest.mark.skipif(not sequences.cpy_builtin, reason="cpython extension isn't available")
+class Test_CPY_iflatten_func(Test_iflatten_func):
     func = staticmethod(sequences.iflatten_func)
-    if not sequences.cpy_builtin:
-        skip = "cpython extension isn't available"
 
 
-class predicate_split_Test(TestCase):
+class Test_predicate_split(object):
     kls = staticmethod(sequences.predicate_split)
 
     def test_simple(self):
         false_l, true_l = self.kls(lambda x: x % 2 == 0, range(100))
-        self.assertEqual(false_l, list(range(1, 100, 2)))
-        self.assertEqual(true_l, list(range(0, 100, 2)))
+        assert false_l == list(range(1, 100, 2))
+        assert true_l == list(range(0, 100, 2))
 
     def test_key(self):
         false_l, true_l = self.kls(lambda x: x % 2 == 0,
                                    ([0, x] for x in range(100)),
                                    key=itemgetter(1))
-        self.assertEqual(false_l, [[0, x] for x in range(1, 100, 2)])
-        self.assertEqual(true_l, [[0, x] for x in range(0, 100, 2)])
+        assert false_l == [[0, x] for x in range(1, 100, 2)]
+        assert true_l == [[0, x] for x in range(0, 100, 2)]
 
 cpy_loaded_Test = mk_cpy_loadable_testcase(
     "snakeoil._sequences", "snakeoil.sequences", "iflatten_func", "iflatten_func")
 
 
-class TestNamedTuple(unittest.TestCase):
+class TestNamedTuple(object):
+
+    def setup_method(self, method):
+        self.point = namedtuple('Point', ('x', 'y', 'z'))
 
     def test_namedtuple(self):
-        Point = namedtuple('Point', ('x', 'y', 'z'))
+        p = self.point(1, 2, 3)
+        assert p.x == 1
+        assert p[0] == 1
+        assert p.y == 2
+        assert p[1] == 2
+        assert p.z == 3
+        assert p[2] == 3
+        assert p == (1, 2, 3)
+        assert isinstance(p, self.point)
+        assert isinstance(p, tuple)
 
-        p = Point(1, 2, 3)
-        self.assertEqual(p.x, 1)
-        self.assertEqual(p[0], 1)
-        self.assertEqual(p.y, 2)
-        self.assertEqual(p[1], 2)
-        self.assertEqual(p.z, 3)
-        self.assertEqual(p[2], 3)
-        self.assertEqual(p, (1, 2, 3))
-        self.assertTrue(isinstance(p, Point))
-        self.assertTrue(isinstance(p, tuple))
-
+    def test_tuple_like(self):
         # namedtuples act like tuples
-        q = Point(4, 5, 6)
-        self.assertEqual(p + q, (1, 2, 3, 4, 5, 6))
-        self.assertEqual(tuple(map(sum, zip(p, q))), (5, 7, 9))
+        p = self.point(1, 2, 3)
+        q = self.point(4, 5, 6)
+        assert p + q == (1, 2, 3, 4, 5, 6)
+        assert tuple(map(sum, zip(p, q))) == (5, 7, 9)
 
+    def test_immutable(self):
         # tuples are immutable
-        with self.assertRaises(AttributeError):
+        p = self.point(1, 2, 3)
+        with pytest.raises(AttributeError):
             p.x = 10
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             p[0] = 10
 
+    def test_no_kwargs(self):
         # our version of namedtuple doesn't support keyword args atm
-        with self.assertRaises(TypeError):
-            q = Point(x=1, y=2, z=3)
+        with pytest.raises(TypeError):
+            q = self.point(x=1, y=2, z=3)
 
 
-class TestSplitNegations(unittest.TestCase):
+class TestSplitNegations(object):
 
-    def test_sequences(self):
+    def test_empty(self):
         # empty input
         seq = ''
-        self.assertEqual(split_negations(seq), (tuple(), tuple()))
+        assert split_negations(seq) == (tuple(), tuple())
 
+    def test_bad_value(self):
         # no-value negation should raise a ValueError
         seq = 'a b c - d f e'.split()
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             split_negations(seq)
 
+    def test_negs(self):
         # all negs
         seq = ('-' + str(x) for x in range(100))
-        self.assertEqual(split_negations(seq), (tuple(map(str, range(100))), tuple()))
+        assert split_negations(seq) == (tuple(map(str, range(100))), tuple())
 
+    def test_pos(self):
         # all pos
         seq = (str(x) for x in range(100))
-        self.assertEqual(split_negations(seq), (tuple(), tuple(map(str, range(100)))))
+        assert split_negations(seq) == (tuple(), tuple(map(str, range(100))))
 
+    def test_neg_pos(self):
         # both
         seq = (('-' + str(x), str(x)) for x in range(100))
         seq = chain.from_iterable(seq)
-        self.assertEqual(split_negations(seq), (tuple(map(str, range(100))), tuple(map(str, range(100)))))
+        assert split_negations(seq) == (tuple(map(str, range(100))), tuple(map(str, range(100))))
 
+    def test_converter(self):
         # converter method
         seq = (('-' + str(x), str(x)) for x in range(100))
         seq = chain.from_iterable(seq)
-        self.assertEqual(split_negations(seq, int), (tuple(range(100)), tuple(range(100))))
+        assert split_negations(seq, int) == (tuple(range(100)), tuple(range(100)))

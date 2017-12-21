@@ -2,33 +2,30 @@
 # License: BSD/GPL2
 
 from snakeoil.strings import pluralism
-from snakeoil.test import TestCase
 
 
-class TestPluralism(TestCase):
+def test_none():
+    # default
+    assert pluralism([]) == 's'
 
-    def test_none(self):
-        # default
-        self.assertEqual(pluralism([]), 's')
+    # different suffix for nonexistence
+    assert pluralism([], none='') == ''
 
-        # different suffix for nonexistence
-        self.assertEqual(pluralism([], none=''), '')
+def test_singular():
+    # default
+    assert pluralism([1]) == ''
 
-    def test_singular(self):
-        # default
-        self.assertEqual(pluralism([1]), '')
+    # different suffix for singular existence
+    assert pluralism([1], singular='o') == 'o'
 
-        # different suffix for singular existence
-        self.assertEqual(pluralism([1], singular='o'), 'o')
+def test_plural():
+    # default
+    assert pluralism([1, 2]) == 's'
 
-    def test_plural(self):
-        # default
-        self.assertEqual(pluralism([1, 2]), 's')
+    # different suffix for plural existence
+    assert pluralism([1, 2], plural='ies') == 'ies'
 
-        # different suffix for plural existence
-        self.assertEqual(pluralism([1, 2], plural='ies'), 'ies')
-
-    def test_int(self):
-        self.assertEqual(pluralism(0), 's')
-        self.assertEqual(pluralism(1), '')
-        self.assertEqual(pluralism(2), 's')
+def test_int():
+    assert pluralism(0) == 's'
+    assert pluralism(1) == ''
+    assert pluralism(2) == 's'

@@ -8,8 +8,10 @@ __all__ = ('SkipTest', 'TestCase')
 
 from importlib import import_module
 import os
-import sys
+import random
+import string
 import subprocess
+import sys
 import traceback
 import unittest
 import warnings
@@ -17,6 +19,14 @@ import warnings
 # not relative imports so protect_process() works properly
 from snakeoil import fileutils, klass
 from snakeoil.compatibility import IGNORED_EXCEPTIONS
+
+
+def random_str(length):
+    """Return a random string of specified length."""
+    if sys.hexversion >= 0x03060000:
+        return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+    else:
+        return ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(length))
 
 
 def coverage():
@@ -365,9 +375,8 @@ def protect_process(functor, name=None):
                                  stderr=subprocess.STDOUT)
             stdout, _stderr = p.communicate()
             ret = p.wait()
-            self.assertEqual(0, ret,
-                             msg="subprocess run: %r\nnon zero exit: %s\n"
-                                 "stdout:%s\n" % (args, ret, stdout))
+            assert ret == 0, \
+                "subprocess run: %r\nnon zero exit: %s\nstdout:%s\n" % (args, ret, stdout)
         finally:
             if wipe:
                 os.environ.pop(_PROTECT_ENV_VAR, None)

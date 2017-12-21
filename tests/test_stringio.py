@@ -3,7 +3,8 @@
 
 # TODO: deprecated, remove in 0.9.0
 
-from snakeoil.test import TestCase
+import pytest
+
 from snakeoil import stringio
 
 
@@ -28,12 +29,12 @@ class readonly_mixin(base):
     def test_nonwritable(self):
         convert = self.convert_data
         obj = self.kls(convert("adsf"))
-        self.assertRaises(TypeError, obj.write,
-                          convert("bow ties"))
-        self.assertRaises(TypeError, obj.writelines,
-                          convert("are cool"),
-                          convert(" so says the doctor"))
-        self.assertRaises(TypeError, obj.truncate)
+        with pytest.raises(TypeError):
+            obj.write(convert("bow ties"))
+        with pytest.raises(TypeError):
+            obj.writelines(convert("are cool"), convert(" so says the doctor"))
+        with pytest.raises(TypeError):
+            obj.truncate()
 
 
 class writable_mixin(base):
@@ -41,27 +42,26 @@ class writable_mixin(base):
     def test_writable(self):
         convert = self.convert_data
         obj = self.kls(convert("bow ties"))
-        self.assertEqual(obj.getvalue(), convert("bow ties"))
+        assert obj.getvalue() == convert("bow ties")
         # assert we start at 0
-        self.assertEqual(obj.tell(), 0)
+        assert obj.tell() == 0
         obj.write(convert("are cool"))
-        self.assertEqual(obj.getvalue(), convert("are cool"))
+        assert obj.getvalue() == convert("are cool")
         obj.seek(0)
         obj.truncate(0)
-        self.assertEqual(obj.getvalue(), convert(""))
+        assert obj.getvalue() == convert("")
 
 
-class Test_text_readonly(readonly_mixin, TestCase):
+class Test_text_readonly(readonly_mixin):
     kls = stringio.text_readonly
 
-class Test_text_writable(writable_mixin, TestCase):
+class Test_text_writable(writable_mixin):
     kls = stringio.text_writable
 
-class Bytes_text_readonly(readonly_mixin, TestCase):
+class Test_bytes_readonly(readonly_mixin ):
     kls = stringio.bytes_readonly
     encoding = 'utf8'
 
-class Bytes_text_writable(writable_mixin, TestCase):
+class Test_bytes_writable(writable_mixin ):
     kls = stringio.bytes_writable
     encoding = 'utf8'
-

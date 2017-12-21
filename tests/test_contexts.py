@@ -6,149 +6,148 @@ import os
 import random
 import socket
 import sys
-import unittest
+
+import pytest
 
 from snakeoil.contexts import chdir, syspath, namespace, splitexec, SplitExec, Namespace
-from snakeoil.test.mixins import TempDirMixin
 
 
-class TestContexts(TempDirMixin):
+def test_chdir(tmpdir):
+    orig_cwd = os.getcwd()
 
-    def test_chdir(self):
-        orig_cwd = os.getcwd()
+    with chdir(str(tmpdir)):
+        assert orig_cwd != os.getcwd()
 
-        with chdir(self.dir):
-            self.assertNotEqual(orig_cwd, os.getcwd())
-
-        self.assertEqual(orig_cwd, os.getcwd())
-
-    def test_syspath(self):
-        orig_syspath = tuple(sys.path)
-
-        # by default the path gets inserted as the first element
-        with syspath(self.dir):
-            self.assertNotEqual(orig_syspath, tuple(sys.path))
-            self.assertEqual(self.dir, sys.path[0])
-
-        self.assertEqual(orig_syspath, tuple(sys.path))
-
-        # insert path in a different position
-        with syspath(self.dir, position=1):
-            self.assertNotEqual(orig_syspath, tuple(sys.path))
-            self.assertNotEqual(self.dir, sys.path[0])
-            self.assertEqual(self.dir, sys.path[1])
-
-        # conditional insert and nested context managers
-        with syspath(self.dir, condition=(self.dir not in sys.path)):
-            mangled_syspath = tuple(sys.path)
-            self.assertNotEqual(orig_syspath, mangled_syspath)
-            self.assertEqual(self.dir, sys.path[0])
-            # dir isn't added again due to condition
-            with syspath(self.dir, condition=(self.dir not in sys.path)):
-                self.assertEqual(mangled_syspath, tuple(sys.path))
+    assert orig_cwd == os.getcwd()
 
 
-class TestSplitExec(unittest.TestCase):
+def test_syspath(tmpdir):
+    orig_syspath = tuple(sys.path)
+
+    # by default the path gets inserted as the first element
+    with syspath(tmpdir):
+        assert orig_syspath != tuple(sys.path)
+        assert tmpdir == sys.path[0]
+
+    assert orig_syspath == tuple(sys.path)
+
+    # insert path in a different position
+    with syspath(tmpdir, position=1):
+        assert orig_syspath != tuple(sys.path)
+        assert tmpdir != sys.path[0]
+        assert tmpdir == sys.path[1]
+
+    # conditional insert and nested context managers
+    with syspath(tmpdir, condition=(tmpdir not in sys.path)):
+        mangled_syspath = tuple(sys.path)
+        assert orig_syspath != mangled_syspath
+        assert tmpdir == sys.path[0]
+        # dir isn't added again due to condition
+        with syspath(tmpdir, condition=(tmpdir not in sys.path)):
+            assert mangled_syspath == tuple(sys.path)
+
+
+class TestSplitExec(object):
 
     def test_context_process(self):
         # code inside the with statement is run in a separate process
         pid = os.getpid()
         with SplitExec() as c:
             pass
-        self.assertIsNotNone(c.childpid)
-        self.assertNotEqual(pid, c.childpid)
+        assert c.childpid is not None
+        assert pid != c.childpid
 
     def test_context_exit_status(self):
         # exit status of the child process is available as a context attr
         exit_status = random.randint(1, 255)
         with SplitExec() as c:
             os._exit(exit_status)
-        self.assertEqual(c.exit_status, exit_status)
+        assert c.exit_status == exit_status
 
     def test_context_locals(self):
         # code inside the with statement returns modified, pickleable locals
         # via 'locals' attr of the context manager
         a = 1
         with SplitExec() as c:
-            self.assertEqual(a, 1)
+            assert a == 1
             a = 2
-            self.assertEqual(a, 2)
+            assert a == 2
             b = 3
         # changes to locals aren't propagated back
-        self.assertEqual(a, 1)
-        self.assertNotIn('b', locals())
+        assert a == 1
+        assert 'b' not in locals()
         # but they're accessible via the 'locals' attr
-        self.assertEqual(c.locals, {'a': 2, 'b': 3})
+        expected = {'a': 2, 'b': 3}
+        for k, v in expected.items():
+            assert c.locals[k] == v
 
         # make sure unpickleables don't cause issues
         with SplitExec() as c:
             func = lambda x: x
             import sys
             a = 4
-        self.assertEqual(c.locals, {'a': 4})
+        assert c.locals == {'a': 4}
 
     def test_context_exceptions(self):
         # exceptions in the child process are sent back to the parent and re-raised
-        with self.assertRaises(IOError) as cm:
+        with pytest.raises(IOError) as e:
             with SplitExec() as c:
                 raise IOError(errno.EBUSY, 'random error')
-        self.assertEqual(cm.exception.errno, errno.EBUSY)
+        assert e.value.errno == errno.EBUSY
 
     def test_child_setup_raises_exception(self):
         class ChildSetupException(SplitExec):
             def _child_setup(self):
                 raise IOError(errno.EBUSY, 'random error')
 
-        with self.assertRaises(IOError) as cm:
+        with pytest.raises(IOError) as e:
             with ChildSetupException() as c:
                 pass
-        self.assertEqual(cm.exception.errno, errno.EBUSY)
+        assert e.value.errno == errno.EBUSY
 
 
-class TestSplitExecDecorator(unittest.TestCase):
+class TestSplitExecDecorator(object):
 
-    def setUp(self):
+    def setup_method(self, method):
         self.pid = os.getpid()
 
     @splitexec
     def test_separate_func_process(self):
         # code inside the decorated func is run in a different process
-        self.assertNotEqual(self.pid, os.getpid())
+        assert self.pid != os.getpid()
 
 
-@unittest.skipUnless(sys.platform.startswith('linux'), 'supported on Linux only')
-class TestNamespace(unittest.TestCase):
+@pytest.mark.skipif(not sys.platform.startswith('linux'), reason='supported on Linux only')
+class TestNamespace(object):
 
-    @unittest.skipUnless(os.path.exists('/proc/self/ns/user'),
-                         'user namespace support required')
+    @pytest.mark.skipif(not os.path.exists('/proc/self/ns/user'),
+                        reason='user namespace support required')
     def test_user_namespace(self):
         with Namespace(user=True) as ns:
-            self.assertEqual(os.getuid(), 0)
+            assert os.getuid() == 0
 
-    @unittest.skipUnless(
-        os.path.exists('/proc/self/ns/uts') and os.path.exists('/proc/self/ns/user'),
-        'user and uts namespace support required')
+    @pytest.mark.skipif(not (os.path.exists('/proc/self/ns/user') and os.path.exists('/proc/self/ns/uts')),
+                        reason='user and uts namespace support required')
     def test_uts_namespace(self):
         with Namespace(user=True, uts=True, hostname='host') as ns:
             ns_hostname, _, ns_domainname = socket.getfqdn().partition('.')
-            self.assertEqual(ns_hostname, 'host')
-            self.assertEqual(ns_domainname, '')
+            assert ns_hostname == 'host'
+            assert ns_domainname == ''
 
 
-@unittest.skipUnless(sys.platform.startswith('linux'), 'supported on Linux only')
-class TestNamespaceDecorator(unittest.TestCase):
+@pytest.mark.skipif(not sys.platform.startswith('linux'), reason='supported on Linux only')
+class TestNamespaceDecorator(object):
 
-    @unittest.skipUnless(os.path.exists('/proc/self/ns/user'),
-                         'user namespace support required')
+    @pytest.mark.skipif(not os.path.exists('/proc/self/ns/user'),
+                        reason='user namespace support required')
     @namespace(user=True)
     def test_user_namespace(self):
-        self.assertEqual(os.getuid(), 0)
+        assert os.getuid() == 0
 
-    @unittest.skipUnless(
-        os.path.exists('/proc/self/ns/uts') and os.path.exists('/proc/self/ns/user'),
-        'user and uts namespace support required')
+    @pytest.mark.skipif(not (os.path.exists('/proc/self/ns/user') and os.path.exists('/proc/self/ns/uts')),
+                        reason='user and uts namespace support required')
     @namespace(user=True, uts=True, hostname='host')
     def test_uts_namespace(self):
         ns_hostname, _, ns_domainname = socket.getfqdn().partition('.')
-        self.assertEqual(ns_hostname, 'host')
-        self.assertEqual(ns_domainname, '')
+        assert ns_hostname == 'host'
+        assert ns_domainname == ''

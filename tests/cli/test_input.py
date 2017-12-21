@@ -3,127 +3,116 @@
 
 import errno
 from functools import partial
-import unittest
-from unittest.mock import patch
+
+import pytest
 
 from snakeoil.cli.input import userquery, NoChoice
 from snakeoil.test.argparse_helpers import FakeStreamFormatter
 
 
-class TestUserQuery(unittest.TestCase):
+@pytest.mark.usefixtures('mocker')
+class TestUserQuery(object):
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def __setup(self, mocker):
+        self.input = mocker.patch('builtins.input')
         self.out = FakeStreamFormatter()
         self.err = FakeStreamFormatter()
         self.query = partial(userquery, out=self.out, err=self.err)
 
-    @patch('builtins.input')
-    def test_default_answer(self, fake_input):
-        fake_input.return_value = ''
-        self.assertEqual(self.query('foo'), True)
+    def test_default_answer(self):
+        self.input.return_value = ''
+        assert self.query('foo') == True
 
-    @patch('builtins.input')
-    def test_tuple_prompt(self, fake_input):
-        fake_input.return_value = ''
+    def test_tuple_prompt(self):
+        self.input.return_value = ''
         prompt = 'perhaps a tuple'
-        self.assertEqual(self.query(tuple(prompt.split())), True)
+        assert self.query(tuple(prompt.split())) == True
         output = ''.join(prompt.split())
-        self.assertEqual(
-            self.out.get_text_stream().strip().split('\n')[0][:len(output)],
-            output)
+        assert self.out.get_text_stream().strip().split('\n')[0][:len(output)] == output
 
-    @patch('builtins.input')
-    def test_no_default_answer(self, fake_input):
+    def test_no_default_answer(self):
         responses = {
             'a': ('z', 'Yes'),
             'b': ('y', 'No'),
         }
         # no default answer returns None for empty input
-        fake_input.return_value = ''
-        self.assertEqual(self.query('foo', responses=responses), None)
-        fake_input.return_value = 'a'
-        self.assertEqual(self.query('foo', responses=responses), 'z')
-        fake_input.return_value = 'b'
-        self.assertEqual(self.query('foo', responses=responses), 'y')
+        self.input.return_value = ''
+        assert self.query('foo', responses=responses) == None
+        self.input.return_value = 'a'
+        assert self.query('foo', responses=responses) == 'z'
+        self.input.return_value = 'b'
+        assert self.query('foo', responses=responses) == 'y'
 
-    @patch('builtins.input')
-    def test_ambiguous_input(self, fake_input):
+    def test_ambiguous_input(self):
         responses = {
             'a': ('z', 'Yes'),
             'A': ('y', 'No'),
         }
-        fake_input.return_value = 'a'
-        with self.assertRaises(NoChoice):
+        self.input.return_value = 'a'
+        with pytest.raises(NoChoice):
             self.query('foo', responses=responses)
-        self.assertEqual(
-            self.err.get_text_stream().strip().split('\n')[1],
-            'Response %r is ambiguous (%s)' % (
-                fake_input.return_value, ', '.join(sorted(responses.keys()))))
+        error_output = self.err.get_text_stream().strip().split('\n')[1]
+        expected = 'Response %r is ambiguous (%s)' % (
+            self.input.return_value, ', '.join(sorted(responses.keys())))
+        assert error_output == expected
 
-    @patch('builtins.input')
-    def test_default_correct_input(self, fake_input):
+    def test_default_correct_input(self):
         for input, output in (('no', False),
-                              ('No', False),
-                              ('yes', True),
-                              ('Yes', True)):
-            fake_input.return_value = input
-            self.assertEqual(self.query('foo'), output)
+                            ('No', False),
+                            ('yes', True),
+                            ('Yes', True)):
+            self.input.return_value = input
+            assert self.query('foo') == output
 
-    @patch('builtins.input')
-    def test_default_answer_no_matches(self, fake_input):
-        fake_input.return_value = ''
-        with self.assertRaises(ValueError):
+    def test_default_answer_no_matches(self):
+        self.input.return_value = ''
+        with pytest.raises(ValueError):
             self.query('foo', default_answer='foo')
-        self.assertEqual(self.out.stream, [])
+        assert self.out.stream == []
 
-    @patch('builtins.input')
-    def test_custom_default_answer(self, fake_input):
-        fake_input.return_value = ''
-        self.assertEqual(self.query('foo', default_answer=False), False)
+    def test_custom_default_answer(self):
+        self.input.return_value = ''
+        assert self.query('foo', default_answer=False) == False
 
-    @patch('builtins.input')
-    def test_eof_nochoice(self, fake_input):
+    def test_eof_nochoice(self):
         # user hits ctrl-d
-        fake_input.side_effect = EOFError
-        with self.assertRaises(NoChoice):
+        self.input.side_effect = EOFError
+        with pytest.raises(NoChoice):
             self.query('foo')
-        self.assertEqual(
-            self.out.get_text_stream().strip().split('\n')[1],
-            'Not answerable: EOF on STDIN')
+        output = self.out.get_text_stream().strip().split('\n')[1]
+        expected = 'Not answerable: EOF on STDIN'
+        assert output == expected
 
-    @patch('builtins.input')
-    def test_stdin_closed_nochoice(self, fake_input):
-        fake_input.side_effect = IOError(errno.EBADF, '')
-        with self.assertRaises(NoChoice):
+    def test_stdin_closed_nochoice(self):
+        self.input.side_effect = IOError(errno.EBADF, '')
+        with pytest.raises(NoChoice):
             self.query('foo')
-        self.assertEqual(
-            self.out.get_text_stream().strip().split('\n')[1],
-            'Not answerable: STDIN is either closed, or not readable')
+        output = self.out.get_text_stream().strip().split('\n')[1]
+        expected = 'Not answerable: STDIN is either closed, or not readable'
+        assert output == expected
 
-    @patch('builtins.input')
-    def test_unhandled_ioerror(self, fake_input):
-        fake_input.side_effect = IOError(errno.ENODEV, '')
-        with self.assertRaises(IOError):
+    def test_unhandled_ioerror(self):
+        self.input.side_effect = IOError(errno.ENODEV, '')
+        with pytest.raises(IOError):
             self.query('foo')
 
-    @patch('builtins.input')
-    def test_bad_choice_limit(self, fake_input):
+    def test_bad_choice_limit(self):
         # user hits enters a bad choice 3 times in a row
-        fake_input.return_value = 'bad'
-        with self.assertRaises(NoChoice):
+        self.input.return_value = 'bad'
+        with pytest.raises(NoChoice):
             self.query('foo')
-        self.assertEqual(fake_input.call_count, 3)
-        self.assertEqual(
-            self.err.get_text_stream().strip().split('\n')[1],
-            "Sorry, response %r not understood." % (fake_input.return_value,))
+        assert self.input.call_count == 3
+        output = self.err.get_text_stream().strip().split('\n')[1]
+        expected = "Sorry, response %r not understood." % (self.input.return_value,)
+        assert output == expected
 
-    @patch('builtins.input')
-    def test_custom_choice_limit(self, fake_input):
+    def test_custom_choice_limit(self):
         # user hits enters a bad choice 5 times in a row
-        fake_input.return_value = 'haha'
-        with self.assertRaises(NoChoice):
+        self.input.return_value = 'haha'
+        with pytest.raises(NoChoice):
             self.query('foo', limit=5)
-        self.assertEqual(fake_input.call_count, 5)
-        self.assertEqual(
-            self.err.get_text_stream().strip().split('\n')[1],
-            "Sorry, response %r not understood." % (fake_input.return_value,))
+        assert self.input.call_count == 5
+        output = self.err.get_text_stream().strip().split('\n')[1]
+        expected = "Sorry, response %r not understood." % (self.input.return_value,)
+        assert output == expected

@@ -2,22 +2,23 @@
 # Copyright: 2010 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
-
 from itertools import chain
 
-from snakeoil.test import TestCase
+import pytest
+
 from snakeoil import containers
 
 
-class InvertedContainsTest(TestCase):
+class TestInvertedContains(object):
 
-    def setUp(self):
+    def setup_method(self, method):
         self.set = containers.InvertedContains(range(12))
 
     def test_basic(self):
-        self.assertFalse(7 in self.set)
-        self.assertTrue(-7 in self.set)
-        self.assertRaises(TypeError, iter, self.set)
+        assert 7 not in self.set
+        assert -7 in self.set
+        with pytest.raises(TypeError):
+            iter(self.set)
 
 
 class BasicSet(containers.SetMixin):
@@ -46,72 +47,78 @@ class BasicSet(containers.SetMixin):
         return not self == other
 
 
-class TestSetMethods(TestCase):
+class TestSetMethods(object):
+
     def test_and(self):
         c = BasicSet(range(100))
         s = set(range(25, 75))
         r = BasicSet(range(25, 75))
-        self.assertEqual(c & s, r)
-        self.assertEqual(s & c, r._data)
+        assert c & s == r
+        assert s & c == r._data
 
     def test_xor(self):
         c = BasicSet(range(100))
         s = set(range(25, 75))
         r = BasicSet(chain(range(25), range(75, 100)))
-        self.assertEqual(c ^ s, r)
-        self.assertEqual(s ^ c, r._data)
+        assert c ^ s == r
+        assert s ^ c == r._data
 
     def test_or(self):
         c = BasicSet(range(50))
         s = set(range(50, 100))
         r = BasicSet(range(100))
-        self.assertEqual(c | s, r)
-        self.assertEqual(s | c, r._data)
+        assert c | s == r
+        assert s | c == r._data
 
     def test_add(self):
         c = BasicSet(range(50))
         s = set(range(50, 100))
         r = BasicSet(range(100))
-        self.assertEqual(c + s, r)
-        self.assertEqual(s + c, r._data)
+        assert c + s == r
+        assert s + c == r._data
 
     def test_sub(self):
         c = BasicSet(range(100))
         s = set(range(50, 150))
         r1 = BasicSet(range(50))
         r2 = set(range(100, 150))
-        self.assertEqual(c - s, r1)
-        self.assertEqual(s - c, r2)
+        assert c - s == r1
+        assert s - c == r2
 
-class LimitedChangeSetTest(TestCase):
+class TestLimitedChangeSet(object):
 
-    def setUp(self):
+    def setup_method(self, method):
         self.set = containers.LimitedChangeSet(range(12))
 
     def test_validator(self):
         def f(val):
-            self.assertTrue(isinstance(val, int))
+            assert isinstance(val, int)
             return val
         self.set = containers.LimitedChangeSet(range(12), key_validator=f)
         self.set.add(13)
         self.set.add(14)
         self.set.remove(11)
-        self.assertIn(5, self.set)
-        self.assertRaises(AssertionError, self.set.add, '2')
-        self.assertRaises(AssertionError, self.set.remove, '2')
-        self.assertRaises(AssertionError, self.set.__contains__, '2')
+        assert 5 in self.set
+        with pytest.raises(AssertionError):
+            self.set.add('2')
+        with pytest.raises(AssertionError):
+            self.set.remove('2')
+        with pytest.raises(AssertionError):
+            self.set.__contains__('2')
 
     def test_basic(self, changes=0):
         # this should be a no-op
         self.set.rollback(changes)
         # and this is invalid
-        self.assertRaises(TypeError, self.set.rollback, changes + 1)
-        self.assertTrue(0 in self.set)
-        self.assertFalse(12 in self.set)
-        self.assertEqual(12, len(self.set))
-        self.assertEqual(sorted(list(self.set)), list(range(12)))
-        self.assertEqual(changes, self.set.changes_count())
-        self.assertRaises(TypeError, self.set.rollback, -1)
+        with pytest.raises(TypeError):
+            self.set.rollback(changes + 1)
+        assert 0 in self.set
+        assert 12 not in self.set
+        assert 12 == len(self.set)
+        assert sorted(list(self.set)) == list(range(12))
+        assert changes == self.set.changes_count()
+        with pytest.raises(TypeError):
+            self.set.rollback(-1)
 
     def test_dummy_commit(self):
         # this should be a no-op
@@ -121,12 +128,13 @@ class LimitedChangeSetTest(TestCase):
 
     def test_adding(self):
         self.set.add(13)
-        self.assertTrue(13 in self.set)
-        self.assertEqual(13, len(self.set))
-        self.assertEqual(sorted(list(self.set)), list(range(12)) + [13])
-        self.assertEqual(1, self.set.changes_count())
+        assert 13 in self.set
+        assert 13 == len(self.set)
+        assert sorted(list(self.set)) == list(range(12)) + [13]
+        assert 1 == self.set.changes_count()
         self.set.add(13)
-        self.assertRaises(containers.Unchangable, self.set.remove, 13)
+        with pytest.raises(containers.Unchangable):
+            self.set.remove(13)
 
     def test_add_rollback(self):
         self.set.add(13)
@@ -138,9 +146,9 @@ class LimitedChangeSetTest(TestCase):
         self.set.add(13)
         self.set.commit()
         # should look like right before commit
-        self.assertEqual(13, len(self.set))
-        self.assertEqual(sorted(list(self.set)), list(range(12)) + [13])
-        self.assertEqual(0, self.set.changes_count())
+        assert 13 == len(self.set)
+        assert sorted(list(self.set)) == list(range(12)) + [13]
+        assert 0 == self.set.changes_count()
         # and remove...
         self.set.remove(13)
         # should be back to basic, but with 1 change
@@ -150,12 +158,14 @@ class LimitedChangeSetTest(TestCase):
 
     def test_removing(self):
         self.set.remove(0)
-        self.assertFalse(0 in self.set)
-        self.assertEqual(11, len(self.set))
-        self.assertEqual(sorted(list(self.set)), list(range(1, 12)))
-        self.assertEqual(1, self.set.changes_count())
-        self.assertRaises(containers.Unchangable, self.set.add, 0)
-        self.assertRaises(KeyError, self.set.remove, 0)
+        assert 0 not in self.set
+        assert 11 == len(self.set)
+        assert sorted(list(self.set)) == list(range(1, 12))
+        assert 1 == self.set.changes_count()
+        with pytest.raises(containers.Unchangable):
+            self.set.add(0)
+        with pytest.raises(KeyError):
+            self.set.remove(0)
 
     def test_remove_rollback(self):
         self.set.remove(0)
@@ -165,10 +175,10 @@ class LimitedChangeSetTest(TestCase):
     def test_remove_commit_add_commit(self):
         self.set.remove(0)
         self.set.commit()
-        self.assertFalse(0 in self.set)
-        self.assertEqual(11, len(self.set))
-        self.assertEqual(sorted(list(self.set)), list(range(1, 12)))
-        self.assertEqual(0, self.set.changes_count())
+        assert 0 not in self.set
+        assert 11 == len(self.set)
+        assert sorted(list(self.set)) == list(range(1, 12))
+        assert 0 == self.set.changes_count()
         self.set.add(0)
         self.test_basic(1)
         self.set.commit()
@@ -180,101 +190,103 @@ class LimitedChangeSetTest(TestCase):
         self.set.rollback(1)
         self.set.add(-1)
         self.set.commit()
-        self.assertEqual(sorted(list(self.set)), list(range(-1, 13)))
+        assert sorted(list(self.set)) == list(range(-1, 13))
 
     def test_str(self):
-        self.assertEqual(
-            str(containers.LimitedChangeSet([7])), 'LimitedChangeSet([7])')
+        assert str(containers.LimitedChangeSet([7])) == 'LimitedChangeSet([7])'
 
     def test__eq__(self):
         c = containers.LimitedChangeSet(range(99))
         c.add(99)
-        self.assertEqual(c, containers.LimitedChangeSet(range(100)))
-        self.assertEqual(containers.LimitedChangeSet(range(100)),
-                         set(range(100)))
-        self.assertNotEqual(containers.LimitedChangeSet([]), object())
+        assert c == containers.LimitedChangeSet(range(100))
+        assert containers.LimitedChangeSet(range(100)) == set(range(100))
+        assert containers.LimitedChangeSet([]) != object()
 
 
-class LimitedChangeSetWithBlacklistTest(TestCase):
+class TestLimitedChangeSetWithBlacklist(object):
 
-    def setUp(self):
+    def setup_method(self, method):
         self.set = containers.LimitedChangeSet(range(12), [3, 13])
 
     def test_basic(self):
-        self.assertTrue(0 in self.set)
-        self.assertFalse(12 in self.set)
-        self.assertEqual(12, len(self.set))
-        self.assertEqual(sorted(list(self.set)), list(range(12)))
-        self.assertEqual(0, self.set.changes_count())
-        self.assertRaises(TypeError, self.set.rollback, -1)
+        assert 0 in self.set
+        assert 12 not in self.set
+        assert 12 == len(self.set)
+        assert sorted(list(self.set)) == list(range(12))
+        assert 0 == self.set.changes_count()
+        with pytest.raises(TypeError):
+            self.set.rollback(-1)
 
     def test_adding_blacklisted(self):
-        self.assertRaises(containers.Unchangable, self.set.add, 13)
+        with pytest.raises(containers.Unchangable):
+            self.set.add(13)
 
     def test_removing_blacklisted(self):
-        self.assertRaises(containers.Unchangable, self.set.remove, 3)
+        with pytest.raises(containers.Unchangable):
+            self.set.remove(3)
 
 
-class ProtectedSetTest(TestCase):
+class TestProtectedSet(object):
 
-    def setUp(self):
+    def setup_method(self, method):
         self.set = containers.ProtectedSet(set(range(12)))
 
     def test_contains(self):
-        self.assertTrue(0 in self.set)
-        self.assertFalse(15 in self.set)
+        assert 0 in self.set
+        assert 15 not in self.set
         self.set.add(15)
-        self.assertTrue(15 in self.set)
+        assert 15 in self.set
 
     def test_iter(self):
-        self.assertEqual(list(range(12)), sorted(self.set))
+        assert list(range(12)) == sorted(self.set)
         self.set.add(5)
-        self.assertEqual(list(range(12)), sorted(self.set))
+        assert list(range(12)) == sorted(self.set)
         self.set.add(12)
-        self.assertEqual(list(range(13)), sorted(self.set))
+        assert list(range(13)) == sorted(self.set)
 
     def test_len(self):
-        self.assertEqual(12, len(self.set))
+        assert 12 == len(self.set)
         self.set.add(5)
         self.set.add(13)
-        self.assertEqual(13, len(self.set))
+        assert 13 == len(self.set)
 
 
-class TestRefCountingSet(TestCase):
+class TestRefCountingSet(object):
 
     kls = containers.RefCountingSet
 
     def test_it(self):
         c = self.kls((1, 2))
-        self.assertIn(1, c)
-        self.assertIn(2, c)
+        assert 1 in c
+        assert 2 in c
         c.remove(1)
-        self.assertNotIn(1, c)
-        self.assertRaises(KeyError, c.remove, 1)
+        assert 1 not in c
+        with pytest.raises(KeyError):
+            c.remove(1)
         c.add(2)
-        self.assertIn(2, c)
+        assert 2 in c
         c.remove(2)
-        self.assertIn(2, c)
+        assert 2 in c
         c.remove(2)
-        self.assertNotIn(2, c)
+        assert 2 not in c
         c.add(3)
-        self.assertIn(3, c)
+        assert 3 in c
         c.remove(3)
-        self.assertNotIn(3, c)
+        assert 3 not in c
 
         c.discard(4)
         c.discard(5)
         c.discard(4)
         c.add(4)
         c.add(4)
-        self.assertIn(4, c)
+        assert 4 in c
         c.discard(4)
-        self.assertIn(4, c)
+        assert 4 in c
         c.discard(4)
-        self.assertNotIn(4, c)
+        assert 4 not in c
 
     def test_init(self):
-        self.assertEqual(self.kls(range(5))[4], 1)
+        assert self.kls(range(5))[4] == 1
         c = self.kls([1, 2, 3, 1])
-        self.assertEqual(c[2], 1)
-        self.assertEqual(c[1], 2)
+        assert c[2] == 1
+        assert c[1] == 2

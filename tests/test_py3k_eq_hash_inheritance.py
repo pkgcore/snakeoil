@@ -1,16 +1,16 @@
 # Copyright: 2010-2011 Brian Harring <ferringb@gmail.com>
 # License: GPL2/BSD 3 clause
 
-from snakeoil.test import mixins, TestCase
+from snakeoil.test import mixins
 
 
-class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker, TestCase):
+class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker):
 
     target_namespace = 'snakeoil'
 
     singleton = object()
 
-    def setUp(self):
+    def setup(self):
         self._ignore_set = frozenset(self.iter_builtin_targets())
 
     def _should_ignore(self, cls):
@@ -40,10 +40,10 @@ class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker, TestCase):
 
         # pylint: disable=undefined-loop-variable
         # 'parent' is guaranteed to be defined due to the 'else' clause above
-        self.assertNotEqual(getattr(cls, '__hash__'), None, msg=(
+        assert getattr(cls, '__hash__') != None, (
             "class '%s.%s' had its __hash__ reset, while it would've inherited "
             "__hash__ from parent '%s.%s'; this occurs in py3k when __eq__ is "
             "defined alone.  If this is desired behaviour, set "
             "__hash__intentionally_disabled__ to True to explicitly ignore this"
             " class" % (cls.__module__, cls.__name__, parent.__module__,
-                        parent.__name__)))
+                        parent.__name__))

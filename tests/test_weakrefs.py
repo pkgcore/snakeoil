@@ -3,19 +3,22 @@
 
 from weakref import WeakValueDictionary
 
-from snakeoil.test import TestCase
+import pytest
+
 from snakeoil.weakrefs import WeakValCache
 
 
 class RefObj(object):
     pass
 
-class TestWeakValCache(TestCase):
-    if WeakValueDictionary is WeakValCache:
-        skip = "WeakValCache is weakref.WeakValueDictionary; indicates " \
-            "snakeoil._caching isn't compiled"
 
-    def setUp(self):
+@pytest.mark.skipif(
+    WeakValueDictionary is WeakValCache,
+    reason="WeakValCache is weakref.WeakValueDictionary; indicates "
+           "snakeoil._caching isn't compiled")
+class TestWeakValCache(object):
+
+    def setup_method(self, method):
         self.o = RefObj()
         self.w = WeakValCache()
 
@@ -28,44 +31,46 @@ class TestWeakValCache(TestCase):
     def test_getitem(self):
         s = "asdf"
         self.w[s] = self.o
-        self.assertIdentical(self.w[s], self.o)
+        assert self.w[s] is self.o
 
     def test_expiring(self):
         s = "asdf"
         self.w[s] = self.o
-        self.assertTrue(self.w[s])
+        assert self.w[s]
         del self.o
-        self.assertRaises(KeyError, self.w.__getitem__, s)
+        with pytest.raises(KeyError):
+            self.w.__getitem__(s)
 
     def test_get(self):
         s = "asdf"
-        self.assertRaises(KeyError, self.w.__getitem__, s)
+        with pytest.raises(KeyError):
+            self.w.__getitem__(s)
         self.w[s] = self.o
-        self.assertIdentical(self.w.get(s), self.o)
+        assert self.w.get(s) is self.o
 
     def test_keys(self):
-        self.assertEqual(list(self.w.keys()), [])
+        assert list(self.w.keys()) == []
         self.w['a'] = self.o
         self.w['b'] = self.o
         self.w['c'] = self.o
-        self.assertEqual(sorted(self.w.keys()), ['a', 'b', 'c'])
+        assert sorted(self.w.keys()) == ['a', 'b', 'c']
         del self.o
-        self.assertEqual(sorted(self.w.keys()), [])
+        assert self.w.keys() == []
 
     def test_values(self):
-        self.assertEqual(list(self.w.values()), [])
+        assert list(self.w.values()) == []
         self.w['a'] = self.o
         self.w['b'] = self.o
         self.w['c'] = self.o
-        self.assertEqual(len(iter(self.w.values())), 3)
+        assert len(iter(self.w.values())) == 3
         del self.o
-        self.assertEqual(sorted(self.w.values()), [])
+        assert self.w.values() == []
 
     def test_items(self):
-        self.assertEqual(list(self.w.items()), [])
+        assert list(self.w.items()) == []
         self.w['a'] = self.o
         self.w['b'] = self.o
         self.w['c'] = self.o
-        self.assertEqual(len(iter(self.w.items())), 3)
+        assert len(iter(self.w.items())) == 3
         del self.o
-        self.assertEqual(sorted(self.w.items()), [])
+        assert self.w.items() == []

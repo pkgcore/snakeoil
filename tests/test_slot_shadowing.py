@@ -1,11 +1,12 @@
 # Copyright: 2009-2011 Brian Harring <ferringb@gmail.com>
 # License: GPL2/BSD
 
-from snakeoil.test import mixins, TestCase
+import pytest
+
+from snakeoil.test import mixins
 
 
-class Test_slot_shadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker,
-                          TestCase):
+class Test_slot_shadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker):
 
     target_namespace = 'snakeoil'
     err_if_slots_is_str = True
@@ -55,7 +56,7 @@ class Test_slot_shadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker,
 
         if isinstance(slots, str) or isinstance(slots, str):
             if self.err_if_slots_is_str:
-                raise self.failureException(
+                pytest.fail(
                     "cls %r; slots is %r (should be a tuple or list)" %
                     (kls, slots))
             slots = (slots,)
@@ -65,7 +66,7 @@ class Test_slot_shadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker,
 
         if not isinstance(slots, tuple):
             if self.err_if_slots_is_mutable:
-                raise self.failureException(
+                pytest.fail(
                     "cls %r; slots is %r- - should be a tuple" % (kls, slots))
             slots = tuple(slots)
 
@@ -73,13 +74,13 @@ class Test_slot_shadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker,
             # we do a bool on slots to ignore (); that's completely valid
             # this means that the child either didn't define __slots__, or
             # daftly copied the parents... thus defeating the purpose.
-            raise self.failureException(
+            pytest.fail(
                 "cls %r; slots is %r, seemingly inherited from %r; the "
                 "derivative class should be __slots__ = ()" %
                 (kls, slots, raw_slottings[slots]))
 
         for slot in slots:
             if slot in slotting:
-                raise self.failureException(
+                pytest.fail(
                     "cls %r; slot %r was already defined at %r" %
                     (kls, slot, slotting[slot]))

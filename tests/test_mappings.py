@@ -2,11 +2,12 @@
 # Copyright: 2006-2011 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
+from itertools import chain
 import operator
 
-from snakeoil.test import TestCase
+import pytest
+
 from snakeoil import mappings
-from itertools import chain
 
 
 def a_dozen():
@@ -21,6 +22,7 @@ class BasicDict(mappings.DictMixin):
 
     def keys(self):
         return iter(self._d)
+
 
 class MutableDict(BasicDict):
 
@@ -37,260 +39,253 @@ class MutableDict(BasicDict):
 class ImmutableDict(BasicDict):
     __externally_mutable__ = False
 
-class TestDictMixin(TestCase):
+
+class TestDictMixin(object):
+
     def test_immutability(self):
         d = ImmutableDict()
-        self.assertRaises(AttributeError, d.__setitem__, "spork", "foon")
+        pytest.raises(AttributeError, d.__setitem__, "spork", "foon")
         for x in ("pop", "setdefault", "__delitem__"):
-            self.assertRaises(AttributeError, getattr(d, x), "spork")
+            pytest.raises(AttributeError, getattr(d, x), "spork")
         for x in ("clear", "popitem"):
-            self.assertRaises(AttributeError, getattr(d, x))
+            pytest.raises(AttributeError, getattr(d, x))
 
     def test_setdefault(self):
         d = MutableDict(baz="cat")
-        self.assertEqual(d.setdefault("baz"), "cat")
-        self.assertEqual(d.setdefault("baz", "foon"), "cat")
-        self.assertEqual(d.setdefault("foo"), None)
-        self.assertEqual(d["foo"], None)
-        self.assertEqual(d.setdefault("spork", "cat"), "cat")
-        self.assertEqual(d["spork"], "cat")
+        assert d.setdefault("baz") == "cat"
+        assert d.setdefault("baz", "foon") == "cat"
+        assert d.setdefault("foo") == None
+        assert d["foo"] == None
+        assert d.setdefault("spork", "cat") == "cat"
+        assert d["spork"] == "cat"
 
     def test_pop(self):
         d = MutableDict(baz="cat", foo="bar")
-        self.assertRaises(KeyError, d.pop, "spork")
-        self.assertEqual(d.pop("spork", "bat"), "bat")
-        self.assertEqual(d.pop("foo"), "bar")
-        self.assertEqual(d.popitem(), ("baz", "cat"))
-        self.assertRaises(KeyError, d.popitem)
-
+        pytest.raises(KeyError, d.pop, "spork")
+        assert d.pop("spork", "bat") == "bat"
+        assert d.pop("foo") == "bar"
+        assert d.popitem(), ("baz" == "cat")
+        pytest.raises(KeyError, d.popitem)
 
     def test_init(self):
         d = MutableDict((('foo', 'bar'), ('spork', 'foon')), baz="cat")
-        self.assertEqual(d["foo"], "bar")
-        self.assertEqual(d["baz"], "cat")
+        assert d["foo"] == "bar"
+        assert d["baz"] == "cat"
         d.clear()
-        self.assertEqual(d, {})
+        assert d == {}
 
     def test_bool(self):
         d = MutableDict()
-        self.assertFalse(d)
+        assert not d
         d['x'] = 1
-        self.assertTrue(d)
+        assert d
         del d['x']
-        self.assertFalse(d)
+        assert not d
+
 
 class RememberingNegateMixin(object):
 
-    def setUp(self):
+    def setup_method(self, method):
         self.negate_calls = []
         def negate(i):
             self.negate_calls.append(i)
             return -i
         self.negate = negate
 
-    def tearDown(self):
+    def teardown_method(self, method):
         del self.negate
         del self.negate_calls
-
 
 
 class LazyValDictTestMixin(object):
 
     def test_invalid_operations(self):
-        self.assertRaises(AttributeError, operator.setitem, self.dict, 7, 7)
-        self.assertRaises(AttributeError, operator.delitem, self.dict, 7)
+        pytest.raises(AttributeError, operator.setitem, self.dict, 7, 7)
+        pytest.raises(AttributeError, operator.delitem, self.dict, 7)
 
     def test_contains(self):
-        self.assertIn(7, self.dict)
-        self.assertNotIn(12, self.dict)
+        assert 7 in self.dict
+        assert 12 not in self.dict
 
     def test_keys(self):
         # Called twice because the first call will trigger a keyfunc call.
-        self.assertEqual(sorted(self.dict.keys()), list(range(12)))
-        self.assertEqual(sorted(self.dict.keys()), list(range(12)))
+        assert sorted(self.dict.keys()) == list(range(12))
+        assert sorted(self.dict.keys()) == list(range(12))
 
     def test_len(self):
         # Called twice because the first call will trigger a keyfunc call.
-        self.assertEqual(12, len(self.dict))
-        self.assertEqual(12, len(self.dict))
+        assert 12 == len(self.dict)
+        assert 12 == len(self.dict)
 
     def test_getkey(self):
-        self.assertEqual(self.dict[3], -3)
+        assert self.dict[3] == -3
         # missing key
         def get():
             return self.dict[42]
-        self.assertRaises(KeyError, get)
+        pytest.raises(KeyError, get)
 
     def test_caching(self):
         # "Statement seems to have no effect"
         # pylint: disable=W0104
         self.dict[11]
         self.dict[11]
-        self.assertEqual(self.negate_calls, [11])
+        assert self.negate_calls == [11]
 
 
-class LazyValDictWithListTest(TestCase, LazyValDictTestMixin,
-                              RememberingNegateMixin):
+class TestLazyValDictWithList(LazyValDictTestMixin, RememberingNegateMixin):
 
-    def setUp(self):
-        RememberingNegateMixin.setUp(self)
+    def setup_method(self, method):
+        super(TestLazyValDictWithList, self).setup_method(method)
         self.dict = mappings.LazyValDict(list(range(12)), self.negate)
 
-    def tearDown(self):
-        RememberingNegateMixin.tearDown(self)
-
     def test_values(self):
-        self.assertEqual(sorted(self.dict.values()), list(range(-11, 1)))
+        assert sorted(self.dict.values()), list(range(-11 == 1))
 
     def test_len(self):
-        self.assertEqual(len(self.dict), 12)
+        assert len(self.dict) == 12
 
     def test_iter(self):
-        self.assertEqual(list(self.dict), list(range(12)))
+        assert list(self.dict) == list(range(12))
 
     def test_contains(self):
-        self.assertIn(1, self.dict)
+        assert 1 in self.dict
 
 
-class LazyValDictWithFuncTest(TestCase, LazyValDictTestMixin,
-                              RememberingNegateMixin):
+class TestLazyValDictWithFunc(LazyValDictTestMixin, RememberingNegateMixin):
 
-    def setUp(self):
-        RememberingNegateMixin.setUp(self)
+    def setup_method(self, method):
+        super(TestLazyValDictWithFunc, self).setup_method(method)
         self.dict = mappings.LazyValDict(a_dozen, self.negate)
 
-    def tearDown(self):
-        RememberingNegateMixin.tearDown(self)
 
-
-class LazyValDictTest(TestCase):
+class TestLazyValDict(object):
 
     def test_invalid_init_args(self):
-        self.assertRaises(TypeError, mappings.LazyValDict, [1], 42)
-        self.assertRaises(TypeError, mappings.LazyValDict, 42, a_dozen)
+        pytest.raises(TypeError, mappings.LazyValDict, [1], 42)
+        pytest.raises(TypeError, mappings.LazyValDict, 42, a_dozen)
 
 
 # TODO check for valid values for dict.new, since that seems to be
 # part of the interface?
-class ProtectedDictTest(TestCase):
+class TestProtectedDict(object):
 
-    def setUp(self):
+    def setup_method(self, method):
         self.orig = {1: -1, 2: -2}
         self.dict = mappings.ProtectedDict(self.orig)
 
     def test_basic_operations(self):
-        self.assertEqual(self.dict[1], -1)
+        assert self.dict[1] == -1
         def get(i):
             return self.dict[i]
-        self.assertRaises(KeyError, get, 3)
-        self.assertEqual(sorted(self.dict.keys()), [1, 2])
-        self.assertNotIn(-1, self.dict)
-        self.assertIn(2, self.dict)
+        pytest.raises(KeyError, get, 3)
+        assert sorted(self.dict.keys()) == [1, 2]
+        assert -1 not in self.dict
+        assert 2 in self.dict
         def remove(i):
             del self.dict[i]
-        self.assertRaises(KeyError, remove, 50)
+        pytest.raises(KeyError, remove, 50)
 
     def test_basic_mutating(self):
         # add something
         self.dict[7] = -7
         def check_after_adding():
-            self.assertEqual(self.dict[7], -7)
-            self.assertIn(7, self.dict)
-            self.assertEqual(sorted(self.dict.keys()), [1, 2, 7])
+            assert self.dict[7] == -7
+            assert 7 in self.dict
+            assert sorted(self.dict.keys()) == [1, 2, 7]
         check_after_adding()
         # remove it again
         del self.dict[7]
-        self.assertNotIn(7, self.dict)
+        assert 7 not in self.dict
         def get(i):
             return self.dict[i]
-        self.assertRaises(KeyError, get, 7)
-        self.assertEqual(sorted(self.dict.keys()), [1, 2])
+        pytest.raises(KeyError, get, 7)
+        assert sorted(self.dict.keys()) == [1, 2]
         # add it back
         self.dict[7] = -7
         check_after_adding()
         # remove something not previously added
         del self.dict[1]
-        self.assertNotIn(1, self.dict)
-        self.assertRaises(KeyError, get, 1)
-        self.assertEqual(sorted(self.dict.keys()), [2, 7])
+        assert 1 not in self.dict
+        pytest.raises(KeyError, get, 1)
+        assert sorted(self.dict.keys()) == [2, 7]
         # and add it back
         self.dict[1] = -1
         check_after_adding()
         # Change an existing value, then remove it:
         self.dict[1] = 33
         del self.dict[1]
-        self.assertNotIn(1, self.dict)
+        assert 1 not in self.dict
 
 
-class ImmutableDictTest(TestCase):
+class TestImmutableDict(object):
 
-    def setUp(self):
+    def setup_method(self, method):
         self.dict = mappings.ImmutableDict({1: -1, 2: -2})
 
     def test_invalid_operations(self):
         initial_hash = hash(self.dict)
-        self.assertRaises(TypeError, operator.delitem, self.dict, 1)
-        self.assertRaises(TypeError, operator.delitem, self.dict, 7)
-        self.assertRaises(TypeError, operator.setitem, self.dict, 1, -1)
-        self.assertRaises(TypeError, operator.setitem, self.dict, 7, -7)
-        self.assertRaises(TypeError, self.dict.clear)
-        self.assertRaises(TypeError, self.dict.update, {6: -6})
-        self.assertRaises(TypeError, self.dict.pop, 1)
-        self.assertRaises(TypeError, self.dict.popitem)
-        self.assertRaises(TypeError, self.dict.setdefault, 6, -6)
-        self.assertEqual(initial_hash, hash(self.dict))
+        pytest.raises(TypeError, operator.delitem, self.dict, 1)
+        pytest.raises(TypeError, operator.delitem, self.dict, 7)
+        pytest.raises(TypeError, operator.setitem, self.dict, 1, -1)
+        pytest.raises(TypeError, operator.setitem, self.dict, 7, -7)
+        pytest.raises(TypeError, self.dict.clear)
+        pytest.raises(TypeError, self.dict.update, {6: -6})
+        pytest.raises(TypeError, self.dict.pop, 1)
+        pytest.raises(TypeError, self.dict.popitem)
+        pytest.raises(TypeError, self.dict.setdefault, 6, -6)
+        assert initial_hash == hash(self.dict)
 
-class StackedDictTest(TestCase):
+
+class TestStackedDict(object):
 
     orig_dict = dict.fromkeys(range(100))
     new_dict = dict.fromkeys(range(100, 200))
 
     def test_contains(self):
         std = mappings.StackedDict(self.orig_dict, self.new_dict)
-        self.assertIn(1, std)
+        assert 1 in std
 
     def test_stacking(self):
         o = dict(self.orig_dict)
         std = mappings.StackedDict(o, self.new_dict)
         for x in chain(*list(map(iter, (self.orig_dict, self.new_dict)))):
-            self.assertIn(x, std)
+            assert x in std
 
         for key in list(self.orig_dict.keys()):
             del o[key]
         for x in self.orig_dict:
-            self.assertNotIn(x, std)
+            assert x not in std
         for x in self.new_dict:
-            self.assertIn(x, std)
+            assert x in std
 
     def test_len(self):
-        self.assertEqual(sum(map(len, (self.orig_dict, self.new_dict))),
-                         len(mappings.StackedDict(self.orig_dict, self.new_dict)))
+        assert sum(map(len, (self.orig_dict, self.new_dict))) == \
+            len(mappings.StackedDict(self.orig_dict, self.new_dict))
 
     def test_setattr(self):
-        self.assertRaises(TypeError, mappings.StackedDict().__setitem__, (1, 2))
+        pytest.raises(TypeError, mappings.StackedDict().__setitem__, (1, 2))
 
     def test_delattr(self):
-        self.assertRaises(TypeError, mappings.StackedDict().__delitem__, (1, 2))
+        pytest.raises(TypeError, mappings.StackedDict().__delitem__, (1, 2))
 
     def test_clear(self):
-        self.assertRaises(TypeError, mappings.StackedDict().clear)
+        pytest.raises(TypeError, mappings.StackedDict().clear)
 
     def test_iter(self):
         s = set()
         for item in chain(iter(self.orig_dict), iter(self.new_dict)):
             s.add(item)
         for x in mappings.StackedDict(self.orig_dict, self.new_dict):
-            self.assertIn(x, s)
+            assert x in s
             s.remove(x)
-        self.assertEqual(len(s), 0)
+        assert len(s) == 0
 
     def test_keys(self):
-        self.assertEqual(
-            sorted(mappings.StackedDict(self.orig_dict, self.new_dict)),
-            sorted(list(self.orig_dict.keys()) + list(self.new_dict.keys())))
+        assert sorted(mappings.StackedDict(self.orig_dict, self.new_dict)) == \
+            sorted(list(self.orig_dict.keys()) + list(self.new_dict.keys()))
 
 
-class IndeterminantDictTest(TestCase):
+class TestIndeterminantDict(object):
 
     def test_disabled_methods(self):
         d = mappings.IndeterminantDict(lambda *a: None)
@@ -305,29 +300,29 @@ class IndeterminantDictTest(TestCase):
                 "keys", "items", "values",
             ):
             if isinstance(x, tuple):
-                self.assertRaises(TypeError, getattr(d, x[0]), x[1])
+                pytest.raises(TypeError, getattr(d, x[0]), x[1])
             else:
-                self.assertRaises(TypeError, getattr(d, x))
+                pytest.raises(TypeError, getattr(d, x))
 
     def test_starter_dict(self):
         d = mappings.IndeterminantDict(
             lambda key: False, starter_dict={}.fromkeys(range(100), True))
         for x in range(100):
-            self.assertEqual(d[x], True)
+            assert d[x] == True
         for x in range(100, 110):
-            self.assertEqual(d[x], False)
+            assert d[x] == False
 
     def test_behaviour(self):
         val = []
         d = mappings.IndeterminantDict(
             lambda key: val.append(key), {}.fromkeys(range(10), True))
-        self.assertEqual(d[0], True)
-        self.assertEqual(d[11], None)
-        self.assertEqual(val, [11])
+        assert d[0] == True
+        assert d[11] == None
+        assert val == [11]
         def func(*a):
             raise KeyError
-        self.assertRaises(
-            KeyError, mappings.IndeterminantDict(func).__getitem__, 1)
+        with pytest.raises(KeyError):
+            mappings.IndeterminantDict(func).__getitem__(1)
 
 
     def test_get(self):
@@ -336,99 +331,103 @@ class IndeterminantDictTest(TestCase):
                 raise KeyError
             return True
         d = mappings.IndeterminantDict(func, {1: 1})
-        self.assertEqual(d.get(1, 1), 1)
-        self.assertEqual(d.get(1, 2), 1)
-        self.assertEqual(d.get(2), None)
-        self.assertEqual(d.get(2, 2), 2)
-        self.assertEqual(d.get(3), True)
+        assert d.get(1, 1) == 1
+        assert d.get(1, 2) == 1
+        assert d.get(2) == None
+        assert d.get(2, 2) == 2
+        assert d.get(3) == True
 
 
-class FoldingDictTest(TestCase):
+class TestFoldingDict(object):
 
-    def testPreserve(self):
+    def test_preserve(self):
         dct = mappings.PreservingFoldingDict(
             str.lower, list({'Foo': 'bar', 'fnz': 'donkey'}.items()))
-        self.assertEqual(dct['fnz'], 'donkey')
-        self.assertEqual(dct['foo'], 'bar')
-        self.assertEqual(sorted(['bar', 'donkey']), sorted(dct.values()))
-        self.assertEqual(dct.copy(), dct)
-        self.assertEqual(dct['foo'], dct.get('Foo'))
-        self.assertIn('foo', dct)
+        assert dct['fnz'] == 'donkey'
+        assert dct['foo'] == 'bar'
+        assert sorted(['bar' == 'donkey']), sorted(dct.values())
+        assert dct.copy() == dct
+        assert dct['foo'] == dct.get('Foo')
+        assert 'foo' in dct
         keys = ['Foo', 'fnz']
         keysList = list(dct)
         for key in keys:
-            self.assertIn(key, list(dct.keys()))
-            self.assertIn(key, keysList)
-            self.assertIn((key, dct[key]), list(dct.items()))
-        self.assertEqual(len(keys), len(dct))
-        self.assertEqual(dct.pop('foo'), 'bar')
-        self.assertNotIn('foo', dct)
+            assert key in list(dct.keys())
+            assert key in keysList
+            assert (key, dct[key]) in list(dct.items())
+        assert len(keys) == len(dct)
+        assert dct.pop('foo') == 'bar'
+        assert 'foo' not in dct
         del dct['fnz']
-        self.assertNotIn('fnz', dct)
+        assert 'fnz' not in dct
         dct['Foo'] = 'bar'
         dct.refold(lambda _: _)
-        self.assertNotIn('foo', dct)
-        self.assertIn('Foo', dct)
-        self.assertEqual(list(dct.items()), [('Foo', 'bar')])
+        assert 'foo' not in dct
+        assert 'Foo' in dct
+        assert list(dct.items()) == [('Foo', 'bar')]
         dct.clear()
-        self.assertEqual({}, dict(dct))
+        assert {} == dict(dct)
 
-    def testNoPreserve(self):
+    def test_no_preserve(self):
         dct = mappings.NonPreservingFoldingDict(
             str.lower, list({'Foo': 'bar', 'fnz': 'monkey'}.items()))
-        self.assertEqual(sorted(['bar', 'monkey']), sorted(dct.values()))
-        self.assertEqual(dct.copy(), dct)
+        assert sorted(['bar', 'monkey']) == sorted(dct.values())
+        assert dct.copy() == dct
         keys = ['foo', 'fnz']
         keysList = [key for key in dct]
         for key in keys:
-            self.assertIn(key, list(dct.keys()))
-            self.assertIn(key, dct)
-            self.assertIn(key, keysList)
-            self.assertIn((key, dct[key]), list(dct.items()))
-        self.assertEqual(len(keys), len(dct))
-        self.assertEqual(dct.pop('foo'), 'bar')
+            assert key in list(dct.keys())
+            assert key in dct
+            assert key in keysList
+            assert (key, dct[key]) in list(dct.items())
+        assert len(keys) == len(dct)
+        assert dct.pop('foo') == 'bar'
         del dct['fnz']
-        self.assertEqual(list(dct.keys()), [])
+        assert list(dct.keys()) == []
         dct.clear()
-        self.assertEqual({}, dict(dct))
+        assert {} == dict(dct)
 
 
-class defaultdictkeyTest(TestCase):
+class Testdefaultdictkey(object):
 
     kls = mappings.defaultdictkey
 
     def test_it(self):
         d = self.kls(lambda x: [x])
-        self.assertEqual(d[0], [0])
+        assert d[0] == [0]
         val = d[0]
-        self.assertEqual(list(d.items()), [(0, [0])])
-        self.assertEqual(d[0], [0])
-        self.assertIdentical(d[0], val)
+        assert list(d.items()) == [(0, [0])]
+        assert d[0] == [0]
+        assert d[0] is val
 
 
-class Test_attr_to_item_mapping(TestCase):
+class Test_attr_to_item_mapping(object):
 
     kls = mappings.AttrAccessible
     inject = staticmethod(mappings.inject_getitem_as_getattr)
 
     def assertBoth(self, instance, key, value):
-        self.assertEqual(getattr(instance, key), value)
-        self.assertEqual(instance[key], value)
+        assert getattr(instance, key) == value
+        assert instance[key] == value
 
     def test_AttrAccessible(self, kls=None):
         if kls is None:
             kls = self.kls
         o = kls(f=2, g=3)
-        self.assertEqual(['f', 'g'], sorted(o))
+        assert ['f', 'g'] == sorted(o)
         self.assertBoth(o, 'g', 3)
         o.g = 4
         self.assertBoth(o, 'g', 4)
         del o.g
-        self.assertRaises(KeyError, operator.__getitem__, o, 'g')
-        self.assertRaises(AttributeError, getattr, o, 'g')
+        with pytest.raises(KeyError):
+            operator.__getitem__(o, 'g')
+        with pytest.raises(AttributeError):
+            getattr(o, 'g')
         del o['f']
-        self.assertRaises(KeyError, operator.__getitem__, o, 'f')
-        self.assertRaises(AttributeError, getattr, o, 'f')
+        with pytest.raises(KeyError):
+            operator.__getitem__(o, 'f')
+        with pytest.raises(AttributeError):
+            getattr(o, 'f')
 
     def test_inject(self):
         class foon(dict):
@@ -437,7 +436,7 @@ class Test_attr_to_item_mapping(TestCase):
         self.test_AttrAccessible(foon)
 
 
-class Test_ProxiedAttrs(TestCase):
+class Test_ProxiedAttrs(object):
 
     kls = mappings.ProxiedAttrs
 
@@ -448,30 +447,38 @@ class Test_ProxiedAttrs(TestCase):
                     setattr(self, attr, val)
         obj = foo()
         d = self.kls(obj)
-        self.assertRaises(KeyError, operator.__getitem__, d, 'x')
-        self.assertRaises(KeyError, operator.__delitem__, d, 'x')
-        self.assertNotIn('x', d)
+        with pytest.raises(KeyError):
+            operator.__getitem__(d, 'x')
+        with pytest.raises(KeyError):
+            operator.__delitem__(d, 'x')
+        assert 'x' not in d
         d['x'] = 1
-        self.assertEqual(d['x'], 1)
-        self.assertIn('x', d)
-        self.assertEqual(['x'], list(x for x in d if not x.startswith("__")))
+        assert d['x'] == 1
+        assert 'x' in d
+        assert ['x'] == list(x for x in d if not x.startswith("__"))
         del d['x']
-        self.assertNotIn('x', d)
-        self.assertRaises(KeyError, operator.__delitem__, d, 'x')
-        self.assertRaises(KeyError, operator.__getitem__, d, 'x')
+        assert 'x' not in d
+        with pytest.raises(KeyError):
+            operator.__delitem__(d, 'x')
+        with pytest.raises(KeyError):
+            operator.__getitem__(d, 'x')
 
         # Finally, verify that immutable attribute errors are handled correctly.
         d = self.kls(object())
-        self.assertRaises(KeyError, operator.__setitem__, d, 'x', 1)
-        self.assertRaises(KeyError, operator.__delitem__, d, 'x')
+        with pytest.raises(KeyError):
+            operator.__setitem__(d, 'x', 1)
+        with pytest.raises(KeyError):
+            operator.__delitem__(d, 'x')
 
 
-class SlottedDictTest(TestCase):
+class TestSlottedDict(object):
 
     kls = staticmethod(mappings.make_SlottedDict_kls)
 
     def test_exceptions(self):
         d = self.kls(['spork'])()
         for op in (operator.getitem, operator.delitem):
-            self.assertRaises(KeyError, op, d, 'spork')
-            self.assertRaises(KeyError, op, d, 'foon')
+            with pytest.raises(KeyError):
+                op(d, 'spork')
+            with pytest.raises(KeyError):
+                op(d, 'foon')

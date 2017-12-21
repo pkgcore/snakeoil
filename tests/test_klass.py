@@ -6,11 +6,13 @@ import math
 import re
 from time import time
 
+import pytest
+
 from snakeoil import klass
-from snakeoil.test import TestCase, mk_cpy_loadable_testcase, not_a_test
+from snakeoil.test import mk_cpy_loadable_testcase
 
 
-class Test_native_GetAttrProxy(TestCase):
+class Test_native_GetAttrProxy(object):
     kls = staticmethod(klass.native_GetAttrProxy)
 
     def test_it(self):
@@ -24,12 +26,13 @@ class Test_native_GetAttrProxy(TestCase):
 
         o2 = foo2()
         o = foo1(o2)
-        self.assertRaises(AttributeError, getattr, o, "blah")
-        self.assertEqual(o.obj, o2)
+        with pytest.raises(AttributeError):
+            getattr(o, "blah")
+        assert o.obj == o2
         o2.foon = "dar"
-        self.assertEqual(o.foon, "dar")
+        assert o.foon == "dar"
         o.foon = "foo"
-        self.assertEqual(o.foon, 'foo')
+        assert o.foon == 'foo'
 
     def test_attrlist(self):
         def make_class(attr_list=None):
@@ -37,9 +40,12 @@ class Test_native_GetAttrProxy(TestCase):
                 if attr_list is not None:
                     locals()['__attr_comparison__'] = attr_list
 
-        self.assertRaises(TypeError, make_class)
-        self.assertRaises(TypeError, make_class, ['foon'])
-        self.assertRaises(TypeError, make_class, [None])
+        with pytest.raises(TypeError):
+            make_class()
+        with pytest.raises(TypeError):
+            make_class(['foon'])
+        with pytest.raises(TypeError):
+            make_class([None])
 
     def test_instancemethod(self):
         class foo(object):
@@ -50,14 +56,14 @@ class Test_native_GetAttrProxy(TestCase):
             test = foo()
 
         test = Test()
-        self.assertEqual(test.method('bar'), foo.bar)
+        assert test.method('bar') == foo.bar
 
 
+@pytest.mark.skipif(klass.GetAttrProxy is klass.native_GetAttrProxy,
+                    reason="cpython extension isn't available")
 class Test_CPY_GetAttrProxy(Test_native_GetAttrProxy):
 
     kls = staticmethod(klass.GetAttrProxy)
-    if klass.GetAttrProxy is klass.native_GetAttrProxy:
-        skip = "cpython extension isn't available"
 
     def test_sane_recursion_bail(self):
         # people are stupid; if protection isn't in place, we wind up blowing
@@ -72,10 +78,11 @@ class Test_CPY_GetAttrProxy(Test_native_GetAttrProxy):
         o = c()
         o.obj = o
         # now it's cyclical.
-        self.assertRaises((AttributeError, RuntimeError), getattr, o, "hooey")
+        with pytest.raises(AttributeError, RuntimeError):
+            getattr(o, "hooey")
 
 
-class TestDirProxy(TestCase):
+class TestDirProxy(object):
 
     @staticmethod
     def noninternal_attrs(obj):
@@ -93,7 +100,7 @@ class TestDirProxy(TestCase):
 
         o2 = foo2()
         o = foo1(o2)
-        self.assertEqual(self.noninternal_attrs(o), ['attr', 'obj'])
+        assert self.noninternal_attrs(o) == ['attr', 'obj']
 
     def test_empty(self):
         class foo1(object):
@@ -106,65 +113,64 @@ class TestDirProxy(TestCase):
 
         o2 = foo2()
         o = foo1(o2)
-        self.assertEqual(self.noninternal_attrs(o2), [])
-        self.assertEqual(self.noninternal_attrs(o), ['obj'])
+        assert self.noninternal_attrs(o2) == []
+        assert self.noninternal_attrs(o) == ['obj']
 
 
-class Test_native_contains(TestCase):
+class Test_native_contains(object):
     func = staticmethod(klass.native_contains)
 
     def test_it(self):
         class c(dict):
             __contains__ = self.func
         d = c({"1": 2})
-        self.assertIn("1", d)
-        self.assertNotIn(1, d)
+        assert "1" in d
+        assert 1 not in d
 
 
+@pytest.mark.skipif(klass.contains is klass.native_contains,
+                    reason="cpython extension isn't available")
 class Test_CPY_contains(Test_native_contains):
     func = staticmethod(klass.contains)
 
-    if klass.contains is klass.native_contains:
-        skip = "cpython extension isn't available"
 
-
-class Test_native_get(TestCase):
+class Test_native_get(object):
     func = staticmethod(klass.native_get)
 
     def test_it(self):
         class c(dict):
             get = self.func
         d = c({"1": 2})
-        self.assertEqual(d.get("1"), 2)
-        self.assertEqual(d.get("1", 3), 2)
-        self.assertEqual(d.get(1), None)
-        self.assertEqual(d.get(1, 3), 3)
+        assert d.get("1") == 2
+        assert d.get("1", 3) == 2
+        assert d.get(1) is None
+        assert d.get(1, 3) == 3
 
+
+@pytest.mark.skipif(klass.get is klass.native_get,
+                    reason="cpython extension isn't available")
 class Test_CPY_get(Test_native_get):
     func = staticmethod(klass.get)
 
-    if klass.get is klass.native_get:
-        skip = "cpython extension isn't available"
 
-
-class Test_chained_getter(TestCase):
+class Test_chained_getter(object):
 
     kls = klass.chained_getter
 
     def test_hash(self):
-        self.assertEqual(hash(self.kls("foon")), hash("foon"))
-        self.assertEqual(hash(self.kls("foon.dar")), hash("foon.dar"))
+        assert hash(self.kls("foon")) == hash("foon")
+        assert hash(self.kls("foon.dar")) == hash("foon.dar")
 
     def test_caching(self):
         l = [id(self.kls("fa2341f%s" % x)) for x in "abcdefghij"]
-        self.assertEqual(id(self.kls("fa2341fa")), l[0])
+        assert id(self.kls("fa2341fa")) == l[0]
 
     def test_eq(self):
-        self.assertEqual(self.kls("asdf", disable_inst_caching=True),
-                         self.kls("asdf", disable_inst_caching=True))
+        assert self.kls("asdf", disable_inst_caching=True) == \
+            self.kls("asdf", disable_inst_caching=True)
 
-        self.assertNotEqual(self.kls("asdf2", disable_inst_caching=True),
-                            self.kls("asdf", disable_inst_caching=True))
+        assert self.kls("asdf2", disable_inst_caching=True) != \
+            self.kls("asdf", disable_inst_caching=True)
 
     def test_it(self):
         class maze(object):
@@ -177,15 +183,16 @@ class Test_chained_getter(TestCase):
         d = {}
         m = maze(d)
         f = self.kls
-        self.assertEqual(f('foon')(m), m)
+        assert f('foon')(m) == m
         d["foon"] = 1
-        self.assertEqual(f('foon')(m), 1)
-        self.assertEqual(f('dar.foon')(m), 1)
-        self.assertEqual(f('.'.join(['blah']*10))(m), m)
-        self.assertRaises(AttributeError, f('foon.dar'), m)
+        assert f('foon')(m) == 1
+        assert f('dar.foon')(m) == 1
+        assert f('.'.join(['blah']*10))(m) == m
+        with pytest.raises(AttributeError):
+            f('foon.dar')(m)
 
 
-class Test_native_jit_attr(TestCase):
+class Test_native_jit_attr(object):
 
     kls = staticmethod(klass._native_internal_jit_attr)
 
@@ -232,7 +239,7 @@ class Test_native_jit_attr(TestCase):
         return cls()
 
     def assertState(self, instance, sets=0, reflects=0, invokes=0, value=54321):
-        self.assertEqual(instance.attr, value)
+        assert instance.attr == value
         sets = [instance] * sets
         reflects = [instance] * reflects
         invokes = [instance] * invokes
@@ -240,13 +247,9 @@ class Test_native_jit_attr(TestCase):
                "reflects=%r, invokes=%r" % (
                    "%s", "%s", "%s", instance._sets, instance._reflects,
                    instance._invokes))
-        self.assertEqual(instance._sets, sets,
-                         msg=(msg % ("sets", instance._sets, sets,)))
-        self.assertEqual(instance._reflects, reflects,
-                         msg=(msg % ("reflects", instance._reflects,
-                                     reflects,)))
-        self.assertEqual(instance._invokes, invokes,
-                         msg=(msg % ("invokes", instance._invokes, invokes,)))
+        assert instance._sets == sets, msg % ("sets", instance._sets, sets)
+        assert instance._reflects == reflects, msg % ("reflects", instance._reflects, reflects)
+        assert instance._invokes == invokes, msg % ("invokes", instance._invokes, invokes)
 
     def test_implementation(self):
         obj = self.mk_inst()
@@ -275,8 +278,8 @@ class Test_native_jit_attr(TestCase):
                 return now
 
         o = cls()
-        self.assertEqual(o.my_attr, now)
-        self.assertEqual(o._my_attr, now)
+        assert o.my_attr == now
+        assert o._my_attr == now
 
         class cls(object):
             @self.jit_attr
@@ -287,11 +290,11 @@ class Test_native_jit_attr(TestCase):
                 raise AssertionError("setattr was invoked")
 
         o = cls()
-        self.assertEqual(o.attr2, now)
-        self.assertEqual(o._attr2, now)
+        assert o.attr2 == now
+        assert o._attr2 == now
         del o._attr2
-        self.assertEqual(o.attr2, now)
-        self.assertEqual(o._attr2, now)
+        assert o.attr2 == now
+        assert o._attr2 == now
 
     def test_jit_attr_named(self):
         now = time()
@@ -306,8 +309,8 @@ class Test_native_jit_attr(TestCase):
                 raise AssertionError("setattr was invoked")
 
         o = cls()
-        self.assertEqual(o.my_attr, now)
-        self.assertEqual(o._blah, now)
+        assert o.my_attr == now
+        assert o._blah == now
 
         class cls(object):
             @self.jit_attr_named("_blah2", use_cls_setattr=True)
@@ -319,10 +322,10 @@ class Test_native_jit_attr(TestCase):
                 object.__setattr__(self, attr, value)
 
         o = cls()
-        self.assertFalse(hasattr(o, 'invoked'))
-        self.assertEqual(o.my_attr, now)
-        self.assertEqual(o._blah2, now)
-        self.assertTrue(o.invoked)
+        assert not hasattr(o, 'invoked')
+        assert o.my_attr == now
+        assert o._blah2 == now
+        assert o.invoked
 
     def test_jit_attr_ext_method(self):
         now = time()
@@ -342,34 +345,36 @@ class Test_native_jit_attr(TestCase):
 
         base.attr = self.jit_attr_ext_method('f1', '_attr')
         o = base()
-        self.assertEqual(o.attr, now)
-        self.assertEqual(o._attr, now)
-        self.assertEqual(o.attr, now)
+        assert o.attr == now
+        assert o._attr == now
+        assert o.attr == now
 
         base.attr = self.jit_attr_ext_method('f1', '_attr', use_cls_setattr=True)
         o = base()
-        self.assertRaises(TypeError, getattr, o, 'attr')
+        with pytest.raises(TypeError):
+            getattr(o, 'attr')
         base._setattr_allowed = True
-        self.assertEqual(o.attr, now)
+        assert o.attr == now
 
         base.attr = self.jit_attr_ext_method('f2', '_attr2')
         o = base()
-        self.assertEqual(o.attr, now2)
-        self.assertEqual(o._attr2, now2)
+        assert o.attr == now2
+        assert o._attr2 == now2
 
         # finally, check that it's doing lookups rather then storing the func.
         base.attr = self.jit_attr_ext_method('func', '_attr2')
         o = base()
         # no func...
-        self.assertRaises(AttributeError, getattr, o, 'attr')
+        with pytest.raises(AttributeError):
+            getattr(o, 'attr')
         base.func = base.f1
-        self.assertEqual(o.attr, now)
-        self.assertEqual(o._attr2, now)
+        assert o.attr == now
+        assert o._attr2 == now
         # check caching...
         base.func = base.f2
-        self.assertEqual(o.attr, now)
+        assert o.attr == now
         del o._attr2
-        self.assertEqual(o.attr, now2)
+        assert o.attr == now2
 
     def test_check_singleton_is_compare(self):
         def throw_assert(*args, **kwds):
@@ -394,13 +399,13 @@ class Test_native_jit_attr(TestCase):
                 l.append(None)
                 return next(i)
         f = foo()
-        self.assertEqual(f.blah, 0)
-        self.assertEqual(len(l), 1)
-        self.assertEqual(f.blah, 0)
-        self.assertEqual(len(l), 1)
+        assert f.blah == 0
+        assert len(l) == 1
+        assert f.blah == 0
+        assert len(l) == 1
         del f.blah
-        self.assertEqual(f.blah, 1)
-        self.assertEqual(len(l), 2)
+        assert f.blah == 1
+        assert len(l) == 2
 
     def test_cached_property(self):
         l = []
@@ -413,23 +418,22 @@ class Test_native_jit_attr(TestCase):
             blah = klass.cached_property_named("blah")(named)
 
         f = foo()
-        self.assertEqual(f.blah, 0)
-        self.assertEqual(len(l), 1)
-        self.assertEqual(f.blah, 0)
-        self.assertEqual(len(l), 1)
+        assert f.blah == 0
+        assert len(l) == 1
+        assert f.blah == 0
+        assert len(l) == 1
         del f.blah
-        self.assertEqual(f.blah, 1)
-        self.assertEqual(len(l), 2)
+        assert f.blah == 1
+        assert len(l) == 2
 
 
+@pytest.mark.skipif(klass._internal_jit_attr is klass._native_internal_jit_attr,
+                    reason="cpython extension isn't available")
 class Test_cpy_jit_attr(Test_native_jit_attr):
-
     kls = staticmethod(klass._internal_jit_attr)
-    if klass._internal_jit_attr is klass._native_internal_jit_attr:
-        skip = "extension is missing"
 
 
-class test_aliased_attr(TestCase):
+class Test_aliased_attr(object):
 
     func = staticmethod(klass.alias_attr)
 
@@ -438,14 +442,16 @@ class test_aliased_attr(TestCase):
             attr = self.func("dar.blah")
 
         o = cls()
-        self.assertRaises(AttributeError, getattr, o, 'attr')
+        with pytest.raises(AttributeError):
+            getattr(o, 'attr')
         o.dar = "foon"
 
-        self.assertRaises(AttributeError, getattr, o, 'attr')
+        with pytest.raises(AttributeError):
+            getattr(o, 'attr')
         o.dar = o
         o.blah = "monkey"
 
-        self.assertEqual(o.attr, 'monkey')
+        assert o.attr == 'monkey'
 
         # verify it'll cross properties...
         class blah(object):
@@ -455,13 +461,13 @@ class test_aliased_attr(TestCase):
             @property
             def foon(self):
                 return blah()
-
             alias = self.func("foon.target")
+
         o = cls()
-        self.assertIdentical(o.alias, blah.target)
+        assert o.alias is blah.target
 
 
-class test_cached_hash(TestCase):
+class Test_cached_hash(object):
     func = staticmethod(klass.cached_hash)
 
     def test_it(self):
@@ -473,15 +479,15 @@ class test_cached_hash(TestCase):
                 self.invoked.append(self)
                 return now
         o = cls()
-        self.assertEqual(hash(o), now)
-        self.assertEqual(o.invoked, [o])
+        assert hash(o) == now
+        assert o.invoked == [o]
         # ensure it cached...
-        self.assertEqual(hash(o), now)
-        self.assertEqual(o.invoked, [o])
-        self.assertEqual(o._hash, now)
+        assert hash(o) == now
+        assert o.invoked == [o]
+        assert o._hash == now
 
 
-class test_native_reflective_hash(TestCase):
+class Test_native_reflective_hash(object):
     func = staticmethod(klass.native_reflective_hash)
 
     def test_it(self):
@@ -489,75 +495,77 @@ class test_native_reflective_hash(TestCase):
             __hash__ = self.func('_hash')
 
         obj = cls()
-        self.assertRaises(AttributeError, hash, obj)
+        with pytest.raises(AttributeError):
+            hash(obj)
         obj._hash = 1
-        self.assertEqual(hash(obj), 1)
+        assert hash(obj) == 1
         obj._hash = 123123123
-        self.assertEqual(hash(obj), 123123123)
+        assert hash(obj) == 123123123
         # verify it's not caching in any form
         del obj._hash
-        self.assertRaises(AttributeError, hash, obj)
+        with pytest.raises(AttributeError):
+            hash(obj)
 
         class cls2(object):
             __hash__ = self.func('_dar')
         obj = cls2()
-        self.assertRaises(AttributeError, hash, obj)
+        with pytest.raises(AttributeError):
+            hash(obj)
         obj._dar = 4
-        self.assertEqual(hash(obj), 4)
+        assert hash(obj) == 4
 
 
-class test_cpy_reflective_hash(test_native_reflective_hash):
-
-    kls = staticmethod(klass.reflective_hash)
-    if klass.reflective_hash is klass.native_reflective_hash:
-        skip = "cpython extension isn't available"
+@pytest.mark.skipif(klass.reflective_hash is klass.native_reflective_hash,
+                    reason="cpython extension isn't available")
+class Test_cpy_reflective_hash(Test_native_reflective_hash):
+    func = staticmethod(klass.reflective_hash)
 
 
 cpy_loaded_Test = mk_cpy_loadable_testcase(
     "snakeoil._klass", "snakeoil.klass", "reflective_hash", "reflective_hash")
 
 
-class TestImmutableInstance(TestCase):
+class TestImmutableInstance(object):
 
     def test_metaclass(self):
-        def f(scope):
-            scope["__metaclass__"] = klass.immutable_instance
-
-        self.common_test(f)
+        self.common_test(lambda x: x, metaclass=klass.immutable_instance)
 
     def test_injection(self):
-
         def f(scope):
             klass.inject_immutable_instance(scope)
 
         self.common_test(f)
 
-    @not_a_test
-    def common_test(self, modify_kls):
-        class kls(object):
+    def common_test(self, modify_kls, **kwargs):
+        class kls(object, **kwargs):
             modify_kls(locals())
 
         o = kls()
-        self.assertRaises(AttributeError, setattr, o, "dar", "foon")
-        self.assertRaises(AttributeError, delattr, o, "dar")
+        with pytest.raises(AttributeError):
+            setattr(o, "dar", "foon")
+        with pytest.raises(AttributeError):
+            delattr(o, "dar")
 
         object.__setattr__(o, 'dar', 'foon')
-        self.assertRaises(AttributeError, delattr, o, "dar")
+        with pytest.raises(AttributeError):
+            delattr(o, "dar")
 
         # ensure it only sets it if nothing is in place already.
 
-        class kls(object):
+        class kls(object, **kwargs):
             def __setattr__(self, attr, value):
                 raise TypeError(self)
 
             modify_kls(locals())
 
         o = kls()
-        self.assertRaises(TypeError, setattr, o, "dar", "foon")
-        self.assertRaises(AttributeError, delattr, o, "dar")
+        with pytest.raises(TypeError):
+            setattr(o, "dar", "foon")
+        with pytest.raises(AttributeError):
+            delattr(o, "dar")
 
 
-class TestAliasMethod(TestCase):
+class TestAliasMethod(object):
 
     func = staticmethod(klass.alias_method)
 
@@ -567,42 +575,42 @@ class TestAliasMethod(TestCase):
             lfunc = self.func("__len__")
 
         c = kls()
-        self.assertEqual(c.__len__(), c.lfunc())
+        assert c.__len__() == c.lfunc()
         c.__len__ = lambda: 4
-        self.assertEqual(c.__len__(), c.lfunc())
+        assert c.__len__() == c.lfunc()
 
 
-class TestPatch(TestCase):
+class TestPatch(object):
 
-    def setUp(self):
+    def setup_method(self, method):
         # cache original methods
         self._math_ceil = math.ceil
         self._math_floor = math.floor
 
-    def tearDown(self):
+    def teardown_method(self, method):
         # restore original methods
         math.ceil = self._math_ceil
         math.floor = self._math_floor
 
     def test_patch(self):
         n = 0.1
-        self.assertEqual(math.ceil(n), 1)
+        assert math.ceil(n) == 1
 
         @klass.patch('math.ceil')
         def ceil(orig_ceil, n):
             return math.floor(n)
 
-        self.assertEqual(math.ceil(n), 0)
+        assert math.ceil(n) == 0
 
     def test_multiple_patches(self):
         n = 1.1
-        self.assertEqual(math.ceil(n), 2)
-        self.assertEqual(math.floor(n), 1)
+        assert math.ceil(n) == 2
+        assert math.floor(n) == 1
 
         @klass.patch('math.ceil')
         @klass.patch('math.floor')
         def zero(orig_func, n):
             return 0
 
-        self.assertEqual(math.ceil(n), 0)
-        self.assertEqual(math.floor(n), 0)
+        assert math.ceil(n) == 0
+        assert math.floor(n) == 0

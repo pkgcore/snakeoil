@@ -1,24 +1,21 @@
 # Copyright: 2005-2011 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
-from snakeoil.test import TestCase, mixins
+from snakeoil.test import mixins
 
 
-class TestDemandLoadTargets(mixins.PythonNamespaceWalker, TestCase):
+class TestDemandLoadTargets(mixins.PythonNamespaceWalker):
 
     target_namespace = 'snakeoil'
     ignore_all_import_failures = False
 
-    def setUp(self):
+    def setup_method(self, method):
         self._failures = []
 
-    def tearDown(self):
-        if not self._failures:
-            return
-
+    def teardown_method(self, method):
         msg = "\n".join(sorted("%s: error %s" % (target, e)
                                for target, e in self._failures))
-        self.fail("bad demandload targets:\n%s" % (msg,))
+        assert not self._failures, "bad demandload targets:\n%s" % (msg,)
 
     def test_demandload_targets(self):
         for x in self.walk_namespace(
