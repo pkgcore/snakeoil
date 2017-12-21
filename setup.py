@@ -87,7 +87,6 @@ setup(**dict(pkgdist_setup,
         pkgdist_cmds,
         build_ext=pkgdist.build_ext,
         config=config,
-        test=pkgdist.test,
         ),
     classifiers=(
         'Intended Audience :: Developers',
