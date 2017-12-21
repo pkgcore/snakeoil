@@ -1,7 +1,7 @@
 [run]
 source = snakeoil
 branch = True
-omit = src/snakeoil/test/*, src/snakeoil/dist/*, */_verinfo.py
+omit = tests/*, src/snakeoil/dist/*, */_verinfo.py
 
 [paths]
 source =
