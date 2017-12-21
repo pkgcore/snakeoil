@@ -8,13 +8,15 @@
 
 /build
 /cache
+/.cache
 /dist
 _trial_temp
 /doc/_build
 /doc/api
 
 # unit testing / coverage
-.coverage
+.coverage*
+/htmlcov
 .tox
 
 # distutils/setuptools
