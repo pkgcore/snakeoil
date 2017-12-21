@@ -43,9 +43,9 @@ __all__ = (
 import errno
 from functools import partial
 
-from snakeoil import stringio, klass
-from snakeoil.currying import post_curry
-from snakeoil.demandload import demandload
+from . import stringio, klass
+from .currying import post_curry
+from .demandload import demandload
 
 demandload(
     'io',

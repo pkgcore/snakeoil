@@ -49,7 +49,7 @@ import os
 import sys
 import threading
 
-from snakeoil.modules import load_any
+from .modules import load_any
 
 # There are some demandloaded imports below the definition of demandload.
 

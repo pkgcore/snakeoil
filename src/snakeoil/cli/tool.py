@@ -9,8 +9,8 @@ import os
 from signal import signal, SIGPIPE, SIG_DFL, SIGINT
 import sys
 
-from snakeoil import formatters
-from snakeoil.demandload import demandload
+from .. import formatters
+from ..demandload import demandload
 
 demandload(
     'io',

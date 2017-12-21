@@ -10,7 +10,7 @@ __all__ = ("FailedImport", "load_module", "load_attribute", "load_any")
 from importlib import import_module
 import sys
 
-from snakeoil.compatibility import IGNORED_EXCEPTIONS
+from .compatibility import IGNORED_EXCEPTIONS
 
 
 class FailedImport(ImportError):

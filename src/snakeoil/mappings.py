@@ -16,7 +16,7 @@ from collections import defaultdict
 from itertools import chain, filterfalse
 import operator
 
-from snakeoil.klass import get, contains, steal_docs
+from .klass import get, contains, steal_docs
 
 
 class DictMixin(object):
@@ -694,13 +694,12 @@ def native_attr_get(self, key, default=None):
     return getattr(self, key, default)
 
 try:
-    from snakeoil._klass import (
-        attr_getitem, attr_setitem, attr_update, attr_contains, attr_pop,
-        attr_get)
+    from ._klass import (
+        attr_getitem, attr_setitem, attr_update, attr_contains, attr_pop, attr_get)
     if _use_slow_delitem:
-        from snakeoil._klass import attr_delitem_slow as attr_delitem
+        from ._klass import attr_delitem_slow as attr_delitem
     else:
-        from snakeoil._klass import attr_delitem_fast as attr_delitem
+        from ._klass import attr_delitem_fast as attr_delitem
 except ImportError:
     attr_getitem = native_attr_getitem
     attr_setitem = object.__setattr__

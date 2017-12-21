@@ -6,7 +6,7 @@ from contextlib import contextmanager
 import os
 import sys
 
-from snakeoil.demandload import demandload
+from .demandload import demandload
 
 demandload(
     'errno',

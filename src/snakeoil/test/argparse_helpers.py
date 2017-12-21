@@ -5,8 +5,8 @@
 from copy import copy
 import difflib
 
-from snakeoil.caching import WeakInstMeta
-from snakeoil.formatters import PlainTextFormatter
+from ..caching import WeakInstMeta
+from ..formatters import PlainTextFormatter
 
 
 class Exit(Exception):

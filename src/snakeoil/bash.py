@@ -13,9 +13,9 @@ libtool .la files that are bash compatible, but non-executable.
 
 from shlex import shlex
 
-from snakeoil.demandload import demand_compile_regexp
-from snakeoil.fileutils import readlines_utf8
-from snakeoil.mappings import ProtectedDict
+from .demandload import demand_compile_regexp
+from .fileutils import readlines_utf8
+from .mappings import ProtectedDict
 
 demand_compile_regexp('line_cont_regexp', r'^(.*[^\\]|)\\$')
 demand_compile_regexp('inline_comment_regexp', r'^.*\s#.*$')

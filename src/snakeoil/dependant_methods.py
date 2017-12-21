@@ -48,8 +48,8 @@ finish invoked
 >>> # note, no output since finish has already been ran.
 """
 
-from snakeoil.currying import pre_curry
-from snakeoil.sequences import iflatten_instance
+from .currying import pre_curry
+from .sequences import iflatten_instance
 
 __all__ = ("ForcedDepends",)
 

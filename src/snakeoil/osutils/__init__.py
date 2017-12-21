@@ -54,13 +54,13 @@ import sys
 # pylint: disable=E0611
 
 try:
-    from snakeoil.osutils import _readdir as module
+    from . import _readdir as module
 except ImportError:
-    from snakeoil.osutils import native_readdir as module
+    from . import native_readdir as module
 
 # delay this... it's a 1ms hit, and not a lot of the consumers
 # force utf8 codepaths yet.
-from snakeoil.klass import steal_docs
+from ..klass import steal_docs
 
 listdir = module.listdir
 listdir_dirs = module.listdir_dirs
@@ -275,7 +275,7 @@ def native_normpath(mypath):
 native_join = os.path.join
 
 try:
-    from snakeoil._posix import normpath, join
+    from .._posix import normpath, join
 except ImportError:
     normpath = native_normpath
     join = native_join

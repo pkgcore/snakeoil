@@ -7,7 +7,7 @@ import ctypes
 from ctypes.util import find_library
 import os
 
-from snakeoil.osutils import supported_systems
+from . import supported_systems
 
 # mount flags synced from sys/mount.h, see the mount(2) man page for details.
 MS_RDONLY = 1

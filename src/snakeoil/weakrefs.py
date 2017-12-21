@@ -18,11 +18,11 @@ from weakref import ref, WeakKeyDictionary
 try:
     # No name in module
     # pylint: disable=E0611
-    from snakeoil._caching import WeakValCache
+    from ._caching import WeakValCache
 except ImportError:
     from weakref import WeakValueDictionary as WeakValCache
 
-from snakeoil.obj import make_kls, BaseDelayedObject
+from .obj import make_kls, BaseDelayedObject
 
 
 def finalize_instance(obj, weakref_inst):

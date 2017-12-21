@@ -10,7 +10,7 @@ from string import capwords
 import sys
 from textwrap import dedent
 
-from snakeoil.cli import arghparse
+from ..cli import arghparse
 
 # enable extended docs keyword arg support
 arghparse._generate_docs = True

@@ -23,9 +23,9 @@ from functools import partial, wraps
 from importlib import import_module
 from operator import attrgetter
 
-from snakeoil import caching, compatibility
-from snakeoil.currying import post_curry
-from snakeoil.demandload import demandload
+from . import caching, compatibility
+from .currying import post_curry
+from .demandload import demandload
 
 demandload('inspect')
 
@@ -176,7 +176,7 @@ class _raw_native_internal_jit_attr(object):
 
 try:
     # pylint: disable=unused-import
-    from snakeoil._klass import (
+    from ._klass import (
         GetAttrProxy, contains, get,
         generic_eq as generic_attr_eq, generic_ne as generic_attr_ne,
         reflective_hash, _internal_jit_attr)

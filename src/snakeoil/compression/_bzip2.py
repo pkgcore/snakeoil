@@ -16,8 +16,8 @@ __all__ = ("compress_data", "decompress_data")
 from functools import partial
 import multiprocessing
 
-from snakeoil import process
-from snakeoil.compression import _util
+from .. import process
+from ..compression import _util
 
 # Unused import
 # pylint: disable=W0611

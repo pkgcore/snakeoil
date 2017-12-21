@@ -80,7 +80,7 @@ try to proxy builtin objects like tuples, lists, dicts, sets, etc.
 
 __all__ = ("DelayedInstantiation", "DelayedInstantiation_kls", "make_kls", "popattr")
 
-from snakeoil import klass
+from . import klass
 
 
 # For our proxy, we have two sets of descriptors-

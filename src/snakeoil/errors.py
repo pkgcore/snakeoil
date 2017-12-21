@@ -3,7 +3,7 @@
 
 import sys
 
-from snakeoil.demandload import demandload
+from .demandload import demandload
 
 demandload(
     'traceback',

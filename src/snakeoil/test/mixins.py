@@ -11,8 +11,8 @@ import stat
 import sys
 import tempfile
 
-from snakeoil.test import TestCase
-from snakeoil.compatibility import IGNORED_EXCEPTIONS
+from . import TestCase
+from ..compatibility import IGNORED_EXCEPTIONS
 
 
 class TempDirMixin(TestCase):

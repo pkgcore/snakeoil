@@ -1,7 +1,6 @@
 # Copyright: 2006-2011 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
-
 """
 default chksum implementation- sha1, sha256, rmd160, and md5
 
@@ -16,9 +15,9 @@ from sys import intern
 import threading
 import queue
 
-from snakeoil import modules
-from snakeoil.data_source import base as base_data_source
-from snakeoil.demandload import demandload
+from .. import modules
+from ..data_source import base as base_data_source
+from ..demandload import demandload
 
 demandload(
     'multiprocessing:cpu_count',

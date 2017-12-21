@@ -3,7 +3,6 @@
 # Copyright: 2004-2005 Gentoo Foundation
 # License: GPL2
 
-
 """
 subprocess related functionality
 """
@@ -19,10 +18,9 @@ import os
 import signal
 import sys
 
-from snakeoil.demandload import demandload
-from snakeoil.mappings import ProtectedDict
-from snakeoil.osutils import access
-from snakeoil.process import find_binary, CommandNotFound, closerange
+from . import find_binary, CommandNotFound, closerange
+from ..mappings import ProtectedDict
+from ..osutils import access
 
 BASH_BINARY = find_binary('bash', fallback='/bin/bash')
 SANDBOX_BINARY = find_binary('sandbox', fallback='/usr/bin/sandbox')

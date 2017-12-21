@@ -7,7 +7,7 @@
 import os
 import sys
 
-from snakeoil.demandload import demandload
+from ..demandload import demandload
 
 demandload(
     'errno',
@@ -147,7 +147,7 @@ try:
         # the optimized closerange works for sure on linux/glibc; for others
         # whitelist expand this as needed.
         raise ImportError()
-    from snakeoil._posix import closerange
+    from .._posix import closerange
     # monkey patch os.closerange with the saner version;
     # this makes subprocess.Popen calls less noisy, and slightly faster.
     # only do this if we can drop our optimized version in.

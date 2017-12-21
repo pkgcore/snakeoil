@@ -3,7 +3,7 @@
 
 from importlib import import_module
 
-from snakeoil import klass
+from .. import klass
 
 
 class _transform_source(object):

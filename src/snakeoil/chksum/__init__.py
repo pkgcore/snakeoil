@@ -5,8 +5,8 @@
 chksum verification/generation subsystem
 """
 
-from snakeoil import klass
-from snakeoil.demandload import demandload
+from .. import klass
+from ..demandload import demandload
 
 demandload(
     "importlib:import_module",

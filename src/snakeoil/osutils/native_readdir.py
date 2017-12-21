@@ -10,7 +10,7 @@ import os
 from stat import (S_IFDIR, S_IFREG, S_IFCHR, S_IFBLK, S_IFIFO, S_IFLNK, S_IFSOCK,
                   S_IFMT, S_ISDIR, S_ISREG)
 
-from snakeoil.mappings import ProtectedDict
+from ..mappings import ProtectedDict
 
 listdir = os.listdir
 

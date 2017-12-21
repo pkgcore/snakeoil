@@ -58,7 +58,7 @@ Simple usage example:
 
 __all__ = ("WeakInstMeta",)
 
-from snakeoil.demandload import demandload
+from .demandload import demandload
 demandload(
     'warnings',
     'weakref:WeakValueDictionary',
@@ -135,7 +135,7 @@ class native_WeakInstMeta(type):
 try:
     # No name in module
     # pylint: disable=E0611
-    from snakeoil._caching import WeakInstMeta
+    from ._caching import WeakInstMeta
     cpy_WeakInstMeta = WeakInstMeta
 except ImportError:
     cpy_WeakInstMeta = None

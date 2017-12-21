@@ -13,10 +13,10 @@ del types
 from functools import partial
 import os
 
-from snakeoil.compatibility import IGNORED_EXCEPTIONS
-from snakeoil.currying import pretty_docs
-from snakeoil.klass import GetAttrProxy
-from snakeoil.demandload import demandload
+from .compatibility import IGNORED_EXCEPTIONS
+from .currying import pretty_docs
+from .demandload import demandload
+from .klass import GetAttrProxy
 
 demandload(
     'io',
@@ -209,7 +209,7 @@ _mk_readlines = partial(
     _mk_pretty_derived_func, _fileutils.native_readlines, 'readlines')
 
 try:
-    from snakeoil._posix import readfile, readlines
+    from ._posix import readfile, readlines
     readfile_ascii = readfile
     readlines_ascii = readlines
 except ImportError:

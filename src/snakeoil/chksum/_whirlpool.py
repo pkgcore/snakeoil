@@ -629,7 +629,7 @@ rc = (
 
 # See if we can use a C version of this for speed reasons.
 try:
-    from snakeoil.chksum._whirlpool_cdo import CDo, init
+    from ._whirlpool_cdo import CDo, init
     init(C0, C1, C2, C3, C4, C5, C6, C7)
     del init
 except ImportError:

@@ -10,9 +10,9 @@ import subprocess
 import sys
 import textwrap
 
-from snakeoil.dist.generate_man_rsts import ManConverter
-from snakeoil.osutils import force_symlink
-from snakeoil.contexts import syspath
+from .generate_man_rsts import ManConverter
+from ..osutils import force_symlink
+from ..contexts import syspath
 
 
 def _generate_custom(project, docdir, gendir):

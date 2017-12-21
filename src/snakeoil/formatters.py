@@ -9,9 +9,9 @@ from functools import partial
 import io
 import os
 
-from snakeoil.demandload import demandload
-from snakeoil.klass import GetAttrProxy, steal_docs
-from snakeoil.mappings import defaultdictkey
+from .demandload import demandload
+from .klass import GetAttrProxy, steal_docs
+from .mappings import defaultdictkey
 
 demandload('locale')
 
@@ -319,7 +319,7 @@ class native_PlainTextFormatter(Formatter):
         return ''
 
 try:
-    from snakeoil._formatters import PlainTextFormatter, StreamClosed
+    from ._formatters import PlainTextFormatter, StreamClosed
 
     class PlainTextFormatter(PlainTextFormatter, Formatter):
         __doc__ = native_PlainTextFormatter.__doc__

@@ -34,7 +34,7 @@ __all__ = ('text_readonly', 'text_writable', 'bytes_readonly', 'bytes_writable')
 
 import io
 
-from snakeoil import currying
+from . import currying
 
 
 def _generic_immutable_method(attr, self, *a, **kwds):

@@ -14,6 +14,7 @@ import traceback
 import unittest
 import warnings
 
+# not relative imports so protect_process() works properly
 from snakeoil import fileutils, klass
 from snakeoil.compatibility import IGNORED_EXCEPTIONS
 

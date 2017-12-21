@@ -11,8 +11,8 @@ __all__ = (
     "ProtectedSet", "RefCountingSet"
 )
 
-from snakeoil.demandload import demandload
-from snakeoil.klass import steal_docs
+from .demandload import demandload
+from .klass import steal_docs
 
 demandload(
     'itertools:chain,filterfalse',
@@ -236,7 +236,7 @@ def _ProtectedSet_native_contains(self, key):
     return key in self._orig or key in self._new
 
 try:
-    from snakeoil._klass import ProtectedSet_contains
+    from ._klass import ProtectedSet_contains
 except ImportError:
     ProtectedSet_contains = _ProtectedSet_native_contains
 

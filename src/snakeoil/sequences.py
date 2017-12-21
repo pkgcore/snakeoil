@@ -3,16 +3,16 @@
 
 """sequence related operations and classes"""
 
-from operator import itemgetter
-
-from snakeoil.iterables import expandable_chain
-from snakeoil.klass import steal_docs
-
 __all__ = (
     'unstable_unique', 'stable_unique', 'iter_stable_unique',
     'iflatten_instance', 'iflatten_func', 'ChainedLists', 'predicate_split',
     'namedtuple', 'split_negations',
 )
+
+from operator import itemgetter
+
+from .iterables import expandable_chain
+from .klass import steal_docs
 
 
 def unstable_unique(sequence):
@@ -142,7 +142,7 @@ def native_iflatten_func(l, skip_func):
 try:
     # No name "readdir" in module osutils
     # pylint: disable=E0611
-    from snakeoil._sequences import iflatten_instance, iflatten_func
+    from ._sequences import iflatten_instance, iflatten_func
     cpy_builtin = True
 except ImportError:
     cpy_builtin = False

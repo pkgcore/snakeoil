@@ -37,7 +37,7 @@ if possible.
 from functools import partial
 import sys
 
-from snakeoil.compatibility import IGNORED_EXCEPTIONS
+from .compatibility import IGNORED_EXCEPTIONS
 
 __all__ = ("pre_curry", "post_curry", "pretty_docs")
 

@@ -8,9 +8,9 @@ from functools import partial
 import os
 import sys
 
-from snakeoil import klass
-from snakeoil.demandload import demandload
-from snakeoil.mappings import ImmutableDict
+from .. import klass
+from ..demandload import demandload
+from ..mappings import ImmutableDict
 
 demandload(
     'itertools',
