@@ -8,7 +8,7 @@ import socket
 import sys
 import unittest
 
-from snakeoil.contexts import chdir, syspath, SplitExec, Namespace
+from snakeoil.contexts import chdir, syspath, splitexec, SplitExec, Namespace
 from snakeoil.test.mixins import TempDirMixin
 
 
@@ -103,6 +103,17 @@ class TestSplitExec(unittest.TestCase):
             with ChildSetupException() as c:
                 pass
         self.assertEqual(cm.exception.errno, errno.EBUSY)
+
+
+class TestSplitExecDecorator(unittest.TestCase):
+
+    def setUp(self):
+        self.pid = os.getpid()
+
+    @splitexec
+    def test_separate_func_process(self):
+        # code inside the decorated func is run in a different process
+        self.assertNotEqual(self.pid, os.getpid())
 
 
 @unittest.skipUnless(sys.platform.startswith('linux'), 'supported on Linux only')

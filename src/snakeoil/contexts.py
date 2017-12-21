@@ -3,6 +3,7 @@
 """Various with-statement context utilities."""
 
 from contextlib import contextmanager
+from functools import wraps
 import os
 import sys
 
@@ -256,6 +257,16 @@ class SplitExec(object):
                 frame = frame.f_back
             self.__frame = frame  # pylint: disable=W0201
             return frame
+
+
+def splitexec(func):
+    """Decorator to run the decorated function in another process."""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        with SplitExec():
+            return func(*args, **kwargs)
+    return wrapper
 
 
 class Namespace(SplitExec):
