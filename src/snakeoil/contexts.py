@@ -284,6 +284,18 @@ class Namespace(SplitExec):
         namespaces.simple_unshare(hostname=self._hostname, **self._namespaces)
 
 
+def namespace(**namespaces):
+    """Decorator to run the decorated function in a specified namespace."""
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            with Namespace(**namespaces):
+                return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
 @contextmanager
 def chdir(path):
     """Context manager that changes the current working directory.

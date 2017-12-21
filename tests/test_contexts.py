@@ -8,7 +8,7 @@ import socket
 import sys
 import unittest
 
-from snakeoil.contexts import chdir, syspath, splitexec, SplitExec, Namespace
+from snakeoil.contexts import chdir, syspath, namespace, splitexec, SplitExec, Namespace
 from snakeoil.test.mixins import TempDirMixin
 
 
@@ -133,3 +133,22 @@ class TestNamespace(unittest.TestCase):
             ns_hostname, _, ns_domainname = socket.getfqdn().partition('.')
             self.assertEqual(ns_hostname, 'host')
             self.assertEqual(ns_domainname, '')
+
+
+@unittest.skipUnless(sys.platform.startswith('linux'), 'supported on Linux only')
+class TestNamespaceDecorator(unittest.TestCase):
+
+    @unittest.skipUnless(os.path.exists('/proc/self/ns/user'),
+                         'user namespace support required')
+    @namespace(user=True)
+    def test_user_namespace(self):
+        self.assertEqual(os.getuid(), 0)
+
+    @unittest.skipUnless(
+        os.path.exists('/proc/self/ns/uts') and os.path.exists('/proc/self/ns/user'),
+        'user and uts namespace support required')
+    @namespace(user=True, uts=True, hostname='host')
+    def test_uts_namespace(self):
+        ns_hostname, _, ns_domainname = socket.getfqdn().partition('.')
+        self.assertEqual(ns_hostname, 'host')
+        self.assertEqual(ns_domainname, '')
