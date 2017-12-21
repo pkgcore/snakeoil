@@ -94,7 +94,7 @@ class SplitExec(object):
         # pass back changed local scope vars from the child that can be pickled
         frame = self.__get_context_frame()
         local_vars = {}
-        for k, v in frame.f_locals.iteritems():
+        for k, v in frame.f_locals.items():
             if k not in self.__child_orig_locals or v != self.__child_orig_locals[k]:
                 try:
                     pickle.dumps(v)
@@ -105,8 +105,7 @@ class SplitExec(object):
 
         try:
             self.__pipe.send(exc)
-        except (BrokenPipeError if sys.hexversion >= 0x03030000  # pylint: disable=E0602
-                else OSError, IOError) as e:
+        except BrokenPipeError as e:
             if e.errno in (errno.EPIPE, errno.ESHUTDOWN):
                 pass
             else:

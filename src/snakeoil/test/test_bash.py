@@ -2,8 +2,8 @@
 # Copyright: 2005 Marien Zwart <marienz@gentoo.org>
 # License: BSD/GPL2
 
+from io import StringIO
 import os
-from StringIO import StringIO
 
 from snakeoil.bash import (
     iter_read_bash, read_bash, read_dict, read_bash_dict, BashParseError)

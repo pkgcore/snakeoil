@@ -144,7 +144,7 @@ class ManConverter(object):
             if action_group.description:
                 l.extend(dedent(action_group.description).split("\n"))
 
-            for subcommand, parser in action_group._group_actions[0].choices.iteritems():
+            for subcommand, parser in action_group._group_actions[0].choices.items():
                 subdir_path = self.name.split()[1:]
                 base = os.path.join(self.base_path, *subdir_path)
                 self.__class__(base, "%s %s" % (
@@ -198,7 +198,7 @@ class ManConverter(object):
         text = h.format_help()
         if text.startswith("usage:"):
             text = text[len("usage:"):].lstrip()
-        return filter(None, text.split("\n"))
+        return (x for x in text.split('\n') if x)
 
     def process_parser(self, parser, name):
         # subcommands all have names using the format "command subcommand ...",

@@ -13,7 +13,6 @@ libtool .la files that are bash compatible, but non-executable.
 
 from shlex import shlex
 
-from snakeoil.compatibility import raise_from
 from snakeoil.demandload import demand_compile_regexp
 from snakeoil.fileutils import readlines_utf8
 from snakeoil.mappings import ProtectedDict
@@ -45,7 +44,7 @@ def iter_read_bash(bash_source, allow_inline_comments=True,
     :param allow_line_cont: whether or not to respect line continuations
     :return: yields lines w/ commenting stripped out
     """
-    if isinstance(bash_source, basestring):
+    if isinstance(bash_source, str):
         bash_source = readlines_utf8(bash_source, True)
     s = ''
     for lineno, line in enumerate(bash_source):
@@ -111,7 +110,7 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
 
     close = False
     infile = None
-    if isinstance(bash_source, basestring):
+    if isinstance(bash_source, str):
         f = open(bash_source, "r")
         close = True
         infile = bash_source
@@ -151,7 +150,7 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
                     s.push_token(next_tok)
                 d[key] = val
         except ValueError as e:
-            raise_from(BashParseError(bash_source, s.lineno, str(e)))
+            raise BashParseError(bash_source, s.lineno, str(e)) from e
     finally:
         if close and f is not None:
             f.close()
@@ -188,10 +187,10 @@ def read_dict(bash_source, splitter="=", source_isiter=False,
             line_count += 1
             try:
                 k, v = k.split(splitter, 1)
-            except ValueError:
+            except ValueError as e:
                 if filename == "<unknown>":
                     filename = getattr(bash_source, 'name', bash_source)
-                raise_from(BashParseError(filename, line_count))
+                raise BashParseError(filename, line_count) from e
             if strip:
                 k, v = k.strip(), v.strip()
             if len(v) > 2 and v[0] == v[-1] and v[0] in ("'", '"'):
@@ -255,7 +254,7 @@ class bash_parser(shlex):
         try:
             return shlex.sourcehook(self, newfile)
         except IOError as e:
-            raise_from(BashParseError(newfile, 0, str(e)))
+            raise BashParseError(newfile, 0, str(e)) from e
 
     def read_token(self):
         self.changed_state = []
@@ -291,7 +290,7 @@ class bash_parser(shlex):
                 if prev != pos:
                     l.append(val[prev:pos])
                 if var in self.env:
-                    if not isinstance(self.env[var], basestring):
+                    if not isinstance(self.env[var], str):
                         raise ValueError(
                             "env key %r must be a string, not %s: %r" % (
                                 var, type(self.env[var]), self.env[var]))

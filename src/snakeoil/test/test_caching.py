@@ -10,13 +10,11 @@ from snakeoil import caching
 
 @not_a_test
 def gen_test(WeakInstMeta):
-    class weak_slotted(object):
-        __metaclass__ = WeakInstMeta
+    class weak_slotted(object, metaclass=WeakInstMeta):
         __inst_caching__ = True
         __slots__ = ('one',)
 
-    class weak_inst(object):
-        __metaclass__ = WeakInstMeta
+    class weak_inst(object, metaclass=WeakInstMeta):
         __inst_caching__ = True
         counter = 0
         def __new__(cls, *args, **kwargs):

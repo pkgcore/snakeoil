@@ -9,7 +9,7 @@ from snakeoil import obj
 # sorry, but the name is good, just too long for these tests
 make_DI = obj.DelayedInstantiation
 make_DIkls = obj.DelayedInstantiation_kls
-from snakeoil.compatibility import cmp
+
 
 class TestDelayedInstantiation(TestCase):
 
@@ -17,11 +17,10 @@ class TestDelayedInstantiation(TestCase):
         t = tuple([1, 2, 3])
         o = make_DI(tuple, lambda: t)
         objs = [o, t]
-        self.assertEqual(*map(str, objs))
-        self.assertEqual(*map(repr, objs))
-        self.assertEqual(*map(hash, objs))
+        self.assertEqual(*list(map(str, objs)))
+        self.assertEqual(*list(map(repr, objs)))
+        self.assertEqual(*list(map(hash, objs)))
         self.assertEqual(*objs)
-        self.assertTrue(cmp(t, o) == 0)
         self.assertFalse(t < o)
         self.assertTrue(t <= o)
         self.assertTrue(t == o)
@@ -79,7 +78,7 @@ class TestDelayedInstantiation(TestCase):
 
         # now ensure we always get the same kls back for derivatives
         class foon(object):
-            def __nonzero__(self):
+            def __bool__(self):
                 return True
 
         o = make_DI(foon, foon)

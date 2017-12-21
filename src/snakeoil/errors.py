@@ -43,7 +43,7 @@ def dump_error(raw_exc, msg=None, handle=sys.stderr, tb=None):
         for exc in walk_exception_chain(raw_exc):
             exc_strings.extend(
                 '%s%s' % (prefix, x.strip())
-                for x in filter(None, str(exc).split("\n")))
+                for x in (x for x in str(exc).split("\n") if x))
     if exc_strings:
         if msg and tb:
             handle.write("\n%s:\n" % raw_exc.__class__.__name__)

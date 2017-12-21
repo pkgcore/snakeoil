@@ -45,7 +45,7 @@ This proxying however cannot cover up certain cpython internal issues- specifica
 builtins.
 
 >>> from snakeoil.obj import DelayedInstantiation
->>> delayed_tuple = DelayedInstantiation(tuple, lambda x: tuple(x), xrange(5))
+>>> delayed_tuple = DelayedInstantiation(tuple, lambda x: tuple(x), range(5))
 >>> print(delayed_tuple + (5, 6, 7))
 (0, 1, 2, 3, 4, 5, 6, 7)
 >>> print((5, 6, 7) + delayed_tuple)
@@ -76,41 +76,28 @@ If that doesn't make sense to the reader, it's probably best that the reader not
 try to proxy builtin objects like tuples, lists, dicts, sets, etc.
 """
 
-from __future__ import print_function
+
 
 __all__ = ("DelayedInstantiation", "DelayedInstantiation_kls", "make_kls", "popattr")
 
-from snakeoil import compatibility, klass
+from snakeoil import klass
 
 
 # For our proxy, we have two sets of descriptors-
 # common, "always there" descriptors that come from
 # object itself (this is the base_kls_descriptors sequence)
-# and kls_descriptors.  We have a minor optimization in place
+# and kls_descriptors. We have a minor optimization in place
 # to try and use BaseDelayedObject wherever possible to avoid
 # pointless class creation- thus having two separate lists.
 
-base_kls_descriptors_compat = []
-if compatibility.is_py3k:
-    base_kls_descriptors_compat.extend([
-        "__%s__" % x for x in
-        ("le", "lt", "ge", "gt", "eq", "ne")])
-
-base_kls_descriptors = frozenset(
-    ('__delattr__', '__hash__', '__reduce__',
-     '__reduce_ex__', '__repr__', '__setattr__', '__str__'))
-if base_kls_descriptors_compat:
-    base_kls_descriptors = base_kls_descriptors.union(
-        base_kls_descriptors_compat)
-
-if hasattr(object, '__sizeof__'):
-    # python >=2.6
-    base_kls_descriptors = base_kls_descriptors.union([
-        '__sizeof__', '__format__', '__subclasshook__'])
-
-if hasattr(object, '__dir__'):
-    # python >=3.3
-    base_kls_descriptors = base_kls_descriptors.union(['__dir__'])
+base_kls_descriptors = [
+    '__delattr__', '__hash__', '__reduce__',
+    '__reduce_ex__', '__repr__', '__setattr__', '__str__',
+    '__sizeof__', '__format__', '__subclasshook__',  # >=py2.6
+    '__le__', '__lt__', '__ge__', '__gt__', '__eq__', '__ne__',  # py3
+    '__dir__',  # >=py3.3
+]
+base_kls_descriptors = frozenset(base_kls_descriptors)
 
 
 def popattr(obj, name, default=klass._sentinel):
@@ -180,14 +167,12 @@ class BaseDelayedObject(object):
 
 # note that we ignore __getattribute__; we already handle it.
 kls_descriptors = frozenset([
-    # simple comparison protocol...
-    '__cmp__',
     # rich comparison protocol...
     '__le__', '__lt__', '__eq__', '__ne__', '__gt__', '__ge__',
     # unicode conversion
     '__unicode__',
     # truth...
-    '__nonzero__', '__bool__',
+    '__bool__',
     # container protocol...
     '__len__', '__getitem__', '__setitem__', '__delitem__',
     '__iter__', '__contains__', '__index__', '__reversed__',
@@ -212,9 +197,7 @@ kls_descriptors = frozenset([
 ])
 
 
-if base_kls_descriptors_compat:
-    kls_descriptors = kls_descriptors.difference(base_kls_descriptors_compat)
-
+kls_descriptors = kls_descriptors.difference(base_kls_descriptors)
 descriptor_overrides = {k: klass.alias_method("__obj__.%s" % (k,))
                         for k in kls_descriptors}
 

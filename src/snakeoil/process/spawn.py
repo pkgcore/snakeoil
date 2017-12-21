@@ -116,7 +116,7 @@ def run_exitfuncs():
             exc_info = sys.exc_info()
 
     if exc_info is not None:
-        raise exc_info[0], exc_info[1], exc_info[2]
+        raise exc_info[0](exc_info[1]).with_traceback(exc_info[2])
 
 
 atexit.register(run_exitfuncs)
@@ -274,20 +274,20 @@ def _exec(binary, mycommand, name=None, fd_pipes=None, env=None, gid=None,
     # clobber needed fds ({1:2, 2:1}) we first dupe the fds
     # into unused fds.
     protected = set(fd_pipes)
-    protected.update(fd_pipes.itervalues())
+    protected.update(fd_pipes.values())
     fd_source = _find_unused_pid(protected)
 
-    for trg_fd, src_fd in fd_pipes.iteritems():
+    for trg_fd, src_fd in fd_pipes.items():
         if trg_fd != src_fd:
             if trg_fd not in protected:
                 # Nothing is in the way; move it immediately.
                 os.dup2(src_fd, trg_fd)
             else:
-                x = my_fds[trg_fd] = fd_source.next()
+                x = my_fds[trg_fd] = next(fd_source)
                 os.dup2(src_fd, x)
 
     # reassign whats required now.
-    for trg_fd, src_fd in my_fds.iteritems():
+    for trg_fd, src_fd in my_fds.items():
         os.dup2(src_fd, trg_fd)
 
     # Then close _all_ fds that haven't been explicitly

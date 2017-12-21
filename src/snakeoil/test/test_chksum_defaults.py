@@ -4,10 +4,9 @@
 import os
 import tempfile
 
+from snakeoil import chksum, fileutils
 from snakeoil.test import TestCase, SkipTest
 from snakeoil.currying import post_curry
-from snakeoil.compatibility import is_py3k
-from snakeoil import chksum, fileutils
 from snakeoil.data_source import data_source, local_source
 
 data = "afsd123klawerponzzbnzsdf;h89y23746123;haas"
@@ -35,7 +34,7 @@ class base(object):
     def setUp(self):
         self.get_chf()
         fd, self.fn = tempfile.mkstemp()
-        for i in xrange(multi):
+        for i in range(multi):
             os.write(fd, data.encode())
         os.close(fd)
 
@@ -69,7 +68,7 @@ class ChksumTest(base):
         if self.chf_type == 'size':
             return
         for x in extra_chksums.get(self.chf_type, ()):
-            self.assertEqual(self.chf.str2long(x), long(x, 16))
+            self.assertEqual(self.chf.str2long(x), int(x, 16))
 
     @require_chf
     def test_long2str(self):
@@ -78,7 +77,7 @@ class ChksumTest(base):
         if self.chf_type == 'size':
             return
         for x in extra_chksums.get(self.chf_type, ()):
-            self.assertEqual(self.chf.long2str(long(x, 16)), x)
+            self.assertEqual(self.chf.long2str(int(x, 16)), x)
 
 checksums = {
     "rmd160": "b83ad488d624e7911f886420ab230f78f6368b9f",
@@ -92,19 +91,19 @@ checksums = {
     "blake2b": "9f9bbd37d28994c871fffbc21358358e79c85c80fad70a0c0ce5998ff9ff04001f4984ec46e596bd4c482adc701cca44f70318c389dc6014c1bb5818d6991c7f",
     "blake2s": "805b836cb59b5144b2a738422b342a90fbdc0dd8e75321eb3022766ff333a7b1",
 }
-checksums.update((k, (long(v, 16), v)) for k, v in checksums.iteritems())
-checksums["size"] = (long(len(data) * multi), str(long(len(data) * multi)))
+checksums.update((k, (int(v, 16), v)) for k, v in checksums.items())
+checksums["size"] = (int(len(data) * multi), str(int(len(data) * multi)))
 
 extra_chksums = {
     "md5":
         ["2dfd84279314a178d0fa842af3a40e25577e1bc"]
 }
 
-for k, v in checksums.iteritems():
+for k, v in checksums.items():
     extra_chksums.setdefault(k, []).extend((''.rjust(len(v[1]), '0'), '01'.rjust(len(v[1]), '0')))
 
 # trick: create subclasses for each checksum with a useful class name.
-for chf_type, expected in checksums.iteritems():
+for chf_type, expected in checksums.items():
     expectedsum = expected[0]
     expectedstr = expected[1]
     globals()[chf_type + 'ChksumTest'] = type(
@@ -120,8 +119,6 @@ class get_chksums_test(base, TestCase):
 
     chfs = [k for k in sorted(checksums) if k in ('md5', 'sha1')]
     expected_long = [checksums[k][0] for k in chfs]
-    if not is_py3k:
-        del k
 
     def get_chf(self):
         self.chf = post_curry(chksum.get_chksums, *self.chfs)

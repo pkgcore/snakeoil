@@ -3,11 +3,8 @@
 
 """sequence related operations and classes"""
 
-from __future__ import print_function
-
 from operator import itemgetter
 
-from snakeoil.compatibility import is_py3k
 from snakeoil.iterables import expandable_chain
 from snakeoil.klass import steal_docs
 
@@ -94,11 +91,8 @@ def iter_stable_unique(iterable):
             continue
         break
 
-if is_py3k:
-    _str_kls = (str, bytes)
-else:
-    _str_kls = basestring
-def native_iflatten_instance(l, skip_flattening=_str_kls):
+
+def native_iflatten_instance(l, skip_flattening=(str, bytes)):
     """collapse [[1],2] into [1,2]
 
     :param skip_flattening: list of classes to not descend through
@@ -111,10 +105,10 @@ def native_iflatten_instance(l, skip_flattening=_str_kls):
     iters = expandable_chain(l)
     try:
         while True:
-            x = iters.next()
+            x = next(iters)
             if (hasattr(x, '__iter__') and not (
                     isinstance(x, skip_flattening) or (
-                        isinstance(x, _str_kls) and len(x) == 1))):
+                        isinstance(x, (str, bytes)) and len(x) == 1))):
                 iters.appendleft(x)
             else:
                 yield x
@@ -136,7 +130,7 @@ def native_iflatten_func(l, skip_func):
     iters = expandable_chain(l)
     try:
         while True:
-            x = iters.next()
+            x = next(iters)
             if hasattr(x, '__iter__') and not skip_func(x):
                 iters.appendleft(x)
             else:

@@ -3,6 +3,7 @@
 
 from snakeoil.test import TestCase, mixins
 
+
 class Test_modules(mixins.PythonNamespaceWalker, TestCase):
 
     target_namespace = 'snakeoil'

@@ -3,7 +3,7 @@
 
 from functools import partial
 
-from snakeoil import compatibility, compression, data_source
+from snakeoil import compression, data_source
 from snakeoil.test import TestCase, mixins
 from snakeoil.osutils import pjoin
 
@@ -44,10 +44,9 @@ class TestDataSource(TestCase):
             self._test_fileobj_wr("text_fileobj", str)
 
     def test_bytes_fileobj(self):
-        self._test_fileobj_ro("bytes_fileobj", compatibility.force_bytes)
+        self._test_fileobj_ro("bytes_fileobj", lambda s: s.encode())
         if self.supports_mutable:
-            self._test_fileobj_wr("bytes_fileobj",
-                                  compatibility.force_bytes)
+            self._test_fileobj_wr("bytes_fileobj", lambda s: s.encode())
 
     def assertContents(self, reader, writer):
         reader_f = reader.bytes_fileobj()
@@ -60,7 +59,7 @@ class TestDataSource(TestCase):
 
     def _mk_data(self, size=(100000)):
         return ''.join("%s" % (x % 10)
-                       for x in xrange(size))
+                       for x in range(size))
 
     def test_transfer_to_data_source(self):
         data = self._mk_data()
@@ -107,17 +106,16 @@ class TestLocalSource(mixins.TempDirMixin, TestDataSource):
         self.fp = pjoin(self.dir, "localsource.test")
         mode = None
         if not test_creation:
-            if compatibility.is_py3k:
-                if isinstance(data, bytes):
-                    mode = 'wb'
-            if mode is None:
+            if isinstance(data, bytes):
+                mode = 'wb'
+            elif mode is None:
                 mode = 'w'
             with open(self.fp, mode) as f:
                 f.write(data)
         return data_source.local_source(self.fp, mutable=mutable)
 
     def test_bytes_fileobj(self):
-        data = u"foonani\xf2".encode("utf8")
+        data = "foonani\xf2".encode("utf8")
         obj = self.get_obj(data=data)
         # this will blow up if tries to ascii decode it.
         f = obj.bytes_fileobj()
@@ -125,11 +123,11 @@ class TestLocalSource(mixins.TempDirMixin, TestDataSource):
         f.close()
 
     def test_bytes_fileobj_create(self):
-        data = u"foonani\xf2".encode("utf8")
+        data = "foonani\xf2".encode("utf8")
         obj = self.get_obj(test_creation=True, mutable=True)
         # this will blow up if tries to ascii decode it.
         f = obj.bytes_fileobj(True)
-        self.assertEqual(f.read(), u''.encode("utf8"))
+        self.assertEqual(f.read(), ''.encode("utf8"))
         f.write(data)
         f.close()
         f = obj.bytes_fileobj()
@@ -142,15 +140,14 @@ class TestBz2Source(mixins.TempDirMixin, TestDataSource):
     def get_obj(self, data="foonani", mutable=False, test_creation=False):
         self.fp = pjoin(self.dir, "bz2source.test.bz2")
         if not test_creation:
-            if compatibility.is_py3k:
-                if isinstance(data, str):
-                    data = data.encode()
+            if isinstance(data, str):
+                data = data.encode()
             with open(self.fp, 'wb') as f:
                 f.write(compression.compress_data('bzip2', data))
         return data_source.bz2_source(self.fp, mutable=mutable)
 
     def test_bytes_fileobj(self):
-        data = u"foonani\xf2".encode("utf8")
+        data = "foonani\xf2".encode("utf8")
         obj = self.get_obj(data=data)
         # this will blow up if tries to ascii decode it.
         f = obj.bytes_fileobj()
@@ -163,7 +160,7 @@ class Test_invokable_data_source(TestDataSource):
     supports_mutable = False
 
     def get_obj(self, data="foonani", mutable=False):
-        if isinstance(data, basestring):
+        if isinstance(data, str):
             data = data.encode("utf8")
         return data_source.invokable_data_source(
             partial(self._get_data, data))
@@ -187,7 +184,7 @@ class Test_invokable_data_source_wrapper_text(Test_invokable_data_source):
             self.text_mode)
 
     def _get_data(self, data='foonani'):
-        if isinstance(data, basestring):
+        if isinstance(data, str):
             if not self.text_mode:
                 return data.encode("utf8")
         elif self.text_mode:

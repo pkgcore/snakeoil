@@ -5,21 +5,11 @@
 # root dir instead of mocking everything.
 
 import errno
+from importlib import reload
 import os
 import tempfile
 import unittest
-
-try:
-    # py3.4 and up
-    from importlib import reload
-except ImportError:
-    # py2
-    pass
-
-try:
-    from unittest import mock
-except ImportError:
-    import mock
+from unittest import mock
 
 from snakeoil import __version__
 from snakeoil import version

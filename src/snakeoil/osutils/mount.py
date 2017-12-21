@@ -47,9 +47,9 @@ UMOUNT_NOFOLLOW = 8
 def mount(source, target, fstype, flags, data=None):
     """Call mount(2); see the man page for details."""
     libc = ctypes.CDLL(find_library('c'), use_errno=True)
-    source = source.encode() if isinstance(source, basestring) else source
-    target = target.encode() if isinstance(target, basestring) else target
-    fstype = fstype.encode() if isinstance(fstype, basestring) else fstype
+    source = source.encode() if isinstance(source, str) else source
+    target = target.encode() if isinstance(target, str) else target
+    fstype = fstype.encode() if isinstance(fstype, str) else fstype
     if libc.mount(source, target, fstype, ctypes.c_ulong(flags), data) != 0:
         e = ctypes.get_errno()
         raise OSError(e, os.strerror(e))
@@ -59,7 +59,7 @@ def mount(source, target, fstype, flags, data=None):
 def umount(target, flags=None):
     """Call umount or umount2; see the umount(2) man page for details."""
     libc = ctypes.CDLL(find_library('c'), use_errno=True)
-    target = target.encode() if isinstance(target, basestring) else target
+    target = target.encode() if isinstance(target, str) else target
     args = []
     func = libc.umount
     if flags is not None:

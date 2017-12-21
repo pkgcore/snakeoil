@@ -8,39 +8,36 @@
 # aside from that, tests need heavy expansion
 
 import curses
+from io import BytesIO
 import os
 import pty
 from tempfile import TemporaryFile
 
-from snakeoil import formatters, compatibility
+from snakeoil import formatters
 from snakeoil.test import SkipTest, TestCase, mk_cpy_loadable_testcase, protect_process
-
-if compatibility.is_py3k:
-    from io import BytesIO as StringIO
-else:
-    from StringIO import StringIO
 
 # protect against python issue 7567 for the curses module.
 issue7567 = protect_process
+
 
 class native_PlainTextFormatterTest(TestCase):
 
     kls = staticmethod(formatters.native_PlainTextFormatter)
 
     def assertStreamEqual(self, output, stream):
-        self.assertEqual(compatibility.force_bytes(output), stream.getvalue())
+        self.assertEqual(output.encode(), stream.getvalue())
 
     def test_basics(self):
         # As many sporks as fit in 20 chars.
         sporks = ' '.join(3 * ('spork',))
         for inputs, output in [
-                ((u'\N{SNOWMAN}',), '?'),
+                (('\N{SNOWMAN}',), '?'),
                 ((7 * 'spork ',), '%s\n%s\n%s' % (sporks, sporks, 'spork ')),
                 (7 * ('spork ',), '%s \n%s \n%s' % (sporks, sporks, 'spork ')),
                 ((30 * 'a'), 20 * 'a' + '\n' + 10 * 'a'),
                 (30 * ('a',), 20 * 'a' + '\n' + 10 * 'a'),
             ]:
-            stream = StringIO()
+            stream = BytesIO()
             formatter = self.kls(stream, encoding='ascii')
             formatter.width = 20
             formatter.write(autoline=False, wrap=True, *inputs)
@@ -49,7 +46,7 @@ class native_PlainTextFormatterTest(TestCase):
     def test_first_prefix(self):
         # As many sporks as fit in 20 chars.
         for inputs, output in [
-                ((u'\N{SNOWMAN}',), 'foon:?'),
+                (('\N{SNOWMAN}',), 'foon:?'),
                 ((7 * 'spork ',),
                  'foon:spork spork\n'
                  'spork spork spork\n'
@@ -61,7 +58,7 @@ class native_PlainTextFormatterTest(TestCase):
                 ((30 * 'a'), 'foon:' + 15 * 'a' + '\n' + 15 * 'a'),
                 (30 * ('a',), 'foon:' + 15 * 'a' + '\n' + 15 * 'a'),
             ]:
-            stream = StringIO()
+            stream = BytesIO()
             formatter = self.kls(stream, encoding='ascii')
             formatter.width = 20
             formatter.write(autoline=False, wrap=True, first_prefix='foon:',
@@ -70,7 +67,7 @@ class native_PlainTextFormatterTest(TestCase):
 
     def test_later_prefix(self):
         for inputs, output in [
-                ((u'\N{SNOWMAN}',), '?'),
+                (('\N{SNOWMAN}',), '?'),
                 ((7 * 'spork ',),
                  'spork spork spork\n'
                  'foon:spork spork\n'
@@ -82,7 +79,7 @@ class native_PlainTextFormatterTest(TestCase):
                 ((30 * 'a'), 20 * 'a' + '\n' + 'foon:' + 10 * 'a'),
                 (30 * ('a',), 20 * 'a' + '\n' + 'foon:' + 10 * 'a'),
             ]:
-            stream = StringIO()
+            stream = BytesIO()
             formatter = self.kls(stream, encoding='ascii')
             formatter.width = 20
             formatter.later_prefix = ['foon:']
@@ -90,7 +87,7 @@ class native_PlainTextFormatterTest(TestCase):
             self.assertStreamEqual(output, stream)
 
     def test_complex(self):
-        stream = StringIO()
+        stream = BytesIO()
         formatter = self.kls(stream, encoding='ascii')
         formatter.width = 9
         formatter.first_prefix = ['foo', None, ' d']
@@ -98,14 +95,14 @@ class native_PlainTextFormatterTest(TestCase):
         formatter.write("dar bl", wrap=True, autoline=False)
         self.assertStreamEqual("foo ddar\ndorkeybl", stream)
         formatter.write(" "*formatter.width, wrap=True, autoline=True)
-        formatter.stream = stream = StringIO()
+        formatter.stream = stream = BytesIO()
         formatter.write("dar", " b", wrap=True, autoline=False)
         self.assertStreamEqual("foo ddar\ndorkeyb", stream)
         output = \
 """     rdepends: >=dev-lang/python-2.3 >=sys-apps/sed-4.0.5
                        dev-python/python-fchksum
 """
-        stream = StringIO()
+        stream = BytesIO()
         formatter = self.kls(stream, encoding='ascii', width=80)
         formatter.wrap = True
         self.assertEqual(formatter.autoline, True)
@@ -117,7 +114,7 @@ class native_PlainTextFormatterTest(TestCase):
         self.assertLen(formatter.later_prefix, 1)
         self.assertStreamEqual(output, stream)
         formatter.write()
-        formatter.stream = stream = StringIO()
+        formatter.stream = stream = BytesIO()
         # push it right up to the limit.
         formatter.width = 82
         formatter.write("     rdepends: >=dev-lang/python-2.3 "
@@ -129,7 +126,7 @@ class native_PlainTextFormatterTest(TestCase):
         formatter.width = 28
         formatter.autoline = False
         formatter.wrap = True
-        formatter.stream = stream = StringIO()
+        formatter.stream = stream = BytesIO()
         input = ("     description: ", "The Portage")
         formatter.write(*input)
         output = ''.join(input).rsplit(" ", 1)
@@ -154,7 +151,7 @@ class native_PlainTextFormatterTest(TestCase):
                  'foonporksp\n'
                  'foonork\n'),
             ]:
-            stream = StringIO()
+            stream = BytesIO()
             formatter = self.kls(stream, encoding='ascii')
             formatter.width = 10
             for input in inputs:
@@ -176,9 +173,10 @@ class TerminfoFormatterTest(TestCase):
         formatter.write(*inputs)
         stream.seek(0)
         result = stream.read()
-        self.assertEqual(compatibility.force_bytes(''.join(output)), result,
+        output = ''.join(output)
+        self.assertEqual(output.encode(), result,
                          msg="given(%r), expected(%r), got(%r)" %
-                         (inputs, ''.join(output), result))
+                         (inputs, output, result))
 
     @issue7567
     def test_terminfo(self):
@@ -196,7 +194,7 @@ class TerminfoFormatterTest(TestCase):
                  (esc, '31m', 'red', esc, '1m', 'boldred', esc, '39;49m', 'bold',
                   esc, '0;10m', 'done')),
                 ((42,), ('42',)),
-                ((u'\N{SNOWMAN}',), ('?',))
+                (('\N{SNOWMAN}',), ('?',))
             ):
             self._test_stream(stream, f, inputs, output)
         f.autoline = True
@@ -246,30 +244,30 @@ class GetFormatterTest(TestCase):
     def test_dumb_terminal(self):
         master, _out = _get_pty_pair()
         formatter = _with_term('dumb', formatters.get_formatter, master)
-        self.failUnless(isinstance(formatter, formatters.PlainTextFormatter))
+        self.assertTrue(isinstance(formatter, formatters.PlainTextFormatter))
 
     @issue7567
     def test_vt100_terminal(self):
         formatter = _with_term('vt100', formatters.get_formatter, master)
-        self.failUnless(isinstance(formatter, formatters.PlainTextFormatter))
+        self.assertTrue(isinstance(formatter, formatters.PlainTextFormatter))
 
     @issue7567
     def test_smart_terminal(self):
         master, _out = _get_pty_pair()
         formatter = _with_term('xterm', formatters.get_formatter, master)
-        self.failUnless(isinstance(formatter, formatters.TerminfoFormatter))
+        self.assertTrue(isinstance(formatter, formatters.TerminfoFormatter))
 
     @issue7567
     def test_not_a_tty(self):
         stream = TemporaryFile()
         formatter = _with_term('xterm', formatters.get_formatter, stream)
-        self.failUnless(isinstance(formatter, formatters.PlainTextFormatter))
+        self.assertTrue(isinstance(formatter, formatters.PlainTextFormatter))
 
     @issue7567
     def test_no_fd(self):
-        stream = StringIO()
+        stream = BytesIO()
         formatter = _with_term('xterm', formatters.get_formatter, stream)
-        self.failUnless(isinstance(formatter, formatters.PlainTextFormatter))
+        self.assertTrue(isinstance(formatter, formatters.PlainTextFormatter))
 
 
 cpy_loaded_Test = mk_cpy_loadable_testcase(

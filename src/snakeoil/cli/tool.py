@@ -9,10 +9,11 @@ import os
 from signal import signal, SIGPIPE, SIG_DFL, SIGINT
 import sys
 
-from snakeoil import compatibility, formatters
+from snakeoil import formatters
 from snakeoil.demandload import demandload
 
 demandload(
+    'io',
     'traceback',
     'snakeoil.errors:dump_error',
 )
@@ -47,19 +48,11 @@ class Tool(object):
 
         out_fd = err_fd = None
         if hasattr(outfile, 'fileno') and hasattr(errfile, 'fileno'):
-            if compatibility.is_py3k:
-                # annoyingly, fileno can exist but through unsupport
-                import io
-                try:
-                    out_fd, err_fd = outfile.fileno(), errfile.fileno()
-                except (io.UnsupportedOperation, IOError):
-                    pass
-            else:
-                try:
-                    out_fd, err_fd = outfile.fileno(), errfile.fileno()
-                except IOError:
-                    # shouldn't be possible, but docs claim it, thus protect.
-                    pass
+            # annoyingly, fileno can exist but through unsupport
+            try:
+                out_fd, err_fd = outfile.fileno(), errfile.fileno()
+            except (io.UnsupportedOperation, IOError):
+                pass
 
         if out_fd is not None and err_fd is not None:
             out_stat, err_stat = os.fstat(out_fd), os.fstat(err_fd)
@@ -179,5 +172,5 @@ class FormattingHandler(logging.Handler):
                 self.out.write(line, wrap=True)
         finally:
             self.out.later_prefix.pop()
-            for i in xrange(len(first_prefix)):
+            for i in range(len(first_prefix)):
                 self.out.first_prefix.pop()

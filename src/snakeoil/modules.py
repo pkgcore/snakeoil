@@ -10,7 +10,7 @@ __all__ = ("FailedImport", "load_module", "load_attribute", "load_any")
 from importlib import import_module
 import sys
 
-from snakeoil.compatibility import raise_from, IGNORED_EXCEPTIONS
+from snakeoil.compatibility import IGNORED_EXCEPTIONS
 
 
 class FailedImport(ImportError):
@@ -39,7 +39,7 @@ def load_module(name):
     except IGNORED_EXCEPTIONS:
         raise
     except Exception as e:
-        raise_from(FailedImport(name, e))
+        raise FailedImport(name, e) from e
 
 
 def load_attribute(name):
@@ -58,7 +58,7 @@ def load_attribute(name):
     try:
         return getattr(import_module(chunks[0]), chunks[1])
     except (AttributeError, ImportError) as e:
-        raise_from(FailedImport(name, e))
+        raise FailedImport(name, e) from e
 
 
 def load_any(name):
@@ -76,5 +76,5 @@ def load_any(name):
         return import_module(name)
     except Exception as e:
         if not isinstance(e, ImportError):
-            raise_from(FailedImport(name, e))
+            raise FailedImport(name, e) from e
     return load_attribute(name)

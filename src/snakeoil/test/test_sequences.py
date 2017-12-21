@@ -42,7 +42,7 @@ class UniqueTest(TestCase):
                          [1, 2, 3, o, 4])
 
     def _generator(self):
-        for x in xrange(5, -1, -1):
+        for x in range(5, -1, -1):
             yield x
 
     def test_unstable_unique(self):
@@ -55,14 +55,14 @@ class UniqueTest(TestCase):
         self.assertTrue(
             res == [uc(1, 0), uc(0, 1)] or res == [uc(0, 1), uc(1, 0)], res)
         self.assertEqual(sorted(sequences.unstable_unique(self._generator())),
-                         sorted(xrange(6)))
+                         sorted(range(6)))
 
 
 class ChainedListsTest(TestCase):
 
     @staticmethod
     def gen_cl():
-        return sequences.ChainedLists(range(3), range(3, 6), range(6, 100))
+        return sequences.ChainedLists(list(range(3)), list(range(3, 6)), list(range(6, 100)))
 
     def test_contains(self):
         cl = self.gen_cl()
@@ -70,13 +70,13 @@ class ChainedListsTest(TestCase):
             self.assertTrue(x in cl)
 
     def test_iter(self):
-        self.assertEqual(list(self.gen_cl()), list(xrange(100)))
+        self.assertEqual(list(self.gen_cl()), list(range(100)))
 
     def test_len(self):
         self.assertEqual(100, len(self.gen_cl()))
 
     def test_str(self):
-        l = sequences.ChainedLists(range(3), range(3, 5))
+        l = sequences.ChainedLists(list(range(3)), list(range(3, 5)))
         self.assertEqual(str(l), '[ [0, 1, 2], [3, 4] ]')
 
     def test_getitem(self):
@@ -94,12 +94,12 @@ class ChainedListsTest(TestCase):
 
     def test_append(self):
         cl = self.gen_cl()
-        cl.append(range(10))
+        cl.append(list(range(10)))
         self.assertEqual(110, len(cl))
 
     def test_extend(self):
         cl = self.gen_cl()
-        cl.extend(range(10) for i in range(5))
+        cl.extend(list(range(10)) for i in range(5))
         self.assertEqual(150, len(cl))
 
 
@@ -107,15 +107,15 @@ class Test_iflatten_instance(TestCase):
     func = staticmethod(sequences.native_iflatten_instance)
 
     def test_it(self):
-        o = OrderedDict((k, None) for k in xrange(10))
+        o = OrderedDict((k, None) for k in range(10))
         for l, correct, skip in (
                 (["asdf", ["asdf", "asdf"], 1, None],
-                 ["asdf", "asdf", "asdf", 1, None], basestring),
-                ([o, 1, "fds"], [o, 1, "fds"], (basestring, OrderedDict)),
-                ([o, 1, "fds"], range(10) + [1, "fds"], basestring),
-                ("fds", ["fds"], basestring),
+                 ["asdf", "asdf", "asdf", 1, None], str),
+                ([o, 1, "fds"], [o, 1, "fds"], (str, OrderedDict)),
+                ([o, 1, "fds"], list(range(10)) + [1, "fds"], str),
+                ("fds", ["fds"], str),
                 ("fds", ["f", "d", "s"], int),
-                ('', [''], basestring),
+                ('', [''], str),
                 (1, [1], int),
                 ):
             iterator = self.func(l, skip)
@@ -134,7 +134,7 @@ class Test_iflatten_instance(TestCase):
         iters = []
         iterator = self.func(iters)
         iters.append(iterator)
-        self.assertRaises(ValueError, iterator.next)
+        self.assertRaises(ValueError, iterator.__next__)
 
         # Regression test: this was triggered through demandload.
         # **{} is there to explicitly force a dict.
@@ -145,13 +145,13 @@ class Test_iflatten_func(TestCase):
     func = staticmethod(sequences.native_iflatten_func)
 
     def test_it(self):
-        o = OrderedDict((k, None) for k in xrange(10))
+        o = OrderedDict((k, None) for k in range(10))
         for l, correct, skip in (
                 (["asdf", ["asdf", "asdf"], 1, None],
-                 ["asdf", "asdf", "asdf", 1, None], basestring),
-                ([o, 1, "fds"], [o, 1, "fds"], (basestring, OrderedDict)),
-                ([o, 1, "fds"], range(10) + [1, "fds"], basestring),
-                ("fds", ["fds"], basestring),
+                 ["asdf", "asdf", "asdf", 1, None], str),
+                ([o, 1, "fds"], [o, 1, "fds"], (str, OrderedDict)),
+                ([o, 1, "fds"], list(range(10)) + [1, "fds"], str),
+                ("fds", ["fds"], str),
                 (1, [1], int),
                 ):
             iterator = self.func(l, lambda x: isinstance(x, skip))
@@ -170,7 +170,7 @@ class Test_iflatten_func(TestCase):
         iters = []
         iterator = self.func(iters, lambda x: False)
         iters.append(iterator)
-        self.assertRaises(ValueError, iterator.next)
+        self.assertRaises(ValueError, iterator.__next__)
 
         # Regression test: this was triggered through demandload.
         # **{} is there to explicitly force a dict to the underly cpy
@@ -193,15 +193,15 @@ class predicate_split_Test(TestCase):
     kls = staticmethod(sequences.predicate_split)
 
     def test_simple(self):
-        false_l, true_l = self.kls(lambda x: x % 2 == 0, xrange(100))
-        self.assertEqual(false_l, range(1, 100, 2))
-        self.assertEqual(true_l, range(0, 100, 2))
+        false_l, true_l = self.kls(lambda x: x % 2 == 0, range(100))
+        self.assertEqual(false_l, list(range(1, 100, 2)))
+        self.assertEqual(true_l, list(range(0, 100, 2)))
 
     def test_key(self):
         false_l, true_l = self.kls(lambda x: x % 2 == 0,
-                                   ([0, x] for x in xrange(100)),
+                                   ([0, x] for x in range(100)),
                                    key=itemgetter(1))
-        self.assertEqual(false_l, [[0, x] for x in xrange(1, 100, 2)])
+        self.assertEqual(false_l, [[0, x] for x in range(1, 100, 2)])
         self.assertEqual(true_l, [[0, x] for x in range(0, 100, 2)])
 
 cpy_loaded_Test = mk_cpy_loadable_testcase(
@@ -253,19 +253,19 @@ class TestSplitNegations(unittest.TestCase):
             split_negations(seq)
 
         # all negs
-        seq = ('-' + str(x) for x in xrange(100))
-        self.assertEqual(split_negations(seq), (tuple(map(str, xrange(100))), tuple()))
+        seq = ('-' + str(x) for x in range(100))
+        self.assertEqual(split_negations(seq), (tuple(map(str, range(100))), tuple()))
 
         # all pos
-        seq = (str(x) for x in xrange(100))
-        self.assertEqual(split_negations(seq), (tuple(), tuple(map(str, xrange(100)))))
+        seq = (str(x) for x in range(100))
+        self.assertEqual(split_negations(seq), (tuple(), tuple(map(str, range(100)))))
 
         # both
-        seq = (('-' + str(x), str(x)) for x in xrange(100))
+        seq = (('-' + str(x), str(x)) for x in range(100))
         seq = chain.from_iterable(seq)
-        self.assertEqual(split_negations(seq), (tuple(map(str, xrange(100))), tuple(map(str, xrange(100)))))
+        self.assertEqual(split_negations(seq), (tuple(map(str, range(100))), tuple(map(str, range(100)))))
 
         # converter method
-        seq = (('-' + str(x), str(x)) for x in xrange(100))
+        seq = (('-' + str(x), str(x)) for x in range(100))
         seq = chain.from_iterable(seq)
-        self.assertEqual(split_negations(seq, int), (tuple(xrange(100)), tuple(xrange(100))))
+        self.assertEqual(split_negations(seq, int), (tuple(range(100)), tuple(range(100))))

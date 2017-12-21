@@ -6,11 +6,7 @@ import signal
 import sys
 import time
 import tempfile
-
-try:
-    from unittest import mock
-except ImportError:
-    import mock
+from unittest import mock
 
 from snakeoil import process
 from snakeoil.fileutils import touch

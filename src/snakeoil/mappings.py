@@ -2,53 +2,21 @@
 # License: BSD/GPL2
 
 """
-Miscellanious mapping related classes and functionality
+Miscellaneous mapping related classes and functionality
 """
 
-from __future__ import print_function
-
 __all__ = (
-    "autoconvert_py3k_methods_metaclass", "DictMixin", "LazyValDict",
-    "LazyFullValLoadDict", "ProtectedDict", "ImmutableDict", "IndeterminantDict",
+    "DictMixin", "LazyValDict", "LazyFullValLoadDict",
+    "ProtectedDict", "ImmutableDict", "IndeterminantDict",
     "defaultdictkey", "AttrAccessible", "StackedDict",
     "make_SlottedDict_kls", "ProxiedAttrs",
 )
 
 from collections import defaultdict
-from itertools import imap, chain, ifilterfalse, izip
+from itertools import chain, filterfalse
 import operator
 
 from snakeoil.klass import get, contains, steal_docs
-from snakeoil import compatibility
-
-class autoconvert_py3k_methods_metaclass(type):
-
-    """
-    metaclass designed to transform a py2k target mapping into a py3k compliant mapping
-
-    Specifically, it'll drop the iter* prefix on relevant methods, and remove has_key
-
-    To use this, just `set __metaclass__ = autoconvert_py3k_methods_metaclass`.  At runtime,
-    the metaclass will rewrite the class if needed for py3k compatibility.
-
-    If you need to disable this behaviour, set `disable_py3k_rewriting=True` in the class
-    namespace- this is primarily useful if your derivative class handles the py2k/py3k difference
-    itself.
-    """
-    if compatibility.is_py3k:
-        # only do these modifications if we're running py3k.
-
-        def __new__(cls, name, bases, d):
-            d["__metaclass__"] = autoconvert_py3k_methods_metaclass
-            if not d.pop("disable_py3k_rewriting", False):
-                for var in ("keys", "values", "items", "has_key"):
-                    d.pop(var, None)
-                for var in ("keys", "values", "items"):
-                    itervar = 'iter%s' % var
-                    if itervar in d:
-                        d[var] = d.pop(itervar)
-                # ensure that the __metaclass__ attribute hangs around for usage by introspection
-            return super(autoconvert_py3k_methods_metaclass, cls).__new__(cls, name, bases, d)
 
 
 class DictMixin(object):
@@ -61,31 +29,17 @@ class DictMixin(object):
     * __delitem__
     * __setitem__
     * __getitem__
-    * iterkeys
+    * keys
 
-    It's suggested for performance reasons, it might be worth defining an
-    `itervalues` and `iteritems` in addition.
-
-    Note that this class utilizes the metaclass :py:class:`autoconver_py3k_methods_metaclass`
-    to automatically at class creation time rewrite a py2k targeted class to a py3k
-    mapping class- this is done so that derivatives classes can just write their methods
-    as iterkeys, iteritems, etc, without worrying if they'll be running py2k or py3k-
-    if it's py3k, it'll force a rename of the methods to the py3k layout.
-
-    If for whatever reason, you do *not* want this renaming, set `disable_py3k_rewriting=True`
-    in a derivative class.
+    It's suggested for performance reasons, it might be worth defining
+    `values` and `items` in addition.
     """
 
     __slots__ = ()
     __externally_mutable__ = True
-    __metaclass__ = autoconvert_py3k_methods_metaclass
-
-    disable_py3k_rewriting = True
 
     def __init__(self, iterable=None, **kwargs):
         """
-        instantiate a new instance
-
         :param iterables: optional, an iterable of (key, value) to initialize this
             instance with
         :param kwargs: optional, key=value form of specifying the keys value tuples to
@@ -95,72 +49,28 @@ class DictMixin(object):
             self.update(iterable)
 
         if kwargs:
-            self.update(kwargs.iteritems())
+            self.update(kwargs.items())
 
     @steal_docs(dict)
     def __iter__(self):
-        return self.iterkeys()
+        return self.keys()
 
     @steal_docs(dict)
     def __str__(self):
-        return str(dict(self.iteritems()))
+        return str(dict(self.items()))
 
-    def iteritems(self):
+    @steal_docs(dict)
+    def items(self):
         for k in self:
             yield k, self[k]
 
-    # change our base method definitions dependent
-    # on if it's py2k or py3k; note that the
-    # autoconvert_py3k_methods_metaclass will move around
-    # methods as needed to match the py3k method layout,
-    # shifting iterkeys to keys for example
-    # note the only reason we do this if/else instead of
-    # relying on autoconvert_py3k_methods_metaclass is because
-    # for this base class, we need to steal the docs off of
-    # dictionary instances.
+    @steal_docs(dict)
+    def keys(self):
+        raise NotImplementedError(self, "keys")
 
-    if not compatibility.is_py3k:
-        iteritems.__doc__ = dict.__doc__
-
-        @steal_docs(dict)
-        def keys(self):
-            return list(self.iterkeys())
-
-        @steal_docs(dict)
-        def values(self):
-            return list(self.itervalues())
-
-        @steal_docs(dict)
-        def items(self):
-            return list(self.iteritems())
-
-        @steal_docs(dict, True)
-        def has_key(self, key):
-            return key in self
-
-        @steal_docs(dict)
-        def iterkeys(self):
-            raise NotImplementedError(self, "iterkeys")
-
-        @steal_docs(dict)
-        def itervalues(self):
-            return imap(self.__getitem__, self)
-
-        iteritems = steal_docs(dict)(iteritems)
-
-    else:
-        items = iteritems
-        items.__name__ = 'items'
-        items.__doc__ = dict.items.__doc__
-        del iteritems
-
-        @steal_docs(dict)
-        def keys(self):
-            raise NotImplementedError(self, "iterkeys")
-
-        @steal_docs(dict)
-        def values(self):
-            return imap(self.__getitem__, self)
+    @steal_docs(dict)
+    def values(self):
+        return map(self.__getitem__, self)
 
     @steal_docs(dict)
     def update(self, iterable):
@@ -174,7 +84,7 @@ class DictMixin(object):
     def __eq__(self, other):
         if len(self) != len(other):
             return False
-        for k1, k2 in izip(sorted(self), sorted(other)):
+        for k1, k2 in zip(sorted(self), sorted(other)):
             if k1 != k2:
                 return False
             if self[k1] != other[k2]:
@@ -228,7 +138,7 @@ class DictMixin(object):
         # yes, a bit ugly, but this works and is py3k compatible
         # post conversion
         df = self.__delitem__
-        for key in self.keys():
+        for key in list(self.keys()):
             df(key)
 
     def __len__(self):
@@ -237,7 +147,7 @@ class DictMixin(object):
             c += 1
         return c
 
-    def __nonzero__(self):
+    def __bool__(self):
         for _ in self:
             return True
         return False
@@ -247,16 +157,14 @@ class DictMixin(object):
         if not self.__externally_mutable__:
             raise AttributeError(self, "popitem")
         # do it this way so python handles the stopiteration; faster
-        for key, val in self.iteritems():
+        for key, val in self.items():
             del self[key]
             return key, val
         raise KeyError("container is empty")
 
 
 class LazyValDict(DictMixin):
-
-    """
-    Mapping that loads values via a callable
+    """Mapping that loads values via a callable.
 
     given a function to get keys, and to look up the val for those keys, it'll
     lazily load key definitions and values as requested
@@ -298,19 +206,13 @@ class LazyValDict(DictMixin):
         if self._keys_func is not None:
             self._keys = set(self._keys_func())
             self._keys_func = None
-        return list(self._keys)
-
-    def iterkeys(self):
-        if self._keys_func is not None:
-            self._keys = set(self._keys_func())
-            self._keys_func = None
         return iter(self._keys)
 
-    def itervalues(self):
-        return imap(self.__getitem__, self.iterkeys())
+    def values(self):
+        return map(self.__getitem__, self.keys())
 
-    def iteritems(self):
-        return ((k, self[k]) for k in self.iterkeys())
+    def items(self):
+        return ((k, self[k]) for k in self.keys())
 
     def __contains__(self, key):
         if self._keys_func is not None:
@@ -326,9 +228,7 @@ class LazyValDict(DictMixin):
 
 
 class LazyFullValLoadDict(LazyValDict):
-
-    """
-    Lazily load all keys for this mapping in a single load
+    """Lazily load all keys for this mapping in a single load.
 
     This is essentially the same thing as :py:class:`LazyValDict`, just that the
     load function must return all keys in a single request.
@@ -351,9 +251,7 @@ class LazyFullValLoadDict(LazyValDict):
 
 
 class ProtectedDict(DictMixin):
-
-    """
-    Mapping wrapper storing changes to a dict without modifying the original.
+    """Mapping wrapper storing changes to a dict without modifying the original.
 
     Changes are stored in a secondary dict, protecting the underlying
     mapping from changes.
@@ -392,10 +290,10 @@ class ProtectedDict(DictMixin):
                 return
         raise KeyError(key)
 
-    def iterkeys(self):
-        for k in self.new.iterkeys():
+    def keys(self):
+        for k in self.new.keys():
             yield k
-        for k in self.orig.iterkeys():
+        for k in self.orig.keys():
             if k not in self.blacklist and k not in self.new:
                 yield k
 
@@ -405,9 +303,7 @@ class ProtectedDict(DictMixin):
 
 
 class ImmutableDict(dict):
-
-    """
-    Immutable Dict, unchangeable after instantiating
+    """Immutable Dict, unchangeable after instantiating.
 
     Because this is immutable, it's hashable.
     """
@@ -420,7 +316,7 @@ class ImmutableDict(dict):
     __setitem__ = clear = update = pop = popitem = setdefault = __delitem__
 
     def __hash__(self):
-        k = self.items()
+        k = list(self.items())
         k.sort(key=self._hash_key_grabber)
         return hash(tuple(k))
 
@@ -429,9 +325,7 @@ class ImmutableDict(dict):
 
 
 class IndeterminantDict(object):
-
-    """
-    A wrapped dict with constant defaults, and a function for other keys.
+    """A wrapped dict with constant defaults, and a function for other keys.
 
     The primary use for this class is to make a JIT loaded mapping- for instance, a
     mapping representing the filesystem that loads keys/values as it goes.
@@ -469,11 +363,9 @@ class IndeterminantDict(object):
 
     clear = update = popitem = setdefault = __setitem__ = __delitem__
     __iter__ = keys = values = items = __len__ = __delitem__
-    iteritems = iterkeys = itervalues = __delitem__
 
 
 class StackedDict(DictMixin):
-
     """An unmodifiable dict that makes multiple dicts appear as one"""
 
     def __init__(self, *dicts):
@@ -485,9 +377,9 @@ class StackedDict(DictMixin):
                 return x[key]
         raise KeyError(key)
 
-    def iterkeys(self):
+    def keys(self):
         s = set()
-        for k in ifilterfalse(s.__contains__, chain(*map(iter, self._dicts))):
+        for k in filterfalse(s.__contains__, chain(*self._dicts)):
             s.add(k)
             yield k
 
@@ -504,7 +396,6 @@ class StackedDict(DictMixin):
 
 
 class PreservingFoldingDict(DictMixin):
-
     """dict that uses a 'folder' function when looking up keys.
 
     The most common use for this is to implement a dict with
@@ -522,7 +413,7 @@ class PreservingFoldingDict(DictMixin):
             self.update(sourcedict)
 
     def copy(self):
-        return PreservingFoldingDict(self._folder, self.iteritems())
+        return PreservingFoldingDict(self._folder, iter(self.items()))
 
     def refold(self, folder=None):
         """Use the remembered original keys to update to a new folder.
@@ -535,7 +426,7 @@ class PreservingFoldingDict(DictMixin):
             self._folder = folder
         oldDict = self._dict
         self._dict = {}
-        for key, value in oldDict.itervalues():
+        for key, value in oldDict.values():
             self._dict[self._folder(key)] = (key, value)
 
     def __getitem__(self, key):
@@ -547,15 +438,15 @@ class PreservingFoldingDict(DictMixin):
     def __delitem__(self, key):
         del self._dict[self._folder(key)]
 
-    def iteritems(self):
-        return self._dict.itervalues()
+    def items(self):
+        return iter(self._dict.values())
 
-    def iterkeys(self):
-        for val in self._dict.itervalues():
+    def keys(self):
+        for val in self._dict.values():
             yield val[0]
 
-    def itervalues(self):
-        for val in self._dict.itervalues():
+    def values(self):
+        for val in self._dict.values():
             yield val[1]
 
     def __contains__(self, key):
@@ -569,7 +460,6 @@ class PreservingFoldingDict(DictMixin):
 
 
 class NonPreservingFoldingDict(DictMixin):
-
     """dict that uses a 'folder' function when looking up keys.
 
     The most common use for this is to implement a dict with
@@ -587,7 +477,7 @@ class NonPreservingFoldingDict(DictMixin):
             self.update(sourcedict)
 
     def copy(self):
-        return NonPreservingFoldingDict(self._folder, self.iteritems())
+        return NonPreservingFoldingDict(self._folder, iter(self.items()))
 
     def __getitem__(self, key):
         return self._dict[self._folder(key)]
@@ -598,14 +488,14 @@ class NonPreservingFoldingDict(DictMixin):
     def __delitem__(self, key):
         del self._dict[self._folder(key)]
 
-    def iterkeys(self):
-        return iter(self._dict)
+    def keys(self):
+        return iter(self._dict.keys())
 
-    def itervalues(self):
-        return self._dict.itervalues()
+    def values(self):
+        return iter(self._dict.values())
 
-    def iteritems(self):
-        return self._dict.iteritems()
+    def items(self):
+        return iter(self._dict.items())
 
     def __contains__(self, key):
         return self._folder(key) in self._dict
@@ -618,9 +508,7 @@ class NonPreservingFoldingDict(DictMixin):
 
 
 class defaultdictkey(defaultdict):
-
-    """
-    :py:class:`defaultdict` derivative that automatically stores any missing key/value pairs.
+    """:py:class:`defaultdict` derivative that automatically stores any missing key/value pairs.
 
     Specifically, if instance[missing_key] is accessed, the `__missing__` method automatically
     store self[missing_key] = self.default_factory(key).
@@ -648,7 +536,7 @@ def _KeyError_to_Attr(functor):
 
 
 def inject_getitem_as_getattr(scope):
-    """modify a given class scope proxying attr access to dict access
+    """Modify a given class scope proxying attr access to dict access.
 
     If the given scope already has __getattr__, __setattr__, or __delattr__,
     the pre-existing method will not be overridden.
@@ -679,8 +567,7 @@ def inject_getitem_as_getattr(scope):
 
 
 class AttrAccessible(dict):
-
-    """simple dict class allowing instance.x and instance['x'] access"""
+    """Simple dict class allowing instance.x and instance['x'] access."""
 
     __slots__ = ()
 
@@ -688,8 +575,7 @@ class AttrAccessible(dict):
 
 
 class ProxiedAttrs(DictMixin):
-
-    """Proxy mapping protocol to an object's attributes
+    """Proxy mapping protocol to an object's attributes.
 
     Example usage:
 
@@ -730,7 +616,7 @@ class ProxiedAttrs(DictMixin):
         except AttributeError:
             raise KeyError(key)
 
-    def iterkeys(self):
+    def keys(self):
         return iter(dir(self.__target__))
 
 
@@ -827,8 +713,7 @@ except ImportError:
 
 slotted_dict_cache = {}
 def make_SlottedDict_kls(keys):
-    """
-    Create a space efficient mapping class with a limited set of keys
+    """Create a space efficient mapping class with a limited set of keys.
 
     Specifically, this function returns a class with its __slots__ locked
     to the passed in keys- this eliminates the allocation of a dict for the
@@ -857,11 +742,11 @@ def make_SlottedDict_kls(keys):
     >>> print(sys.getsizeof(slotted_inst))
     72
     >>> # and now for an extreme example:
-    >>> raw = {"attribute%i" % (x,): x for x in xrange(1000)}
+    >>> raw = {"attribute%i" % (x,): x for x in range(1000)}
     >>> skls = make_SlottedDict_kls(raw.keys())
     >>> print(sys.getsizeof(raw))
     49432
-    >>> sraw = skls(raw.iteritems())
+    >>> sraw = skls(raw.items())
     >>> print(sys.getsizeof(sraw))
     8048
     >>> print(sraw["attribute2"], sraw["attribute3"])
@@ -903,10 +788,10 @@ def make_SlottedDict_kls(keys):
                     if hasattr(self, k):
                         yield k
 
-            def iterkeys(self):
+            def keys(self):
                 return iter(self)
 
-            def itervalues(self):
+            def values(self):
                 for k in self:
                     yield self[k]
 
@@ -915,7 +800,7 @@ def make_SlottedDict_kls(keys):
                     del self[k]
 
             def __len__(self):
-                return len(self.keys())
+                return len(list(self.keys()))
 
         o = SlottedDict
         slotted_dict_cache[new_keys] = o

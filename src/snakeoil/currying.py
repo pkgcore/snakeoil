@@ -37,7 +37,7 @@ if possible.
 from functools import partial
 import sys
 
-from snakeoil import compatibility
+from snakeoil.compatibility import IGNORED_EXCEPTIONS
 
 __all__ = ("pre_curry", "post_curry", "pretty_docs")
 
@@ -150,15 +150,11 @@ def _inner_wrap_exception(exception_maker, ignores, functor):
     def _wrap_exception(*args, **kwargs):
         try:
             return functor(*args, **kwargs)
-        except compatibility.IGNORED_EXCEPTIONS:
+        except IGNORED_EXCEPTIONS:
             raise
         except ignores:
             raise
         except Exception as e:
-            # snag the exception info prior, just to ensure the maker
-            # doesn't corrupt the tb info.
-            exc_info = sys.exc_info()
-            new_exc = exception_maker(e, functor, args, kwargs)
-            compatibility.raise_from(new_exc, exc_info=exc_info)
+            raise exception_maker(e, functor, args, kwargs) from e
     _wrap_exception.func = functor
     return pretty_docs(_wrap_exception, name=functor.__name__)

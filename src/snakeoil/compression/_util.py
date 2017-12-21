@@ -7,7 +7,6 @@ import errno
 import os
 import subprocess
 
-from snakeoil.weakrefs import WeakRefFinalizer
 
 def _drive_process(args, mode, data):
     p = subprocess.Popen(args,
@@ -37,8 +36,6 @@ def decompress_data(binary, data, extra_args=()):
 
 class _process_handle(object):
 
-    __metaclass__ = WeakRefFinalizer
-
     def __init__(self, handle, args, is_read=False):
         self.mode = 'wb'
         if is_read:
@@ -51,12 +48,12 @@ class _process_handle(object):
     def _open_handle(self, handle):
         self._allow_reopen = None
         close = False
-        if isinstance(handle, basestring):
+        if isinstance(handle, str):
             if self.is_read:
                 self._allow_reopen = handle
             handle = open(handle, mode=self.mode)
             close = True
-        elif not isinstance(handle, (long, int)):
+        elif not isinstance(handle, int):
             if not hasattr(handle, 'fileno'):
                 raise TypeError(
                     "handle %r isn't a string, integer, and lacks a fileno "

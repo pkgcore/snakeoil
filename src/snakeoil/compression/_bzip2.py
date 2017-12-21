@@ -15,7 +15,6 @@ __all__ = ("compress_data", "decompress_data")
 
 from functools import partial
 import multiprocessing
-import sys
 
 from snakeoil import process
 from snakeoil.compression import _util
@@ -72,7 +71,7 @@ def compress_handle(handle, level=9, parallelize=False):
     if parallelize and parallelizable:
         return _util.compress_handle(lbzip2_path, handle, compresslevel=level,
                                      extra_args=lbzip2_compress_args)
-    elif native and isinstance(handle, basestring):
+    elif native and isinstance(handle, str):
         return BZ2File(handle, mode='w', compresslevel=level)
     return _compress_handle(handle, compresslevel=level)
 
@@ -80,9 +79,6 @@ def decompress_handle(handle, parallelize=False):
     if parallelize and parallelizable:
         return _util.decompress_handle(lbzip2_path, handle,
                                        extra_args=lbzip2_decompress_args)
-    elif (native and isinstance(handle, basestring)
-          and sys.version_info[:3] >= (3, 3)):
-        # note that <3.3, bz2file doesn't handle multiple streams.
-        # thus don't use it.
+    elif (native and isinstance(handle, str)):
         return BZ2File(handle, mode='r')
     return _decompress_handle(handle)

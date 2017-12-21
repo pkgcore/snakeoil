@@ -12,13 +12,9 @@ import stat
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
-try:
-    from unittest import mock
-except ImportError:
-    import mock
-
-from snakeoil import osutils, compatibility
+from snakeoil import osutils
 from snakeoil.contexts import Namespace
 from snakeoil.fileutils import touch
 from snakeoil.test import TestCase, SkipTest, mk_cpy_loadable_testcase
@@ -275,11 +271,11 @@ class Native_NormPathTest(TestCase):
         check('/tmp/foo/../dar/', '/tmp/dar')
         check('/tmp/foo/../dar', '/tmp/dar')
 
-        if compatibility.is_py3k:
-            check(u'/tmṕ/föo//../dár', u'/tmṕ/dár')
-            check(b'/tm\xe1\xb9\x95/f\xc3\xb6o//../d\xc3\xa1r', b'/tm\xe1\xb9\x95/d\xc3\xa1r')
-            check(u'/föó/..', u'/')
-            check(b'/f\xc3\xb6\xc3\xb3/..', b'/')
+        # explicit unicode and bytes
+        check('/tmṕ/föo//../dár', '/tmṕ/dár')
+        check(b'/tm\xe1\xb9\x95/f\xc3\xb6o//../d\xc3\xa1r', b'/tm\xe1\xb9\x95/d\xc3\xa1r')
+        check('/föó/..', '/')
+        check(b'/f\xc3\xb6\xc3\xb3/..', b'/')
 
 
 @unittest.skipIf(osutils.normpath is osutils.native_normpath, "extension isn't compiled")
@@ -309,14 +305,10 @@ class Cpy_JoinTest(unittest.TestCase):
             ["foo", "/bar"],
             ["/bar", "dar"],
             ["/bar", "../dar"],
-            ["", "../dar"]
+            ["", "../dar"],
+            ["/bár", "dãr"],
+            [b"/b\xc3\xa1r", b"d\xc3\xa3r"],
         ]
-
-        if compatibility.is_py3k:
-            vals.extend([
-                [u"/bár", u"dãr"],
-                [b"/b\xc3\xa1r", b"d\xc3\xa3r"],
-            ])
 
         for x in vals:
             self.assertSame(x)
@@ -523,7 +515,7 @@ class Mount(unittest.TestCase):
         # leading to errors when the syscall is run. This confirms mount() from
         # snakeoil.osutils always converts the arguments into byte strings.
         for source, target, fstype in ((b'source', b'target', b'fstype'),
-                                       (u'source', u'target', u'fstype')):
+                                       ('source', 'target', 'fstype')):
             with mock.patch('snakeoil.osutils.mount.ctypes') as mock_ctypes:
                 with self.assertRaises(OSError):
                     mount(source, target, fstype, MS_BIND)

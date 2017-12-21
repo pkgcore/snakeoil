@@ -12,11 +12,11 @@ available.
 
 from functools import partial
 import hashlib
+from sys import intern
 import threading
-import Queue
+import queue
 
 from snakeoil import modules
-from snakeoil.compatibility import intern, is_py3k
 from snakeoil.data_source import base as base_data_source
 from snakeoil.demandload import demandload
 
@@ -53,13 +53,13 @@ def chksum_loop_over_file(filename, chfs, parallelize=True, can_mmap=True):
     loop_over_file(
         filename, [chf.update for chf in chfs],
         parallelize=parallelize, can_mmap=can_mmap)
-    return [long(chf.hexdigest(), 16) for chf in chfs]
+    return [int(chf.hexdigest(), 16) for chf in chfs]
 
 
 def loop_over_file(handle, callbacks, parallelize=True, can_mmap=True):
     m = None
     close_f = True
-    if isinstance(handle, basestring):
+    if isinstance(handle, str):
         if can_mmap:
             m, f = mmap_or_open_for_read(handle)
         else:
@@ -69,7 +69,7 @@ def loop_over_file(handle, callbacks, parallelize=True, can_mmap=True):
     else:
         f = handle
         close_f = False
-        if is_py3k and getattr(handle, 'encoding', None):
+        if getattr(handle, 'encoding', None):
             # wanker.  bypass the encoding, go straight to the raw source.
             f = f.buffer
         # reset; we do it for compat, but it also avoids unpleasant issues from
@@ -81,7 +81,7 @@ def loop_over_file(handle, callbacks, parallelize=True, can_mmap=True):
 
     try:
         if parallelize:
-            queues = [Queue.Queue(8) for _ in callbacks]
+            queues = [queue.Queue(8) for _ in callbacks]
 
             threads = [threading.Thread(target=chf_thread, args=(queue, functor))
                        for queue, functor in zip(queues, callbacks)]
@@ -96,7 +96,7 @@ def loop_over_file(handle, callbacks, parallelize=True, can_mmap=True):
                 callback(m)
         elif hasattr(f, 'getvalue'):
             data = f.getvalue()
-            if is_py3k and not isinstance(data, bytes):
+            if not isinstance(data, bytes):
                 data = data.encode()
 
             for callback in callbacks:
@@ -137,7 +137,7 @@ class Chksummer(object):
 
     @staticmethod
     def str2long(val):
-        return long(val, 16)
+        return int(val, 16)
 
     def __call__(self, filename):
         return chksum_loop_over_file(
@@ -327,8 +327,8 @@ class SizeUpdater(object):
 
 
 class SizeChksummer(Chksummer):
-    """
-    size based chksum handler
+    """Size based chksum handler.
+
     yes, aware that size isn't much of a chksum. ;)
     """
 
@@ -342,7 +342,7 @@ class SizeChksummer(Chksummer):
 
     @staticmethod
     def str2long(val):
-        return long(val)
+        return int(val)
 
     def __call__(self, file_obj):
         if isinstance(file_obj, base_data_source):
@@ -350,7 +350,7 @@ class SizeChksummer(Chksummer):
                 file_obj = file_obj.path
             else:
                 file_obj = file_obj.text_fileobj()
-        if isinstance(file_obj, basestring):
+        if isinstance(file_obj, str):
             try:
                 st_size = os.lstat(file_obj).st_size
             except OSError:
@@ -358,8 +358,8 @@ class SizeChksummer(Chksummer):
             return st_size
         # seek to the end.
         file_obj.seek(0, 2)
-        return long(file_obj.tell())
+        return int(file_obj.tell())
 
 
 chksum_types["size"] = SizeChksummer()
-chksum_types = {intern(k): v for k, v in chksum_types.iteritems()}
+chksum_types = {intern(k): v for k, v in chksum_types.items()}

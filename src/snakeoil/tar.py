@@ -74,7 +74,7 @@ class TarInfo(tarfile.TarInfo):
         return self._gname
 
     def set_gname(self, val):
-        self._gname = intern(val)
+        self._gname = sys.intern(val)
 
     def del_gname(self):
         del self._gname
@@ -85,7 +85,7 @@ class TarInfo(tarfile.TarInfo):
         return self._uname
 
     def set_uname(self, val):
-        self._uname = intern(val)
+        self._uname = sys.intern(val)
 
     def del_uname(self):
         del self._uname

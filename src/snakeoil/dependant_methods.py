@@ -48,8 +48,6 @@ finish invoked
 >>> # note, no output since finish has already been ran.
 """
 
-from __future__ import print_function
-
 from snakeoil.currying import pre_curry
 from snakeoil.sequences import iflatten_instance
 
@@ -89,7 +87,7 @@ def _yield_deps(inst, d, k):
         return
     s = [k, iflatten_instance(d.get(k, ()))]
     while s:
-        if isinstance(s[-1], basestring):
+        if isinstance(s[-1], str):
             yield s.pop(-1)
             continue
         exhausted = True
@@ -109,7 +107,7 @@ def __wrap_stage_dependencies__(cls):
     stage_depends = cls.stage_depends
     # we use id instead of the cls itself to prevent strong ref issues.
     cls_id = id(cls)
-    for x in set(x for x in iflatten_instance(stage_depends.iteritems()) if x):
+    for x in set(x for x in iflatten_instance(iter(stage_depends.items())) if x):
         try:
             f = getattr(cls, x)
         except AttributeError:
@@ -123,7 +121,7 @@ def __wrap_stage_dependencies__(cls):
 
 def __unwrap_stage_dependencies__(cls):
     stage_depends = cls.stage_depends
-    for x in set(x for x in iflatten_instance(stage_depends.iteritems()) if x):
+    for x in set(x for x in iflatten_instance(iter(stage_depends.items())) if x):
         try:
             f = getattr(cls, x)
         except AttributeError:

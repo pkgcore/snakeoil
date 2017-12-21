@@ -45,8 +45,8 @@ class SpawnTest(TempDirMixin, TestCase):
         with open(fp, "w") as f:
             f.write("#!/usr/bin/env bash\n")
             f.write(text)
-        os.chmod(fp, 0750)
-        self.assertEqual(os.stat(fp).st_mode & 0750, 0750)
+        os.chmod(fp, 0o750)
+        self.assertEqual(os.stat(fp).st_mode & 0o750, 0o750)
         return fp
 
     def test_get_output(self):
@@ -145,7 +145,7 @@ class SpawnTest(TempDirMixin, TestCase):
             old_umask = os.umask(0)
             if old_umask == 0:
                 # crap.
-                desired = 022
+                desired = 0o22
                 os.umask(desired)
             else:
                 desired = 0

@@ -10,13 +10,7 @@ The primary use for data_source's is to encapsulate the following issues into a 
 * what is the preferred encoding?
 * py3k compatibility concerns (bytes versus text file handles)
 
-Note that under py2k, :py:class:`text_data_source` and :py:class:`bytes_data_source` are
-just aliases of :py:class:`data_source`; under py3k however they are separate classes
-doing necessary conversion steps for bytes/text requests.  Use the appropriate one-
-it'll save yourself a headache when dealing with py2k/py3k compatibility in the same
-codebase.
-
-Finally, note that all file like handles returned from `text_fileobj()` and `bytes_fileobj()`
+Note that all file like handles returned from `text_fileobj()` and `bytes_fileobj()`
 have a required additional attribute- *exceptions*, either a single Exception class, or a
 tuple of Exception classes that can be thrown by that file handle during usage.
 
@@ -49,12 +43,12 @@ __all__ = (
 import errno
 from functools import partial
 
-from snakeoil import compatibility, stringio, klass
+from snakeoil import stringio, klass
 from snakeoil.currying import post_curry
 from snakeoil.demandload import demandload
 
 demandload(
-    'codecs',
+    'io',
     'snakeoil:compression,fileutils',
 )
 
@@ -131,20 +125,10 @@ class bytes_ro_StringIO(stringio.bytes_readonly):
 
 # derive our file classes- we derive *strictly* to append
 # the exceptions class attribute for consumer usage.
-if compatibility.is_py3k:
-
-    import io
-
-    def open_file(*args, **kwds):
-        handle = io.open(*args, **kwds)
-        handle.exceptions = (EnvironmentError,)
-        return handle
-
-else:
-    # have to derive since you can't modify file objects in py2k
-    class open_file(file):
-        __slots__ = ()
-        exceptions = (EnvironmentError,)
+def open_file(*args, **kwds):
+    handle = io.open(*args, **kwds)
+    handle.exceptions = (EnvironmentError,)
+    return handle
 
 
 class base(object):
@@ -232,8 +216,6 @@ class local_source(base):
             raise TypeError("data source %s is immutable" % (self,))
         if self.encoding:
             opener = open_file
-            if not compatibility.is_py3k:
-                opener = codecs.open
             opener = post_curry(opener, buffering=self.buffering_window,
                                 encoding=self.encoding)
         else:
@@ -298,9 +280,8 @@ class bz2_source(base):
         return bytes_ro_StringIO(data)
 
     def _set_data(self, data):
-        if compatibility.is_py3k:
-            if isinstance(data, str):
-                data = data.encode()
+        if isinstance(data, str):
+            data = data.encode()
         with open(self.path, "wb") as f:
             f.write(compression.compress_data('bzip2', data))
 
@@ -331,18 +312,14 @@ class data_source(base):
         self.data = data
         self.mutable = mutable
 
-    if compatibility.is_py3k:
-        def _convert_data(self, mode):
-            if mode == 'bytes':
-                if isinstance(self.data, bytes):
-                    return self.data
-                return self.data.encode()
-            if isinstance(self.data, str):
+    def _convert_data(self, mode):
+        if mode == 'bytes':
+            if isinstance(self.data, bytes):
                 return self.data
-            return self.data.decode()
-    else:
-        def _convert_data(self, mode):
+            return self.data.encode()
+        if isinstance(self.data, str):
             return self.data
+        return self.data.decode()
 
     @klass.steal_docs(base)
     def text_fileobj(self, writable=False):
@@ -353,17 +330,13 @@ class data_source(base):
                                     self._convert_data('text'))
         return text_ro_StringIO(self._convert_data('text'))
 
-    if compatibility.is_py3k:
-        def _reset_data(self, data):
-            if isinstance(self.data, bytes):
-                if not isinstance(data, bytes):
-                    data = data.encode()
-            elif not isinstance(data, str):
-                data = data.decode()
-            self.data = data
-    else:
-        def _reset_data(self, data):
-            self.data = data
+    def _reset_data(self, data):
+        if isinstance(self.data, bytes):
+            if not isinstance(data, bytes):
+                data = data.encode()
+        elif not isinstance(data, str):
+            data = data.decode()
+        self.data = data
 
     @klass.steal_docs(base)
     def bytes_fileobj(self, writable=False):
@@ -375,53 +348,44 @@ class data_source(base):
         return bytes_ro_StringIO(self._convert_data('bytes'))
 
 
-if not compatibility.is_py3k:
-    text_data_source = data_source
-    bytes_data_source = data_source
-else:
-    class text_data_source(data_source):
+class text_data_source(data_source):
+    """Text data source.
 
-        """
-        text data_source
+    This does autoconversionbetween bytes/text as needed.
+    """
 
-        in py2k, this just wraps a string; in py3k, it'll do autoconversion
-        between bytes/text as needed.
-        """
+    __slots__ = ()
 
-        __slots__ = ()
+    @klass.steal_docs(data_source)
+    def __init__(self, data, mutable=False):
+        if not isinstance(data, str):
+            raise TypeError("data must be a str")
+        data_source.__init__(self, data, mutable=mutable)
 
-        @klass.steal_docs(data_source)
-        def __init__(self, data, mutable=False):
-            if not isinstance(data, str):
-                raise TypeError("data must be a str")
-            data_source.__init__(self, data, mutable=mutable)
+    def _convert_data(self, mode):
+        if mode != 'bytes':
+            return self.data
+        return self.data.encode()
 
-        def _convert_data(self, mode):
-            if mode != 'bytes':
-                return self.data
-            return self.data.encode()
 
-    class bytes_data_source(data_source):
+class bytes_data_source(data_source):
+    """Bytes data source.
 
-        """
-        bytes data_source
+    This does autoconversion between bytes/text as needed.
+    """
 
-        in py2k, this just wraps a string; in py3k, it'll do autoconversion
-        between bytes/text as needed.
-        """
+    __slots__ = ()
 
-        __slots__ = ()
+    @klass.steal_docs(data_source)
+    def __init__(self, data, mutable=False):
+        if not isinstance(data, bytes):
+            raise TypeError("data must be bytes")
+        data_source.__init__(self, data, mutable=mutable)
 
-        @klass.steal_docs(data_source)
-        def __init__(self, data, mutable=False):
-            if not isinstance(data, bytes):
-                raise TypeError("data must be bytes")
-            data_source.__init__(self, data, mutable=mutable)
-
-        def _convert_data(self, mode):
-            if mode == 'bytes':
-                return self.data
-            return self.data.decode()
+    def _convert_data(self, mode):
+        if mode == 'bytes':
+            return self.data
+        return self.data.decode()
 
 
 class invokable_data_source(data_source):
@@ -474,11 +438,6 @@ class invokable_data_source(data_source):
     @staticmethod
     def _simple_wrapper(invokable, encoding_hint, returns_text, returns_handle, text_wanted):
         data = invokable()
-        if not compatibility.is_py3k:
-            # there is no bytes/text under py2k, just str, so use raw handles
-            if not returns_handle:
-                data = text_ro_StringIO(data)
-            return data
         if returns_text != text_wanted:
             if text_wanted:
                 if returns_handle:

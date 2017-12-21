@@ -48,38 +48,38 @@ class BasicSet(containers.SetMixin):
 
 class TestSetMethods(TestCase):
     def test_and(self):
-        c = BasicSet(xrange(100))
-        s = set(xrange(25, 75))
-        r = BasicSet(xrange(25, 75))
+        c = BasicSet(range(100))
+        s = set(range(25, 75))
+        r = BasicSet(range(25, 75))
         self.assertEqual(c & s, r)
         self.assertEqual(s & c, r._data)
 
     def test_xor(self):
-        c = BasicSet(xrange(100))
-        s = set(xrange(25, 75))
-        r = BasicSet(chain(xrange(25), xrange(75, 100)))
+        c = BasicSet(range(100))
+        s = set(range(25, 75))
+        r = BasicSet(chain(range(25), range(75, 100)))
         self.assertEqual(c ^ s, r)
         self.assertEqual(s ^ c, r._data)
 
     def test_or(self):
-        c = BasicSet(xrange(50))
-        s = set(xrange(50, 100))
-        r = BasicSet(xrange(100))
+        c = BasicSet(range(50))
+        s = set(range(50, 100))
+        r = BasicSet(range(100))
         self.assertEqual(c | s, r)
         self.assertEqual(s | c, r._data)
 
     def test_add(self):
-        c = BasicSet(xrange(50))
-        s = set(xrange(50, 100))
-        r = BasicSet(xrange(100))
+        c = BasicSet(range(50))
+        s = set(range(50, 100))
+        r = BasicSet(range(100))
         self.assertEqual(c + s, r)
         self.assertEqual(s + c, r._data)
 
     def test_sub(self):
-        c = BasicSet(xrange(100))
-        s = set(xrange(50, 150))
-        r1 = BasicSet(xrange(50))
-        r2 = set(xrange(100, 150))
+        c = BasicSet(range(100))
+        s = set(range(50, 150))
+        r1 = BasicSet(range(50))
+        r2 = set(range(100, 150))
         self.assertEqual(c - s, r1)
         self.assertEqual(s - c, r2)
 
@@ -167,7 +167,7 @@ class LimitedChangeSetTest(TestCase):
         self.set.commit()
         self.assertFalse(0 in self.set)
         self.assertEqual(11, len(self.set))
-        self.assertEqual(sorted(list(self.set)), range(1, 12))
+        self.assertEqual(sorted(list(self.set)), list(range(1, 12)))
         self.assertEqual(0, self.set.changes_count())
         self.set.add(0)
         self.test_basic(1)
@@ -187,11 +187,11 @@ class LimitedChangeSetTest(TestCase):
             str(containers.LimitedChangeSet([7])), 'LimitedChangeSet([7])')
 
     def test__eq__(self):
-        c = containers.LimitedChangeSet(xrange(99))
+        c = containers.LimitedChangeSet(range(99))
         c.add(99)
-        self.assertEqual(c, containers.LimitedChangeSet(xrange(100)))
-        self.assertEqual(containers.LimitedChangeSet(xrange(100)),
-                         set(xrange(100)))
+        self.assertEqual(c, containers.LimitedChangeSet(range(100)))
+        self.assertEqual(containers.LimitedChangeSet(range(100)),
+                         set(range(100)))
         self.assertNotEqual(containers.LimitedChangeSet([]), object())
 
 
@@ -227,11 +227,11 @@ class ProtectedSetTest(TestCase):
         self.assertTrue(15 in self.set)
 
     def test_iter(self):
-        self.assertEqual(range(12), sorted(self.set))
+        self.assertEqual(list(range(12)), sorted(self.set))
         self.set.add(5)
-        self.assertEqual(range(12), sorted(self.set))
+        self.assertEqual(list(range(12)), sorted(self.set))
         self.set.add(12)
-        self.assertEqual(range(13), sorted(self.set))
+        self.assertEqual(list(range(13)), sorted(self.set))
 
     def test_len(self):
         self.assertEqual(12, len(self.set))
@@ -274,7 +274,7 @@ class TestRefCountingSet(TestCase):
         self.assertNotIn(4, c)
 
     def test_init(self):
-        self.assertEqual(self.kls(xrange(5))[4], 1)
+        self.assertEqual(self.kls(range(5))[4], 1)
         c = self.kls([1, 2, 3, 1])
         self.assertEqual(c[2], 1)
         self.assertEqual(c[1], 2)

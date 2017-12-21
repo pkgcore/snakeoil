@@ -6,6 +6,7 @@ from weakref import WeakValueDictionary
 from snakeoil.test import TestCase
 from snakeoil.weakrefs import WeakValCache
 
+
 class RefObj(object):
     pass
 
@@ -52,19 +53,19 @@ class TestWeakValCache(TestCase):
         self.assertEqual(sorted(self.w.keys()), [])
 
     def test_values(self):
-        self.assertEqual(self.w.values(), [])
+        self.assertEqual(list(self.w.values()), [])
         self.w['a'] = self.o
         self.w['b'] = self.o
         self.w['c'] = self.o
-        self.assertEqual(len(self.w.values()), 3)
+        self.assertEqual(len(iter(self.w.values())), 3)
         del self.o
         self.assertEqual(sorted(self.w.values()), [])
 
     def test_items(self):
-        self.assertEqual(self.w.items(), [])
+        self.assertEqual(list(self.w.items()), [])
         self.w['a'] = self.o
         self.w['b'] = self.o
         self.w['c'] = self.o
-        self.assertEqual(len(self.w.items()), 3)
+        self.assertEqual(len(iter(self.w.items())), 3)
         del self.o
         self.assertEqual(sorted(self.w.items()), [])

@@ -7,7 +7,6 @@ import re
 from time import time
 
 from snakeoil import klass
-from snakeoil.compatibility import cmp, is_py3k
 from snakeoil.test import TestCase, mk_cpy_loadable_testcase, not_a_test
 
 
@@ -34,14 +33,12 @@ class Test_native_GetAttrProxy(TestCase):
 
     def test_attrlist(self):
         def make_class(attr_list=None):
-            class foo(object):
-                __metaclass__ = self.kls
-
+            class foo(object, metaclass=self.kls):
                 if attr_list is not None:
                     locals()['__attr_comparison__'] = attr_list
 
         self.assertRaises(TypeError, make_class)
-        self.assertRaises(TypeError, make_class, [u'foon'])
+        self.assertRaises(TypeError, make_class, ['foon'])
         self.assertRaises(TypeError, make_class, [None])
 
     def test_instancemethod(self):
@@ -148,93 +145,6 @@ class Test_CPY_get(Test_native_get):
 
     if klass.get is klass.native_get:
         skip = "cpython extension isn't available"
-
-class Test_native_generic_equality(TestCase):
-    op_prefix = "native_"
-
-    kls = partial(
-        klass.generic_equality,
-        ne=klass.native_generic_attr_ne,
-        eq=klass.native_generic_attr_eq)
-
-    def test_it(self):
-        class c(object):
-            __attr_comparison__ = ("foo", "bar")
-            __metaclass__ = self.kls
-            def __init__(self, foo, bar):
-                self.foo, self.bar = foo, bar
-
-            def __repr__(self):
-                return "<c: foo=%r, bar=%r, %i>" % (
-                    getattr(self, 'foo', 'unset'),
-                    getattr(self, 'bar', 'unset'),
-                    id(self))
-
-        self.assertEqual(c(1, 2), c(1, 2))
-        c1 = c(1, 3)
-        self.assertEqual(c1, c1)
-        del c1
-        self.assertNotEqual(c(2, 1), c(1, 2))
-        c1 = c(1, 2)
-        del c1.foo
-        c2 = c(1, 2)
-        self.assertNotEqual(c1, c2)
-        del c2.foo
-        self.assertEqual(c1, c2)
-
-    def test_call(self):
-        def mk_class(meta):
-            class c(object):
-                __metaclass__ = meta
-            return c
-        self.assertRaises(TypeError, mk_class)
-
-
-class Test_cpy_generic_equality(Test_native_generic_equality):
-    op_prefix = ''
-    if klass.native_generic_attr_eq is klass.generic_eq:
-        skip = "extension not available"
-
-    kls = staticmethod(klass.generic_equality)
-
-
-class Test_inject_richcmp_methods_from_cmp(TestCase):
-
-    func = staticmethod(klass.inject_richcmp_methods_from_cmp)
-
-    def get_cls(self, force=False, overrides={}):
-        class foo(object):
-
-            def __init__(self, value):
-                self.value = value
-
-            def __cmp__(self, other):
-                return cmp(self.value, other.value)
-
-            self.func(locals(), force)
-            locals().update(overrides)
-        return foo
-
-    def test_it(self):
-        for force in (True, False):
-            kls = self.get_cls(force)
-            self.assertTrue(kls(1) > kls(0))
-            self.assertTrue(kls(1) >= kls(0))
-            self.assertTrue(kls(1) >= kls(1))
-            self.assertFalse(kls(1) > kls(2))
-            self.assertFalse(kls(1) >= kls(2))
-            self.assertTrue(kls(1) == kls(1))
-            self.assertTrue(kls(2) == kls(2))
-            self.assertFalse(kls(2) != kls(2))
-            self.assertTrue(kls(2) != kls(1))
-            self.assertTrue(kls(0) < kls(1))
-            self.assertTrue(kls(0) <= kls(1))
-            self.assertTrue(kls(1) <= kls(1))
-            self.assertFalse(kls(1) < kls(1))
-            self.assertFalse(kls(2) < kls(1))
-            if not is_py3k and force:
-                for methname in ("lt", "le", "ge", "eq", "ne", "gt", "ge"):
-                    self.assertTrue(hasattr(kls, '__%s__' % methname))
 
 
 class Test_chained_getter(TestCase):
@@ -466,7 +376,7 @@ class Test_native_jit_attr(TestCase):
             raise AssertionError("I shouldn't be invoked: %s, %s" % (args, kwds,))
 
         class puker(object):
-            __cmp__ = __eq__ = throw_assert
+            __eq__ = throw_assert
 
         puker_singleton = puker()
 
@@ -480,9 +390,9 @@ class Test_native_jit_attr(TestCase):
         l = []
         class foo(object):
             @klass.cached_property
-            def blah(self, l=l, i=iter(xrange(5))):
+            def blah(self, l=l, i=iter(range(5))):
                 l.append(None)
-                return i.next()
+                return next(i)
         f = foo()
         self.assertEqual(f.blah, 0)
         self.assertEqual(len(l), 1)
@@ -495,9 +405,9 @@ class Test_native_jit_attr(TestCase):
     def test_cached_property(self):
         l = []
 
-        def named(self, l=l, i=iter(xrange(5))):
+        def named(self, l=l, i=iter(range(5))):
             l.append(None)
-            return i.next()
+            return next(i)
 
         class foo(object):
             blah = klass.cached_property_named("blah")(named)
@@ -555,7 +465,7 @@ class test_cached_hash(TestCase):
     func = staticmethod(klass.cached_hash)
 
     def test_it(self):
-        now = long(time())
+        now = int(time())
         class cls(object):
             invoked = []
             @self.func

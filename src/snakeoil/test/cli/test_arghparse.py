@@ -3,21 +3,10 @@
 
 import argparse
 from functools import partial
+from importlib import reload
 import os
 import tempfile
-from unittest import TestCase
-
-try:
-    # py3.4 and up
-    from importlib import reload
-except ImportError:
-    # py2
-    pass
-
-try:
-    from unittest import mock
-except ImportError:
-    import mock
+from unittest import TestCase, mock
 
 from snakeoil.cli import arghparse
 from snakeoil.test import argparse_helpers

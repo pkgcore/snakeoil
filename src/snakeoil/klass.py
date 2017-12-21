@@ -9,8 +9,6 @@ classes themselves and cutting down on a significant amount of boilerplate
 involved in writing classes.
 """
 
-from __future__ import print_function
-
 __all__ = (
     "generic_equality", "reflective_hash", "inject_richcmp_methods_from_cmp",
     "static_attrgetter", "instance_attrgetter", "jit_attr", "jit_attr_none",
@@ -41,7 +39,7 @@ def native_GetAttrProxy(target):
 def DirProxy(target):
     def combined_dir(obj):
         target_attrs = dir(getattr(obj, target))
-        return sorted(set(target_attrs + list(obj.__dict__.iterkeys())))
+        return sorted(set(target_attrs + list(obj.__dict__.keys())))
     return combined_dir
 
 
@@ -233,21 +231,26 @@ def generic_lt(self, other):
     """generic implementation of __lt__ that uses __cmp__"""
     return self.__cmp__(other) < 0
 
+
 def generic_le(self, other):
     """reflective implementation of __le__ that uses __cmp__"""
     return self.__cmp__(other) <= 0
+
 
 def generic_eq(self, other):
     """reflective implementation of __eq__ that uses __cmp__"""
     return self.__cmp__(other) == 0
 
+
 def generic_ne(self, other):
     """reflective implementation of __ne__ that uses __cmp__"""
     return self.__cmp__(other) != 0
 
+
 def generic_ge(self, other):
     """reflective implementation of __ge__ that uses __cmp__"""
     return self.__cmp__(other) >= 0
+
 
 def generic_gt(self, other):
     """reflective implementation of __gt__ that uses __cmp__"""
@@ -303,7 +306,7 @@ def inject_richcmp_methods_from_cmp(scope, inject_always=False):
         scope.setdefault(key, func)
 
 
-class chained_getter(object):
+class chained_getter(object, metaclass=partial(generic_equality, real_type=caching.WeakInstMeta)):
 
     """
     object that will do multi part lookup, regardless of if it's in the context
@@ -346,7 +349,6 @@ class chained_getter(object):
     __fifo_cache__ = deque()
     __inst_caching__ = True
     __attr_comparison__ = ("namespace",)
-    __metaclass__ = partial(generic_equality, real_type=caching.WeakInstMeta)
 
     def __init__(self, namespace):
         """

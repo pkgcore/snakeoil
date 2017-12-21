@@ -107,7 +107,7 @@ class native_WeakInstMeta(type):
     def __call__(cls, *a, **kw):
         """disable caching via disable_inst_caching=True"""
         if cls.__inst_caching__ and not kw.pop("disable_inst_caching", False):
-            kwlist = kw.items()
+            kwlist = list(kw.items())
             kwlist.sort()
             key = (a, tuple(kwlist))
             try:

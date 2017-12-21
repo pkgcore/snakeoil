@@ -29,9 +29,12 @@ instance you'll need to compensate for this if you want to have source that
 is usable under both py2k and py3k.
 """
 
+# TODO: deprecated, remove in 0.9.0
 __all__ = ('text_readonly', 'text_writable', 'bytes_readonly', 'bytes_writable')
 
-from snakeoil import compatibility, currying
+import io
+
+from snakeoil import currying
 
 
 def _generic_immutable_method(attr, self, *a, **kwds):
@@ -47,22 +50,7 @@ def _make_ro_cls(base_cls, name):
     return kls
 
 
-if compatibility.is_py3k:
-    import io
-    text_writable = io.StringIO
-    bytes_writable = io.BytesIO
-    text_readonly = _make_ro_cls(io.StringIO, 'text_readonly')
-    bytes_readonly = _make_ro_cls(io.BytesIO, 'bytes_readonly')
-
-else:
-    from StringIO import StringIO as text_writable
-    bytes_writable = text_writable
-
-    try:
-        from cStringIO import StringIO as text_readonly
-    except ImportError:
-        text_readonly = text_writable
-    # note that we rewrite both classes... this is due to cStringIO allowing
-    # truncate to still modify the data.
-    text_readonly = _make_ro_cls(text_writable, 'text_readonly')
-    bytes_readonly = text_readonly
+text_writable = io.StringIO
+bytes_writable = io.BytesIO
+text_readonly = _make_ro_cls(io.StringIO, 'text_readonly')
+bytes_readonly = _make_ro_cls(io.BytesIO, 'bytes_readonly')

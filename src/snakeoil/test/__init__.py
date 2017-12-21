@@ -80,7 +80,7 @@ class Todo(object):
 
     @classmethod
     def parse(cls, todo):
-        if isinstance(todo, basestring):
+        if isinstance(todo, str):
             return cls(reason=todo)
         errors, reason = todo
         try:

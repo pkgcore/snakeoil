@@ -5,12 +5,10 @@
 Collection of functionality to make using iterators transparently easier
 """
 
-from __future__ import print_function
-
 __all__ = ("expandable_chain", "caching_iter", "iter_sort")
 
 from collections import deque
-from itertools import islice, izip_longest
+from itertools import islice, zip_longest
 
 
 class expandable_chain(object):
@@ -47,11 +45,11 @@ class expandable_chain(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         if self.iterables is not None:
             while self.iterables:
                 try:
-                    return self.iterables[0].next()
+                    return next(self.iterables[0])
                 except StopIteration:
                     self.iterables.popleft()
             self.iterables = None
@@ -149,14 +147,14 @@ class caching_iter(object):
 
     def __lt__(self, other):
         self._flatten()
-        for x, y in izip_longest(self.cached_list, other):
+        for x, y in zip_longest(self.cached_list, other):
             if x != y:
                 return x < y
         return False
 
     def __gt__(self, other):
         self._flatten()
-        for x, y in izip_longest(self.cached_list, other):
+        for x, y in zip_longest(self.cached_list, other):
             if x != y:
                 return x > y
         return False
@@ -174,7 +172,7 @@ class caching_iter(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def __nonzero__(self):
+    def __bool__(self):
         if self.cached_list:
             return True
 
@@ -241,8 +239,8 @@ def iter_sort(sorter, *iterables):
     For example:
 
     >>> from snakeoil.iterables import iter_sort
-    >>> iter1 = xrange(0, 5, 2)
-    >>> iter2 = xrange(1, 6, 2)
+    >>> iter1 = range(0, 5, 2)
+    >>> iter2 = range(1, 6, 2)
     >>> # note that these lists will be consumed as they go,
     >>> # sorted is just being used to compare the individual items
     >>> sorted_iter = iter_sort(sorted, iter1, iter2)
@@ -253,7 +251,7 @@ def iter_sort(sorter, *iterables):
     for x in iterables:
         try:
             x = iter(x)
-            l.append([x.next(), x])
+            l.append([next(x), x])
         except StopIteration:
             pass
     if len(l) == 1:

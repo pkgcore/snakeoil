@@ -6,9 +6,9 @@
 
 import errno
 from functools import partial
+import io
 import os
 
-from snakeoil import compatibility
 from snakeoil.demandload import demandload
 from snakeoil.klass import GetAttrProxy, steal_docs
 from snakeoil.mappings import defaultdictkey
@@ -149,7 +149,7 @@ class native_PlainTextFormatter(Formatter):
         # bytestream.
         # It would probably be saner to shift the encoding-guessing up
         # a layer, but keep it here for backwards compat for now.
-        if compatibility.is_py3k and isinstance(stream, io.TextIOWrapper):
+        if isinstance(stream, io.TextIOWrapper):
             self.stream = stream.buffer
         else:
             self.stream = stream
@@ -168,12 +168,8 @@ class native_PlainTextFormatter(Formatter):
         self.first_prefix = []
         self.later_prefix = []
 
-    if compatibility.is_py3k:
-        def _encoding_conversion_needed(self, val):
-            return True
-    else:
-        def _encoding_conversion_needed(self, val):
-            return isinstance(val, unicode)
+    def _encoding_conversion_needed(self, val):
+        return True
 
     def _force_encoding(self, val):
         return val.encode(self.encoding, 'replace')
@@ -191,7 +187,7 @@ class native_PlainTextFormatter(Formatter):
                 thing = thing(self)
             if thing is None:
                 continue
-            if not isinstance(thing, basestring):
+            if not isinstance(thing, str):
                 thing = str(thing)
             self._pos += len(thing)
             thing = self._force_encoding(thing)
@@ -250,7 +246,7 @@ class native_PlainTextFormatter(Formatter):
                     arg = arg(self)
                 if arg is None:
                     continue
-                if not isinstance(arg, basestring):
+                if not isinstance(arg, str):
                     arg = str(arg)
                 conversion_needed = self._encoding_conversion_needed(arg)
                 while wrap and self._pos + len(arg) > self.width:
@@ -521,8 +517,8 @@ else:
                 self._set_color = (
                     curses.tigetstr('setaf'),
                     curses.tigetstr('setab'))
-            except (_BogusTerminfo, curses.error):
-                compatibility.raise_from(TerminfoHatesOurTerminal(self._term))
+            except (_BogusTerminfo, curses.error) as e:
+                raise TerminfoHatesOurTerminal(self._term) from e
 
             if not all(self._set_color):
                 raise TerminfoDisabled(
@@ -589,11 +585,7 @@ class ObserverFormatter(object):
     __getattr__ = GetAttrProxy("_formatter")
 
 
-if compatibility.is_py3k:
-    import io
-    fileno_excepts = (AttributeError, io.UnsupportedOperation)
-else:
-    fileno_excepts = AttributeError
+fileno_excepts = (AttributeError, io.UnsupportedOperation)
 
 
 def get_formatter(stream, force_color=False):

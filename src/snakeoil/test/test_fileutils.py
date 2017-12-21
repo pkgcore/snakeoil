@@ -9,7 +9,7 @@ import time
 
 pjoin = os.path.join
 
-from snakeoil import compatibility, currying, fileutils, _fileutils
+from snakeoil import currying, fileutils, _fileutils
 from snakeoil.fileutils import AtomicWriteFile
 from snakeoil.test import TestCase, not_a_test, SkipTest
 from snakeoil.test.mixins import TempDirMixin
@@ -50,9 +50,6 @@ class TestTouch(TempDirMixin):
         self.assertEqual(1, new_stat.st_mtime)
 
     def test_set_custom_nstimes(self):
-        if not compatibility.is_py3k:
-            raise SkipTest('requires py33 and up')
-
         fp = pjoin(self.dir, 'file')
         fileutils.touch(fp)
         orig_stat = os.stat(fp)
@@ -148,9 +145,8 @@ class native_readfile_Test(TempDirMixin):
 
     @staticmethod
     def convert_data(data, encoding):
-        if compatibility.is_py3k:
-            if isinstance(data, bytes):
-                return data
+        if isinstance(data, bytes):
+            return data
         if encoding:
             return data.encode(encoding)
         return data
@@ -200,17 +196,6 @@ class cpy_readfile_ascii_Test(native_readfile_ascii_Test):
     cpy_setup_class(locals(), 'readfile_ascii')
 
 
-class native_readfile_ascii_strict_Test(native_readfile_ascii_Test):
-    func = staticmethod(fileutils.native_readfile_ascii_strict)
-    test_cases = native_readfile_ascii_Test.test_cases + [
-        (u'\xf2', 'latin', (ValueError, UnicodeDecodeError)),
-        (u'\ua000', 'utf8', UnicodeDecodeError),
-        ]
-
-class cpy_readfile_ascii_strict_Test(native_readfile_ascii_strict_Test):
-    cpy_setup_class(locals(), 'readfile_ascii_strict')
-
-
 class native_readfile_utf8_Test(native_readfile_Test):
     func = staticmethod(fileutils.native_readfile_utf8)
     default_encoding = 'utf8'
@@ -218,23 +203,13 @@ class native_readfile_utf8_Test(native_readfile_Test):
 class cpy_readfile_utf8_Test(native_readfile_utf8_Test):
     cpy_setup_class(locals(), 'readfile_utf8')
 
-class native_readfile_utf8_strict_Test(native_readfile_Test):
-    func = staticmethod(fileutils.native_readfile_utf8_strict)
-    default_encoding = 'utf8'
-    test_cases = native_readfile_ascii_Test.test_cases + [
-        u'\ua000fa',
-        ]
-
-class cpy_readfile_utf8_strict_Test(native_readfile_utf8_Test):
-    cpy_setup_class(locals(), 'readfile_utf8_strict')
-
 class native_readfile_bytes_Test(native_readfile_Test):
     func = staticmethod(fileutils.native_readfile_bytes)
     default_encoding = None
-    test_cases = map(
+    test_cases = list(map(
         currying.post_curry(native_readfile_Test.convert_data, 'ascii'),
-        native_readfile_Test.test_cases)
-    test_cases.append(u'\ua000fa'.encode("utf8"))
+        native_readfile_Test.test_cases))
+    test_cases.append('\ua000fa'.encode("utf8"))
     none_on_missing_ret_data = native_readfile_Test.convert_data(
         native_readfile_Test.none_on_missing_ret_data, 'ascii')
 
@@ -250,8 +225,6 @@ class readlines_mixin(object):
             self.assertEqual(tuple(self.func(path)), expected)
             return
         data = tuple(self.func(path))
-        if 'strict' not in self.encoding_mode and not compatibility.is_py3k:
-            data = tuple(x.decode() for x in data)
         self.assertEqual(data, expected)
 
     def test_none_on_missing(self):
@@ -272,7 +245,7 @@ class readlines_mixin(object):
                                                     'ascii'))
         results = tuple(self.func(fp, True))
         expected = ('dar1', 'dar2', 'dar3')
-        if self.encoding_mode == 'bytes' and compatibility.is_py3k:
+        if self.encoding_mode == 'bytes':
             expected = tuple(x.encode("ascii") for x in expected)
         self.assertEqual(results, expected)
 
@@ -288,21 +261,21 @@ class readlines_mixin(object):
         self.write_file(fp, 'wb', self.convert_data('0', 'ascii'))
         results = tuple(self.func(fp, True))
         expected = ('0',)
-        if self.encoding_mode == 'bytes' and compatibility.is_py3k:
+        if self.encoding_mode == 'bytes':
             expected = tuple(x.encode("ascii") for x in expected)
         self.assertEqual(results, expected)
 
         self.write_file(fp, 'wb', self.convert_data('0\n', 'ascii'))
         results = tuple(self.func(fp, True))
         expected = ('0',)
-        if self.encoding_mode == 'bytes' and compatibility.is_py3k:
+        if self.encoding_mode == 'bytes':
             expected = tuple(x.encode("ascii") for x in expected)
         self.assertEqual(results, expected)
 
         self.write_file(fp, 'wb', self.convert_data('0 ', 'ascii'))
         results = tuple(self.func(fp, True))
         expected = ('0',)
-        if self.encoding_mode == 'bytes' and compatibility.is_py3k:
+        if self.encoding_mode == 'bytes':
             expected = tuple(x.encode("ascii") for x in expected)
         self.assertEqual(results, expected)
 
@@ -319,7 +292,7 @@ def mk_readlines_test(scope, mode):
     kls.__name__ = "%s_Test" % func_name
     scope["%s_Test" % func_name] = kls
 
-for case in ("ascii", "ascii_strict", "bytes", "utf8"):
+for case in ("ascii", "bytes", "utf8"):
     name = 'readlines_%s' % case
     mk_readlines_test(locals(), case)
 

@@ -2,7 +2,6 @@
 # Copyright: 2007 Marien Zwart <marienz@gentoo.org>
 # License: BSD/GPL2
 
-
 import sre_constants
 
 from snakeoil.test import TestCase
@@ -119,13 +118,13 @@ class DemandCompileRegexpTest(TestCase):
     def test_demand_compile_regexp(self):
         scope = {}
         demandload.demand_compile_regexp('foo', 'frob', scope=scope)
-        self.assertEqual(scope.keys(), ['foo'])
+        self.assertEqual(list(scope.keys()), ['foo'])
         self.assertEqual('frob', scope['foo'].pattern)
         self.assertEqual('frob', scope['foo'].pattern)
 
         # verify it's delayed via a bad regex.
         demandload.demand_compile_regexp('foo', 'f(', scope=scope)
-        self.assertEqual(scope.keys(), ['foo'])
+        self.assertEqual(list(scope.keys()), ['foo'])
         # should blow up on accessing an attribute.
         obj = scope['foo']
         self.assertRaises(sre_constants.error, getattr, obj, 'pattern')

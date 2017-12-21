@@ -45,8 +45,7 @@ def mangle_parser(parser):
     return parser
 
 
-class FormatterObject(object):
-    __metaclass__ = WeakInstMeta
+class FormatterObject(object, metaclass=WeakInstMeta):
     __inst_caching__ = True
 
     def __call__(self, formatter):

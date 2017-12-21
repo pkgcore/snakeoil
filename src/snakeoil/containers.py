@@ -11,12 +11,11 @@ __all__ = (
     "ProtectedSet", "RefCountingSet"
 )
 
-from snakeoil import compatibility
 from snakeoil.demandload import demandload
 from snakeoil.klass import steal_docs
 
 demandload(
-    'itertools:chain,ifilterfalse',
+    'itertools:chain,filterfalse',
 )
 
 
@@ -203,12 +202,8 @@ class LimitedChangeSet(SetMixin):
                 self._new.remove(key)
             l -= 1
 
-    if compatibility.is_py3k:
-        def __str__(self):
-            return "LimitedChangeSet([%s])" % (str(self._new)[1:-1],)
-    else:
-        def __str__(self):
-            return str(self._new).replace("set(", "LimitedChangeSet(", 1)
+    def __str__(self):
+        return "LimitedChangeSet([%s])" % (str(self._new)[1:-1],)
 
     @steal_docs(set)
     def __iter__(self):
@@ -270,7 +265,7 @@ class ProtectedSet(SetMixin):
 
     def __iter__(self):
         return chain(iter(self._new),
-                     ifilterfalse(self._new.__contains__, self._orig))
+                     filterfalse(self._new.__contains__, self._orig))
 
     def __len__(self):
         return len(self._new.union(self._orig))

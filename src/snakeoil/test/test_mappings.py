@@ -10,7 +10,7 @@ from itertools import chain
 
 
 def a_dozen():
-    return range(12)
+    return list(range(12))
 
 
 class BasicDict(mappings.DictMixin):
@@ -19,7 +19,7 @@ class BasicDict(mappings.DictMixin):
         self._d = {}
         mappings.DictMixin.__init__(self, i, **kwargs)
 
-    def iterkeys(self):
+    def keys(self):
         return iter(self._d)
 
 class MutableDict(BasicDict):
@@ -71,7 +71,7 @@ class TestDictMixin(TestCase):
         d.clear()
         self.assertEqual(d, {})
 
-    def test_nonzero(self):
+    def test_bool(self):
         d = MutableDict()
         self.assertFalse(d)
         d['x'] = 1
@@ -106,8 +106,8 @@ class LazyValDictTestMixin(object):
 
     def test_keys(self):
         # Called twice because the first call will trigger a keyfunc call.
-        self.assertEqual(sorted(self.dict.keys()), list(xrange(12)))
-        self.assertEqual(sorted(self.dict.keys()), list(xrange(12)))
+        self.assertEqual(sorted(self.dict.keys()), list(range(12)))
+        self.assertEqual(sorted(self.dict.keys()), list(range(12)))
 
     def test_len(self):
         # Called twice because the first call will trigger a keyfunc call.
@@ -134,25 +134,23 @@ class LazyValDictWithListTest(TestCase, LazyValDictTestMixin,
 
     def setUp(self):
         RememberingNegateMixin.setUp(self)
-        self.dict = mappings.LazyValDict(range(12), self.negate)
+        self.dict = mappings.LazyValDict(list(range(12)), self.negate)
 
     def tearDown(self):
         RememberingNegateMixin.tearDown(self)
 
-    def test_itervalues(self):
-        self.assertEqual(sorted(self.dict.itervalues()), range(-11, 1))
+    def test_values(self):
+        self.assertEqual(sorted(self.dict.values()), list(range(-11, 1)))
 
     def test_len(self):
         self.assertEqual(len(self.dict), 12)
 
     def test_iter(self):
-        self.assertEqual(list(self.dict), range(12))
+        self.assertEqual(list(self.dict), list(range(12)))
 
     def test_contains(self):
         self.assertIn(1, self.dict)
 
-    def test_has_key(self):
-        self.assertEqual(True, self.dict.has_key(1))
 
 class LazyValDictWithFuncTest(TestCase, LazyValDictTestMixin,
                               RememberingNegateMixin):
@@ -244,21 +242,20 @@ class ImmutableDictTest(TestCase):
 
 class StackedDictTest(TestCase):
 
-    orig_dict = dict.fromkeys(xrange(100))
-    new_dict = dict.fromkeys(xrange(100, 200))
+    orig_dict = dict.fromkeys(range(100))
+    new_dict = dict.fromkeys(range(100, 200))
 
     def test_contains(self):
         std = mappings.StackedDict(self.orig_dict, self.new_dict)
         self.assertIn(1, std)
-        self.assertTrue(std.has_key(1))
 
     def test_stacking(self):
         o = dict(self.orig_dict)
         std = mappings.StackedDict(o, self.new_dict)
-        for x in chain(*map(iter, (self.orig_dict, self.new_dict))):
+        for x in chain(*list(map(iter, (self.orig_dict, self.new_dict)))):
             self.assertIn(x, std)
 
-        for key in self.orig_dict.iterkeys():
+        for key in list(self.orig_dict.keys()):
             del o[key]
         for x in self.orig_dict:
             self.assertNotIn(x, std)
@@ -290,7 +287,7 @@ class StackedDictTest(TestCase):
     def test_keys(self):
         self.assertEqual(
             sorted(mappings.StackedDict(self.orig_dict, self.new_dict)),
-            sorted(self.orig_dict.keys() + self.new_dict.keys()))
+            sorted(list(self.orig_dict.keys()) + list(self.new_dict.keys())))
 
 
 class IndeterminantDictTest(TestCase):
@@ -305,7 +302,7 @@ class IndeterminantDictTest(TestCase):
                 ("__delitem__", 1),
                 ("__setitem__", 2),
                 ("popitem", 2),
-                "iteritems", "iterkeys", "keys", "items", "itervalues", "values",
+                "keys", "items", "values",
             ):
             if isinstance(x, tuple):
                 self.assertRaises(TypeError, getattr(d, x[0]), x[1])
@@ -314,16 +311,16 @@ class IndeterminantDictTest(TestCase):
 
     def test_starter_dict(self):
         d = mappings.IndeterminantDict(
-            lambda key: False, starter_dict={}.fromkeys(xrange(100), True))
-        for x in xrange(100):
+            lambda key: False, starter_dict={}.fromkeys(range(100), True))
+        for x in range(100):
             self.assertEqual(d[x], True)
-        for x in xrange(100, 110):
+        for x in range(100, 110):
             self.assertEqual(d[x], False)
 
     def test_behaviour(self):
         val = []
         d = mappings.IndeterminantDict(
-            lambda key: val.append(key), {}.fromkeys(xrange(10), True))
+            lambda key: val.append(key), {}.fromkeys(range(10), True))
         self.assertEqual(d[0], True)
         self.assertEqual(d[11], None)
         self.assertEqual(val, [11])
@@ -350,7 +347,7 @@ class FoldingDictTest(TestCase):
 
     def testPreserve(self):
         dct = mappings.PreservingFoldingDict(
-            str.lower, {'Foo': 'bar', 'fnz': 'donkey'}.iteritems())
+            str.lower, list({'Foo': 'bar', 'fnz': 'donkey'}.items()))
         self.assertEqual(dct['fnz'], 'donkey')
         self.assertEqual(dct['foo'], 'bar')
         self.assertEqual(sorted(['bar', 'donkey']), sorted(dct.values()))
@@ -360,9 +357,9 @@ class FoldingDictTest(TestCase):
         keys = ['Foo', 'fnz']
         keysList = list(dct)
         for key in keys:
-            self.assertIn(key, dct.keys())
+            self.assertIn(key, list(dct.keys()))
             self.assertIn(key, keysList)
-            self.assertIn((key, dct[key]), dct.items())
+            self.assertIn((key, dct[key]), list(dct.items()))
         self.assertEqual(len(keys), len(dct))
         self.assertEqual(dct.pop('foo'), 'bar')
         self.assertNotIn('foo', dct)
@@ -372,26 +369,26 @@ class FoldingDictTest(TestCase):
         dct.refold(lambda _: _)
         self.assertNotIn('foo', dct)
         self.assertIn('Foo', dct)
-        self.assertEqual(dct.items(), [('Foo', 'bar')])
+        self.assertEqual(list(dct.items()), [('Foo', 'bar')])
         dct.clear()
         self.assertEqual({}, dict(dct))
 
     def testNoPreserve(self):
         dct = mappings.NonPreservingFoldingDict(
-            str.lower, {'Foo': 'bar', 'fnz': 'monkey'}.iteritems())
+            str.lower, list({'Foo': 'bar', 'fnz': 'monkey'}.items()))
         self.assertEqual(sorted(['bar', 'monkey']), sorted(dct.values()))
         self.assertEqual(dct.copy(), dct)
         keys = ['foo', 'fnz']
         keysList = [key for key in dct]
         for key in keys:
-            self.assertIn(key, dct.keys())
+            self.assertIn(key, list(dct.keys()))
             self.assertIn(key, dct)
             self.assertIn(key, keysList)
-            self.assertIn((key, dct[key]), dct.items())
+            self.assertIn((key, dct[key]), list(dct.items()))
         self.assertEqual(len(keys), len(dct))
         self.assertEqual(dct.pop('foo'), 'bar')
         del dct['fnz']
-        self.assertEqual(dct.keys(), [])
+        self.assertEqual(list(dct.keys()), [])
         dct.clear()
         self.assertEqual({}, dict(dct))
 
@@ -404,7 +401,7 @@ class defaultdictkeyTest(TestCase):
         d = self.kls(lambda x: [x])
         self.assertEqual(d[0], [0])
         val = d[0]
-        self.assertEqual(d.items(), [(0, [0])])
+        self.assertEqual(list(d.items()), [(0, [0])])
         self.assertEqual(d[0], [0])
         self.assertIdentical(d[0], val)
 
@@ -447,7 +444,7 @@ class Test_ProxiedAttrs(TestCase):
     def test_it(self):
         class foo(object):
             def __init__(self, **kwargs):
-                for attr, val in kwargs.iteritems():
+                for attr, val in kwargs.items():
                     setattr(self, attr, val)
         obj = foo()
         d = self.kls(obj)

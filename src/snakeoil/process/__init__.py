@@ -136,7 +136,7 @@ class ProcessNotFound(Exception):
 
 
 def _native_closerange(from_fd, to_fd):
-    for fd in xrange(from_fd, to_fd):
+    for fd in range(from_fd, to_fd):
         try:
             os.close(fd)
         except EnvironmentError:

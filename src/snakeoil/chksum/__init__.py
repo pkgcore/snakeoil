@@ -5,8 +5,9 @@
 chksum verification/generation subsystem
 """
 
-from snakeoil import klass, compatibility
+from snakeoil import klass
 from snakeoil.demandload import demandload
+
 demandload(
     "importlib:import_module",
     "os",
@@ -136,16 +137,14 @@ def get_chksums(location, *chksums, **kwds):
                                  parallelize=parallelize, can_mmap=can_mmap)
 
 
-class LazilyHashedPath(object):
+class LazilyHashedPath(object, metaclass=klass.immutable_instance):
 
     """Given a pathway, compute chksums on demand via attribute access."""
-
-    __metaclass__ = klass.immutable_instance
 
     def __init__(self, path, **initial_values):
         f = object.__setattr__
         f(self, 'path', path)
-        for attr, val in initial_values.iteritems():
+        for attr, val in initial_values.items():
             f(self, attr, val)
 
     def __getattr__(self, attr):
@@ -157,8 +156,8 @@ class LazilyHashedPath(object):
         else:
             try:
                 val = get_chksums(self.path, attr)[0]
-            except MissingChksumHandler:
-                compatibility.raise_from(AttributeError(attr))
+            except MissingChksumHandler as e:
+                raise AttributeError(attr) from e
         object.__setattr__(self, attr, val)
         return val
 

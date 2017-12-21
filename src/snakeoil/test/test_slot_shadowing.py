@@ -42,7 +42,7 @@ class Test_slot_shadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker,
             if slots is None:
                 continue
 
-            if isinstance(slots, str) or isinstance(slots, unicode):
+            if isinstance(slots, str) or isinstance(slots, str):
                 slots = (slots,)
 
             raw_slottings[slots] = parent
@@ -53,7 +53,7 @@ class Test_slot_shadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker,
         if slots is None and not slotting:
             return
 
-        if isinstance(slots, str) or isinstance(slots, unicode):
+        if isinstance(slots, str) or isinstance(slots, str):
             if self.err_if_slots_is_str:
                 raise self.failureException(
                     "cls %r; slots is %r (should be a tuple or list)" %

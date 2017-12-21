@@ -17,10 +17,6 @@ import itertools
 import mmap
 import os
 
-from snakeoil import compatibility
-from snakeoil.demandload import demandload
-demandload('codecs')
-
 
 def mmap_and_close(fd, *args, **kwargs):
     """
@@ -72,9 +68,8 @@ def _native_readlines_shim(*args, **kwds):
     return native_readlines('r', *args, **kwds)
 
 def native_readlines(mode, mypath, strip_whitespace=True, swallow_missing=False,
-                     none_on_missing=False, encoding=None, strict=compatibility.is_py3k):
-    """
-    read a file, yielding each line
+                     none_on_missing=False, encoding=None):
+    """Read a file, yielding each line.
 
     :param mypath: fs path for the file to read
     :param strip_whitespace: strip any leading or trailing whitespace including newline?
@@ -84,17 +79,7 @@ def native_readlines(mode, mypath, strip_whitespace=True, swallow_missing=False,
     """
     handle = iterable = None
     try:
-        if encoding and strict:
-            # we special case this- codecs.open is about 2x slower,
-            # thus if py3k, use the native one (which supports encoding directly)
-            if compatibility.is_py3k:
-                handle = open(mypath, mode, encoding=encoding)
-            else:
-                handle = codecs.open(mypath, mode, encoding=encoding)
-                if encoding == 'ascii':
-                    iterable = _py2k_ascii_strict_filter(handle)
-        else:
-            handle = open(mypath, mode)
+        handle = open(mypath, mode, encoding=encoding)
     except IOError as ie:
         if not swallow_missing or ie.errno not in (errno.ENOTDIR, errno.ENOENT):
             raise
@@ -124,10 +109,8 @@ def _py2k_ascii_strict_filter(source):
 def _native_readfile_shim(*args, **kwds):
     return native_readfile('r', *args, **kwds)
 
-def native_readfile(mode, mypath, none_on_missing=False, encoding=None,
-                    strict=compatibility.is_py3k):
-    """
-    read a file, returning the contents
+def native_readfile(mode, mypath, none_on_missing=False, encoding=None):
+    """Read a file, returning the contents.
 
     :param mypath: fs path for the file to read
     :param none_on_missing: whether to return None if the file is missing,
@@ -136,16 +119,7 @@ def native_readfile(mode, mypath, none_on_missing=False, encoding=None,
     f = None
     try:
         try:
-            if encoding and strict:
-                # we special case this- codecs.open is about 2x slower,
-                # thus if py3k, use the native one (which supports encoding directly)
-                if compatibility.is_py3k:
-                    f = open(mypath, mode, encoding=encoding)
-                else:
-                    f = codecs.open(mypath, mode, encoding=encoding)
-            else:
-                f = open(mypath, mode)
-
+            f = open(mypath, mode, encoding=encoding)
             return f.read()
         except IOError as oe:
             if none_on_missing and oe.errno in (errno.ENOENT, errno.ENOTDIR):

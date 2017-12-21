@@ -4,13 +4,8 @@
 import errno
 from functools import partial
 import unittest
+from unittest.mock import patch
 
-try:
-    from unittest.mock import patch
-except ImportError:
-    from mock import patch
-
-from snakeoil import compatibility as compat
 from snakeoil.cli.input import userquery, NoChoice
 from snakeoil.test.argparse_helpers import FakeStreamFormatter
 
@@ -22,12 +17,12 @@ class TestUserQuery(unittest.TestCase):
         self.err = FakeStreamFormatter()
         self.query = partial(userquery, out=self.out, err=self.err)
 
-    @patch.object(compat, 'input')
+    @patch('builtins.input')
     def test_default_answer(self, fake_input):
         fake_input.return_value = ''
         self.assertEqual(self.query('foo'), True)
 
-    @patch.object(compat, 'input')
+    @patch('builtins.input')
     def test_tuple_prompt(self, fake_input):
         fake_input.return_value = ''
         prompt = 'perhaps a tuple'
@@ -37,7 +32,7 @@ class TestUserQuery(unittest.TestCase):
             self.out.get_text_stream().strip().split('\n')[0][:len(output)],
             output)
 
-    @patch.object(compat, 'input')
+    @patch('builtins.input')
     def test_no_default_answer(self, fake_input):
         responses = {
             'a': ('z', 'Yes'),
@@ -51,7 +46,7 @@ class TestUserQuery(unittest.TestCase):
         fake_input.return_value = 'b'
         self.assertEqual(self.query('foo', responses=responses), 'y')
 
-    @patch.object(compat, 'input')
+    @patch('builtins.input')
     def test_ambiguous_input(self, fake_input):
         responses = {
             'a': ('z', 'Yes'),
@@ -63,9 +58,9 @@ class TestUserQuery(unittest.TestCase):
         self.assertEqual(
             self.err.get_text_stream().strip().split('\n')[1],
             'Response %r is ambiguous (%s)' % (
-                fake_input.return_value, ', '.join(sorted(responses.iterkeys()))))
+                fake_input.return_value, ', '.join(sorted(responses.keys()))))
 
-    @patch.object(compat, 'input')
+    @patch('builtins.input')
     def test_default_correct_input(self, fake_input):
         for input, output in (('no', False),
                               ('No', False),
@@ -74,19 +69,19 @@ class TestUserQuery(unittest.TestCase):
             fake_input.return_value = input
             self.assertEqual(self.query('foo'), output)
 
-    @patch.object(compat, 'input')
+    @patch('builtins.input')
     def test_default_answer_no_matches(self, fake_input):
         fake_input.return_value = ''
         with self.assertRaises(ValueError):
             self.query('foo', default_answer='foo')
         self.assertEqual(self.out.stream, [])
 
-    @patch.object(compat, 'input')
+    @patch('builtins.input')
     def test_custom_default_answer(self, fake_input):
         fake_input.return_value = ''
         self.assertEqual(self.query('foo', default_answer=False), False)
 
-    @patch.object(compat, 'input')
+    @patch('builtins.input')
     def test_eof_nochoice(self, fake_input):
         # user hits ctrl-d
         fake_input.side_effect = EOFError
@@ -96,7 +91,7 @@ class TestUserQuery(unittest.TestCase):
             self.out.get_text_stream().strip().split('\n')[1],
             'Not answerable: EOF on STDIN')
 
-    @patch.object(compat, 'input')
+    @patch('builtins.input')
     def test_stdin_closed_nochoice(self, fake_input):
         fake_input.side_effect = IOError(errno.EBADF, '')
         with self.assertRaises(NoChoice):
@@ -105,13 +100,13 @@ class TestUserQuery(unittest.TestCase):
             self.out.get_text_stream().strip().split('\n')[1],
             'Not answerable: STDIN is either closed, or not readable')
 
-    @patch.object(compat, 'input')
+    @patch('builtins.input')
     def test_unhandled_ioerror(self, fake_input):
         fake_input.side_effect = IOError(errno.ENODEV, '')
         with self.assertRaises(IOError):
             self.query('foo')
 
-    @patch.object(compat, 'input')
+    @patch('builtins.input')
     def test_bad_choice_limit(self, fake_input):
         # user hits enters a bad choice 3 times in a row
         fake_input.return_value = 'bad'
@@ -122,7 +117,7 @@ class TestUserQuery(unittest.TestCase):
             self.err.get_text_stream().strip().split('\n')[1],
             "Sorry, response %r not understood." % (fake_input.return_value,))
 
-    @patch.object(compat, 'input')
+    @patch('builtins.input')
     def test_custom_choice_limit(self, fake_input):
         # user hits enters a bad choice 5 times in a row
         fake_input.return_value = 'haha'

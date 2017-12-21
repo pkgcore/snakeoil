@@ -27,38 +27,28 @@
 
 # pylint: disable=bad-continuation,bad-whitespace
 
-import sys
-if sys.hexversion >= 0x3000000:
-    xrange = range
-
 #block_size = 64
 digest_size = 64
 digestsize = 64
 
+
 class Whirlpool(object):
-    """Return a new Whirlpool object. An optional string argument
-    may be provided; if present, this string will be automatically
-    hashed."""
+    """Return a new Whirlpool object.
+
+    An optional string argument may be provided; if present, this string will
+    be automatically hashed.
+    """
+
     def __init__(self, arg=None):
         self.ctx = WhirlpoolStruct()
         if arg:
             self.update(arg)
         self.digest_status = 0
 
-    if sys.hexversion < 0x3000000:
-        # Explicitly force this to a string to ensure it's ascii compatible
-        # if it's unicode..
-        def update(self, arg):
-            """update(arg)"""
-            if isinstance(arg, unicode):
-                arg = str(arg)
-            self.ctx.WhirlpoolAdd(map(ord, arg), len(arg) * 8)
-            self.digest_status = 0
-    else:
-        def update(self, arg):
-            """update(arg)"""
-            self.ctx.WhirlpoolAdd(arg, len(arg)*8)
-            self.digest_status = 0
+    def update(self, arg):
+        """update(arg)"""
+        self.ctx.WhirlpoolAdd(arg, len(arg)*8)
+        self.digest_status = 0
 
     def digest(self):
         """digest()"""
@@ -722,19 +712,19 @@ class WhirlpoolStruct(object):
         bufferPos += 1
         if bufferPos > 32:
             if bufferPos < 64:
-                for i in xrange(64 - bufferPos):
+                for i in range(64 - bufferPos):
                     self.buffer[bufferPos+i] = 0
             self._processBuffer()
             bufferPos = 0
         if bufferPos < 32:
-            for i in xrange(32 - bufferPos):
+            for i in range(32 - bufferPos):
                 self.buffer[bufferPos+i] = 0
         bufferPos = 32
-        for i in xrange(32):
+        for i in range(32):
             self.buffer[32+i] = self.bitLength[i]
         self._processBuffer()
         digest = ''
-        for i in xrange(8):
+        for i in range(8):
             digest += chr((self.hash[i] >> 56) % 0x100)
             digest += chr((self.hash[i] >> 48) % 0x100)
             digest += chr((self.hash[i] >> 40) % 0x100)
@@ -755,7 +745,7 @@ class WhirlpoolStruct(object):
         buffr = self.buffer
 
         buf_cnt = 0
-        for i in xrange(8):
+        for i in range(8):
             block[i] = ((buffr[buf_cnt  ] & 0xff) << 56) ^ \
                        ((buffr[buf_cnt+1] & 0xff) << 48) ^ \
                        ((buffr[buf_cnt+2] & 0xff) << 40) ^ \
@@ -766,11 +756,11 @@ class WhirlpoolStruct(object):
                        ((buffr[buf_cnt+7] & 0xff)      )
             buf_cnt += 8
 
-        for i in xrange(8):
+        for i in range(8):
             x = K[i] = self.hash[i]
             state[i] = block[i] ^ x
 
-        for r in xrange(1, R+1):
+        for r in range(1, R+1):
             L[0] = CDo(K, 0) ^ rc[r]
             L[1] = CDo(K, 1)
             L[2] = CDo(K, 2)
@@ -790,10 +780,10 @@ class WhirlpoolStruct(object):
             L[5] = CDo(state, 5) ^ K[5]
             L[6] = CDo(state, 6) ^ K[6]
             L[7] = CDo(state, 7) ^ K[7]
-            for i in xrange(8):
+            for i in range(8):
                 state[i] = L[i]
         # apply the Miyaguchi-Preneel compression function
-        for i in xrange(8):
+        for i in range(8):
             self.hash[i] ^= state[i] ^ block[i]
         return
 

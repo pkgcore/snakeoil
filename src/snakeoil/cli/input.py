@@ -5,8 +5,6 @@
 
 import errno
 
-from snakeoil import compatibility as compat
-
 
 class NoChoice(KeyboardInterrupt):
     """Raised by :obj:`userquery` if no choice was made.
@@ -52,20 +50,20 @@ def userquery(prompt, out, err, responses=None, default_answer=None, limit=3):
         if default_answer is None:
             default_answer = True
     if default_answer is not None:
-        for val in responses.itervalues():
+        for val in responses.values():
             if val[0] == default_answer:
                 default_answer_name = val[1:]
                 break
         else:
             raise ValueError('default answer matches no responses')
-    for i in xrange(limit):
+    for i in range(limit):
         # XXX see docstring about crummyness
         if isinstance(prompt, tuple):
             out.write(autoline=False, *prompt)
         else:
             out.write(prompt, autoline=False)
         out.write(' [', autoline=False)
-        prompts = responses.values()
+        prompts = list(responses.values())
         for choice in prompts[:-1]:
             out.write(autoline=False, *choice[1:])
             out.write(out.reset, '/', autoline=False)
@@ -77,19 +75,19 @@ def userquery(prompt, out, err, responses=None, default_answer=None, limit=3):
             out.write(')', autoline=False)
         out.write(': ', autoline=False)
         try:
-            response = compat.input()
-        except EOFError:
+            response = input()
+        except EOFError as e:
             out.write("\nNot answerable: EOF on STDIN")
-            compat.raise_from(NoChoice())
+            raise NoChoice() from e
         except IOError as e:
             if e.errno == errno.EBADF:
                 out.write("\nNot answerable: STDIN is either closed, or not readable")
-                compat.raise_from(NoChoice())
+                raise NoChoice() from e
             raise
         if not response:
             return default_answer
         results = sorted(set(
-            (key, value) for key, value in responses.iteritems()
+            (key, value) for key, value in responses.items()
             if key[:len(response)].lower() == response.lower()))
         if not results:
             err.write('Sorry, response %r not understood.' % (response,))

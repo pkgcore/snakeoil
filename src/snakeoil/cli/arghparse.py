@@ -8,7 +8,7 @@ from functools import partial
 import os
 import sys
 
-from snakeoil import compatibility, klass
+from snakeoil import klass
 from snakeoil.demandload import demandload
 from snakeoil.mappings import ImmutableDict
 
@@ -73,11 +73,11 @@ class ExtendCommaDelimited(argparse._AppendAction):
 
     def __call__(self, parser, namespace, values, option_string=None):
         items = []
-        if isinstance(values, basestring):
-            items.extend(filter(None, values.split(',')))
+        if isinstance(values, str):
+            items.extend(x for x in values.split(',') if x)
         else:
             for value in values:
-                items.extend(filter(None, value.split(',')))
+                items.extend(x for x in value.split(',') if x)
         setattr(namespace, self.dest, items)
 
 
@@ -93,10 +93,10 @@ class ExtendCommaDelimitedToggle(argparse._AppendAction):
 
     def __call__(self, parser, namespace, values, option_string=None):
         disabled, enabled = [], []
-        if isinstance(values, basestring):
+        if isinstance(values, str):
             values = [values]
         for value in values:
-            neg, pos = split_negations(filter(None, value.split(',')))
+            neg, pos = split_negations(x for x in value.split(',') if x)
             disabled.extend(neg)
             enabled.extend(pos)
         setattr(namespace, self.dest, (disabled, enabled))
@@ -156,7 +156,7 @@ class DelayedDefault(DelayedValue):
 
     @classmethod
     def wipe(cls, attrs, priority):
-        if isinstance(attrs, basestring):
+        if isinstance(attrs, str):
             attrs = (attrs,)
         return cls(partial(cls._wipe, attrs), priority)
 
@@ -234,7 +234,7 @@ class Expansion(argparse.Action):
         actions = parser._actions
         action_map = {}
         vals = values
-        if isinstance(values, basestring):
+        if isinstance(values, str):
             vals = [vals]
         dvals = {str(idx): val for idx, val in enumerate(vals)}
         dvals['*'] = ' '.join(vals)
@@ -251,7 +251,7 @@ class Expansion(argparse.Action):
                     "unable to find option %r for %r" %
                     (option, self.option_strings))
             if action.type is not None:
-                args = map(action.type, args)
+                args = list(map(action.type, args))
             if action.nargs in (1, None):
                 args = args[0]
             action(parser, namespace, args, option_string=option_string)
@@ -520,13 +520,13 @@ class ArgumentParser(argparse.ArgumentParser):
         # intentionally no protection of suppression code; this should
         # just work.
 
-        i = ((attr, val) for attr, val in args.__dict__.iteritems()
+        i = ((attr, val) for attr, val in args.__dict__.items()
              if isinstance(val, DelayedDefault))
         for attr, functor in sorted(i, key=lambda val: val[1].priority):
             functor(args, attr)
 
         # now run the delays
-        i = ((attr, val) for attr, val in args.__dict__.iteritems()
+        i = ((attr, val) for attr, val in args.__dict__.items()
              if isinstance(val, DelayedValue))
         try:
             for attr, delayed in sorted(i, key=lambda val: val[1].priority):
@@ -624,7 +624,4 @@ def existent_path(value):
     try:
         return osutils.abspath(value)
     except EnvironmentError as e:
-        compatibility.raise_from(
-            ValueError(
-                "while resolving path %r, encountered error: %r" %
-                (value, e)))
+        raise ValueError("while resolving path %r, encountered error: %r" % (value, e)) from e
