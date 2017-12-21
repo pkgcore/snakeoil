@@ -68,12 +68,6 @@ def _add_argument_docs(orig_func, self, *args, **kwargs):
     return obj
 
 
-# TODO: deprecated, remove in 0.8.0
-class ArgumentError(Exception):
-    """Generic error relating to argument creation or usage."""
-    pass
-
-
 class ExtendCommaDelimited(argparse._AppendAction):
     """Split comma-separated values into a list."""
 
@@ -357,7 +351,6 @@ class ArgumentParser(argparse.ArgumentParser):
                  verbose=True, version=True, add_help=True, sorted_help=False,
                  description=None, docs=None, script=None, prog=None, **kwds):
         self.debug = debug and '--debug' in sys.argv[1:]
-        self.suppress = suppress  # TODO: deprecated, drop in 0.8.0
 
         # subparser to use if none is specified on the command line and one is required
         self.__default_subparser = None
