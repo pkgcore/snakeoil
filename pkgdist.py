@@ -10,6 +10,9 @@ passing in distutils.
 Specifically, this module is only meant to be imported in setup.py scripts.
 """
 
+# TODO: merge this back into snakeoil once pip implements PEPs 517 and 518
+# https://github.com/pypa/pip/issues/4802
+
 from contextlib import contextmanager
 import copy
 import errno
@@ -43,6 +46,8 @@ READTHEDOCS = os.environ.get('READTHEDOCS', None) == 'True'
 
 # top level repo/tarball directory
 TOPDIR = os.path.dirname(os.path.abspath(__file__))
+# executable scripts directory
+SCRIPTS_DIR = os.path.join(TOPDIR, 'bin')
 
 
 def find_moduledir(searchdir=TOPDIR):
@@ -148,16 +153,18 @@ def setup():
         'packages': find_packages(PACKAGEDIR),
         'package_dir': {'':os.path.basename(PACKAGEDIR)},
         'install_requires': install_requires(),
+        'tests_require': test_requires(),
     }
 
     cmds = {
         'sdist': sdist,
         'build_py': build_py,
+        'test': pytest,
     }
 
     # check for scripts
-    if os.path.exists(os.path.join(TOPDIR, 'bin')):
-        params['scripts'] = os.listdir('bin')
+    if os.path.exists(SCRIPTS_DIR):
+        params['scripts'] = os.listdir(SCRIPTS_DIR)
         cmds['build_scripts'] = build_scripts
 
     # check for docs
@@ -725,7 +732,7 @@ class build_scripts(dst_build_scripts.build_scripts):
         script_dir = os.path.join(
             os.path.dirname(self.build_dir), '.generated_scripts')
         self.mkpath(script_dir)
-        self.scripts = [os.path.join(script_dir, x) for x in os.listdir('bin')]
+        self.scripts = [os.path.join(script_dir, x) for x in os.listdir(SCRIPTS_DIR)]
 
     def run(self):
         for script in self.scripts:
@@ -1009,6 +1016,7 @@ class pytest(Command):
         ('report=', 'r', 'generate and/or show a coverage report'),
         ('jobs=', 'j', 'run X parallel tests at once'),
         ('match=', 'k', 'run only tests that match the provided expressions'),
+        ('targets=', 't', 'target tests to run'),
     ]
 
     def initialize_options(self):
@@ -1017,6 +1025,7 @@ class pytest(Command):
         self.skip_build = False
         self.test_dir = None
         self.match = None
+        self.targets = ''
         self.jobs = None
         self.report = None
 
@@ -1033,7 +1042,12 @@ class pytest(Command):
             else:
                 raise DistutilsExecError('cannot automatically determine test directory')
 
-        self.test_args = [self.test_dir]
+        self.test_args = []
+        if self.targets is not None:
+            targets = [os.path.join(self.test_dir, x) for x in self.targets.split()]
+            self.test_args.extend(targets)
+        else:
+            self.test_args.append(self.test_dir)
         self.coverage = bool(self.coverage)
         self.skip_build = bool(self.skip_build)
         if self.verbose:
@@ -1085,6 +1099,9 @@ class pytest(Command):
             self.run_command('build_ext')
             self.run_command('build_py')
             builddir = os.path.abspath(build_py.build_lib)
+
+        # force reimport of project from builddir
+        sys.modules.pop(MODULE, None)
 
         with syspath(builddir):
             from snakeoil.contexts import chdir
