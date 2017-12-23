@@ -38,8 +38,8 @@ def get_version(project, repo_file, api_version=None):
                 '%s._verinfo' % (project,)), 'version_info')
         except ImportError:
             # we're probably in a git repo
-            cwd = os.path.dirname(os.path.abspath(repo_file))
-            version_info = get_git_version(cwd)
+            path = os.path.dirname(os.path.abspath(repo_file))
+            version_info = get_git_version(path)
 
         if version_info is None:
             s = ", extended version info unavailable"
@@ -52,7 +52,7 @@ def get_version(project, repo_file, api_version=None):
     return _ver
 
 
-def _run_git(cwd, cmd):
+def _run_git(path, cmd):
     import subprocess
 
     env = dict(os.environ)
@@ -61,18 +61,17 @@ def _run_git(cwd, cmd):
     with open(os.devnull, 'wb') as null:
         r = subprocess.Popen(
             ['git'] + list(cmd), stdout=subprocess.PIPE, env=env,
-            stderr=null, cwd=cwd)
+            stderr=null, cwd=path)
 
     stdout = r.communicate()[0]
     return stdout, r.returncode
 
 
-def get_git_version(cwd):
+def get_git_version(path):
     """:return: git sha1 rev"""
-
-    cwd = os.path.abspath(cwd)
+    path = os.path.abspath(path)
     try:
-        stdout, ret = _run_git(cwd, ["log", "--format=%H\n%ad", "HEAD^..HEAD"])
+        stdout, ret = _run_git(path, ["log", "--format=%H\n%ad", "HEAD^..HEAD"])
 
         if ret != 0:
             return None
@@ -82,7 +81,7 @@ def get_git_version(cwd):
         return {
             "rev": data[0],
             "date": data[1],
-            'tag': _get_git_tag(cwd, data[0]),
+            'tag': _get_git_tag(path, data[0]),
         }
     except EnvironmentError as e:
         # ENOENT is thrown when the git binary can't be found.
@@ -91,8 +90,8 @@ def get_git_version(cwd):
         return None
 
 
-def _get_git_tag(cwd, rev):
-    stdout, _ = _run_git(cwd, ['name-rev', '--tag', rev])
+def _get_git_tag(path, rev):
+    stdout, _ = _run_git(path, ['name-rev', '--tag', rev])
     tag = stdout.decode("ascii").split()
     if len(tag) != 2:
         return None
