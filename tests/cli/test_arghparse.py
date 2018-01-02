@@ -115,7 +115,7 @@ class TestExtendCommaDelimitedAction(BaseArgparseOptions):
 
     def test_parse_args(self):
         self.parser.add_argument('--testing', action='extend_comma')
-        self.parser.add_argument('--testing-nargs', nargs='+', action='extend_comma')
+        self.parser.add_argument('--testing-multi', action='extend_comma')
 
         test_values = (
             ('', []),
@@ -127,17 +127,17 @@ class TestExtendCommaDelimitedAction(BaseArgparseOptions):
         for raw_val, expected in test_values:
             namespace = self.parser.parse_args([
                 '--testing=' + raw_val,
-                '--testing-nargs', raw_val, raw_val,
+                '--testing-multi=' + raw_val, '--testing-multi=' + raw_val,
                 ])
             assert namespace.testing == expected
-            assert namespace.testing_nargs == expected * 2
+            assert namespace.testing_multi == expected
 
 
 class TestExtendCommaDelimitedToggleAction(BaseArgparseOptions):
 
     def test_parse_args(self):
         self.parser.add_argument('--testing', action='extend_comma_toggle')
-        self.parser.add_argument('--testing-nargs', nargs='+', action='extend_comma_toggle')
+        self.parser.add_argument('--testing-multi', action='extend_comma_toggle')
 
         test_values = (
             ('', ([], [])),
@@ -149,10 +149,10 @@ class TestExtendCommaDelimitedToggleAction(BaseArgparseOptions):
         for raw_val, expected in test_values:
             namespace = self.parser.parse_args([
                 '--testing=' + raw_val,
-                '--testing-nargs', raw_val, raw_val,
+                '--testing-multi=' + raw_val, '--testing-multi=' + raw_val,
                 ])
             assert namespace.testing == expected
-            assert namespace.testing_nargs == (expected[0] * 2, expected[1] * 2)
+            assert namespace.testing_multi == expected
 
         # start with negated arg
         namespace = self.parser.parse_args(['--testing=-a'])
