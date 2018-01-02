@@ -13,7 +13,6 @@ from ..demandload import demandload
 from ..mappings import ImmutableDict
 
 demandload(
-    'itertools',
     'operator:attrgetter',
     'logging',
     'textwrap:dedent',
