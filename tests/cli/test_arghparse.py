@@ -67,10 +67,13 @@ class TestArgparseDocs(object):
         assert getattr(tuple_action, 'help', None) == 'foo\nbar'
 
 
-class TestArgparseOptions(object):
+class BaseArgparseOptions(object):
 
     def setup_method(self, method):
         self.parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser())
+
+
+class TestDebugOption(BaseArgparseOptions):
 
     def test_debug(self):
         namespace = self.parser.parse_args(["--debug"])
@@ -84,24 +87,33 @@ class TestArgparseOptions(object):
         namespace = parser.parse_args([])
         assert not hasattr(namespace, 'debug')
 
-    def test_bool_type(self):
-        self.parser.add_argument(
-            "--testing", action=arghparse.StoreBool, default=None)
 
+class TestStoreBoolAction(BaseArgparseOptions):
+
+    def setup_method(self, method):
+        super().setup_method(method)
+        self.parser.add_argument("--testing", action=arghparse.StoreBool, default=None)
+
+    def test_bool_disabled(self):
         for raw_val in ("n", "no", "false"):
             for allowed in (raw_val.upper(), raw_val.lower()):
                 namespace = self.parser.parse_args(['--testing=' + allowed])
                 assert not namespace.testing
 
+    def test_bool_enabled(self):
         for raw_val in ("y", "yes", "true"):
             for allowed in (raw_val.upper(), raw_val.lower()):
                 namespace = self.parser.parse_args(['--testing=' + allowed])
                 assert namespace.testing
 
+    def test_bool_invalid(self):
         with pytest.raises(argparse_helpers.Error):
             self.parser.parse_args(["--testing=invalid"])
 
-    def test_extend_comma_action(self):
+
+class TestExtendCommaDelimitedAction(BaseArgparseOptions):
+
+    def test_parse_args(self):
         self.parser.add_argument('--testing', action='extend_comma')
         self.parser.add_argument('--testing-nargs', nargs='+', action='extend_comma')
 
@@ -120,7 +132,10 @@ class TestArgparseOptions(object):
             assert namespace.testing == expected
             assert namespace.testing_nargs == expected * 2
 
-    def test_extend_comma_toggle_action(self):
+
+class TestExtendCommaDelimitedToggleAction(BaseArgparseOptions):
+
+    def test_parse_args(self):
         self.parser.add_argument('--testing', action='extend_comma_toggle')
         self.parser.add_argument('--testing-nargs', nargs='+', action='extend_comma_toggle')
 
@@ -143,20 +158,26 @@ class TestArgparseOptions(object):
         namespace = self.parser.parse_args(['--testing=-a'])
         assert namespace.testing == (['a'], [])
 
-    def test_existent_path(self, tmpdir):
+
+class TestExistentPathType(BaseArgparseOptions):
+
+    def setup_method(self, method):
+        super().setup_method(method)
         self.parser.add_argument('--path', type=arghparse.existent_path)
 
+    def test_nonexistent(self):
         # nonexistent path arg raises an error
         with pytest.raises(argparse_helpers.Error):
             self.parser.parse_args(['--path=/path/to/nowhere'])
 
+    def test_os_errors(self, tmpdir):
         # random OS/FS issues raise errors
         with mock.patch('snakeoil.osutils.abspath') as abspath:
             abspath.side_effect = OSError(19, 'Random OS error')
             with pytest.raises(argparse_helpers.Error):
                 self.parser.parse_args(['--path=%s' % tmpdir])
 
-        # regular usage
+    def test_regular_usage(self, tmpdir):
         namespace = self.parser.parse_args(['--path=%s' % tmpdir])
         assert namespace.path == str(tmpdir)
 
