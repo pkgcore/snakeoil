@@ -113,50 +113,64 @@ class TestStoreBoolAction(BaseArgparseOptions):
 
 class TestExtendCommaDelimitedAction(BaseArgparseOptions):
 
-    def test_parse_args(self):
-        self.parser.add_argument('--testing', action='extend_comma')
-        self.parser.add_argument('--testing-multi', action='extend_comma')
-
-        test_values = (
+    def setup_method(self, method):
+        super().setup_method(method)
+        self.test_values = (
             ('', []),
             (',', []),
             (',,', []),
             ('a', ['a']),
             ('a,b,-c', ['a', 'b', '-c']),
         )
-        for raw_val, expected in test_values:
-            namespace = self.parser.parse_args([
-                '--testing=' + raw_val,
-                '--testing-multi=' + raw_val, '--testing-multi=' + raw_val,
-                ])
-            assert namespace.testing == expected
-            assert namespace.testing_multi == expected
 
-
-class TestExtendCommaDelimitedToggleAction(BaseArgparseOptions):
+        self.action = 'extend_comma'
+        self.single_expected = lambda x: x
+        self.multi_expected = lambda x: x
 
     def test_parse_args(self):
-        self.parser.add_argument('--testing', action='extend_comma_toggle')
-        self.parser.add_argument('--testing-multi', action='extend_comma_toggle')
+        self.parser.add_argument('--testing', action=self.action)
+        for raw_val, expected in self.test_values:
+            namespace = self.parser.parse_args(['--testing=' + raw_val])
+            assert namespace.testing == self.single_expected(expected)
 
-        test_values = (
+    def test_parse_multi_args(self):
+        self.parser.add_argument('--testing', action=self.action)
+        for raw_val, expected in self.test_values:
+            namespace = self.parser.parse_args([
+                '--testing=' + raw_val, '--testing=' + raw_val,
+            ])
+            assert namespace.testing == self.multi_expected(expected)
+
+
+class TestAppendCommaDelimitedAction(TestExtendCommaDelimitedAction):
+
+    def setup_method(self, method):
+        super().setup_method(method)
+        self.action = 'append_comma'
+        self.multi_expected = lambda x: x + x
+
+
+class TestExtendCommaDelimitedToggleAction(TestExtendCommaDelimitedAction):
+
+    def setup_method(self, method):
+        super().setup_method(method)
+        self.test_values = (
             ('', ([], [])),
             (',', ([], [])),
             (',,', ([], [])),
             ('a', ([], ['a'])),
+            ('-a', (['a'], [])),
             ('a,-b,-c,d', (['b', 'c'], ['a', 'd'])),
         )
-        for raw_val, expected in test_values:
-            namespace = self.parser.parse_args([
-                '--testing=' + raw_val,
-                '--testing-multi=' + raw_val, '--testing-multi=' + raw_val,
-                ])
-            assert namespace.testing == expected
-            assert namespace.testing_multi == expected
+        self.action = 'extend_comma_toggle'
 
-        # start with negated arg
-        namespace = self.parser.parse_args(['--testing=-a'])
-        assert namespace.testing == (['a'], [])
+
+class TestAppendCommaDelimitedToggleAction(TestExtendCommaDelimitedToggleAction):
+
+    def setup_method(self, method):
+        super().setup_method(method)
+        self.action = 'append_comma_toggle'
+        self.multi_expected = lambda x: tuple(x + y for x, y in zip(x, x))
 
 
 class TestExistentPathType(BaseArgparseOptions):

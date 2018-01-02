@@ -71,14 +71,32 @@ def _add_argument_docs(orig_func, self, *args, **kwargs):
 class ExtendCommaDelimited(argparse._AppendAction):
     """Split comma-separated values into a list."""
 
-    def __call__(self, parser, namespace, values, option_string=None):
+    def parse_values(self, values):
         items = []
         if isinstance(values, str):
             items.extend(x for x in values.split(',') if x)
         else:
             for value in values:
                 items.extend(x for x in value.split(',') if x)
+        return items
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        items = self.parse_values(values)
         setattr(namespace, self.dest, items)
+
+
+class AppendCommaDelimited(ExtendCommaDelimited):
+    """Split comma-separated values and append them to a list.
+
+    Multiple specified options append to instead of override the parsed args list.
+    """
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        old = getattr(namespace, self.dest, [])
+        if old is None:
+            old = []
+        new = self.parse_values(values)
+        setattr(namespace, self.dest, old + new)
 
 
 class ExtendCommaDelimitedToggle(argparse._AppendAction):
@@ -91,7 +109,7 @@ class ExtendCommaDelimitedToggle(argparse._AppendAction):
     being registered as disabled while "b" and "c" are enabled.
     """
 
-    def __call__(self, parser, namespace, values, option_string=None):
+    def parse_values(self, values):
         disabled, enabled = [], []
         if isinstance(values, str):
             values = [values]
@@ -99,7 +117,25 @@ class ExtendCommaDelimitedToggle(argparse._AppendAction):
             neg, pos = split_negations(x for x in value.split(',') if x)
             disabled.extend(neg)
             enabled.extend(pos)
+        return disabled, enabled
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        disabled, enabled = self.parse_values(values)
         setattr(namespace, self.dest, (disabled, enabled))
+
+
+class AppendCommaDelimitedToggle(ExtendCommaDelimitedToggle):
+    """Split comma-separated enabled and disabled values and append to lists.
+
+    Multiple specified options append to instead of override the parsed args list.
+    """
+    def __call__(self, parser, namespace, values, option_string=None):
+        old = getattr(namespace, self.dest, ([], []))
+        if old is None:
+            old = ([], [])
+        new = self.parse_values(values)
+        combined = tuple(o + n for o, n in zip(old, new))
+        setattr(namespace, self.dest, combined)
 
 
 class StoreBool(argparse._StoreAction):
@@ -306,9 +342,9 @@ class HelpFormatter(argparse.HelpFormatter):
 
     def _format_args(self, action, default_metavar):
         get_metavar = self._metavar_formatter(action, default_metavar)
-        if isinstance(action, ExtendCommaDelimited):
+        if isinstance(action, (ExtendCommaDelimited, AppendCommaDelimited)):
             result = '%s[,%s,...]' % get_metavar(2)
-        elif isinstance(action, ExtendCommaDelimitedToggle):
+        elif isinstance(action, (ExtendCommaDelimitedToggle, AppendCommaDelimitedToggle)):
             result = '%s[,-%s,...]' % get_metavar(2)
         else:
             result = super(HelpFormatter, self)._format_args(action, default_metavar)
@@ -408,7 +444,9 @@ class ArgumentParser(argparse.ArgumentParser):
         # register our custom actions
         self.register('action', 'parsers', _SubParser)
         self.register('action', 'extend_comma', ExtendCommaDelimited)
+        self.register('action', 'append_comma', AppendCommaDelimited)
         self.register('action', 'extend_comma_toggle', ExtendCommaDelimitedToggle)
+        self.register('action', 'append_comma_toggle', AppendCommaDelimitedToggle)
 
         if not suppress:
             if add_help:
