@@ -9,7 +9,7 @@ from operator import itemgetter
 import pytest
 
 from snakeoil import sequences
-from snakeoil.sequences import namedtuple, split_negations
+from snakeoil.sequences import namedtuple, split_negations, split_elements
 from snakeoil.test import mk_cpy_loadable_testcase
 
 
@@ -258,23 +258,28 @@ class TestSplitNegations(object):
     def test_empty(self):
         # empty input
         seq = ''
-        assert split_negations(seq) == (tuple(), tuple())
+        assert split_negations(seq) == ((), ())
 
     def test_bad_value(self):
         # no-value negation should raise a ValueError
-        seq = 'a b c - d f e'.split()
-        with pytest.raises(ValueError):
-            split_negations(seq)
+        bad_values = (
+            '-',
+            'a b c - d f e',
+        )
+
+        for s in bad_values:
+            with pytest.raises(ValueError):
+                split_negations(s.split())
 
     def test_negs(self):
         # all negs
         seq = ('-' + str(x) for x in range(100))
-        assert split_negations(seq) == (tuple(map(str, range(100))), tuple())
+        assert split_negations(seq) == (tuple(map(str, range(100))), ())
 
     def test_pos(self):
         # all pos
         seq = (str(x) for x in range(100))
-        assert split_negations(seq) == (tuple(), tuple(map(str, range(100))))
+        assert split_negations(seq) == ((), tuple(map(str, range(100))))
 
     def test_neg_pos(self):
         # both
@@ -287,3 +292,66 @@ class TestSplitNegations(object):
         seq = (('-' + str(x), str(x)) for x in range(100))
         seq = chain.from_iterable(seq)
         assert split_negations(seq, int) == (tuple(range(100)), tuple(range(100)))
+
+
+class TestSplitElements(object):
+
+    def test_empty(self):
+        # empty input
+        seq = ''
+        assert split_elements(seq) == ((), (), ())
+
+    def test_bad_value(self):
+        # no-value neg/pos should raise ValueErrors
+        bad_values = (
+            '-',
+            '+',
+            'a b c - d f e',
+            'a b c + d f e',
+        )
+
+        for s in bad_values:
+            with pytest.raises(ValueError):
+                split_elements(s.split())
+
+    def test_negs(self):
+        # all negs
+        seq = ('-' + str(x) for x in range(100))
+        assert split_elements(seq) == (tuple(map(str, range(100))), (), ())
+
+    def test_neutral(self):
+        # all neutral
+        seq = (str(x) for x in range(100))
+        assert split_elements(seq) == ((), tuple(map(str, range(100))), ())
+
+    def test_pos(self):
+        # all pos
+        seq = ('+' + str(x) for x in range(100))
+        assert split_elements(seq) == ((), (), tuple(map(str, range(100))))
+
+    def test_neg_pos(self):
+        # both negative and positive values
+        seq = (('-' + str(x), '+' + str(x)) for x in range(100))
+        seq = chain.from_iterable(seq)
+        assert split_elements(seq) == (
+            tuple(map(str, range(100))),
+            (),
+            tuple(map(str, range(100))),
+        )
+
+    def test_neg_neu_pos(self):
+        # all three value types
+        seq = (('-' + str(x), str(x), '+' + str(x)) for x in range(100))
+        seq = chain.from_iterable(seq)
+        assert split_elements(seq) == (
+            tuple(map(str, range(100))),
+            tuple(map(str, range(100))),
+            tuple(map(str, range(100))),
+        )
+
+    def test_converter(self):
+        # converter method
+        seq = (('-' + str(x), str(x), '+' + str(x)) for x in range(100))
+        seq = chain.from_iterable(seq)
+        assert split_elements(seq, int) == (
+            tuple(range(100)), tuple(range(100)), tuple(range(100)))

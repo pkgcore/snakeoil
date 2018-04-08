@@ -322,3 +322,29 @@ def split_negations(iterable, func=str):
         if obj is not None:
             l.append(obj)
     return tuple(neg), tuple(pos)
+
+
+def split_elements(iterable, func=str):
+    """"Split an iterable into negative, neutral, and positive elements.
+
+    Args:
+        iterable: iterable targeted for splitting
+        func: wrapper method to modify tokens
+
+    Returns:
+        Tuple containing negative, neutral, and positive element tuples, respectively.
+    """
+    neg, neu, pos = [], [], []
+    token_map = {'-': neg, '+': pos}
+    for token in iterable:
+        if token[0] in token_map:
+            if len(token) == 1:
+                raise ValueError('%r without a token' % (token[0],))
+            l = token_map[token[0]]
+            token = token[1:]
+        else:
+            l = neu
+        obj = func(token)
+        if obj is not None:
+            l.append(obj)
+    return tuple(neg), tuple(neu), tuple(pos)
