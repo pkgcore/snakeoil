@@ -32,7 +32,6 @@ md5_size = 32
 rmd160_size = 40
 sha256_size = 64
 sha512_size = 128
-whirlpool_size = 128
 sha3_256_size = 64
 sha3_512_size = 128
 blake2b_size = 128
@@ -242,7 +241,6 @@ for hashlibname, chksumname, size in [
 # determined through trial and error.
 for hashlibname, chksumname, size in [
         ('ripemd160', 'rmd160', rmd160_size),
-        ('whirlpool', 'whirlpool', whirlpool_size),
         ('sha3_256', 'sha3_256', sha3_256_size),
         ('sha3_512', 'sha3_512', sha3_512_size),
         ('blake2b', 'blake2b', blake2b_size),
@@ -256,12 +254,6 @@ for hashlibname, chksumname, size in [
         chksum_types[chksumname] = Chksummer(
             chksumname, partial(hashlib.new, hashlibname), size)
 del hashlibname, chksumname
-
-if 'whirlpool' not in chksum_types:
-    # Fallback to the python implementation.
-    chksum_types['whirlpool'] = Chksummer(
-        'whirlpool', modules.load_attribute('snakeoil.chksum._whirlpool.Whirlpool'),
-        whirlpool_size)
 
 # prefer lightweight extensions over big pycryptodome
 for k, modattr, str_size in (

@@ -69,9 +69,6 @@ else:
         OptionalExtension(
             'snakeoil._formatters',
             [os.path.join(pkgdist.TOPDIR, 'src', 'formatters.c')], **ext_build_options),
-        OptionalExtension(
-            'snakeoil.chksum._whirlpool_cdo',
-            [os.path.join(pkgdist.TOPDIR, 'src', 'whirlpool_cdo.c')], **ext_build_options),
     ])
 
 
