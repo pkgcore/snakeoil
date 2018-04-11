@@ -278,7 +278,7 @@ class Namespace(SplitExec):
         self._namespaces = {
             'mount': mount, 'uts': uts, 'ipc': ipc, 'net': net, 'pid': pid, 'user': user,
         }
-        super(Namespace, self).__init__()
+        super().__init__()
 
     def _child_setup(self):
         namespaces.simple_unshare(hostname=self._hostname, **self._namespaces)

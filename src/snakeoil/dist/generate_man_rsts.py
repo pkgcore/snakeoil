@@ -36,7 +36,7 @@ class RawTextFormatter(argparse.RawTextHelpFormatter):
             # the argument and choices instead of matching the indentation level of other
             # arguments.
             action.help = '\n' + action.help.strip()
-        return super(RawTextFormatter, self)._format_action(action)
+        return super()._format_action(action)
 
 
 class ManConverter(object):

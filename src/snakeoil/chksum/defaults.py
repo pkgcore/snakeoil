@@ -324,7 +324,7 @@ class SizeChksummer(Chksummer):
     """
 
     def __init__(self):
-        super(SizeChksummer, self).__init__(
+        super().__init__(
             chf_type='size', obj=SizeUpdater, str_size=1000000000)
 
     @staticmethod

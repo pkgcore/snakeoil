@@ -135,7 +135,7 @@ class LazyValDictTestMixin(object):
 class TestLazyValDictWithList(LazyValDictTestMixin, RememberingNegateMixin):
 
     def setup_method(self, method):
-        super(TestLazyValDictWithList, self).setup_method(method)
+        super().setup_method(method)
         self.dict = mappings.LazyValDict(list(range(12)), self.negate)
 
     def test_values(self):
@@ -154,7 +154,7 @@ class TestLazyValDictWithList(LazyValDictTestMixin, RememberingNegateMixin):
 class TestLazyValDictWithFunc(LazyValDictTestMixin, RememberingNegateMixin):
 
     def setup_method(self, method):
-        super(TestLazyValDictWithFunc, self).setup_method(method)
+        super().setup_method(method)
         self.dict = mappings.LazyValDict(a_dozen, self.negate)
 
 

@@ -216,7 +216,7 @@ class StoreBool(argparse._StoreAction):
                  required=False,
                  help=None,
                  metavar='BOOLEAN'):
-        super(StoreBool, self).__init__(
+        super().__init__(
             option_strings=option_strings,
             dest=dest,
             const=const,
@@ -239,7 +239,7 @@ class StoreBool(argparse._StoreAction):
 class EnableDebug(argparse._StoreTrueAction):
 
     def __call__(self, parser, namespace, values, option_string=None):
-        super(EnableDebug, self).__call__(
+        super().__call__(
             parser, namespace, values, option_string=option_string)
         logging.root.setLevel(logging.DEBUG)
 
@@ -279,17 +279,11 @@ class DelayedDefault(DelayedValue):
 
 class DelayedParse(DelayedValue):
 
-    def __init__(self, invokable, priority):
-        DelayedValue.__init__(self, invokable, priority)
-
     def __call__(self, namespace, attr):
         self.invokable()
 
 
 class OrderedParse(DelayedValue):
-
-    def __init__(self, invokable, priority):
-        super(OrderedParse, self).__init__(invokable, priority)
 
     def __call__(self, namespace, attr):
         self.invokable(namespace)
@@ -304,7 +298,7 @@ class Delayed(argparse.Action):
 
         self.priority = int(priority)
         self.target = target(option_strings=option_strings, dest=dest, **kwds.copy())
-        super(Delayed, self).__init__(
+        super().__init__(
             option_strings=option_strings[:],
             dest=dest, nargs=kwds.get("nargs", None), required=kwds.get("required", None),
             help=kwds.get("help", None), metavar=kwds.get("metavar", None))
@@ -325,7 +319,7 @@ class Expansion(argparse.Action):
         if nargs is None:
             nargs = 0
 
-        super(Expansion, self).__init__(
+        super().__init__(
             option_strings=option_strings,
             dest=dest,
             help=help,
@@ -415,7 +409,7 @@ class HelpFormatter(argparse.HelpFormatter):
         elif isinstance(action, (CommaSeparatedNegations, CommaSeparatedNegationsAppend)):
             result = '%s[,-%s,...]' % get_metavar(2)
         else:
-            result = super(HelpFormatter, self)._format_args(action, default_metavar)
+            result = super()._format_args(action, default_metavar)
         return result
 
 
@@ -424,7 +418,7 @@ class SortedHelpFormatter(HelpFormatter):
 
     def add_arguments(self, actions):
         actions = sorted(actions, key=attrgetter('option_strings'))
-        super(SortedHelpFormatter, self).add_arguments(actions)
+        super().add_arguments(actions)
 
 
 class Namespace(argparse.Namespace):
@@ -440,11 +434,11 @@ class Namespace(argparse.Namespace):
             raise
 
     def __getattribute__(self, name):
-        val = super(Namespace, self).__getattribute__(name)
+        val = super().__getattribute__(name)
         # collapse any delayed values accessed before arg parsing occurs
         if isinstance(val, DelayedValue):
             val(self, name)
-            val = super(Namespace, self).__getattribute__(name)
+            val = super().__getattribute__(name)
         return val
 
 
@@ -505,7 +499,7 @@ class ArgumentParser(argparse.ArgumentParser):
         else:
             formatter = HelpFormatter
 
-        super(ArgumentParser, self).__init__(
+        super().__init__(
             description=description, formatter_class=formatter,
             prog=prog, add_help=False, **kwds)
 
@@ -596,7 +590,7 @@ class ArgumentParser(argparse.ArgumentParser):
             arg_strings = [self.__default_subparser] + arg_strings
 
         # parse the remaining args
-        return super(ArgumentParser, self)._parse_known_args(arg_strings, namespace)
+        return super()._parse_known_args(arg_strings, namespace)
 
     def parse_args(self, args=None, namespace=None):
         if namespace is None:
