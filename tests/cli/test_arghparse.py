@@ -111,7 +111,68 @@ class TestStoreBoolAction(BaseArgparseOptions):
             self.parser.parse_args(["--testing=invalid"])
 
 
-class TestExtendCommaDelimitedAction(BaseArgparseOptions):
+class ParseStdinTest(BaseArgparseOptions):
+
+    def setup_method(self, method, allow_stdin):
+        super().setup_method(method)
+        self.parser.add_argument(
+            "testing", nargs='+', allow_stdin=allow_stdin, action=arghparse.ParseStdin)
+
+    def test_none_invalid(self):
+        with pytest.raises(argparse_helpers.Error):
+            self.parser.parse_args([])
+
+    def test_non_stdin(self):
+        namespace = self.parser.parse_args(['foo'])
+        assert namespace.testing == ['foo']
+
+    def test_non_stdin_multiple(self):
+        namespace = self.parser.parse_args(['foo', 'bar'])
+        assert namespace.testing == ['foo', 'bar']
+
+    def test_stdin(self):
+        namespace = self.parser.parse_args(['-'])
+        assert namespace.testing == ['-']
+
+
+class TestParseStdinDisabled(ParseStdinTest):
+
+    def setup_method(self, method):
+        super().setup_method(method, allow_stdin=False)
+
+
+class TestParseStdinEnabled(ParseStdinTest):
+
+    def setup_method(self, method):
+        super().setup_method(method, allow_stdin=True)
+
+    def test_stdin(self):
+        # stdin is an interactive tty
+        with mock.patch('sys.stdin.isatty', return_value=True):
+            with pytest.raises(argparse_helpers.Error) as excinfo:
+                namespace = self.parser.parse_args(['-'])
+            assert 'only valid when piping data in' in str(excinfo.value)
+
+        # fake piping data in
+        for readlines, expected in (
+                ([], []),
+                ([' '], []),
+                (['\n'], []),
+                (['\n', '\n'], []),
+                (['foo'], ['foo']),
+                (['foo '], ['foo']),
+                (['foo\n'], ['foo']),
+                (['foo', 'bar', 'baz'], ['foo', 'bar', 'baz']),
+                (['\nfoo\n', ' bar ', '\nbaz'], ['foo', 'bar', 'baz']),
+                ):
+            with mock.patch('sys.stdin') as stdin:
+                stdin.readlines.return_value = readlines
+                stdin.isatty.return_value = False
+                namespace = self.parser.parse_args(['-'])
+            assert namespace.testing == expected
+
+
+class TestCommaSeparatedValuesAction(BaseArgparseOptions):
 
     def setup_method(self, method):
         super().setup_method(method)
@@ -123,7 +184,7 @@ class TestExtendCommaDelimitedAction(BaseArgparseOptions):
             ('a,b,-c', ['a', 'b', '-c']),
         )
 
-        self.action = 'extend_comma'
+        self.action = 'csv'
         self.single_expected = lambda x: x
         self.multi_expected = lambda x: x
 
@@ -142,15 +203,15 @@ class TestExtendCommaDelimitedAction(BaseArgparseOptions):
             assert namespace.testing == self.multi_expected(expected)
 
 
-class TestAppendCommaDelimitedAction(TestExtendCommaDelimitedAction):
+class TestCommaSeparatedValuesAppendAction(TestCommaSeparatedValuesAction):
 
     def setup_method(self, method):
         super().setup_method(method)
-        self.action = 'append_comma'
+        self.action = 'csv_append'
         self.multi_expected = lambda x: x + x
 
 
-class TestExtendCommaDelimitedToggleAction(TestExtendCommaDelimitedAction):
+class TestCommaSeparatedNegationsAction(TestCommaSeparatedValuesAction):
 
     def setup_method(self, method):
         super().setup_method(method)
@@ -162,14 +223,48 @@ class TestExtendCommaDelimitedToggleAction(TestExtendCommaDelimitedAction):
             ('-a', (['a'], [])),
             ('a,-b,-c,d', (['b', 'c'], ['a', 'd'])),
         )
-        self.action = 'extend_comma_toggle'
+        self.bad_args = ('-',)
+        self.action = 'csv_negations'
+
+    def test_parse_bad_args(self):
+        self.parser.add_argument('--testing', action=self.action)
+        for arg in self.bad_args:
+            with pytest.raises(argparse.ArgumentTypeError) as excinfo:
+                namespace = self.parser.parse_args(['--testing=' + arg])
+            assert 'without a token' in str(excinfo.value)
 
 
-class TestAppendCommaDelimitedToggleAction(TestExtendCommaDelimitedToggleAction):
+class TestCommaSeparatedNegationsAppendAction(TestCommaSeparatedNegationsAction):
 
     def setup_method(self, method):
         super().setup_method(method)
-        self.action = 'append_comma_toggle'
+        self.action = 'csv_negations_append'
+        self.multi_expected = lambda x: tuple(x + y for x, y in zip(x, x))
+
+
+class TestCommaSeparatedElementsAction(TestCommaSeparatedNegationsAction):
+
+    def setup_method(self, method):
+        super().setup_method(method)
+        self.test_values = (
+            ('', ([], [], [])),
+            (',', ([], [], [])),
+            (',,', ([], [], [])),
+            ('-a', (['a'], [], [])),
+            ('a', ([], ['a'], [])),
+            ('+a', ([], [], ['a'])),
+            ('a,-b,-c,d', (['b', 'c'], ['a', 'd'], [])),
+            ('a,-b,+c,-d,+e,f', (['b', 'd'], ['a', 'f'], ['c', 'e'])),
+        )
+        self.bad_values = ('-', '+')
+        self.action = 'csv_elements'
+
+
+class TestCommaSeparatedElementsAppendAction(TestCommaSeparatedElementsAction):
+
+    def setup_method(self, method):
+        super().setup_method(method)
+        self.action = 'csv_elements_append'
         self.multi_expected = lambda x: tuple(x + y for x, y in zip(x, x))
 
 

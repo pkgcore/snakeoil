@@ -4,6 +4,7 @@
 """Various argparse actions, types, and miscellaneous extensions."""
 
 import argparse
+import copy
 from functools import partial
 import os
 import sys
@@ -20,7 +21,7 @@ demandload(
     'snakeoil:osutils',
     'snakeoil.obj:popattr',
     'snakeoil.version:get_version',
-    'snakeoil.sequences:split_negations',
+    'snakeoil.sequences:split_negations,split_elements',
 )
 
 
@@ -67,7 +68,34 @@ def _add_argument_docs(orig_func, self, *args, **kwargs):
     return obj
 
 
-class ExtendCommaDelimited(argparse._AppendAction):
+class ExtendAction(argparse._AppendAction):
+    """Force multiple values to always be stored in a flat list."""
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        items = copy.copy(argparse._ensure_value(namespace, self.dest, []))
+        items.extend(values)
+        setattr(namespace, self.dest, items)
+
+
+class ParseStdin(ExtendAction):
+    """Accept arguments from standard input in a blocking fashion."""
+
+    def __init__(self, *args, **kwargs):
+        self.allow_stdin = kwargs.pop('allow_stdin', False)
+        super().__init__(*args, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if self.allow_stdin and (values is not None and len(values) == 1 and values[0] == '-'):
+            if not sys.stdin.isatty():
+                values = [x.strip() for x in sys.stdin.readlines() if x.strip() != '']
+                # reassign stdin to allow interactivity (currently only works for unix)
+                sys.stdin = open('/dev/tty')
+            else:
+                raise argparse.ArgumentError(self, "'-' is only valid when piping data in")
+        super().__call__(parser, namespace, values, option_string)
+
+
+class CommaSeparatedValues(argparse._AppendAction):
     """Split comma-separated values into a list."""
 
     def parse_values(self, values):
@@ -84,21 +112,18 @@ class ExtendCommaDelimited(argparse._AppendAction):
         setattr(namespace, self.dest, items)
 
 
-class AppendCommaDelimited(ExtendCommaDelimited):
+class CommaSeparatedValuesAppend(CommaSeparatedValues, ExtendAction):
     """Split comma-separated values and append them to a list.
 
     Multiple specified options append to instead of override the parsed args list.
     """
 
     def __call__(self, parser, namespace, values, option_string=None):
-        old = getattr(namespace, self.dest, [])
-        if old is None:
-            old = []
-        new = self.parse_values(values)
-        setattr(namespace, self.dest, old + new)
+        items = self.parse_values(values)
+        ExtendAction.__call__(self, parser, namespace, items, option_string)
 
 
-class ExtendCommaDelimitedToggle(argparse._AppendAction):
+class CommaSeparatedNegations(argparse._AppendAction):
     """Split comma-separated enabled and disabled values into lists.
 
     Disabled values are prefixed with "-" while enabled values are entered as
@@ -113,7 +138,10 @@ class ExtendCommaDelimitedToggle(argparse._AppendAction):
         if isinstance(values, str):
             values = [values]
         for value in values:
-            neg, pos = split_negations(x for x in value.split(',') if x)
+            try:
+                neg, pos = split_negations(x for x in value.split(',') if x)
+            except ValueError as e:
+                raise argparse.ArgumentTypeError(e)
             disabled.extend(neg)
             enabled.extend(pos)
         return disabled, enabled
@@ -123,15 +151,56 @@ class ExtendCommaDelimitedToggle(argparse._AppendAction):
         setattr(namespace, self.dest, (disabled, enabled))
 
 
-class AppendCommaDelimitedToggle(ExtendCommaDelimitedToggle):
+class CommaSeparatedNegationsAppend(CommaSeparatedNegations):
     """Split comma-separated enabled and disabled values and append to lists.
 
     Multiple specified options append to instead of override the parsed args list.
     """
+
     def __call__(self, parser, namespace, values, option_string=None):
-        old = getattr(namespace, self.dest, ([], []))
-        if old is None:
-            old = ([], [])
+        old = copy.copy(argparse._ensure_value(namespace, self.dest, ([], [])))
+        new = self.parse_values(values)
+        combined = tuple(o + n for o, n in zip(old, new))
+        setattr(namespace, self.dest, combined)
+
+
+class CommaSeparatedElements(argparse._AppendAction):
+    """Split comma-separated disabled/neutral/enabled elements into lists.
+
+    Disabled elements are prefixed with "-", enabled elements are prefixed with
+    "+", and neutral elements are unprefixed.
+
+    For example, from the sequence "-a,b,c,-d" would result in "a" and "d"
+    being registered as disabled while "b" and "c" are enabled.
+    """
+
+    def parse_values(self, values):
+        disabled, neutral, enabled = [], [], []
+        if isinstance(values, str):
+            values = [values]
+        for value in values:
+            try:
+                neg, neu, pos = split_elements(x for x in value.split(',') if x)
+            except ValueError as e:
+                raise argparse.ArgumentTypeError(e)
+            disabled.extend(neg)
+            neutral.extend(neu)
+            enabled.extend(pos)
+        return disabled, neutral, enabled
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        disabled, neutral, enabled = self.parse_values(values)
+        setattr(namespace, self.dest, (disabled, neutral, enabled))
+
+
+class CommaSeparatedElementsAppend(CommaSeparatedElements):
+    """Split comma-separated enabled and disabled values and append to lists.
+
+    Multiple specified options append to instead of override the parsed args list.
+    """
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        old = copy.copy(argparse._ensure_value(namespace, self.dest, ([], [], [])))
         new = self.parse_values(values)
         combined = tuple(o + n for o, n in zip(old, new))
         setattr(namespace, self.dest, combined)
@@ -341,9 +410,9 @@ class HelpFormatter(argparse.HelpFormatter):
 
     def _format_args(self, action, default_metavar):
         get_metavar = self._metavar_formatter(action, default_metavar)
-        if isinstance(action, (ExtendCommaDelimited, AppendCommaDelimited)):
+        if isinstance(action, (CommaSeparatedValues, CommaSeparatedValuesAppend)):
             result = '%s[,%s,...]' % get_metavar(2)
-        elif isinstance(action, (ExtendCommaDelimitedToggle, AppendCommaDelimitedToggle)):
+        elif isinstance(action, (CommaSeparatedNegations, CommaSeparatedNegationsAppend)):
             result = '%s[,-%s,...]' % get_metavar(2)
         else:
             result = super(HelpFormatter, self)._format_args(action, default_metavar)
@@ -442,10 +511,12 @@ class ArgumentParser(argparse.ArgumentParser):
 
         # register our custom actions
         self.register('action', 'parsers', _SubParser)
-        self.register('action', 'extend_comma', ExtendCommaDelimited)
-        self.register('action', 'append_comma', AppendCommaDelimited)
-        self.register('action', 'extend_comma_toggle', ExtendCommaDelimitedToggle)
-        self.register('action', 'append_comma_toggle', AppendCommaDelimitedToggle)
+        self.register('action', 'csv', CommaSeparatedValues)
+        self.register('action', 'csv_append', CommaSeparatedValuesAppend)
+        self.register('action', 'csv_negations', CommaSeparatedNegations)
+        self.register('action', 'csv_negations_append', CommaSeparatedNegationsAppend)
+        self.register('action', 'csv_elements', CommaSeparatedElements)
+        self.register('action', 'csv_elements_append', CommaSeparatedElementsAppend)
 
         if not suppress:
             if add_help:
