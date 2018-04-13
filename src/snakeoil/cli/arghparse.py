@@ -408,6 +408,8 @@ class HelpFormatter(argparse.HelpFormatter):
             result = '%s[,%s,...]' % get_metavar(2)
         elif isinstance(action, (CommaSeparatedNegations, CommaSeparatedNegationsAppend)):
             result = '%s[,-%s,...]' % get_metavar(2)
+        elif isinstance(action, (CommaSeparatedElements, CommaSeparatedElementsAppend)):
+            result = '%s[,-%s,+%s...]' % get_metavar(3)
         else:
             result = super()._format_args(action, default_metavar)
         return result
