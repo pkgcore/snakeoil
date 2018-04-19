@@ -4,6 +4,7 @@
 """Various argparse actions, types, and miscellaneous extensions."""
 
 import argparse
+from collections import Counter
 import copy
 from functools import partial
 import os
@@ -451,6 +452,10 @@ class ArgumentParser(argparse.ArgumentParser):
                  verbose=True, version=True, add_help=True, sorted_help=False,
                  description=None, docs=None, script=None, prog=None, **kwds):
         self.debug = debug and '--debug' in sys.argv[1:]
+        self.verbose = verbose
+        if verbose:
+            argv = Counter(sys.argv[1:])
+            self.verbose = argv['-v'] + argv['--verbose']
 
         # subparser to use if none is specified on the command line and one is required
         self.__default_subparser = None
