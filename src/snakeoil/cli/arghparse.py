@@ -359,7 +359,7 @@ class Expansion(argparse.Action):
 
 class _SubParser(argparse._SubParsersAction):
 
-    def add_parser(self, name, **kwds):
+    def add_parser(self, name, cls=None, **kwds):
         """argparser subparser that links description/help if one is specified"""
         description = kwds.get("description")
         help_txt = kwds.get("help")
@@ -368,7 +368,15 @@ class _SubParser(argparse._SubParsersAction):
                 kwds["description"] = help_txt
         elif help_txt is None:
             kwds["help"] = description
-        return argparse._SubParsersAction.add_parser(self, name, **kwds)
+
+        # support using a custom parser class for the subparser
+        orig_class = self._parser_class
+        if cls is not None:
+            self._parser_class = cls
+        parser = argparse._SubParsersAction.add_parser(self, name, **kwds)
+        self._parser_class = orig_class
+
+        return parser
 
     def __call__(self, parser, namespace, values, option_string=None):
         """override stdlib argparse to revert subparser namespace changes
