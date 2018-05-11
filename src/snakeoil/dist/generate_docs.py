@@ -5,6 +5,7 @@
 import argparse
 import errno
 from importlib import import_module
+from io import StringIO
 import os
 import subprocess
 import sys
@@ -42,12 +43,19 @@ def _generate_custom(project, docdir, gendir):
             script_path = os.path.join(custom_dir, subdir, script)
             if not os.access(script_path, os.X_OK):
                 continue
-            rst = os.path.join(gendir, subdir, os.path.splitext(script)[0] + '.rst')
-            print("generating {}".format(rst))
-            with open(rst, 'w') as f:
-                with syspath(os.path.dirname(script_path)):
-                    module = import_module(os.path.basename(os.path.splitext(script_path)[0]))
-                    module.main(f, docdir=docdir, gendir=gendir)
+
+            fake_file = StringIO()
+            with syspath(os.path.dirname(script_path)):
+                module = import_module(os.path.basename(os.path.splitext(script_path)[0]))
+                module.main(fake_file, docdir=docdir, gendir=gendir)
+
+            fake_file.seek(0)
+            data = fake_file.read()
+            if data:
+                rst = os.path.join(gendir, subdir, os.path.splitext(script)[0] + '.rst')
+                print("generating {}".format(rst))
+                with open(rst, 'w') as f:
+                    f.write(data)
 
 
 def generate_man(repo_dir, package_dir, module):
