@@ -55,7 +55,7 @@ class ManConverter(object):
             # Specifically return '|' w/out spaces; later code is
             # space sensitive. We do the appropriate replacement as
             # the last step.
-            return '<%s>' % ('|'.join(array),)
+            return f"<{'|'.join(array)}>"
         text = self.arg_enumeration_re.sub(f, text)
         # Now that we've convert {x,y} style options, we need to next
         # convert multi-argument options into a form that is parsable
@@ -64,9 +64,9 @@ class ManConverter(object):
         for chunk in text.split(','):
             chunk = chunk.split()
             if len(chunk) > 2:
-                chunk[1:] = ['<%s>' % ' '.join(chunk[1:])]
+                chunk[1:] = [f"<{' '.join(chunk[1:])}>"]
             if not chunk[0].startswith('-'):
-                chunk[0] = ':%s:' % (chunk[0],)
+                chunk[0] = f':{chunk[0]}:'
             l.append(' '.join(chunk))
         # Recompose the options into one text field.
         text = ', '.join(l)
@@ -108,9 +108,9 @@ class ManConverter(object):
         if not os.path.exists(self.out_path):
             os.mkdir(self.out_path)
 
-        sys.stdout.write("regenerating rst for %s\n" % (self.name,))
+        sys.stdout.write(f"regenerating rst for {self.name}\n")
         for name, data in self.process_parser(self.parser, self.name.rsplit(".")[-1]):
-            with open(os.path.join(self.out_path, '%s.rst' % name), "w") as f:
+            with open(os.path.join(self.out_path, f'{name}.rst'), "w") as f:
                 f.write("\n".join(data))
 
         if self.mtime:
@@ -147,14 +147,14 @@ class ManConverter(object):
             for subcommand, parser in action_group._group_actions[0].choices.items():
                 subdir_path = self.name.split()[1:]
                 base = os.path.join(self.base_path, *subdir_path)
-                self.__class__(base, "%s %s" % (
-                    self.name, subcommand), parser, mtime=self.mtime, out_name=subcommand).run()
+                self.__class__(
+                    base, f"{self.name} {subcommand}",
+                    parser, mtime=self.mtime, out_name=subcommand).run()
 
                 toc_path = self.name.split()
                 if subdir_path:
                     toc_path = subdir_path
 
-            l.append('')
             l.append(".. toctree::")
             l.append("    :maxdepth: 2")
             l.append('')
@@ -219,8 +219,8 @@ class ManConverter(object):
             yield ('main_description', description)
             yield ('main_options', options)
         else:
-            desc_header = ' - %s' % (parser.description,) if parser.description else ''
-            data = _rst_header('=', '%s%s' % (name, desc_header), leading=True)
+            desc_header = f' - {parser.description}' if parser.description else ''
+            data = _rst_header('=', f'{name}{desc_header}', leading=True, capitalize=False)
             data.extend(synopsis)
             data.append('')
             if description:
