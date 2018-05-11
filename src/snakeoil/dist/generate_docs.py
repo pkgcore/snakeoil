@@ -47,7 +47,7 @@ def _generate_custom(project, docdir, gendir):
             with open(rst, 'w') as f:
                 with syspath(os.path.dirname(script_path)):
                     module = import_module(os.path.basename(os.path.splitext(script_path)[0]))
-                    module.main(f)
+                    module.main(f, docdir=docdir, gendir=gendir)
 
 
 def generate_man(repo_dir, package_dir, module):
