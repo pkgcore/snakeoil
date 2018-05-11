@@ -481,18 +481,8 @@ class ArgumentParser(argparse.ArgumentParser):
         # default subparsers.
         self._parents = kwds.get('parents', ())
 
-        # Extract the description to use, assumes first line is the short
-        # description and the remainder should be used for generated docs.
-        # Generally this works properly if a module's __doc__ attr is assigned
-        # to the description parameter.
-        description_lines = []
-        if description is not None:
-            description_lines = description.strip().split('\n', 1)
-            description = description_lines[0]
-        if _generate_docs:
-            if docs is None and len(description_lines) == 2:
-                docs = description_lines[1]
-            self._docs = docs
+        # extract the description to use and set docs for doc generation
+        description = self._update_desc(description, docs)
 
         # Consumers can provide the 'script=(__file__, __name__)' parameter in
         # order for version and prog values to be automatically extracted.
@@ -574,6 +564,24 @@ class ArgumentParser(argparse.ArgumentParser):
                         enable color support when piping output or other sitations
                         where stdout is not a tty.
                     """)
+
+    def _update_desc(self, description=None, docs=None):
+        """Extract the description to use.
+
+        Assumes first line is the short description and the remainder should be
+        used for generated docs.  Generally this works properly if a module's
+        __doc__ attr is assigned to the description parameter.
+        """
+        description_lines = []
+        if description is not None:
+            description_lines = description.strip().split('\n', 1)
+            description = description_lines[0]
+        if _generate_docs:
+            if docs is None and len(description_lines) == 2:
+                docs = description_lines[1]
+            self._docs = docs
+        self.description = description
+        return description
 
     @klass.cached_property
     def subparsers(self):
