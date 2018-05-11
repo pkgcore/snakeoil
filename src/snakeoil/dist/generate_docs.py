@@ -96,7 +96,6 @@ def generate_man(repo_dir, package_dir, module):
                     .. include:: {script}/main_options.rst
                 """.format(header=('=' * len(script)), script=script)))
             force_symlink(os.path.join(gendir, rst), os.path.join(docdir, 'man', rst))
-        force_symlink(os.path.join(gendir, script), os.path.join(docdir, 'man', script))
         ManConverter.regen_if_needed(gendir, module, out_name=script)
 
     _generate_custom(module, docdir, gendir)

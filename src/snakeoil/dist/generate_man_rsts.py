@@ -11,6 +11,7 @@ import sys
 from textwrap import dedent
 
 from ..cli import arghparse
+from ..osutils import force_symlink
 
 # enable extended docs keyword arg support
 arghparse._generate_docs = True
@@ -90,16 +91,16 @@ class ManConverter(object):
             trg_time = None
 
         if trg_time is None or cur_time > trg_time or force:
-            cls(out_path, out_name, module.argparser, mtime=cur_time).run()
+            cls(base_path, out_name, module.argparser, mtime=cur_time, out_name=out_name).run()
 
     def __init__(self, base_path, name, parser, mtime=None, out_name=None):
         self.see_also = []
         self.subcommands_to_generate = []
         self.base_path = base_path
-        if out_name is None:
-            out_name = name
-        self.out_name = out_name
-        self.out_path = base_path
+        if out_name is not None:
+            self.out_path = os.path.join(base_path, out_name)
+        else:
+            self.out_path = base_path
         self.name = name
         self.parser = parser
         self.mtime = mtime
@@ -109,7 +110,7 @@ class ManConverter(object):
             os.mkdir(self.out_path)
 
         sys.stdout.write(f"regenerating rst for {self.name}\n")
-        for name, data in self.process_parser(self.parser, self.name.rsplit(".")[-1]):
+        for name, data in self.process_parser(self.parser, self.name):
             with open(os.path.join(self.out_path, f'{name}.rst'), "w") as f:
                 f.write("\n".join(data))
 
@@ -145,21 +146,22 @@ class ManConverter(object):
                 l.extend(dedent(action_group.description).split("\n"))
 
             for subcommand, parser in action_group._group_actions[0].choices.items():
-                subdir_path = self.name.split()[1:]
-                base = os.path.join(self.base_path, *subdir_path)
-                self.__class__(
-                    base, f"{self.name} {subcommand}",
-                    parser, mtime=self.mtime, out_name=subcommand).run()
+                subdir_path = self.name.split()
+                base = os.path.basename(self.base_path)
+                if subdir_path[0] == base:
+                    subdir_path = subdir_path[1:]
 
-                toc_path = self.name.split()
-                if subdir_path:
-                    toc_path = subdir_path
+                base_path = os.path.join(self.base_path, *subdir_path)
+                force_symlink(base_path, os.path.join(self.base_path, '..', 'man', self.name))
+                self.__class__(
+                    base_path, f"{self.name} {subcommand}",
+                    parser, mtime=self.mtime).run()
 
             l.append(".. toctree::")
             l.append("    :maxdepth: 2")
             l.append('')
             l.extend("    %s %s <%s>" %
-                     (name, subcommand, os.path.join(*list(toc_path + [subcommand])))
+                     (name, subcommand, os.path.join(*(self.name, subcommand)))
                      for subcommand in action_group._group_actions[0].choices)
             l.append('')
         return l
