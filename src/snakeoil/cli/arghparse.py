@@ -373,7 +373,7 @@ class _SubParser(argparse._SubParsersAction):
         orig_class = self._parser_class
         if cls is not None:
             self._parser_class = cls
-        parser = argparse._SubParsersAction.add_parser(self, name, **kwds)
+        parser = super().add_parser(name, **kwds)
         self._parser_class = orig_class
 
         return parser
