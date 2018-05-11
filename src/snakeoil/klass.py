@@ -15,7 +15,7 @@ __all__ = (
     "jit_attr_named", "jit_attr_ext_method", "alias_attr", "cached_hash",
     "cached_property", "cached_property_named",
     "steal_docs", "immutable_instance", "inject_immutable_instance",
-    "alias_method", "patch",
+    "alias_method", "aliased", "alias", "patch",
 )
 
 from collections import deque
@@ -722,3 +722,44 @@ def alias_method(attr, name=None, doc=None):
     if name:
         _asecond_level_call.__name__ = name
     return _asecond_level_call
+
+
+class alias(object):
+    """Decorator for making methods callable through aliases.
+
+    This decorator must be used inside a class decorated with @aliased.
+
+    Example usage:
+
+    >>> from snakeoil.klass import aliased, alias
+    >>> @aliased
+    >>> class Speak(object):
+    ...     @alias('yell', 'scream')
+    ...     def shout(message):
+    ...         return message.upper()
+    >>>
+    >>> speak = Speak()
+    >>> assert speak.shout('foo') == speak.yell('foo') == speak.scream('foo')
+    """
+    def __init__(self, *aliases):
+        self.aliases = set(aliases)
+
+    def __call__(self, func):
+        func._aliases = self.aliases
+        return func
+
+
+def aliased(cls):
+    """Class decorator used in combination with @alias method decorator."""
+    orig_methods = cls.__dict__.copy()
+    seen_aliases = set()
+    for name, method in orig_methods.items():
+        if hasattr(method, '_aliases'):
+            collisions = method._aliases.intersection(orig_methods.keys() | seen_aliases)
+            if collisions:
+                raise ValueError(
+                    f"aliases collide with existing attributes: {', '.join(collisions)}")
+            seen_aliases |= method._aliases
+            for alias in method._aliases:
+                setattr(cls, alias, method)
+    return cls
