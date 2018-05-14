@@ -207,8 +207,13 @@ class ManConverter(object):
         # e.g. "pmaint sync" or "pinspect query get_profiles"
         main_command = ' ' not in name
 
+        if main_command:
+            cmd_name = name
+        else:
+            cmd_name = name.split(' ', 1)[1]
+
         synopsis = _rst_header('=', "synopsis")
-        synopsis.extend(self.generate_usage(parser, name))
+        synopsis.extend(self.generate_usage(parser, cmd_name))
         description = []
         docs = getattr(parser, '_docs', None)
         if docs:
@@ -222,14 +227,14 @@ class ManConverter(object):
             yield ('main_options', options)
         else:
             desc_header = f' - {parser.description}' if parser.description else ''
-            data = _rst_header('=', f'{name}{desc_header}', leading=True, capitalize=False)
+            data = _rst_header('=', f'{cmd_name}{desc_header}', leading=True, capitalize=False)
             data.extend(synopsis)
             data.append('')
             if description:
                 data.extend(description)
                 data.append('')
             data.extend(options)
-            yield (name.rsplit(' ', 1)[1], data)
+            yield (cmd_name, data)
 
 
 if __name__ == '__main__':
