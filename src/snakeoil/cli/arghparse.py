@@ -58,13 +58,17 @@ def _add_argument_docs(orig_func, self, *args, **kwargs):
         docs = '\n'.join(dedent(docs).strip().split('\n'))
 
         if orig_func.__name__ == 'add_subparsers':
-            # docs override description for general subparsers argument groups
+            # store original description before overriding it with extended
+            # docs for general subparsers argument groups
+            self._subparsers._description = self._subparsers.description
             self._subparsers.description = docs
         elif isinstance(obj, argparse.Action):
             # docs override help for regular arguments
             obj.help = docs
         elif isinstance(obj, argparse._ActionsContainer):
-            # docs override description for argument groups
+            # store original description before overriding it with extended
+            # docs for argument groups
+            obj._description = obj.description
             obj.description = docs
     return obj
 
