@@ -91,27 +91,28 @@ class ManConverter(object):
             trg_time = None
 
         if trg_time is None or cur_time > trg_time or force:
-            cls(base_path, out_name, module.argparser, mtime=cur_time, out_name=out_name).run()
+            cls(base_path, out_name, module.argparser,
+                mtime=cur_time, out_name=out_name).run()
 
     def __init__(self, base_path, name, parser, mtime=None, out_name=None):
         self.see_also = []
         self.subcommands_to_generate = []
         self.base_path = base_path
+        self.name = name
         if out_name is not None:
             self.out_path = os.path.join(base_path, out_name)
         else:
-            self.out_path = base_path
-        self.name = name
+            self.out_path = os.path.join(self.base_path, *self.name.split(' '))
         self.parser = parser
         self.mtime = mtime
 
-    def run(self):
-        if not os.path.exists(self.out_path):
-            os.mkdir(self.out_path)
+        header_chars = ('#', '*', '=', '-', '^', '"')
+        self.header_char = header_chars[len(name.split(' ')) - 1]
 
+    def run(self):
         sys.stdout.write(f"regenerating rst for {self.name}\n")
-        for name, data in self.process_parser(self.parser, self.name):
-            with open(os.path.join(self.out_path, f'{name}.rst'), "w") as f:
+        for filename, data in self.process_parser(self.parser, self.name):
+            with open(os.path.join(self.out_path, f'{filename}.rst'), "w") as f:
                 f.write("\n".join(data))
 
         if self.mtime:
@@ -127,7 +128,7 @@ class ManConverter(object):
         h.add_arguments(action_group._group_actions)
         data = h.format_help().strip()
         if data:
-            l.extend(_rst_header("=", action_group.title))
+            l.extend(_rst_header(self.header_char, action_group.title))
             if action_group.description:
                 l.extend(dedent(action_group.description).split("\n"))
             l.extend(self.positional_re(x) for x in data.split("\n"))
@@ -141,33 +142,25 @@ class ManConverter(object):
         data = h.format_help().strip()
         if data:
             assert len(action_group._group_actions) == 1
-            l.extend(_rst_header("=", action_group.title))
+            l.extend(_rst_header(self.header_char, action_group.title))
             if action_group.description:
                 l.extend(dedent(action_group.description).split("\n"))
 
             for subcommand, parser in action_group._group_actions[0].choices.items():
-                subdir_path = self.name.split()
-                base = os.path.basename(self.base_path)
-                if subdir_path[0] == base:
-                    subdir_path = subdir_path[1:]
-
-                base_path = os.path.join(self.base_path, *subdir_path)
-                force_symlink(base_path, os.path.join(self.base_path, '..', 'man', self.name))
                 self.__class__(
-                    base_path, f"{self.name} {subcommand}",
+                    self.base_path, f"{self.name} {subcommand}",
                     parser, mtime=self.mtime).run()
 
-            l.append(".. toctree::")
-            l.append("    :maxdepth: 2")
-            l.append('')
-            l.extend("    %s %s <%s>" %
-                     (name, subcommand, os.path.join(*(self.name, subcommand)))
-                     for subcommand in action_group._group_actions[0].choices)
-            l.append('')
-        return l
+            subcmds = []
+            for subcommand in action_group._group_actions[0].choices:
+                subcmds.append(f".. include:: {subcommand}.rst")
+            subcmds.append('')
+
+        return l, subcmds
 
     def process_action_groups(self, parser, name):
         l = []
+        subcmds = []
         for action_group in parser._action_groups:
             if getattr(action_group, 'marker', '') == 'positional' or \
                     action_group.title == 'positional arguments':
@@ -175,14 +168,15 @@ class ManConverter(object):
                 continue
             if any(isinstance(x, argparse._SubParsersAction) for x in action_group._group_actions):
                 assert len(action_group._group_actions) == 1
-                l.extend(self.process_subcommands(parser, name, action_group))
+                lines, subcmds = self.process_subcommands(parser, name, action_group)
+                l.extend(lines)
                 continue
             h = self._get_formatter(parser, name)
             h.add_arguments(action_group._group_actions)
             data = h.format_help()
             if not data:
                 continue
-            l.extend(_rst_header("=", action_group.title))
+            l.extend(_rst_header(self.header_char, action_group.title))
             if action_group.description:
                 l.extend(dedent(action_group.description).split("\n"))
                 l.append('')
@@ -192,7 +186,7 @@ class ManConverter(object):
                 if i < len(options)-1 and re.match('\S+', options[i+1]) is not None:
                     # add empty line between options to avoid formatting issues
                     l.append('')
-        return l
+        return l, subcmds
 
     def generate_usage(self, parser, name):
         h = self._get_formatter(parser, name)
@@ -207,34 +201,55 @@ class ManConverter(object):
         # e.g. "pmaint sync" or "pinspect query get_profiles"
         main_command = ' ' not in name
 
-        if main_command:
-            cmd_name = name
-        else:
-            cmd_name = name.split(' ', 1)[1]
+        cmd_parts = name.split(' ')
+        cmd_path = os.path.join(*cmd_parts)
+        path = os.path.join(self.base_path, cmd_path)
+        try:
+            os.makedirs(path)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
 
-        synopsis = _rst_header('=', "synopsis")
-        synopsis.extend(self.generate_usage(parser, cmd_name))
+        rst_path = f'{path}.rst'
+        rst_filename = os.path.basename(rst_path)
+
+        # get the short description for the header
+        desc = getattr(parser, '_description', parser.description)
+        desc = f' - {desc}' if desc else ''
+        rst = _rst_header(self.header_char, f'{name}{desc}',
+                          leading=main_command, capitalize=False)
+
+        cmd = cmd_parts[-1]
+        for filename in ('synopsis', 'description', 'options', 'subcommands'):
+            rst.append(f".. include:: {cmd}/_{filename}.rst")
+        rst = '\n'.join(rst)
+
+        if main_command:
+            # generate missing, generic man page rst docs
+            mandir = os.path.abspath(os.path.join(self.base_path, '..', 'man'))
+            manpage = os.path.join(mandir, rst_filename)
+            if os.path.exists(mandir) and not os.path.isfile(manpage):
+                with open(rst_path, 'w') as f:
+                    f.write(rst)
+                force_symlink(rst_path, manpage)
+            force_symlink(rst_path.rsplit('.', 1)[0], manpage.rsplit('.', 1)[0])
+        else:
+            with open(rst_path, 'w') as f:
+                f.write(rst)
+
+        synopsis = _rst_header(self.header_char, "synopsis")
+        synopsis.extend(self.generate_usage(parser, name))
         description = []
         docs = getattr(parser, '_docs', None)
         if docs:
-            description = _rst_header('=', "description")
+            description = _rst_header(self.header_char, "description")
             description.append(dedent(docs).strip())
-        options = self.process_action_groups(parser, name)
+        options, subcmds = self.process_action_groups(parser, name)
 
-        if main_command:
-            yield ('main_synopsis', synopsis)
-            yield ('main_description', description)
-            yield ('main_options', options)
-        else:
-            desc_header = f' - {parser.description}' if parser.description else ''
-            data = _rst_header('=', f'{cmd_name}{desc_header}', leading=True, capitalize=False)
-            data.extend(synopsis)
-            data.append('')
-            if description:
-                data.extend(description)
-                data.append('')
-            data.extend(options)
-            yield (cmd_name, data)
+        yield ('_synopsis', synopsis)
+        yield ('_description', description)
+        yield ('_options', options)
+        yield ('_subcommands', subcmds)
 
 
 if __name__ == '__main__':

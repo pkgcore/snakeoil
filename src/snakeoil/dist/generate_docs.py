@@ -12,7 +12,6 @@ import sys
 import textwrap
 
 from .generate_man_rsts import ManConverter
-from ..osutils import force_symlink
 from ..contexts import syspath
 
 
@@ -67,12 +66,6 @@ def generate_man(repo_dir, package_dir, module):
     docdir = os.path.join(repo_dir, 'doc')
     gendir = os.path.join(docdir, 'generated')
 
-    try:
-        os.mkdir(gendir)
-    except OSError as e:
-        if e.errno != errno.EEXIST:
-            raise
-
     print("Generating files for {} man pages in '{}'".format(module, gendir))
     scripts = os.listdir(os.path.abspath(os.path.join(repo_dir, 'bin')))
 
@@ -81,23 +74,11 @@ def generate_man(repo_dir, package_dir, module):
         ('%s.scripts.' % (module) + s.replace('-', '_'), s) for s in scripts
     ]
 
+    # generate specified man pages for scripts
     for module, script in generated_man_pages:
-        rst = script + '.rst'
-        # generate missing, generic man page rst docs
-        if not os.path.isfile(os.path.join(docdir, 'man', rst)):
-            with open(os.path.join(gendir, rst), 'w') as f:
-                f.write(textwrap.dedent("""\
-                    {header}
-                    {script}
-                    {header}
-
-                    .. include:: {script}/main_synopsis.rst
-                    .. include:: {script}/main_description.rst
-                    .. include:: {script}/main_options.rst
-                """.format(header=('=' * len(script)), script=script)))
-            force_symlink(os.path.join(gendir, rst), os.path.join(docdir, 'man', rst))
         ManConverter.regen_if_needed(gendir, module, out_name=script)
 
+    # run scripts to generate any custom docs
     _generate_custom(module, docdir, gendir)
 
 
