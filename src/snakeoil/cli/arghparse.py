@@ -464,10 +464,13 @@ class ArgumentParser(argparse.ArgumentParser):
                  verbose=True, version=True, add_help=True, sorted_help=False,
                  description=None, docs=None, script=None, prog=None, **kwds):
         self.debug = debug and '--debug' in sys.argv[1:]
-        self.verbose = verbose
-        if verbose:
+        self.verbose = int(verbose)
+        if self.verbose:
             argv = Counter(sys.argv[1:])
-            self.verbose = argv['-v'] + argv['--verbose']
+            if argv['-q'] + argv['--quiet']:
+                self.verbose = -1
+            else:
+                self.verbose = argv['-v'] + argv['--verbose']
 
         # subparser to use if none is specified on the command line and one is required
         self.__default_subparser = None
@@ -549,6 +552,7 @@ class ArgumentParser(argparse.ArgumentParser):
                     '--debug', action=EnableDebug, help='enable debugging checks',
                     docs='Enable debug checks and show verbose debug output.')
             if quiet:
+                # TODO: toggle verbose attr to -1 when quiet instead of using a separate attr
                 self.add_argument(
                     '-q', '--quiet', action='store_true',
                     help='suppress non-error messages',
@@ -670,6 +674,7 @@ class ArgumentParser(argparse.ArgumentParser):
         if final_check is not None:
             del args.final_check
             final_check(self, args)
+
         return args
 
     def error(self, message, status=2):
