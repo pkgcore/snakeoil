@@ -56,7 +56,7 @@ class ManConverter(object):
             # Specifically return '|' w/out spaces; later code is
             # space sensitive. We do the appropriate replacement as
             # the last step.
-            return f"<{'|'.join(array)}>"
+            return "<%s>" % ('|'.join(array),)
         text = self.arg_enumeration_re.sub(f, text)
         # Now that we've convert {x,y} style options, we need to next
         # convert multi-argument options into a form that is parsable
@@ -65,9 +65,9 @@ class ManConverter(object):
         for chunk in text.split(','):
             chunk = chunk.split()
             if len(chunk) > 2:
-                chunk[1:] = [f"<{' '.join(chunk[1:])}>"]
+                chunk[1:] = ["<%s>" % (' '.join(chunk[1:]),)]
             if not chunk[0].startswith('-'):
-                chunk[0] = f':{chunk[0]}:'
+                chunk[0] = ':%s:' % (chunk[0],)
             l.append(' '.join(chunk))
         # Recompose the options into one text field.
         text = ', '.join(l)
@@ -112,9 +112,9 @@ class ManConverter(object):
         self.header_char = header_chars[len(name.split(' ')) - 1]
 
     def run(self):
-        sys.stdout.write(f"regenerating rst for {self.name}\n")
+        sys.stdout.write("regenerating rst for %s\n" % (self.name,))
         for filename, data in self.process_parser(self.parser, self.name):
-            with open(os.path.join(self.out_path, f'{filename}.rst'), "w") as f:
+            with open(os.path.join(self.out_path, filename + '.rst'), "w") as f:
                 f.write("\n".join(data))
 
         if self.mtime:
@@ -150,12 +150,12 @@ class ManConverter(object):
 
             for subcommand, parser in action_group._group_actions[0].choices.items():
                 self.__class__(
-                    self.base_path, f"{self.name} {subcommand}", parser,
+                    self.base_path, '%s %s' % (self.name, subcommand), parser,
                     mtime=self.mtime, strip_subcmd=self.strip_subcmd).run()
 
             subcmds = []
             for subcommand in action_group._group_actions[0].choices:
-                subcmds.append(f".. include:: {subcommand}.rst")
+                subcmds.append('.. include:: %s.rst' % (subcommand,))
             subcmds.append('')
 
         return l, subcmds
@@ -216,18 +216,18 @@ class ManConverter(object):
         if self.strip_subcmd:
             name = ' '.join(cmd_parts[1:])
 
-        rst_path = f'{path}.rst'
+        rst_path = path + '.rst'
         rst_filename = os.path.basename(rst_path)
 
         # get the short description for the header
         desc = getattr(parser, '_description', parser.description)
-        desc = f' - {desc}' if desc else ''
-        rst = _rst_header(self.header_char, f'{name}{desc}',
+        desc = ' - ' + desc if desc else ''
+        rst = _rst_header(self.header_char, '%s%s' % (name, desc),
                           leading=main_command, capitalize=False)
 
         cmd = cmd_parts[-1]
         for filename in ('synopsis', 'description', 'options', 'subcommands'):
-            rst.append(f".. include:: {cmd}/_{filename}.rst")
+            rst.append(".. include:: %s/_%s.rst" % (cmd, filename))
         rst = '\n'.join(rst)
 
         if main_command:

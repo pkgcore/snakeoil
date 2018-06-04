@@ -758,7 +758,8 @@ def aliased(cls):
             collisions = method._aliases.intersection(orig_methods.keys() | seen_aliases)
             if collisions:
                 raise ValueError(
-                    f"aliases collide with existing attributes: {', '.join(collisions)}")
+                    "aliases collide with existing attributes: %s" % (
+                    {', '.join(collisions)},))
             seen_aliases |= method._aliases
             for alias in method._aliases:
                 setattr(cls, alias, method)
