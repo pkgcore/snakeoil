@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
 import os
-import sys
 
-from setuptools import setup, Extension
+from setuptools import setup
 
 import pkgdist
 pkgdist_setup, pkgdist_cmds = pkgdist.setup()

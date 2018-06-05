@@ -65,6 +65,7 @@ class PythonNamespaceWalker(object):
 
     module_blacklist = frozenset([
         'snakeoil.cli.arghparse', 'snakeoil.dist.generate_man_rsts',
+        'snakeoil.dist.distutils_extensions', 'snakeoil.pickling',
     ])
 
     def _default_module_blacklister(self, target):
