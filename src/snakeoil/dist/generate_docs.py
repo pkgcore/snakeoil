@@ -38,7 +38,7 @@ def _generate_custom(project, docdir, gendir):
                 if e.errno != errno.EEXIST:
                     raise
 
-        for script in (x for x in files if not x.startswith(('.', '_'))):
+        for script in sorted(x for x in files if not x.startswith(('.', '_'))):
             script_path = os.path.join(custom_dir, subdir, script)
             if not os.access(script_path, os.X_OK):
                 continue
