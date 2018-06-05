@@ -62,10 +62,8 @@ def find_moduledir(searchdir=TOPDIR):
     modules = []
     moduledir = None
     searchdir_depth = len(searchdir.split('/'))
-
-    # allow modules to be found inside a top-level src dir
-    if os.path.exists(os.path.join(TOPDIR, 'src')):
-        searchdir_depth += 1
+    # allow modules to be found inside a top-level dir, e.g. 'src'
+    searchdir_depth += 1
 
     # look for a top-level module
     for root, dirs, files in os.walk(searchdir):
