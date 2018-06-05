@@ -43,12 +43,12 @@ from distutils.command import (
 READTHEDOCS = os.environ.get('READTHEDOCS', None) == 'True'
 
 # hack to verify we're running under a setup.py script and grab its info
-_frameinfo = inspect.stack(0)[-1]
-if os.path.basename(_frameinfo.filename) != 'setup.py':
+_setup_script = inspect.stack(0)[-1][1]
+if os.path.basename(_setup_script) != 'setup.py':
     raise ImportError('this module is only meant to be imported in setup.py scripts')
 
 # top level repo/tarball directory
-TOPDIR = os.path.dirname(os.path.abspath(_frameinfo.filename))
+TOPDIR = os.path.dirname(os.path.abspath(_setup_script))
 # executable scripts directory
 SCRIPTS_DIR = os.path.join(TOPDIR, 'bin')
 
