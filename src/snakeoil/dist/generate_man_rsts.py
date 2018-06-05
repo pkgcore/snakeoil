@@ -95,7 +95,7 @@ class ManConverter(object):
                 mtime=cur_time, out_name=out_name).run()
 
     def __init__(self, base_path, name, parser, mtime=None,
-                 out_name=None, strip_subcmd=False):
+                 out_name=None, strip_subcmd=False, headers=()):
         self.see_also = []
         self.subcommands_to_generate = []
         self.base_path = base_path
@@ -108,7 +108,7 @@ class ManConverter(object):
         self.mtime = mtime
         self.strip_subcmd = strip_subcmd
 
-        header_chars = ('#', '*', '=', '-', '^', '"')
+        header_chars = headers if headers else ('=', '-', '~', '#', '*', '^')
         self.header_char = header_chars[len(name.split(' ')) - 1]
 
     def run(self):
