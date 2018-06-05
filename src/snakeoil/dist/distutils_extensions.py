@@ -26,9 +26,6 @@ import subprocess
 import sys
 import textwrap
 
-os.environ["SNAKEOIL_DEMANDLOAD_PROTECTION"] = 'n'
-os.environ["SNAKEOIL_DEMANDLOAD_WARN"] = 'n'
-
 from setuptools import find_packages
 from setuptools.command import install as dst_install
 
