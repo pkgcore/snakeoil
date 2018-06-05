@@ -113,11 +113,11 @@ MODULE = os.path.basename(MODULEDIR)
 def version(moduledir=MODULEDIR):
     """Determine a module's version.
 
-    Based on the assumption that the __version__ module defines __version__.
+    Based on the assumption that a module defines __version__.
     """
     version = None
     try:
-        with io.open(os.path.join(moduledir, '__version__.py'), encoding='utf-8') as f:
+        with io.open(os.path.join(moduledir, '__init__.py'), encoding='utf-8') as f:
             version = re.search(
                 r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
                 f.read(), re.MULTILINE).group(1)

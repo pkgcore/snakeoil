@@ -16,4 +16,5 @@ This library is a bit of a grabbag of the following:
 * optimized implementations of common patterns
 """
 
-from .__version__ import __title__, __version__
+__title__ = 'snakeoil'
+__version__ = '0.8.0'
