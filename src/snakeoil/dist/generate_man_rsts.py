@@ -95,7 +95,7 @@ class ManConverter(object):
                 mtime=cur_time, out_name=out_name).run()
 
     def __init__(self, base_path, name, parser, mtime=None,
-                 out_name=None, strip_subcmd=False, headers=()):
+                 out_name=None, replace_cmd=None, headers=()):
         self.see_also = []
         self.subcommands_to_generate = []
         self.base_path = base_path
@@ -106,7 +106,7 @@ class ManConverter(object):
             self.out_path = os.path.join(self.base_path, *self.name.split(' '))
         self.parser = parser
         self.mtime = mtime
-        self.strip_subcmd = strip_subcmd
+        self.replace_cmd = replace_cmd
 
         header_chars = headers if headers else ('=', '-', '~', '#', '*', '^')
         self.header_char = header_chars[len(name.split(' ')) - 1]
@@ -151,7 +151,7 @@ class ManConverter(object):
             for subcommand, parser in action_group._group_actions[0].choices.items():
                 self.__class__(
                     self.base_path, '%s %s' % (self.name, subcommand), parser,
-                    mtime=self.mtime, strip_subcmd=self.strip_subcmd).run()
+                    mtime=self.mtime, replace_cmd=self.replace_cmd).run()
 
             subcmds = []
             for subcommand in action_group._group_actions[0].choices:
@@ -213,8 +213,8 @@ class ManConverter(object):
                 raise
 
         # strip the main command from the outputted name
-        if self.strip_subcmd:
-            name = ' '.join(cmd_parts[1:])
+        if self.replace_cmd is not None:
+            name = ' '.join([self.replace_cmd] + cmd_parts[1:])
 
         rst_path = path + '.rst'
         rst_filename = os.path.basename(rst_path)
