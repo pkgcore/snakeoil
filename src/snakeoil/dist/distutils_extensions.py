@@ -573,6 +573,17 @@ class build_man(Command):
 
     def run(self):
         if self.force or not self.skip():
+            # TODO: report this to upstream sphinx
+            #
+            # Workaround for sphinx doing include directive path mangling in
+            # order to interpret absolute paths "correctly", but at the same
+            # time causing relative paths to fail. This just bypasses the
+            # sphinx mangling and lets docutils handle include directives
+            # directly which works as expected.
+            from docutils.parsers.rst.directives.misc import Include as BaseInclude
+            from sphinx.directives.other import Include
+            Include.run = BaseInclude.run
+
             # Use a built version for the man page generation process that
             # imports script modules.
             build_py = self.reinitialize_command('build_py')
