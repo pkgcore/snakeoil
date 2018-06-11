@@ -13,6 +13,7 @@ Specifically, this module is only meant to be imported in setup.py scripts.
 from contextlib import contextmanager
 import copy
 import errno
+from importlib import import_module
 import inspect
 import io
 import math
@@ -107,7 +108,7 @@ def find_moduledir(searchdir=TOPDIR):
 # determine the main module we're being used to package
 MODULEDIR = find_moduledir()
 PACKAGEDIR = os.path.dirname(MODULEDIR)
-MODULE = os.path.basename(MODULEDIR)
+MODULE_NAME = os.path.basename(MODULEDIR)
 
 
 def version(moduledir=MODULEDIR):
@@ -115,20 +116,12 @@ def version(moduledir=MODULEDIR):
 
     Based on the assumption that a module defines __version__.
     """
-    version = None
     try:
-        with io.open(os.path.join(moduledir, '__init__.py'), encoding='utf-8') as f:
-            version = re.search(
-                r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
-                f.read(), re.MULTILINE).group(1)
-    except IOError as e:
-        if e.errno == errno.ENOENT:
-            pass
-        else:
-            raise
-
-    if version is None:
-        raise RuntimeError('Cannot find version for module: %s' % (MODULE,))
+        with syspath(PACKAGEDIR):
+            MODULE = import_module(MODULE_NAME)
+        version = MODULE.__version__
+    except AttributeError as e:
+        raise RuntimeError('Cannot find version for module: %s' % (MODULE_NAME,))
 
     return version
 
@@ -151,7 +144,7 @@ def readme(topdir=TOPDIR):
 def setup():
     """Parameters and commands for setuptools."""
     params = {
-        'name': MODULE,
+        'name': MODULE_NAME,
         'version': version(),
         'long_description': readme(),
         'packages': find_packages(PACKAGEDIR),
@@ -334,7 +327,7 @@ class sdist(dst_sdist.sdist):
         This is used by the --version option in interactive programs among
         other things.
         """
-        with syspath(PACKAGEDIR, MODULE == 'snakeoil'):
+        with syspath(PACKAGEDIR, MODULE_NAME == 'snakeoil'):
             from snakeoil.version import get_git_version
         data = get_git_version(base_dir)
         if not data:
@@ -365,7 +358,7 @@ class sdist(dst_sdist.sdist):
         build_py = self.reinitialize_command('build_py')
         build_py.ensure_finalized()
         self.generate_verinfo(os.path.join(
-            base_dir, build_py.package_dir.get('', ''), MODULE))
+            base_dir, build_py.package_dir.get('', ''), MODULE_NAME))
 
     def run(self):
         build_ext = self.reinitialize_command('build_ext')
@@ -400,10 +393,10 @@ class build_py(dst_build_py.build_py):
 
     def _run_generate_verinfo(self, rebuilds=None):
         ver_path = self.get_module_outfile(
-            self.build_lib, (MODULE,), '_verinfo')
+            self.build_lib, (MODULE_NAME,), '_verinfo')
         # this should check mtime...
         if not os.path.exists(ver_path):
-            with syspath(PACKAGEDIR, MODULE == 'snakeoil'):
+            with syspath(PACKAGEDIR, MODULE_NAME == 'snakeoil'):
                 from snakeoil.version import get_git_version
             log.info('generating version info: %s' % ver_path)
             with open(ver_path, 'w') as f:
@@ -448,7 +441,7 @@ class build_py2to3(build_py):
 
     def get_py2to3_converter(self, options=None, proc_count=0):
         from lib2to3 import refactor as ref_mod
-        with syspath(PACKAGEDIR, MODULE == 'snakeoil'):
+        with syspath(PACKAGEDIR, MODULE_NAME == 'snakeoil'):
             from snakeoil.dist import caching_2to3
 
         if proc_count == 0:
@@ -534,13 +527,13 @@ class build_py3to2(build_py2to3):
 def generate_html():
     """Generate html docs for the project."""
     from snakeoil.dist.generate_docs import generate_html
-    generate_html(TOPDIR, PACKAGEDIR, MODULE)
+    generate_html(TOPDIR, PACKAGEDIR, MODULE_NAME)
 
 
 def generate_man():
     """Generate man pages for the project."""
     from snakeoil.dist.generate_docs import generate_man
-    generate_man(TOPDIR, PACKAGEDIR, MODULE)
+    generate_man(TOPDIR, PACKAGEDIR, MODULE_NAME)
 
 
 class build_man(Command):
@@ -757,7 +750,7 @@ class build_scripts(dst_build_scripts.build_scripts):
                     from os.path import basename
                     from %s import scripts
                     scripts.run(basename(__file__))
-                """ % (sys.executable, MODULE)))
+                """ % (sys.executable, MODULE_NAME)))
         self.copy_scripts()
 
 
@@ -826,7 +819,7 @@ class install_docs(Command):
 
     def calculate_install_path(self):
         return os.path.join(
-            os.path.abspath(self.prefix), 'share', 'doc', MODULE + '-%s' % version(), 'html')
+            os.path.abspath(self.prefix), 'share', 'doc', MODULE_NAME + '-%s' % version(), 'html')
 
     def find_content(self):
         for possible_path in self.content_search_path:
@@ -948,7 +941,7 @@ class test(Command):
         ("include-dirs=", "I", "include dirs for build_ext if needed"),
     ]
 
-    default_test_namespace = '%s.test' % MODULE
+    default_test_namespace = '%s.test' % MODULE_NAME
 
     def initialize_options(self):
         self.inplace = False
@@ -1010,7 +1003,7 @@ class test(Command):
 
         # remove temporary plugincache so it isn't installed
         plugincache = os.path.join(
-            os.path.abspath(build_py.build_lib), MODULE,
+            os.path.abspath(build_py.build_lib), MODULE_NAME,
             'plugins/plugincache')
         if os.path.exists(plugincache):
             os.remove(plugincache)
@@ -1073,7 +1066,7 @@ class pytest(Command):
         if self.coverage or self.report:
             try:
                 import pytest_cov
-                self.test_args.extend(['--cov', MODULE])
+                self.test_args.extend(['--cov', MODULE_NAME])
             except ImportError:
                 raise DistutilsExecError('install pytest-cov for coverage support')
 
@@ -1116,7 +1109,7 @@ class pytest(Command):
             builddir = os.path.abspath(build_py.build_lib)
 
         # force reimport of project from builddir
-        sys.modules.pop(MODULE, None)
+        sys.modules.pop(MODULE_NAME, None)
 
         with syspath(builddir):
             from snakeoil.contexts import chdir
@@ -1229,7 +1222,7 @@ class config(dst_config.config):
         return self.try_link("int main(int argc, char *argv[]) { return 0; }")
 
     def run(self):
-        with syspath(PACKAGEDIR, MODULE == 'snakeoil'):
+        with syspath(PACKAGEDIR, MODULE_NAME == 'snakeoil'):
             from snakeoil.pickling import dump, load
 
         # try to load the cached results
