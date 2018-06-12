@@ -43,21 +43,23 @@ from distutils.command import (
 # getting built by readthedocs
 READTHEDOCS = os.environ.get('READTHEDOCS', None) == 'True'
 
-# hack to verify we're running under a setup.py script and grab its info
-for _frameinfo in reversed(inspect.stack(0)):
-    _filename = _frameinfo[1]
-    if os.path.basename(_filename) == 'setup.py':
-        break
-else:
-    raise ImportError('this module is only meant to be imported in setup.py scripts')
-
 # top level repo/tarball directory
-TOPDIR = os.path.dirname(os.path.abspath(_filename))
+REPODIR = os.environ.get('PKGDIST_REPODIR')
+if REPODIR is None:
+    # hack to verify we're running under a setup.py script and grab its info
+    for _frameinfo in reversed(inspect.stack(0)):
+        _filename = _frameinfo[1]
+        if os.path.basename(_filename) == 'setup.py':
+            REPODIR = os.path.dirname(os.path.abspath(_filename))
+            break
+    else:
+        raise ImportError('this module is only meant to be imported in setup.py scripts')
+
 # executable scripts directory
-SCRIPTS_DIR = os.path.join(TOPDIR, 'bin')
+SCRIPTS_DIR = os.path.join(REPODIR, 'bin')
 
 
-def find_moduledir(searchdir=TOPDIR):
+def find_moduledir(searchdir=REPODIR):
     """Determine a module's directory path.
 
     Based on the assumption that the project is only distributing one main
@@ -126,7 +128,7 @@ def version(moduledir=MODULEDIR):
     return version
 
 
-def readme(topdir=TOPDIR):
+def readme(topdir=REPODIR):
     """Determine a project's long description."""
     for doc in ('README.rst', 'README'):
         try:
@@ -165,13 +167,13 @@ def setup():
         cmds['build_scripts'] = build_scripts
 
     # check for docs
-    if os.path.exists(os.path.join(TOPDIR, 'doc')):
+    if os.path.exists(os.path.join(REPODIR, 'doc')):
         cmds['build'] = build
         cmds['build_docs'] = build_docs
         cmds['install_docs'] = install_docs
 
     # check for man pages
-    if os.path.exists(os.path.join(TOPDIR, 'doc', 'man')):
+    if os.path.exists(os.path.join(REPODIR, 'doc', 'man')):
         cmds['build'] = build
         cmds['build_man'] = build_man
         cmds['install_man'] = install_man
@@ -194,17 +196,17 @@ def _requires(path):
 
 def build_requires():
     """Determine a project's build dependencies."""
-    return _requires(os.path.join(TOPDIR, 'requirements', 'build.txt'))
+    return _requires(os.path.join(REPODIR, 'requirements', 'build.txt'))
 
 
 def install_requires():
     """Determine a project's runtime dependencies."""
-    return _requires(os.path.join(TOPDIR, 'requirements', 'install.txt'))
+    return _requires(os.path.join(REPODIR, 'requirements', 'install.txt'))
 
 
 def test_requires():
     """Determine a project's test dependencies."""
-    return _requires(os.path.join(TOPDIR, 'requirements', 'test.txt'))
+    return _requires(os.path.join(REPODIR, 'requirements', 'test.txt'))
 
 
 def get_file_paths(path):
@@ -527,13 +529,13 @@ class build_py3to2(build_py2to3):
 def generate_html():
     """Generate html docs for the project."""
     from snakeoil.dist.generate_docs import generate_html
-    generate_html(TOPDIR, PACKAGEDIR, MODULE_NAME)
+    generate_html(REPODIR, PACKAGEDIR, MODULE_NAME)
 
 
 def generate_man():
     """Generate man pages for the project."""
     from snakeoil.dist.generate_docs import generate_man
-    generate_man(TOPDIR, PACKAGEDIR, MODULE_NAME)
+    generate_man(REPODIR, PACKAGEDIR, MODULE_NAME)
 
 
 class build_man(Command):
@@ -825,7 +827,7 @@ class install_docs(Command):
         for possible_path in self.content_search_path:
             if self.build_dir is not None:
                 possible_path = os.path.join(self.build_dir, possible_path)
-            possible_path = os.path.join(TOPDIR, possible_path)
+            possible_path = os.path.join(REPODIR, possible_path)
             if os.path.isdir(possible_path):
                 return possible_path
         else:
@@ -1040,8 +1042,8 @@ class pytest(Command):
     def finalize_options(self):
         # if a test dir isn't specified explicitly try to find one
         if self.test_dir is None:
-            for path in (os.path.join(TOPDIR, 'test'),
-                         os.path.join(TOPDIR, 'tests'),
+            for path in (os.path.join(REPODIR, 'test'),
+                         os.path.join(REPODIR, 'tests'),
                          os.path.join(MODULEDIR, 'test'),
                          os.path.join(MODULEDIR, 'tests')):
                 if os.path.exists(path):
@@ -1070,7 +1072,7 @@ class pytest(Command):
             except ImportError:
                 raise DistutilsExecError('install pytest-cov for coverage support')
 
-            coveragerc = os.path.join(TOPDIR, '.coveragerc')
+            coveragerc = os.path.join(REPODIR, '.coveragerc')
             if os.path.exists(coveragerc):
                 self.test_args.extend(['--cov-config', coveragerc])
 
@@ -1143,7 +1145,7 @@ class pylint(Command):
             raise DistutilsExecError('pylint is not installed')
 
         lint_args = [MODULEDIR]
-        rcfile = os.path.join(TOPDIR, '.pylintrc')
+        rcfile = os.path.join(REPODIR, '.pylintrc')
         if os.path.exists(rcfile):
             lint_args.extend(['--rcfile', rcfile])
         if self.errors_only:
