@@ -75,29 +75,21 @@ def find_moduledir(searchdir=TOPDIR):
         if len(root.split('/')) > searchdir_depth + 1:
             continue
         if '__init__.py' in files:
-            modules.append(root)
+            # only match modules with __title__ defined in the main module
+            with io.open(os.path.join(root, '__init__.py'), encoding='utf-8') as f:
+                try:
+                    if re.search(r'^__title__\s*=\s*[\'"]([^\'"]*)[\'"]',
+                                 f.read(), re.MULTILINE):
+                        modules.append(root)
+                except AttributeError:
+                    continue
 
     if len(modules) == 1:
         moduledir = modules[0]
     elif len(modules) > 1:
-        # Multiple modules found in the base directory, searching for one that
-        # defines __title__.
-        main_modules = []
-        for path in modules:
-            with io.open(os.path.join(path, '__init__.py'), encoding='utf-8') as f:
-                try:
-                    main_modules.append(re.search(
-                        r'^__title__\s*=\s*[\'"]([^\'"]*)[\'"]',
-                        f.read(), re.MULTILINE).group(1))
-                except AttributeError:
-                    continue
-
-        if not main_modules or len(main_modules) > 1:
-            raise ValueError(
-                'Multiple main modules found in %r: %s' % (
-                    searchdir, ', '.join(os.path.basename(x) for x in modules)))
-        else:
-            moduledir = modules[0]
+        raise ValueError(
+            'Multiple main modules found in %r: %s' % (
+                searchdir, ', '.join(os.path.basename(x) for x in modules)))
 
     if moduledir is None:
         raise ValueError('No main module found')
@@ -116,11 +108,19 @@ def version(moduledir=MODULEDIR):
 
     Based on the assumption that a module defines __version__.
     """
+    version = None
     try:
-        with syspath(PACKAGEDIR):
-            MODULE = import_module(MODULE_NAME)
-        version = MODULE.__version__
-    except AttributeError as e:
+        with io.open(os.path.join(moduledir, '__init__.py'), encoding='utf-8') as f:
+            version = re.search(
+                r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
+                f.read(), re.MULTILINE).group(1)
+    except IOError as e:
+        if e.errno == errno.ENOENT:
+            pass
+        else:
+            raise
+
+    if version is None:
         raise RuntimeError('Cannot find version for module: %s' % (MODULE_NAME,))
 
     return version
