@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 
 from setuptools import setup
 
-import pkgdist
+sys.path.insert(0, os.path.abspath('src'))
+from snakeoil.dist import distutils_extensions as pkgdist
 pkgdist_setup, pkgdist_cmds = pkgdist.setup()
 OptionalExtension = pkgdist.OptionalExtension
 
