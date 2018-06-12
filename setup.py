@@ -54,22 +54,22 @@ else:
     extensions.extend([
         OptionalExtension(
             'snakeoil._posix',
-            [os.path.join(pkgdist.REPODIR, 'src', 'posix.c')], **ext_build_options),
+            [os.path.join(pkgdist.PACKAGEDIR, 'posix.c')], **ext_build_options),
         OptionalExtension(
             'snakeoil._klass',
-            [os.path.join(pkgdist.REPODIR, 'src', 'klass.c')], **ext_build_options),
+            [os.path.join(pkgdist.PACKAGEDIR, 'klass.c')], **ext_build_options),
         OptionalExtension(
             'snakeoil._caching',
-            [os.path.join(pkgdist.REPODIR, 'src', 'caching.c')], **ext_build_options),
+            [os.path.join(pkgdist.PACKAGEDIR, 'caching.c')], **ext_build_options),
         OptionalExtension(
             'snakeoil._sequences',
-            [os.path.join(pkgdist.REPODIR, 'src', 'sequences.c')], **ext_build_options),
+            [os.path.join(pkgdist.PACKAGEDIR, 'sequences.c')], **ext_build_options),
         OptionalExtension(
             'snakeoil.osutils._readdir',
-            [os.path.join(pkgdist.REPODIR, 'src', 'readdir.c')], **ext_build_options),
+            [os.path.join(pkgdist.PACKAGEDIR, 'readdir.c')], **ext_build_options),
         OptionalExtension(
             'snakeoil._formatters',
-            [os.path.join(pkgdist.REPODIR, 'src', 'formatters.c')], **ext_build_options),
+            [os.path.join(pkgdist.PACKAGEDIR, 'formatters.c')], **ext_build_options),
     ])
 
 
