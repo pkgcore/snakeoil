@@ -44,7 +44,7 @@ jobs:
         - CIBW_PLATFORM=linux
         - CIBW_SKIP="cp26-* cp27-* cp33-*"
         - CIBW_BEFORE_BUILD="{pip} install -r requirements/wheel.txt -r requirements/test.txt"
-        - CIBW_TEST_COMMAND="py.test --pyargs snakeoil"
+        - CIBW_TEST_COMMAND="py.test {project}/tests"
       before_script:
         - git clone https://github.com/pkgcore/pkgdist.git
         - cp -R pkgdist/requirements/* requirements/
