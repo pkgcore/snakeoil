@@ -164,11 +164,13 @@ class TestParseStdinEnabled(ParseStdinTest):
                 (['foo\n'], ['foo']),
                 (['foo', 'bar', 'baz'], ['foo', 'bar', 'baz']),
                 (['\nfoo\n', ' bar ', '\nbaz'], ['foo', 'bar', 'baz']),
-                ):
-            with mock.patch('sys.stdin') as stdin:
+        ):
+            with mock.patch('sys.stdin') as stdin, \
+                    mock.patch("builtins.open", mock.mock_open()) as mock_file:
                 stdin.readlines.return_value = readlines
                 stdin.isatty.return_value = False
                 namespace = self.parser.parse_args(['-'])
+                mock_file.assert_called_once_with("/dev/tty")
             assert namespace.testing == expected
 
 
