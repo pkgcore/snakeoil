@@ -4,6 +4,7 @@
 """Various argparse actions, types, and miscellaneous extensions."""
 
 import argparse
+from argparse import ArgumentError, PARSER, REMAINDER, OPTIONAL, ZERO_OR_MORE
 from collections import Counter
 import copy
 from functools import partial
@@ -455,6 +456,67 @@ class Namespace(argparse.Namespace):
             val(self, name)
             val = super().__getattribute__(name)
         return val
+
+
+class SubcmdAbbrevArgumentParser(argparse.ArgumentParser):
+    """Argparse-compatible argument parser that supports abbreviating subcommands."""
+
+    def _get_values(self, action, arg_strings):
+        # for everything but PARSER, REMAINDER args, strip out first '--'
+        if action.nargs not in [PARSER, REMAINDER]:
+            try:
+                arg_strings.remove('--')
+            except ValueError:
+                pass
+
+        # optional argument produces a default when not present
+        if not arg_strings and action.nargs == OPTIONAL:
+            if action.option_strings:
+                value = action.const
+            else:
+                value = action.default
+            if isinstance(value, str):
+                value = self._get_value(action, value)
+                self._check_value(action, value)
+
+        # when nargs='*' on a positional, if there were no command-line
+        # args, use the default if it is anything other than None
+        elif (not arg_strings and action.nargs == ZERO_OR_MORE and
+              not action.option_strings):
+            if action.default is not None:
+                value = action.default
+            else:
+                value = arg_strings
+            self._check_value(action, value)
+
+        # single argument or optional argument produces a single value
+        elif len(arg_strings) == 1 and action.nargs in [None, OPTIONAL]:
+            arg_string, = arg_strings
+            value = self._get_value(action, arg_string)
+            self._check_value(action, value)
+
+        # REMAINDER arguments convert all values, checking none
+        elif action.nargs == REMAINDER:
+            value = [self._get_value(action, v) for v in arg_strings]
+
+        # PARSER arguments convert all values, but check only the first
+        elif action.nargs == PARSER:
+            value = [self._get_value(action, v) for v in arg_strings]
+            # allow subcmd abbreviations for unique matches
+            if value[0] not in action.choices:
+                cmds = [x for x in action.choices if x.startswith(value[0])]
+                if len(cmds) == 1:
+                    value[0] = cmds[0]
+            self._check_value(action, value[0])
+
+        # all other types of nargs produce a list
+        else:
+            value = [self._get_value(action, v) for v in arg_strings]
+            for v in value:
+                self._check_value(action, v)
+
+        # return the converted value
+        return value
 
 
 class ArgumentParser(argparse.ArgumentParser):
