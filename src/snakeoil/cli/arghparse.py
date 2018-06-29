@@ -9,7 +9,6 @@ from argparse import (
     SUPPRESS, _get_action_name, _SubParsersAction, _,
 )
 from collections import Counter
-import copy
 from functools import partial
 import os
 import sys
@@ -19,6 +18,7 @@ from ..demandload import demandload
 from ..mappings import ImmutableDict
 
 demandload(
+    'copy',
     'operator:attrgetter',
     'logging',
     'textwrap:dedent',
@@ -81,7 +81,7 @@ class ExtendAction(argparse._AppendAction):
     """Force multiple values to always be stored in a flat list."""
 
     def __call__(self, parser, namespace, values, option_string=None):
-        items = copy.copy(argparse._ensure_value(namespace, self.dest, []))
+        items = copy.copy(getattr(namespace, self.dest, []))
         items.extend(values)
         setattr(namespace, self.dest, items)
 
@@ -167,7 +167,7 @@ class CommaSeparatedNegationsAppend(CommaSeparatedNegations):
     """
 
     def __call__(self, parser, namespace, values, option_string=None):
-        old = copy.copy(argparse._ensure_value(namespace, self.dest, ([], [])))
+        old = copy.copy(getattr(namespace, self.dest, ([], [])))
         new = self.parse_values(values)
         combined = tuple(o + n for o, n in zip(old, new))
         setattr(namespace, self.dest, combined)
@@ -209,7 +209,7 @@ class CommaSeparatedElementsAppend(CommaSeparatedElements):
     """
 
     def __call__(self, parser, namespace, values, option_string=None):
-        old = copy.copy(argparse._ensure_value(namespace, self.dest, ([], [], [])))
+        old = copy.copy(getattr(namespace, self.dest, ([], [], [])))
         new = self.parse_values(values)
         combined = tuple(o + n for o, n in zip(old, new))
         setattr(namespace, self.dest, combined)
