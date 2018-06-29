@@ -77,11 +77,18 @@ def _add_argument_docs(orig_func, self, *args, **kwargs):
     return obj
 
 
+def _ensure_value(namespace, name, value):
+    """Force empty namespace attribute to specified value."""
+    if getattr(namespace, name, None) is None:
+        setattr(namespace, name, value)
+    return getattr(namespace, name)
+
+
 class ExtendAction(argparse._AppendAction):
     """Force multiple values to always be stored in a flat list."""
 
     def __call__(self, parser, namespace, values, option_string=None):
-        items = copy.copy(getattr(namespace, self.dest, []))
+        items = copy.copy(_ensure_value(namespace, self.dest, []))
         items.extend(values)
         setattr(namespace, self.dest, items)
 
@@ -167,7 +174,7 @@ class CommaSeparatedNegationsAppend(CommaSeparatedNegations):
     """
 
     def __call__(self, parser, namespace, values, option_string=None):
-        old = copy.copy(getattr(namespace, self.dest, ([], [])))
+        old = copy.copy(_ensure_value(namespace, self.dest, ([], [])))
         new = self.parse_values(values)
         combined = tuple(o + n for o, n in zip(old, new))
         setattr(namespace, self.dest, combined)
@@ -209,7 +216,7 @@ class CommaSeparatedElementsAppend(CommaSeparatedElements):
     """
 
     def __call__(self, parser, namespace, values, option_string=None):
-        old = copy.copy(getattr(namespace, self.dest, ([], [], [])))
+        old = copy.copy(_ensure_value(namespace, self.dest, ([], [], [])))
         new = self.parse_values(values)
         combined = tuple(o + n for o, n in zip(old, new))
         setattr(namespace, self.dest, combined)
