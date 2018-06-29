@@ -512,6 +512,10 @@ class SubcmdAbbrevArgumentParser(argparse.ArgumentParser):
                     value[0] = cmds[0]
             self._check_value(action, value[0])
 
+        # SUPPRESS argument does not put anything in the namespace
+        elif action.nargs == SUPPRESS:
+            value = SUPPRESS
+
         # all other types of nargs produce a list
         else:
             value = [self._get_value(action, v) for v in arg_strings]
