@@ -382,7 +382,7 @@ class _SubParser(argparse._SubParsersAction):
             if help_txt is not None:
                 kwds["description"] = help_txt
         elif help_txt is None:
-            kwds["help"] = description
+            kwds["help"] = description.split('\n', 1)[0]
 
         # support using a custom parser class for the subparser
         orig_class = self._parser_class
