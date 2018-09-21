@@ -159,16 +159,10 @@ def gen_test(WeakInstMeta):
             o = weak_inst(unique)
             # make sure it's only strong ref-ed
             assert weak_inst.counter == 1
-            # skip refs from system tracers like coverage
-            refs = [x for x in gc.get_referrers(o) if isinstance(x, FrameType)]
-            assert len(refs) == 1
             _myid = id(o)
             del o
             o = weak_inst(unique)
             assert weak_inst.counter == 2
-            # skip refs from system tracers like coverage
-            refs = [x for x in gc.get_referrers(o) if isinstance(x, FrameType)]
-            assert len(refs) == 1
 
     return TestWeakInstMeta
 
