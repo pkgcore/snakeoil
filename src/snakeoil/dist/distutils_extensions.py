@@ -329,8 +329,6 @@ class sdist(dst_sdist.sdist):
         This is used by the --version option in interactive programs among
         other things.
         """
-        with syspath(PACKAGEDIR, MODULE_NAME == 'snakeoil'):
-            from snakeoil.version import get_git_version
         data = get_git_version(base_dir)
         if not data:
             return
@@ -398,8 +396,6 @@ class build_py(dst_build_py.build_py):
             self.build_lib, (MODULE_NAME,), '_verinfo')
         # this should check mtime...
         if not os.path.exists(ver_path):
-            with syspath(PACKAGEDIR, MODULE_NAME == 'snakeoil'):
-                from snakeoil.version import get_git_version
             log.info('generating version info: %s' % ver_path)
             with open(ver_path, 'w') as f:
                 f.write("version_info=%r" % (get_git_version('.'),))
@@ -1292,6 +1288,61 @@ def syspath(path, condition=True, position=0):
         yield
     finally:
         sys.path = syspath
+
+
+# directly copied from snakeoil.version
+def _run_git(path, cmd):
+    import subprocess
+
+    env = dict(os.environ)
+    env["LC_CTYPE"] = "C"
+
+    with open(os.devnull, 'wb') as null:
+        r = subprocess.Popen(
+            ['git'] + list(cmd), stdout=subprocess.PIPE, env=env,
+            stderr=null, cwd=path)
+
+    stdout = r.communicate()[0]
+    return stdout, r.returncode
+
+
+def get_git_version(path):
+    """:return: git sha1 rev"""
+    path = os.path.abspath(path)
+    try:
+        stdout, ret = _run_git(path, ["log", "--format=%H\n%ad", "HEAD^..HEAD"])
+
+        if ret != 0:
+            return None
+
+        data = stdout.decode("ascii").splitlines()
+
+        return {
+            "rev": data[0],
+            "date": data[1],
+            'tag': _get_git_tag(path, data[0]),
+        }
+    except EnvironmentError as e:
+        # ENOENT is thrown when the git binary can't be found.
+        if e.errno != errno.ENOENT:
+            raise
+        return None
+
+
+def _get_git_tag(path, rev):
+    stdout, _ = _run_git(path, ['name-rev', '--tag', rev])
+    tag = stdout.decode("ascii").split()
+    if len(tag) != 2:
+        return None
+    tag = tag[1]
+    if not tag.startswith("tags/"):
+        return None
+    tag = tag[len("tags/"):]
+    if tag.endswith("^0"):
+        tag = tag[:-2]
+    if tag.startswith("v"):
+        tag = tag[1:]
+    return tag
 
 
 # yes these are in snakeoil.compatibility; we can't rely on that module however
