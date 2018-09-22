@@ -21,7 +21,7 @@ stages:
   - name: deploy
     if: (type IN (api, cron)) OR (branch = deploy) OR (branch = master AND type IN (push, api) AND tag IS present)
 
-jobs:
+matrix:
   include:
     - python: 3.4
     - python: 3.5
@@ -36,6 +36,7 @@ jobs:
   allow_failures:
   - python: 3.8-dev
 
+jobs:
   # push tarball and wheels to pypi
   - stage: deploy
     python: 3.6
