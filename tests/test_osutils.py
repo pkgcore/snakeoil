@@ -525,12 +525,15 @@ class TestMount(TempDir):
         bind_file = pjoin(self.target, 'file')
         touch(src_file)
 
-        with Namespace(user=True, mount=True):
-            assert not os.path.exists(bind_file)
-            mount(self.source, self.target, None, MS_BIND)
-            assert os.path.exists(bind_file)
-            umount(self.target)
-            assert not os.path.exists(bind_file)
+        try:
+            with Namespace(user=True, mount=True):
+                assert not os.path.exists(bind_file)
+                mount(self.source, self.target, None, MS_BIND)
+                assert os.path.exists(bind_file)
+                umount(self.target)
+                assert not os.path.exists(bind_file)
+        except PermissionError:
+            pytest.skip('No permission to use user and mount namespace')
 
     @pytest.mark.skipif(not (os.path.exists('/proc/self/ns/mnt') and os.path.exists('/proc/self/ns/user')),
                    reason='user and mount namespace support required')
@@ -541,26 +544,29 @@ class TestMount(TempDir):
         with open(src_file, 'w') as f:
             f.write('foo')
 
-        with Namespace(user=True, mount=True):
-            mount(self.source, self.target, None, MS_BIND)
-            assert os.path.exists(bind_file)
+        try:
+            with Namespace(user=True, mount=True):
+                mount(self.source, self.target, None, MS_BIND)
+                assert os.path.exists(bind_file)
 
-            with open(bind_file) as f:
-                # can't unmount the target due to the open file
-                with pytest.raises(OSError) as cm:
-                    umount(self.target)
-                assert cm.value.errno == errno.EBUSY
-                # lazily unmount instead
-                umount(self.target, MNT_DETACH)
-                # confirm the file doesn't exist in the bind mount anymore
-                assert not os.path.exists(bind_file)
-                # but the file is still accessible to the process
-                assert f.read() == 'foo'
+                with open(bind_file) as f:
+                    # can't unmount the target due to the open file
+                    with pytest.raises(OSError) as cm:
+                        umount(self.target)
+                    assert cm.value.errno == errno.EBUSY
+                    # lazily unmount instead
+                    umount(self.target, MNT_DETACH)
+                    # confirm the file doesn't exist in the bind mount anymore
+                    assert not os.path.exists(bind_file)
+                    # but the file is still accessible to the process
+                    assert f.read() == 'foo'
 
-            # trying to reopen causes IOError
-            with pytest.raises(IOError) as cm:
-                f = open(bind_file)
-            assert cm.value.errno == errno.ENOENT
+                # trying to reopen causes IOError
+                with pytest.raises(IOError) as cm:
+                    f = open(bind_file)
+                assert cm.value.errno == errno.ENOENT
+        except PermissionError:
+            pytest.skip('No permission to use user and mount namespace')
 
 
 Test_cpy_readdir_loaded = mk_cpy_loadable_testcase(

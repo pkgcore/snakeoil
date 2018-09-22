@@ -123,16 +123,22 @@ class TestNamespace(object):
     @pytest.mark.skipif(not os.path.exists('/proc/self/ns/user'),
                         reason='user namespace support required')
     def test_user_namespace(self):
-        with Namespace(user=True) as ns:
-            assert os.getuid() == 0
+        try:
+            with Namespace(user=True) as ns:
+                assert os.getuid() == 0
+        except PermissionError:
+            pytest.skip('No permission to use user namespace')
 
     @pytest.mark.skipif(not (os.path.exists('/proc/self/ns/user') and os.path.exists('/proc/self/ns/uts')),
                         reason='user and uts namespace support required')
     def test_uts_namespace(self):
-        with Namespace(user=True, uts=True, hostname='host') as ns:
-            ns_hostname, _, ns_domainname = socket.getfqdn().partition('.')
-            assert ns_hostname == 'host'
-            assert ns_domainname == ''
+        try:
+            with Namespace(user=True, uts=True, hostname='host') as ns:
+                ns_hostname, _, ns_domainname = socket.getfqdn().partition('.')
+                assert ns_hostname == 'host'
+                assert ns_domainname == ''
+        except PermissionError:
+            pytest.skip('No permission to use user and uts namespace')
 
 
 @pytest.mark.skipif(not sys.platform.startswith('linux'), reason='supported on Linux only')
@@ -140,14 +146,26 @@ class TestNamespaceDecorator(object):
 
     @pytest.mark.skipif(not os.path.exists('/proc/self/ns/user'),
                         reason='user namespace support required')
-    @namespace(user=True)
     def test_user_namespace(self):
-        assert os.getuid() == 0
+        @namespace(user=True)
+        def do_test():
+            assert os.getuid() == 0
+
+        try:
+            do_test()
+        except PermissionError:
+            pytest.skip('No permission to use user namespace')
 
     @pytest.mark.skipif(not (os.path.exists('/proc/self/ns/user') and os.path.exists('/proc/self/ns/uts')),
                         reason='user and uts namespace support required')
-    @namespace(user=True, uts=True, hostname='host')
     def test_uts_namespace(self):
-        ns_hostname, _, ns_domainname = socket.getfqdn().partition('.')
-        assert ns_hostname == 'host'
-        assert ns_domainname == ''
+        @namespace(user=True, uts=True, hostname='host')
+        def do_test():
+            ns_hostname, _, ns_domainname = socket.getfqdn().partition('.')
+            assert ns_hostname == 'host'
+            assert ns_domainname == ''
+
+        try:
+            do_test()
+        except PermissionError:
+            pytest.skip('No permission to use user and uts namespace')
