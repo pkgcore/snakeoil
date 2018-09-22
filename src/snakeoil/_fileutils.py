@@ -55,7 +55,6 @@ class readlines_iter(object):
         for _ in ():
             yield None
         source.close()
-        raise StopIteration()
 
     def close(self):
         if hasattr(self.source, 'close'):
