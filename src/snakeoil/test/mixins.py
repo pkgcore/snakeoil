@@ -64,12 +64,11 @@ class PythonNamespaceWalker(object):
     abi_target = 'cpython-%i%i' % tuple(sys.version_info[:2])
 
     module_blacklist = frozenset([
-        'snakeoil.cli.arghparse', 'snakeoil.dist.generate_man_rsts',
-        'snakeoil.dist.distutils_extensions', 'snakeoil.pickling',
+        'snakeoil.cli.arghparse', 'snakeoil.pickling',
     ])
 
     def _default_module_blacklister(self, target):
-        return target in self.module_blacklist
+        return target in self.module_blacklist or target.startswith('snakeoil.dist')
 
     def walk_namespace(self, namespace, **kwds):
         location = os.path.abspath(os.path.dirname(
