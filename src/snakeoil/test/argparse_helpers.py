@@ -147,7 +147,7 @@ class ArgParseMixin(object):
         try:
             self.parse(*args, **kwargs)
         except Error as e:
-            self.assertEqual(message, e.message)
+            assert message == e.message
         else:
             self.fail('no error triggered')
 
@@ -156,8 +156,8 @@ class ArgParseMixin(object):
         try:
             self.parse(*args, **kwargs)
         except Exit as e:
-            self.assertEqual(message, e.message.strip())
-            self.assertEqual(status, e.status)
+            assert message == e.message.strip()
+            assert status == e.status
         else:
             self.fail('no exit triggered')
 
