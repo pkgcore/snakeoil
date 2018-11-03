@@ -135,6 +135,8 @@ class Tool(object):
             os.killpg(os.getpgid(0), SIGINT)
         except Exception as e:
             # handle custom execution-related exceptions
+            self.out.flush()
+            self.err.flush()
             self.handle_exec_exception(e)
 
         if self.options is not None:
