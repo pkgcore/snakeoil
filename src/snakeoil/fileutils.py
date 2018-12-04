@@ -19,7 +19,6 @@ from .demandload import demandload
 from .klass import GetAttrProxy
 
 demandload(
-    'io',
     'mmap',
     'snakeoil:data_source',
     'snakeoil:_fileutils',
@@ -180,7 +179,7 @@ class AtomicWriteFile(AtomicWriteFile_mixin):
     __doc__ = AtomicWriteFile_mixin.__doc__
 
     def _actual_init(self):
-        self.raw = io.open(self._temp_fp, mode=self._computed_mode)
+        self.raw = open(self._temp_fp, mode=self._computed_mode)
 
     def _real_close(self):
         if hasattr(self, 'raw'):

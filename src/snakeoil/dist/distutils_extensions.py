@@ -15,7 +15,6 @@ import copy
 import errno
 from importlib import import_module
 import inspect
-import io
 import math
 from multiprocessing import cpu_count
 import operator
@@ -78,7 +77,7 @@ def find_moduledir(searchdir=REPODIR):
             continue
         if '__init__.py' in files:
             # only match modules with __title__ defined in the main module
-            with io.open(os.path.join(root, '__init__.py'), encoding='utf-8') as f:
+            with open(os.path.join(root, '__init__.py'), encoding='utf-8') as f:
                 try:
                     if re.search(r'^__title__\s*=\s*[\'"]([^\'"]*)[\'"]',
                                  f.read(), re.MULTILINE):
@@ -112,7 +111,7 @@ def version(moduledir=MODULEDIR):
     """
     version = None
     try:
-        with io.open(os.path.join(moduledir, '__init__.py'), encoding='utf-8') as f:
+        with open(os.path.join(moduledir, '__init__.py'), encoding='utf-8') as f:
             version = re.search(
                 r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
                 f.read(), re.MULTILINE).group(1)
@@ -132,7 +131,7 @@ def readme(topdir=REPODIR):
     """Determine a project's long description."""
     for doc in ('README.rst', 'README'):
         try:
-            with io.open(os.path.join(topdir, doc), encoding='utf-8') as f:
+            with open(os.path.join(topdir, doc), encoding='utf-8') as f:
                 return f.read()
         except IOError as e:
             if e.errno == errno.ENOENT:
@@ -184,7 +183,7 @@ def setup():
 def _requires(path):
     """Determine a project's various dependencies from requirements files."""
     try:
-        with io.open(path) as f:
+        with open(path) as f:
             return f.read().splitlines()
     except IOError as e:
         if e.errno == errno.ENOENT:

@@ -48,7 +48,6 @@ from .currying import post_curry
 from .demandload import demandload
 
 demandload(
-    'io',
     'snakeoil:compression,fileutils',
 )
 
@@ -126,7 +125,7 @@ class bytes_ro_StringIO(stringio.bytes_readonly):
 # derive our file classes- we derive *strictly* to append
 # the exceptions class attribute for consumer usage.
 def open_file(*args, **kwds):
-    handle = io.open(*args, **kwds)
+    handle = open(*args, **kwds)
     handle.exceptions = (EnvironmentError,)
     return handle
 

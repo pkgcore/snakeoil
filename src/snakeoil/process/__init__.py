@@ -11,7 +11,6 @@ from ..demandload import demandload
 
 demandload(
     'errno',
-    'io:open',
     'signal',
     'time',
     'snakeoil.osutils:access',
