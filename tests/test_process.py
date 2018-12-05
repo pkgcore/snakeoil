@@ -96,7 +96,7 @@ class TestIsRunning(object):
             with pytest.raises(OSError):
                 process.is_running(1234)
 
-        with mock.patch('snakeoil.process.open') as open:
+        with mock.patch('builtins.open') as open:
             open.side_effect = OSError(2, 'No such file or directory')
             with pytest.raises(process.ProcessNotFound):
                 process.is_running(os.getpid())
