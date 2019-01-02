@@ -255,9 +255,26 @@ class StoreBool(argparse._StoreAction):
 class EnableDebug(argparse._StoreTrueAction):
 
     def __call__(self, parser, namespace, values, option_string=None):
-        super().__call__(
-            parser, namespace, values, option_string=option_string)
+        super().__call__(parser, namespace, values, option_string=option_string)
         logging.root.setLevel(logging.DEBUG)
+
+
+class Verbosity(argparse.Action):
+
+    def __init__(self, option_strings, dest, default=None, required=False, help=None):
+        super().__init__(
+            option_strings=option_strings, dest=dest, nargs=0,
+            default=default, required=required, help=help)
+
+        # map verbose/quiet args to increment/decrement the underlying verbosity value
+        self.value_map = {'-v': 1, '-q': -1}
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        change = self.value_map.get(option_string, 0)
+        count = getattr(namespace, self.dest, None)
+        if count is None:
+            count = 0
+        setattr(namespace, self.dest, count + change)
 
 
 class DelayedValue(object):
@@ -628,14 +645,13 @@ class ArgumentParser(argparse.ArgumentParser):
                     '--debug', action=EnableDebug, help='enable debugging checks',
                     docs='Enable debug checks and show verbose debug output.')
             if quiet:
-                # TODO: toggle verbose attr to -1 when quiet instead of using a separate attr
                 self.add_argument(
-                    '-q', '--quiet', action='store_true',
+                    '-q', '--quiet', action=Verbosity, dest='verbosity', default=0,
                     help='suppress non-error messages',
                     docs="Suppress non-error, informational messages.")
             if verbose:
                 self.add_argument(
-                    '-v', '--verbose', action='count',
+                    '-v', '--verbose', action=Verbosity, dest='verbosity', default=0,
                     help='show verbose output',
                     docs="Increase the verbosity of various output.")
             if color:
