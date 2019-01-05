@@ -557,13 +557,13 @@ class ArgumentParser(argparse.ArgumentParser):
                  verbose=True, version=True, add_help=True, sorted_help=False,
                  description=None, docs=None, script=None, prog=None, **kwds):
         self.debug = debug and '--debug' in sys.argv[1:]
-        self.verbose = int(verbose)
-        if self.verbose:
+        self.verbosity = int(verbose)
+        if self.verbosity:
             argv = Counter(sys.argv[1:])
             if argv['-q'] + argv['--quiet']:
-                self.verbose = -1
+                self.verbosity = -1
             else:
-                self.verbose = argv['-v'] + argv['--verbose']
+                self.verbosity = argv['-v'] + argv['--verbose']
 
         # subparser to use if none is specified on the command line and one is required
         self.__default_subparser = None
