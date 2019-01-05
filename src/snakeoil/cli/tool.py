@@ -68,6 +68,7 @@ class Tool(object):
         self._errfile = errfile
         self.out = self.parser.out = formatters.PlainTextFormatter(outfile)
         self.err = self.parser.err = formatters.PlainTextFormatter(errfile)
+        self.out.verbosity = self.err.verbosity = self.parser.verbosity
 
     def __call__(self, args=None):
         """Run the utility.
@@ -98,6 +99,9 @@ class Tool(object):
                 formatters.get_formatter, force_color=getattr(options, 'color', False))
             self.out = formatter_factory(self._outfile)
             self.err = formatter_factory(self._errfile)
+
+        # reconfigure formatters with properly parsed output verbosity
+        self.out.verbosity = self.err.verbosity = options.verbosity
 
         if logging.root.handlers:
             # Remove the default handler.
