@@ -267,7 +267,12 @@ class Verbosity(argparse.Action):
             default=default, required=required, help=help)
 
         # map verbose/quiet args to increment/decrement the underlying verbosity value
-        self.value_map = {'-v': 1, '-q': -1}
+        self.value_map = {
+            '-q': -1,
+            '--quiet': -1,
+            '-v': 1,
+            '--verbose': 1,
+        }
 
     def __call__(self, parser, namespace, values, option_string=None):
         change = self.value_map.get(option_string, 0)
