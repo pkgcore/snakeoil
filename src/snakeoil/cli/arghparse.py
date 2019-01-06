@@ -1068,7 +1068,8 @@ class ArgumentParser(argparse.ArgumentParser):
         Similar to argparse's error() except usage information is not shown by
         default.
         """
-        if self.debug:
+        if self.debug and sys.exc_info() != (None, None, None):
+            # output traceback if any exception is on the stack
             traceback.print_exc()
         self.exit(status, '%s: error: %s\n' % (self.prog, message))
 
