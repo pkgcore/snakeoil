@@ -566,9 +566,10 @@ class ArgumentParser(argparse.ArgumentParser):
         self.verbosity = int(verbose)
         if self.verbosity:
             argv = Counter(sys.argv[1:])
-            quiet = (-1 for x in range(argv['-q'] + argv['--quiet']))
-            verbose = (1 for x in range(argv['-v'] + argv['--verbose']))
-            self.verbosity = sum(chain.from_iterable((quiet, verbose)))
+            self.verbosity = sum(chain.from_iterable((
+                (-1 for x in range(argv['-q'] + argv['--quiet'])),
+                (1 for x in range(argv['-v'] + argv['--verbose'])),
+            )))
 
         # subparser to use if none is specified on the command line and one is required
         self.__default_subparser = None
