@@ -1023,6 +1023,8 @@ class ArgumentParser(argparse.ArgumentParser):
         # make sure the correct function and prog are set if running a subcommand
         subcmd_parser = self.subparsers.get(getattr(args, 'subcommand', None), None)
         if subcmd_parser is not None:
+            # override the running program with full subcommand
+            self.prog = subcmd_parser.prog
             namespace.prog = subcmd_parser.prog
             # override the function to be run if the subcommand sets one
             if subcmd_parser.__main_func is not None:
