@@ -77,9 +77,9 @@ class TestDebugOption(BaseArgparseOptions):
 
     def test_debug(self):
         namespace = self.parser.parse_args(["--debug"])
-        assert namespace.debug
+        assert namespace.debug is True
         namespace = self.parser.parse_args([])
-        assert not namespace.debug
+        assert namespace.debug is False
 
     def test_debug_disabled(self):
         # ensure the option isn't there if disabled.
@@ -98,13 +98,13 @@ class TestStoreBoolAction(BaseArgparseOptions):
         for raw_val in ("n", "no", "false"):
             for allowed in (raw_val.upper(), raw_val.lower()):
                 namespace = self.parser.parse_args(['--testing=' + allowed])
-                assert not namespace.testing
+                assert namespace.testing is False
 
     def test_bool_enabled(self):
         for raw_val in ("y", "yes", "true"):
             for allowed in (raw_val.upper(), raw_val.lower()):
                 namespace = self.parser.parse_args(['--testing=' + allowed])
-                assert namespace.testing
+                assert namespace.testing is True
 
     def test_bool_invalid(self):
         with pytest.raises(argparse_helpers.Error):
@@ -299,9 +299,9 @@ class TestNamespace(object):
         self.parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser())
 
     def test_pop(self):
-        self.parser.set_defaults(test=True)
+        self.parser.set_defaults(test='test')
         namespace = self.parser.parse_args([])
-        assert namespace.pop('test') == True
+        assert namespace.pop('test') == 'test'
 
         # re-popping raises an exception since the attr has been removed
         with pytest.raises(AttributeError):
