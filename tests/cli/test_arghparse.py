@@ -67,25 +67,78 @@ class TestArgparseDocs(object):
         assert getattr(tuple_action, 'help', None) == 'foo\nbar'
 
 
+class TestArgumentParser(object):
+
+    def test_debug(self):
+        # debug passed
+        parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser(debug=True))
+        namespace = parser.parse_args(["--debug"])
+        assert parser.debug is False
+        assert namespace.debug is True
+
+        # debug not passed
+        namespace = parser.parse_args([])
+        assert parser.debug is False
+        assert namespace.debug is False
+
+        # debug passed in sys.argv -- early debug attr on the parser instance is set
+        with mock.patch('sys.argv', ['script', '--debug']):
+            parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser(debug=True))
+            assert parser.debug is True
+
+    def test_debug_disabled(self):
+        parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser(debug=False))
+
+        # ensure the option isn't there if disabled
+        with pytest.raises(argparse_helpers.Error):
+            namespace = parser.parse_args(["--debug"])
+
+        namespace = parser.parse_args([])
+        # parser attribute still exists
+        assert parser.debug is False
+        # but namespace attribute doesn't
+        assert not hasattr(namespace, 'debug')
+
+    def test_verbosity(self):
+        values = (
+            ([], 0),
+            (['-q'], -1),
+            (['--quiet'], -1),
+            (['-v'], 1),
+            (['--verbose'], 1),
+            (['-q', '-v'], 0),
+            (['--quiet', '--verbose'], 0),
+            (['-q', '-q'], -2),
+            (['-v', '-v'], 2),
+        )
+        for args, val in values:
+            with mock.patch('sys.argv', ['script'] + args):
+                parser = argparse_helpers.mangle_parser(
+                    arghparse.ArgumentParser(quiet=True, verbose=True))
+                namespace = parser.parse_args(args)
+                assert parser.verbosity == val, f'{args} failed'
+                assert namespace.verbosity == val, f'{args} failed'
+
+    def test_verbosity_disabled(self):
+        parser = argparse_helpers.mangle_parser(
+            arghparse.ArgumentParser(quiet=False, verbose=False))
+
+        # ensure the options aren't there if disabled
+        for args in ('-q', '--quiet', '-v', '--verbose'):
+            with pytest.raises(argparse_helpers.Error):
+                namespace = parser.parse_args([args])
+
+        namespace = parser.parse_args([])
+        # parser attribute still exists
+        assert parser.verbosity == 0
+        # but namespace attribute doesn't
+        assert not hasattr(namespace, 'verbosity')
+
+
 class BaseArgparseOptions(object):
 
     def setup_method(self, method):
         self.parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser())
-
-
-class TestDebugOption(BaseArgparseOptions):
-
-    def test_debug(self):
-        namespace = self.parser.parse_args(["--debug"])
-        assert namespace.debug is True
-        namespace = self.parser.parse_args([])
-        assert namespace.debug is False
-
-    def test_debug_disabled(self):
-        # ensure the option isn't there if disabled.
-        parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser(debug=False))
-        namespace = parser.parse_args([])
-        assert not hasattr(namespace, 'debug')
 
 
 class TestStoreBoolAction(BaseArgparseOptions):
