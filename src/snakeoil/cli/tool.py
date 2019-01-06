@@ -108,7 +108,12 @@ class Tool(object):
             logging.root.handlers.pop(0)
         logging.root.addHandler(FormattingHandler(self.err))
 
+        options = self.set_options(options)
         return options, main_func
+
+    def set_options(self, options):
+        """Handle custom option settings."""
+        return options
 
     def handle_exec_exception(self, e):
         """Handle custom runtime exceptions."""
