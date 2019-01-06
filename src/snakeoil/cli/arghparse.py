@@ -10,6 +10,7 @@ from argparse import (
 )
 from collections import Counter
 from functools import partial
+from itertools import chain
 import os
 import sys
 
@@ -565,10 +566,9 @@ class ArgumentParser(argparse.ArgumentParser):
         self.verbosity = int(verbose)
         if self.verbosity:
             argv = Counter(sys.argv[1:])
-            if argv['-q'] + argv['--quiet']:
-                self.verbosity = -1
-            else:
-                self.verbosity = argv['-v'] + argv['--verbose']
+            quiet = (-1 for x in range(argv['-q'] + argv['--quiet']))
+            verbose = (1 for x in range(argv['-v'] + argv['--verbose']))
+            self.verbosity = sum(chain.from_iterable((quiet, verbose)))
 
         # subparser to use if none is specified on the command line and one is required
         self.__default_subparser = None
