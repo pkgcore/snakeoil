@@ -39,6 +39,7 @@ from distutils.command import (
     sdist as dst_sdist, build_ext as dst_build_ext, build_py as dst_build_py,
     build as dst_build, build_scripts as dst_build_scripts, config as dst_config)
 
+
 # getting built by readthedocs
 READTHEDOCS = os.environ.get('READTHEDOCS', None) == 'True'
 
@@ -102,6 +103,32 @@ def find_moduledir(searchdir=REPODIR):
 MODULEDIR = find_moduledir()
 PACKAGEDIR = os.path.dirname(MODULEDIR)
 MODULE_NAME = os.path.basename(MODULEDIR)
+
+
+# directly copied from snakeoil.contexts
+@contextmanager
+def syspath(path, condition=True, position=0):
+    """Context manager that mangles sys.path and then reverts on exit.
+
+    Args:
+        path: The directory path to add to sys.path.
+        condition: Optional boolean that decides whether sys.path is mangled or
+            not, defaults to being enabled.
+        position: Optional integer that is the place where the path is inserted
+            in sys.path, defaults to prepending.
+    """
+    syspath = sys.path[:]
+    if condition:
+        sys.path.insert(position, path)
+    try:
+        yield
+    finally:
+        sys.path = syspath
+
+
+# internally forced imports
+with syspath(PACKAGEDIR, MODULE_NAME == 'snakeoil'):
+    from snakeoil.version import get_git_version
 
 
 def version(moduledir=MODULEDIR):
@@ -1266,82 +1293,6 @@ class config(dst_config.config):
         return self.try_compile(
             'int main() { %s x; (void) x.%s; return 0; }'
             % (typename, member), headers, include_dirs, lang)
-
-
-# directly copied from snakeoil.contexts
-@contextmanager
-def syspath(path, condition=True, position=0):
-    """Context manager that mangles sys.path and then reverts on exit.
-
-    Args:
-        path: The directory path to add to sys.path.
-        condition: Optional boolean that decides whether sys.path is mangled or
-            not, defaults to being enabled.
-        position: Optional integer that is the place where the path is inserted
-            in sys.path, defaults to prepending.
-    """
-    syspath = sys.path[:]
-    if condition:
-        sys.path.insert(position, path)
-    try:
-        yield
-    finally:
-        sys.path = syspath
-
-
-# directly copied from snakeoil.version
-def _run_git(path, cmd):
-    import subprocess
-
-    env = dict(os.environ)
-    env["LC_CTYPE"] = "C"
-
-    with open(os.devnull, 'wb') as null:
-        r = subprocess.Popen(
-            ['git'] + list(cmd), stdout=subprocess.PIPE, env=env,
-            stderr=null, cwd=path)
-
-    stdout = r.communicate()[0]
-    return stdout, r.returncode
-
-
-def get_git_version(path):
-    """:return: git sha1 rev"""
-    path = os.path.abspath(path)
-    try:
-        stdout, ret = _run_git(path, ["log", "--format=%H\n%ad", "HEAD^..HEAD"])
-
-        if ret != 0:
-            return None
-
-        data = stdout.decode("ascii").splitlines()
-
-        return {
-            "rev": data[0],
-            "date": data[1],
-            'tag': _get_git_tag(path, data[0]),
-        }
-    except EnvironmentError as e:
-        # ENOENT is thrown when the git binary can't be found.
-        if e.errno != errno.ENOENT:
-            raise
-        return None
-
-
-def _get_git_tag(path, rev):
-    stdout, _ = _run_git(path, ['name-rev', '--tag', rev])
-    tag = stdout.decode("ascii").split()
-    if len(tag) != 2:
-        return None
-    tag = tag[1]
-    if not tag.startswith("tags/"):
-        return None
-    tag = tag[len("tags/"):]
-    if tag.endswith("^0"):
-        tag = tag[:-2]
-    if tag.startswith("v"):
-        tag = tag[1:]
-    return tag
 
 
 # yes these are in snakeoil.compatibility; we can't rely on that module however
