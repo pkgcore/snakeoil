@@ -910,7 +910,7 @@ class install_docs(Command):
                 install_cmd = self.reinitialize_command(cmd)
                 install_cmd.ensure_finalized()
                 try:
-                    self.run_command(cmd)
+                    install_cmd.install()
                 except DistutilsExecError:
                     log.info('built {} pages missing, skipping install'.format(target))
 
@@ -986,22 +986,23 @@ class install(dst_install.install):
     def run(self):
         super().run()
 
-        install_man = self.reinitialize_command('install_man')
-        if install_man.find_content() is None:
-            if self.enable_man_pages:
+        # don't install docs by default
+        if self.enable_man_pages:
+            install_man = self.reinitialize_command('install_man')
+            if install_man.find_content() is None:
                 raise DistutilsError("built man pages missing")
-        else:
-            install_man.ensure_finalized()
-            self.run_command('install_man')
+            else:
+                install_man.ensure_finalized()
+                self.run_command('install_man')
 
-        install_html = self.reinitialize_command('install_html')
-        if install_html.find_content() is None:
-            if self.enable_html_docs:
+        if self.enable_html_docs:
+            install_html = self.reinitialize_command('install_html')
+            if install_html.find_content() is None:
                 raise DistutilsError("built html docs missing")
-        else:
-            install_html.docdir = self.docdir
-            install_html.ensure_finalized()
-            self.run_command('install_html')
+            else:
+                install_html.docdir = self.docdir
+                install_html.ensure_finalized()
+                self.run_command('install_html')
 
 
 class test(Command):
