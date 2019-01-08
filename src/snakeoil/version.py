@@ -43,9 +43,9 @@ def get_version(project, repo_file, api_version=None):
             version_info = get_git_version(path)
 
         if version_info is None:
-            s = "-- extended version info unavailable"
+            s = " -- extended version info unavailable"
         elif version_info['tag'] == api_version:
-            s = '-- released %s' % (version_info['date'],)
+            s = ' -- released %s' % (version_info['date'],)
         else:
             rev = version_info['rev'][:7]
             date = version_info['date']

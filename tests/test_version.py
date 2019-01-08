@@ -41,7 +41,7 @@ class TestVersion(object):
             get_git_version.return_value = verinfo
 
             result = version.get_version('snakeoil', __file__, __version__)
-            expected = 'snakeoil %s-g%s, %s' % (__version__, verinfo['rev'][:7], verinfo['date'])
+            expected = 'snakeoil %s-g%s -- %s' % (__version__, verinfo['rev'][:7], verinfo['date'])
             assert result == expected
 
     def test_get_version_git_release(self):
@@ -58,7 +58,7 @@ class TestVersion(object):
         with mock.patch('snakeoil.version.import_module') as import_module:
             import_module.return_value = Verinfo()
             result = version.get_version('snakeoil', __file__, verinfo['tag'])
-            expected = 'snakeoil %s, released %s' % (verinfo['tag'], verinfo['date'])
+            expected = 'snakeoil %s -- released %s' % (verinfo['tag'], verinfo['date'])
             assert result == expected
 
     def test_get_version_no_git_version(self):
@@ -67,7 +67,7 @@ class TestVersion(object):
             import_module.side_effect = ImportError
             get_git_version.return_value = None
             result = version.get_version('snakeoil', 'nonexistent', __version__)
-            expected = '%s %s, extended version info unavailable' % ('snakeoil', __version__)
+            expected = '%s %s -- extended version info unavailable' % ('snakeoil', __version__)
             assert result == expected
 
     def test_get_version_caching(self):
@@ -112,6 +112,7 @@ class TestGitVersion(object):
                 'rev': '1ff76b021d208f7df38ac524537b6419404f1c64',
                 'date': 'Mon Sep 25 13:50:24 2017 -0400',
                 'tag': None,
+                'commits': 2,
                 }
             assert result == expected
 
@@ -127,6 +128,7 @@ class TestGitVersion(object):
                 'rev': '1ff76b021d208f7df38ac524537b6419404f1c64',
                 'date': 'Mon Sep 25 13:50:24 2017 -0400',
                 'tag': '1.1.1',
+                'commits': 2,
                 }
             assert result == expected
 
