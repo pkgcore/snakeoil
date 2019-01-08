@@ -853,6 +853,8 @@ class install_docs(Command):
     user_options = [
         ('build-dir=', None, 'build directory'),
         ('docdir=', None, 'override docs install path'),
+        ('htmldir=', None, 'override html install path'),
+        ('mandir=', None, 'override man install path'),
     ]
     build_command = None
 
@@ -860,6 +862,8 @@ class install_docs(Command):
         self.root = None
         self.prefix = None
         self.docdir = None
+        self.htmldir = None
+        self.mandir = None
         self.build_dir = None
 
     def finalize_options(self):
@@ -872,14 +876,12 @@ class install_docs(Command):
             self.root = '/'
         if self.docdir is None:
             self.docdir = os.path.join(
-                self.root, self.install_path.lstrip(os.path.sep))
-
-    @property
-    def install_path(self):
-        """Default documentation install path."""
-        return os.path.join(
-            os.path.abspath(self.prefix),
-            'share', 'doc', MODULE_NAME + '-%s' % version())
+                self.prefix, 'share', 'doc',
+                MODULE_NAME + '-{}'.format(version()))
+        if self.htmldir is None:
+            self.htmldir = os.path.join(self.docdir, 'html')
+        if self.mandir is None:
+            self.mandir = os.path.join(self.prefix, 'share', 'man')
 
     def find_content(self):
         """Determine if generated doc files exist."""
@@ -896,7 +898,13 @@ class install_docs(Command):
         """Map doc files to install paths."""
         return {x: x for x in content}
 
+    @property
+    def install_dir(self):
+        """Target install directory."""
+        return self.docdir
+
     def install(self):
+        """Install docs to target dirs."""
         source_path = self.find_content()
         if source_path is None:
             raise DistutilsExecError('no generated sphinx content')
@@ -908,13 +916,13 @@ class install_docs(Command):
         directories = set(map(os.path.dirname, content.values()))
         directories.discard('')
         for x in sorted(directories):
-            self.mkpath(os.path.join(self.docdir, x))
+            self.mkpath(os.path.join(self.install_dir, x))
 
         # copy docs over
         for src, dst in sorted(content.items()):
             self.copy_file(
                 os.path.join(source_path, src),
-                os.path.join(self.docdir, dst))
+                os.path.join(self.install_dir, dst))
 
     def run(self):
         if self.build_command is not None:
@@ -929,6 +937,9 @@ class install_docs(Command):
             for target in ('man', 'html'):
                 cmd = 'install_{}'.format(target)
                 install_cmd = self.reinitialize_command(cmd)
+                install_cmd.docdir = self.docdir
+                install_cmd.htmldir = self.htmldir
+                install_cmd.mandir = self.mandir
                 install_cmd.ensure_finalized()
                 try:
                     install_cmd.install()
@@ -944,10 +955,8 @@ class install_html(install_docs):
     build_command = 'build_html'
 
     @property
-    def install_path(self):
-        return os.path.join(
-            os.path.abspath(self.prefix),
-            'share', 'doc', MODULE_NAME + '-%s' % version(), 'html')
+    def install_dir(self):
+        return self.htmldir
 
 
 class install_man(install_docs):
@@ -958,8 +967,8 @@ class install_man(install_docs):
     build_command = 'build_man'
 
     @property
-    def install_path(self):
-        return os.path.join(os.path.abspath(self.prefix), 'share', 'man')
+    def install_dir(self):
+        return self.mandir
 
     def _map_paths(self, content):
         d = {}
@@ -980,6 +989,8 @@ class install(dst_install.install):
         ('enable-man-pages', None, 'install man pages'),
         ('enable-html-docs', None, 'install html docs'),
         ('docdir=', None, 'override docs install path'),
+        ('htmldir=', None, 'override html install path'),
+        ('mandir=', None, 'override man install path'),
     ])
 
     boolean_options = dst_install.install.boolean_options[:]
@@ -990,6 +1001,8 @@ class install(dst_install.install):
         self.enable_man_pages = False
         self.enable_html_docs = False
         self.docdir = None
+        self.htmldir = None
+        self.mandir = None
 
     def finalize_options(self):
         build_options = self.distribution.command_options.setdefault('build', {})
@@ -1013,6 +1026,8 @@ class install(dst_install.install):
             if install_man.find_content() is None:
                 raise DistutilsError("built man pages missing")
             else:
+                install_man.docdir = self.docdir
+                install_man.mandir = self.mandir
                 install_man.ensure_finalized()
                 self.run_command('install_man')
 
@@ -1022,6 +1037,7 @@ class install(dst_install.install):
                 raise DistutilsError("built html docs missing")
             else:
                 install_html.docdir = self.docdir
+                install_html.htmldir = self.htmldir
                 install_html.ensure_finalized()
                 self.run_command('install_html')
 
