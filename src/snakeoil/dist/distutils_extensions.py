@@ -106,7 +106,7 @@ PACKAGEDIR = os.path.dirname(MODULEDIR)
 MODULE_NAME = os.path.basename(MODULEDIR)
 
 
-def version(moduledir=MODULEDIR):
+def module_version(moduledir=MODULEDIR):
     """Determine a module's version.
 
     Based on the assumption that a module defines __version__.
@@ -162,7 +162,7 @@ def setup():
     """Parameters and commands for setuptools."""
     params = {
         'name': MODULE_NAME,
-        'version': version(),
+        'version': module_version(),
         'long_description': readme(),
         'packages': find_packages(PACKAGEDIR),
         'package_dir': {'':os.path.basename(PACKAGEDIR)},
@@ -851,7 +851,8 @@ class install_docs(Command):
         if self.docdir is None:
             self.docdir = os.path.join(
                 self.prefix, 'share', 'doc',
-                MODULE_NAME + '-{}'.format(version()))
+                MODULE_NAME + '-{}'.format(module_version()),
+            )
         if self.htmldir is None:
             self.htmldir = os.path.join(self.docdir, 'html')
         if self.mandir is None:
