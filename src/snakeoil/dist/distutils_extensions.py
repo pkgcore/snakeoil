@@ -831,7 +831,7 @@ class install_docs(Command):
     content_search_path = build_docs.content_search_path
     description = "install HTML documentation"
     user_options = [
-        ('path=', None, "final path to install to; else it's calculated"),
+        ('docdir=', None, "final path to install to; else it's calculated"),
         ('build-dir=', None, "build directory"),
     ]
     build_command = 'build_docs'
@@ -839,7 +839,7 @@ class install_docs(Command):
     def initialize_options(self):
         self.root = None
         self.prefix = None
-        self.path = None
+        self.docdir = None
         self.build_dir = None
         self.content = []
         self.source_path = None
@@ -852,8 +852,8 @@ class install_docs(Command):
         )
         if not self.root:
             self.root = '/'
-        if self.path is None:
-            self.path = os.path.join(
+        if self.docdir is None:
+            self.docdir = os.path.join(
                 self.root, self.calculate_install_path().lstrip(os.path.sep))
 
     def calculate_install_path(self):
@@ -893,12 +893,12 @@ class install_docs(Command):
         directories = set(map(os.path.dirname, content.values()))
         directories.discard('')
         for x in sorted(directories):
-            self.mkpath(os.path.join(self.path, x))
+            self.mkpath(os.path.join(self.docdir, x))
 
         for src, dst in sorted(content.items()):
             self.copy_file(
                 os.path.join(self.source_path, src),
-                os.path.join(self.path, dst))
+                os.path.join(self.docdir, dst))
 
     def get_inputs(self):
         # Py3k compatibility- force list so behaviour is the same.
@@ -934,8 +934,11 @@ class install(dst_install.install):
     """Generic install command."""
 
     user_options = dst_install.install.user_options[:]
-    user_options.append(('enable-man-pages', None, 'install man pages'))
-    user_options.append(('enable-html-docs', None, 'install html docs'))
+    user_options.extend([
+        ('enable-man-pages', None, 'install man pages'),
+        ('enable-html-docs', None, 'install html docs'),
+        ('docdir=', None, "final path to install to; else it's calculated"),
+    ])
 
     boolean_options = dst_install.install.boolean_options[:]
     boolean_options.extend(['enable-man-pages', 'enable-html-docs'])
@@ -944,6 +947,7 @@ class install(dst_install.install):
         dst_install.install.initialize_options(self)
         self.enable_man_pages = False
         self.enable_html_docs = False
+        self.docdir = None
 
     def finalize_options(self):
         build_options = self.distribution.command_options.setdefault('build', {})
