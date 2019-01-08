@@ -6,6 +6,7 @@
 import errno
 from importlib import import_module
 import os
+import subprocess
 
 _ver = None
 
@@ -57,8 +58,6 @@ def get_version(project, repo_file, api_version=None):
 
 
 def _run_git(path, cmd):
-    import subprocess
-
     env = dict(os.environ)
     env["LC_CTYPE"] = "C"
 
