@@ -12,6 +12,7 @@ Specifically, this module is only meant to be imported in setup.py scripts.
 
 from contextlib import contextmanager
 import copy
+from datetime import datetime
 import errno
 from importlib import import_module
 import inspect
@@ -34,7 +35,7 @@ from setuptools.command import install as dst_install
 
 from distutils import log
 from distutils.core import Command, Extension
-from distutils.errors import DistutilsExecError
+from distutils.errors import DistutilsExecError, DistutilsError
 from distutils.command import (
     sdist as dst_sdist, build_ext as dst_build_ext, build_py as dst_build_py,
     build as dst_build, build_scripts as dst_build_scripts, config as dst_config)
@@ -150,6 +151,20 @@ def version(moduledir=MODULEDIR):
 
     if version is None:
         raise RuntimeError('Cannot find version for module: %s' % (MODULE_NAME,))
+
+    # use versioning scheme similar to setuptools_scm for untagged versions
+    git_version = get_git_version(REPODIR)
+    if git_version:
+        tag = git_version['tag']
+        if tag is None:
+            commits = git_version['commits']
+            rev = git_version['rev'][:7]
+            date = datetime.strptime(git_version['date'], '%a, %d %b %Y %H:%M:%S %z')
+            date = datetime.strftime(date, '%Y%m%d')
+            version += ".dev{}+g{}.d{}".format(commits, rev, date)
+        elif tag != version:
+            raise DistutilsError(
+                'unmatched git tag %r and %s version %r' % (tag, MODULE_NAME, version))
 
     return version
 
