@@ -116,8 +116,8 @@ class TestArgumentParser(object):
                 parser = argparse_helpers.mangle_parser(
                     arghparse.ArgumentParser(quiet=True, verbose=True))
                 namespace = parser.parse_args(args)
-                assert parser.verbosity == val, f'{args} failed'
-                assert namespace.verbosity == val, f'{args} failed'
+                assert parser.verbosity == val, '{} failed'.format(args)
+                assert namespace.verbosity == val, '{} failed'.format(args)
 
     def test_verbosity_disabled(self):
         parser = argparse_helpers.mangle_parser(
