@@ -143,6 +143,22 @@ def module_version(moduledir=MODULEDIR):
     return version
 
 
+def generate_verinfo(target_dir):
+    """Generate project version module.
+
+    This is used by the --version option in interactive programs among
+    other things.
+    """
+    data = get_git_version(REPODIR)
+    if not data:
+        raise DistutilsError('no version data available')
+    path = os.path.join(target_dir, '_verinfo.py')
+    log.info('generating version info: %s' % path)
+    with open(path, 'w') as f:
+        f.write('version_info=%r' % (data,))
+    return path
+
+
 def readme(topdir=REPODIR):
     """Determine a project's long description."""
     for doc in ('README.rst', 'README'):
@@ -346,20 +362,6 @@ class sdist(dst_sdist.sdist):
     def initialize_options(self):
         dst_sdist.sdist.initialize_options(self)
 
-    def generate_verinfo(self, base_dir):
-        """Generate project version module.
-
-        This is used by the --version option in interactive programs among
-        other things.
-        """
-        data = get_git_version(base_dir)
-        if not data:
-            return
-        path = os.path.join(base_dir, '_verinfo.py')
-        log.info('generating version info: %s' % path)
-        with open(path, 'w') as f:
-            f.write('version_info=%r' % (data,))
-
     def make_release_tree(self, base_dir, files):
         """Create and populate the directory tree that is put in source tars.
 
@@ -380,7 +382,7 @@ class sdist(dst_sdist.sdist):
         dst_sdist.sdist.make_release_tree(self, base_dir, files)
         build_py = self.reinitialize_command('build_py')
         build_py.ensure_finalized()
-        self.generate_verinfo(os.path.join(
+        generate_verinfo(os.path.join(
             base_dir, build_py.package_dir.get('', ''), MODULE_NAME))
 
     def run(self):
@@ -415,16 +417,10 @@ class build_py(dst_build_py.build_py):
         dst_build_py.build_py.finalize_options(self)
 
     def _run_generate_verinfo(self, rebuilds=None):
-        ver_path = self.get_module_outfile(
-            self.build_lib, (MODULE_NAME,), '_verinfo')
-        # this should check mtime...
-        if not os.path.exists(ver_path):
-            log.info('generating version info: %s' % ver_path)
-            with open(ver_path, 'w') as f:
-                f.write("version_info=%r" % (get_git_version('.'),))
-            self.byte_compile([ver_path])
-            if rebuilds is not None:
-                rebuilds.append((ver_path, os.lstat(ver_path).st_mtime))
+        ver_path = generate_verinfo(os.path.join(self.build_lib, MODULE_NAME))
+        self.byte_compile([ver_path])
+        if rebuilds is not None:
+            rebuilds.append((ver_path, os.lstat(ver_path).st_mtime))
 
     def run(self):
         dst_build_py.build_py.run(self)
