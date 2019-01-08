@@ -42,11 +42,15 @@ def get_version(project, repo_file, api_version=None):
             version_info = get_git_version(path)
 
         if version_info is None:
-            s = ", extended version info unavailable"
+            s = "-- extended version info unavailable"
         elif version_info['tag'] == api_version:
-            s = ', released %s' % (version_info['date'],)
+            s = '-- released %s' % (version_info['date'],)
         else:
-            s = ('-g%s, %s' % (version_info['rev'][:7], version_info['date']))
+            rev = version_info['rev'][:7]
+            date = version_info['date']
+            commits = version_info.get('commits', None)
+            commits = '-%s' % commits if commits is not None else ''
+            s = ('%s-g%s -- %s' % (commits, rev, date))
 
         _ver = '%s %s%s' % (project, api_version, s)
     return _ver
@@ -58,30 +62,42 @@ def _run_git(path, cmd):
     env = dict(os.environ)
     env["LC_CTYPE"] = "C"
 
-    with open(os.devnull, 'wb') as null:
-        r = subprocess.Popen(
-            ['git'] + list(cmd), stdout=subprocess.PIPE, env=env,
-            stderr=null, cwd=path)
+    r = subprocess.Popen(
+        ['git'] + list(cmd), stdout=subprocess.PIPE, env=env,
+        stderr=subprocess.DEVNULL, cwd=path)
 
     stdout = r.communicate()[0]
     return stdout, r.returncode
 
 
 def get_git_version(path):
-    """:return: git sha1 rev"""
+    """Return git related revision data."""
     path = os.path.abspath(path)
     try:
-        stdout, ret = _run_git(path, ["log", "--format=%H\n%ad", "HEAD^..HEAD"])
+        stdout, ret = _run_git(path, ["log", "--format=%H\n%aD", "HEAD^..HEAD"])
 
         if ret != 0:
             return None
 
-        data = stdout.decode("ascii").splitlines()
+        data = stdout.decode().splitlines()
+        tag = _get_git_tag(path, data[0])
+
+        # get number of commits since most recent tag
+        stdout, ret = _run_git(path, ['describe', '--tags', '--abbrev=0'])
+        prev_tag = None
+        commits = None
+        if ret == 0:
+            prev_tag = stdout.decode().strip()
+            stdout, ret = _run_git(
+                path, ['log', '--oneline', '{}..HEAD'.format(prev_tag)])
+            if ret == 0:
+                commits = len(stdout.decode().splitlines())
 
         return {
-            "rev": data[0],
-            "date": data[1],
-            'tag': _get_git_tag(path, data[0]),
+            'rev': data[0],
+            'date': data[1],
+            'tag': tag,
+            'commits': commits,
         }
     except EnvironmentError as e:
         # ENOENT is thrown when the git binary can't be found.
@@ -92,7 +108,7 @@ def get_git_version(path):
 
 def _get_git_tag(path, rev):
     stdout, _ = _run_git(path, ['name-rev', '--tag', rev])
-    tag = stdout.decode("ascii").split()
+    tag = stdout.decode().split()
     if len(tag) != 2:
         return None
     tag = tag[1]
