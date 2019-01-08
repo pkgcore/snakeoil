@@ -210,8 +210,8 @@ def setup():
     # check for docs
     if os.path.exists(os.path.join(REPODIR, 'doc')):
         cmds['build'] = build
-        cmds['build_docs'] = build_docs
-        cmds['install_docs'] = install_docs
+        cmds['build_html'] = build_html
+        cmds['install_html'] = install_html
 
     # check for man pages
     if os.path.exists(os.path.join(REPODIR, 'doc', 'man')):
@@ -575,19 +575,14 @@ def generate_man():
     generate_man(REPODIR, PACKAGEDIR, MODULE_NAME)
 
 
-class build_man(Command):
-    """Build man pages.
+class _build_docs(Command):
+    """Generic documentation build command."""
 
-    Override the module search path before running sphinx. This fixes
-    generating man pages for scripts that need to import modules generated via
-    2to3 or other conversions instead of straight from the build directory.
-    """
-
-    description = "build man pages"
     user_options = [
         ("force", "f", "force build as needed"),
     ]
-    content_search_path = ('build/sphinx/man', 'man')
+    content_search_path = ()
+    sphinx_targets = None
 
     def initialize_options(self):
         self.force = False
@@ -595,18 +590,21 @@ class build_man(Command):
     def finalize_options(self):
         self.force = bool(self.force)
 
+    @property
     def skip(self):
         # don't rebuild if one of the output dirs exist
         if any(os.path.exists(x) for x in self.content_search_path):
-            log.info('%s: docs already built, skipping regeneration...' %
+            log.info('%s: already built, skipping regeneration...' %
                      (self.__class__.__name__,))
             return True
         return False
 
+    def _generate_doc_content(self):
+        """Hook to generate custom doc content used by sphinx."""
+
     def run(self):
-        if self.force or not self.skip():
+        if self.sphinx_targets and (self.force or not self.skip):
             # TODO: report this to upstream sphinx
-            #
             # Workaround for sphinx doing include directive path mangling in
             # order to interpret absolute paths "correctly", but at the same
             # time causing relative paths to fail. This just bypasses the
@@ -621,49 +619,50 @@ class build_man(Command):
             build_py = self.reinitialize_command('build_py')
             build_py.ensure_finalized()
             self.run_command('build_py')
+
+            # Override the module search path before running sphinx. This fixes
+            # generating man pages for scripts that need to import modules
+            # generated via 2to3 or other conversions instead of straight from
+            # the build directory.
             with syspath(os.path.abspath(build_py.build_lib)):
-                # generate man page content for scripts we create
-                if 'build_scripts' in self.distribution.cmdclass:
-                    generate_man()
-
-                # generate man pages
-                build_sphinx = self.reinitialize_command('build_sphinx')
-                build_sphinx.builder = 'man'
-                build_sphinx.ensure_finalized()
-                self.run_command('build_sphinx')
+                self._generate_doc_content()
+                for target in self.sphinx_targets:
+                    build_sphinx = self.reinitialize_command('build_sphinx')
+                    build_sphinx.builder = target
+                    build_sphinx.ensure_finalized()
+                    self.run_command('build_sphinx')
 
 
-class build_docs(build_man):
+class build_man(_build_docs):
+    """Build man pages."""
+
+    description = "build man pages"
+    content_search_path = ('build/sphinx/man', 'man')
+    sphinx_targets = ('man',)
+
+    def _generate_doc_content(self):
+        # generate man page content for scripts we create
+        if 'build_scripts' in self.distribution.cmdclass:
+            generate_man()
+
+
+class build_html(_build_docs):
     """Build html docs."""
 
     description = "build HTML documentation"
-    user_options = [
-        ("force", "f", "force build as needed"),
-    ]
     content_search_path = ('build/sphinx/html', 'html')
+    sphinx_targets = ('html',)
 
-    def initialize_options(self):
-        self.force = False
+    def _generate_doc_content(self):
+        # generate man pages -- html versions of man pages are provided
+        self.run_command('build_man')
 
-    def finalize_options(self):
-        self.force = bool(self.force)
-
-    def run(self):
-        if self.force or not self.skip():
-            # generate man pages -- html versions of man pages are provided
-            self.run_command('build_man')
-
-            # generate API docs
-            generate_html()
-
-            # generate html docs -- allow build_sphinx cmd to run again
-            build_sphinx = self.reinitialize_command('build_sphinx')
-            build_sphinx.builder = 'html'
-            build_sphinx.ensure_finalized()
-            self.run_command('build_sphinx')
+        # generate API docs
+        generate_html()
 
 
 class build_ext(dst_build_ext.build_ext):
+    """Build native extensions."""
 
     user_options = dst_build_ext.build_ext.user_options + [
         ("build-optional=", "o", "build optional C modules"),
@@ -772,7 +771,7 @@ class build_ext(dst_build_ext.build_ext):
 
 
 class build_scripts(dst_build_scripts.build_scripts):
-    """Create and build (copy and modify #! line) the wrapper scripts."""
+    """Create and build (copy and modify shebang lines) wrapper scripts."""
 
     def finalize_options(self):
         dst_build_scripts.build_scripts.finalize_options(self)
@@ -807,8 +806,8 @@ class build(dst_build.build):
     sub_commands.append(('build_ext', None))
     sub_commands.append(('build_py', None))
     sub_commands.append(('build_scripts', None))
-    sub_commands.append(('build_docs', operator.attrgetter('enable_html_docs')))
     sub_commands.append(('build_man', operator.attrgetter('enable_man_pages')))
+    sub_commands.append(('build_html', operator.attrgetter('enable_html_docs')))
 
     def initialize_options(self):
         dst_build.build.initialize_options(self)
@@ -826,23 +825,21 @@ class build(dst_build.build):
 
 
 class install_docs(Command):
-    """Install html documentation."""
+    """Generic documentation install command."""
 
-    content_search_path = build_docs.content_search_path
-    description = "install HTML documentation"
+    content_search_path = ()
+    description = "install documentation"
     user_options = [
-        ('docdir=', None, "final path to install to; else it's calculated"),
-        ('build-dir=', None, "build directory"),
+        ('build-dir=', None, 'build directory'),
+        ('docdir=', None, 'override docs install path'),
     ]
-    build_command = 'build_docs'
+    build_command = None
 
     def initialize_options(self):
         self.root = None
         self.prefix = None
         self.docdir = None
         self.build_dir = None
-        self.content = []
-        self.source_path = None
 
     def finalize_options(self):
         self.set_undefined_options(
@@ -854,13 +851,17 @@ class install_docs(Command):
             self.root = '/'
         if self.docdir is None:
             self.docdir = os.path.join(
-                self.root, self.calculate_install_path().lstrip(os.path.sep))
+                self.root, self.install_path.lstrip(os.path.sep))
 
-    def calculate_install_path(self):
+    @property
+    def install_path(self):
+        """Default documentation install path."""
         return os.path.join(
-            os.path.abspath(self.prefix), 'share', 'doc', MODULE_NAME + '-%s' % version(), 'html')
+            os.path.abspath(self.prefix),
+            'share', 'doc', MODULE_NAME + '-%s' % version())
 
     def find_content(self):
+        """Determine if generated doc files exist."""
         for possible_path in self.content_search_path:
             if self.build_dir is not None:
                 possible_path = os.path.join(self.build_dir, possible_path)
@@ -871,42 +872,61 @@ class install_docs(Command):
             return None
 
     def _map_paths(self, content):
+        """Map doc files to install paths."""
         return {x: x for x in content}
 
-    def scan_content(self):
-        self.content = self._map_paths(get_file_paths(self.source_path))
-        return self.content
+    def install(self):
+        source_path = self.find_content()
+        if source_path is None:
+            raise DistutilsExecError('no generated sphinx content')
 
-    def run(self, firstrun=True):
-        self.source_path = self.find_content()
-        if self.source_path is None:
-            if not firstrun:
-                raise DistutilsExecError(
-                    "no pregenerated sphinx content, and sphinx isn't available "
-                    "to generate it; bailing")
-            self.run_command(self.build_command)
-            return self.run(False)
+        # determine mapping from doc files to install paths
+        content = self._map_paths(get_file_paths(source_path))
 
-        content = self.scan_content()
-
-        content = self.content
+        # create directories
         directories = set(map(os.path.dirname, content.values()))
         directories.discard('')
         for x in sorted(directories):
             self.mkpath(os.path.join(self.docdir, x))
 
+        # copy docs over
         for src, dst in sorted(content.items()):
             self.copy_file(
-                os.path.join(self.source_path, src),
+                os.path.join(source_path, src),
                 os.path.join(self.docdir, dst))
 
-    def get_inputs(self):
-        # Py3k compatibility- force list so behaviour is the same.
-        return list(self.content)
+    def run(self):
+        if self.build_command is not None:
+            # run regular install, rebuilding as necessary
+            try:
+                self.install()
+            except DistutilsExecError:
+                self.run_command(self.build_command)
+                self.install()
+        else:
+            # install all docs that have been generated
+            for target in ('man', 'html'):
+                cmd = 'install_{}'.format(target)
+                install_cmd = self.reinitialize_command(cmd)
+                install_cmd.ensure_finalized()
+                try:
+                    self.run_command(cmd)
+                except DistutilsExecError:
+                    log.info('built {} pages missing, skipping install'.format(target))
 
-    def get_outputs(self):
-        # Py3k compatibility- force list so behaviour is the same.
-        return list(self.content.values())
+
+class install_html(install_docs):
+    """Install html documentation."""
+
+    content_search_path = build_html.content_search_path
+    description = "install HTML documentation"
+    build_command = 'build_html'
+
+    @property
+    def install_path(self):
+        return os.path.join(
+            os.path.abspath(self.prefix),
+            'share', 'doc', MODULE_NAME + '-%s' % version(), 'html')
 
 
 class install_man(install_docs):
@@ -916,8 +936,9 @@ class install_man(install_docs):
     content_search_path = build_man.content_search_path
     build_command = 'build_man'
 
-    def calculate_install_path(self):
-        return os.path.join(self.prefix, 'share', 'man')
+    @property
+    def install_path(self):
+        return os.path.join(os.path.abspath(self.prefix), 'share', 'man')
 
     def _map_paths(self, content):
         d = {}
@@ -937,7 +958,7 @@ class install(dst_install.install):
     user_options.extend([
         ('enable-man-pages', None, 'install man pages'),
         ('enable-html-docs', None, 'install html docs'),
-        ('docdir=', None, "final path to install to; else it's calculated"),
+        ('docdir=', None, 'override docs install path'),
     ])
 
     boolean_options = dst_install.install.boolean_options[:]
@@ -960,7 +981,7 @@ class install(dst_install.install):
 
     sub_commands = dst_install.install.sub_commands[:]
     sub_commands.append(('install_man', operator.attrgetter('enable_man_pages')))
-    sub_commands.append(('install_docs', operator.attrgetter('enable_html_docs')))
+    sub_commands.append(('install_html', operator.attrgetter('enable_html_docs')))
 
     def run(self):
         super().run()
@@ -973,14 +994,14 @@ class install(dst_install.install):
             install_man.ensure_finalized()
             self.run_command('install_man')
 
-        install_docs = self.reinitialize_command('install_docs')
-        if install_docs.find_content() is None:
+        install_html = self.reinitialize_command('install_html')
+        if install_html.find_content() is None:
             if self.enable_html_docs:
                 raise DistutilsError("built html docs missing")
         else:
-            install_docs.docdir = self.docdir
-            install_docs.ensure_finalized()
-            self.run_command('install_docs')
+            install_html.docdir = self.docdir
+            install_html.ensure_finalized()
+            self.run_command('install_html')
 
 
 class test(Command):
