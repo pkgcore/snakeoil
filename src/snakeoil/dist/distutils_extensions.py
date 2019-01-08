@@ -106,32 +106,6 @@ PACKAGEDIR = os.path.dirname(MODULEDIR)
 MODULE_NAME = os.path.basename(MODULEDIR)
 
 
-# directly copied from snakeoil.contexts
-@contextmanager
-def syspath(path, condition=True, position=0):
-    """Context manager that mangles sys.path and then reverts on exit.
-
-    Args:
-        path: The directory path to add to sys.path.
-        condition: Optional boolean that decides whether sys.path is mangled or
-            not, defaults to being enabled.
-        position: Optional integer that is the place where the path is inserted
-            in sys.path, defaults to prepending.
-    """
-    syspath = sys.path[:]
-    if condition:
-        sys.path.insert(position, path)
-    try:
-        yield
-    finally:
-        sys.path = syspath
-
-
-# internally forced imports
-with syspath(PACKAGEDIR, MODULE_NAME == 'snakeoil'):
-    from snakeoil.version import get_git_version
-
-
 def version(moduledir=MODULEDIR):
     """Determine a module's version.
 
@@ -1398,3 +1372,90 @@ class config(dst_config.config):
 # in other words, it could be invoked by py3k to translate snakeoil to py3k
 is_py3k = sys.version_info >= (3, 0)
 is_jython = 'java' in getattr(sys, 'getPlatform', lambda: '')().lower()
+
+
+# directly copied from snakeoil.contexts
+@contextmanager
+def syspath(path, condition=True, position=0):
+    """Context manager that mangles sys.path and then reverts on exit.
+
+    Args:
+        path: The directory path to add to sys.path.
+        condition: Optional boolean that decides whether sys.path is mangled or
+            not, defaults to being enabled.
+        position: Optional integer that is the place where the path is inserted
+            in sys.path, defaults to prepending.
+    """
+    syspath = sys.path[:]
+    if condition:
+        sys.path.insert(position, path)
+    try:
+        yield
+    finally:
+        sys.path = syspath
+
+
+# directly copied from snakeoil.version
+# currently required to avoid test failures when running directly via the setup script
+def get_git_version(path):
+    """Return git related revision data."""
+    path = os.path.abspath(path)
+    try:
+        stdout, ret = _run_git(path, ["log", "--format=%H\n%aD", "HEAD^..HEAD"])
+
+        if ret != 0:
+            return None
+
+        data = stdout.decode().splitlines()
+        tag = _get_git_tag(path, data[0])
+
+        # get number of commits since most recent tag
+        stdout, ret = _run_git(path, ['describe', '--tags', '--abbrev=0'])
+        prev_tag = None
+        commits = None
+        if ret == 0:
+            prev_tag = stdout.decode().strip()
+            stdout, ret = _run_git(
+                path, ['log', '--oneline', '{}..HEAD'.format(prev_tag)])
+            if ret == 0:
+                commits = len(stdout.decode().splitlines())
+
+        return {
+            'rev': data[0],
+            'date': data[1],
+            'tag': tag,
+            'commits': commits,
+        }
+    except EnvironmentError as e:
+        # ENOENT is thrown when the git binary can't be found.
+        if e.errno != errno.ENOENT:
+            raise
+        return None
+
+
+def _run_git(path, cmd):
+    env = dict(os.environ)
+    env["LC_CTYPE"] = "C"
+
+    r = subprocess.Popen(
+        ['git'] + list(cmd), stdout=subprocess.PIPE, env=env,
+        stderr=subprocess.DEVNULL, cwd=path)
+
+    stdout = r.communicate()[0]
+    return stdout, r.returncode
+
+
+def _get_git_tag(path, rev):
+    stdout, _ = _run_git(path, ['name-rev', '--tag', rev])
+    tag = stdout.decode().split()
+    if len(tag) != 2:
+        return None
+    tag = tag[1]
+    if not tag.startswith("tags/"):
+        return None
+    tag = tag[len("tags/"):]
+    if tag.endswith("^0"):
+        tag = tag[:-2]
+    if tag.startswith("v"):
+        tag = tag[1:]
+    return tag
