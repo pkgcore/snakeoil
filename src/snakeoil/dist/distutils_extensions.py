@@ -962,6 +962,26 @@ class install(dst_install.install):
     sub_commands.append(('install_man', operator.attrgetter('enable_man_pages')))
     sub_commands.append(('install_docs', operator.attrgetter('enable_html_docs')))
 
+    def run(self):
+        super().run()
+
+        install_man = self.reinitialize_command('install_man')
+        if install_man.find_content() is None:
+            if self.enable_man_pages:
+                raise DistutilsError("built man pages missing")
+        else:
+            install_man.ensure_finalized()
+            self.run_command('install_man')
+
+        install_docs = self.reinitialize_command('install_docs')
+        if install_docs.find_content() is None:
+            if self.enable_html_docs:
+                raise DistutilsError("built html docs missing")
+        else:
+            install_docs.docdir = self.docdir
+            install_docs.ensure_finalized()
+            self.run_command('install_docs')
+
 
 class test(Command):
     """Run our unit tests in a built copy.
