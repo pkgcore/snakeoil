@@ -207,15 +207,23 @@ def setup():
         params['scripts'] = os.listdir(SCRIPTS_DIR)
         cmds['build_scripts'] = build_scripts
 
-    # check for docs
-    if os.path.exists(os.path.join(REPODIR, 'doc')):
+    docdir = os.path.join(REPODIR, 'doc')
+    doc = os.path.exists(docdir)
+    mandir = os.path.join(REPODIR, 'doc', 'man')
+    man = os.path.exists(mandir)
+
+    if doc or man:
         cmds['build'] = build
+        cmds['build_docs'] = build_docs
+        cmds['install_docs'] = install_docs
+
+    # check for docs
+    if doc:
         cmds['build_html'] = build_html
         cmds['install_html'] = install_html
 
     # check for man pages
-    if os.path.exists(os.path.join(REPODIR, 'doc', 'man')):
-        cmds['build'] = build
+    if man:
         cmds['build_man'] = build_man
         cmds['install_man'] = install_man
 
@@ -575,12 +583,13 @@ def generate_man():
     generate_man(REPODIR, PACKAGEDIR, MODULE_NAME)
 
 
-class _build_docs(Command):
+class build_docs(Command):
     """Generic documentation build command."""
 
     user_options = [
-        ("force", "f", "force build as needed"),
+        ('force', 'f', 'force build as needed'),
     ]
+
     content_search_path = ()
     sphinx_targets = None
 
@@ -602,8 +611,8 @@ class _build_docs(Command):
     def _generate_doc_content(self):
         """Hook to generate custom doc content used by sphinx."""
 
-    def run(self):
-        if self.sphinx_targets and (self.force or not self.skip):
+    def build(self):
+        if self.force or not self.skip:
             # TODO: report this to upstream sphinx
             # Workaround for sphinx doing include directive path mangling in
             # order to interpret absolute paths "correctly", but at the same
@@ -632,8 +641,20 @@ class _build_docs(Command):
                     build_sphinx.ensure_finalized()
                     self.run_command('build_sphinx')
 
+    def run(self):
+        if self.sphinx_targets:
+            # run regular build
+            self.build()
+        else:
+            # build all docs
+            for target in ('man', 'html'):
+                cmd = 'build_{}'.format(target)
+                build_cmd = self.reinitialize_command(cmd)
+                build_cmd.ensure_finalized()
+                build_cmd.build()
 
-class build_man(_build_docs):
+
+class build_man(build_docs):
     """Build man pages."""
 
     description = "build man pages"
@@ -646,7 +667,7 @@ class build_man(_build_docs):
             generate_man()
 
 
-class build_html(_build_docs):
+class build_html(build_docs):
     """Build html docs."""
 
     description = "build HTML documentation"
