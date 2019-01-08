@@ -150,8 +150,6 @@ def generate_verinfo(target_dir):
     other things.
     """
     data = get_git_version(REPODIR)
-    if not data:
-        raise DistutilsError('no version data available')
     path = os.path.join(target_dir, '_verinfo.py')
     log.info('generating version info: %s' % path)
     with open(path, 'w') as f:
