@@ -311,7 +311,8 @@ class ImmutableDict(dict):
     _hash_key_grabber = operator.itemgetter(0)
 
     def __delitem__(self, *args):
-        raise TypeError("unmodifiable")
+        raise TypeError(
+            "unmodifiable dict: {!r}: can't remove {!r}".format(self, args))
 
     __setitem__ = clear = update = pop = popitem = setdefault = __delitem__
 
@@ -357,7 +358,8 @@ class IndeterminantDict(object):
         raise TypeError("unhashable")
 
     def __delitem__(self, *args):
-        raise TypeError("unmodifiable")
+        raise TypeError(
+            "unmodifiable dict: {!r}: can't remove {!r}".format(self, args))
 
     pop = get
 
