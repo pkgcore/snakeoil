@@ -88,6 +88,7 @@ class Tool(object):
         :type namespace: argparse.Namespace object
         :param namespace: Namespace object to use for created attributes.
         """
+        self.pre_parse(args, namespace)
         options = self.parser.parse_args(args=args, namespace=namespace)
         main_func = options.pop('main_func', None)
         if main_func is None:
@@ -108,11 +109,14 @@ class Tool(object):
             logging.root.handlers.pop(0)
         logging.root.addHandler(FormattingHandler(self.err))
 
-        options = self.set_options(options)
+        options = self.post_parse(options)
         return options, main_func
 
-    def set_options(self, options):
-        """Handle custom option settings."""
+    def pre_parse(self, args, namespace):
+        """Handle custom options before argparsing."""
+
+    def post_parse(self, options):
+        """Handle custom options after argparsing."""
         return options
 
     def handle_exec_exception(self, e):
