@@ -21,6 +21,7 @@ demand_compile_regexp('line_cont_regexp', r'^(.*[^\\]|)\\$')
 demand_compile_regexp('inline_comment_regexp', r'^.*\s#.*$')
 demand_compile_regexp('var_find', r'\\?(\${\w+}|\$\w+)')
 demand_compile_regexp('backslash_find', r'\\.')
+demand_compile_regexp('ansi_escape_re', r'(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]')
 
 __all__ = (
     "iter_read_bash", "read_bash", "read_dict", "read_bash_dict",
