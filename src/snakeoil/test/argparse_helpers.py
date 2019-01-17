@@ -149,7 +149,7 @@ class ArgParseMixin(object):
         except Error as e:
             assert message == e.message
         else:
-            self.fail('no error triggered')
+            raise AssertionError('no error triggered')
 
     def assertExit(self, status, message, *args, **kwargs):
         """Pass args, assert they trigger the right exit condition."""
@@ -159,7 +159,7 @@ class ArgParseMixin(object):
             assert message == e.message.strip()
             assert status == e.status
         else:
-            self.fail('no exit triggered')
+            raise AssertionError('no exit triggered')
 
     def assertOut(self, out, *args, **kwargs):
         """Like :obj:`assertOutAndErr` but without err."""
@@ -195,5 +195,5 @@ class ArgParseMixin(object):
                     strings, actual.split('\n')[:-1],
                     'expected %s' % (name,), 'actual', lineterm=''))
         if diffs:
-            self.fail('\n' + '\n'.join(diffs))
+            raise AssertionError('\n' + '\n'.join(diffs))
         return options
