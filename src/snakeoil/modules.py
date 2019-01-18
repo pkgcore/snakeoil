@@ -74,7 +74,7 @@ def load_any(name):
 
     try:
         return import_module(name)
+    except ImportError:
+        return load_attribute(name)
     except Exception as e:
-        if not isinstance(e, ImportError):
-            raise FailedImport(name, e) from e
-    return load_attribute(name)
+        raise FailedImport(name, e) from e
