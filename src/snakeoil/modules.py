@@ -58,6 +58,11 @@ def load_attribute(name):
     try:
         return getattr(import_module(chunks[0]), chunks[1])
     except (AttributeError, ImportError) as e:
+        # try to show actual import error if it exists
+        try:
+            import_module(name)
+        except ImportError as e:
+            raise FailedImport(name, e) from e
         raise FailedImport(name, e) from e
 
 
