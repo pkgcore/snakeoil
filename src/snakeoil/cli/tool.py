@@ -9,6 +9,7 @@ import os
 from signal import signal, SIGPIPE, SIG_DFL, SIGINT
 import sys
 
+from .exceptions import CliException
 from .. import formatters
 from ..demandload import demandload
 
@@ -121,6 +122,9 @@ class Tool(object):
 
     def handle_exec_exception(self, e):
         """Handle custom runtime exceptions."""
+        # output clean errors when not in debug mode
+        if isinstance(e, CliException) and not self.parser.debug:
+            self.parser.error(e)
         # force tracebacks for unhandled exceptions
         tb = sys.exc_info()[-1]
         dump_error(e, "Unhandled exception occurred", handle=self._errfile, tb=tb)
