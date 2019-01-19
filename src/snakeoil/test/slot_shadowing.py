@@ -3,7 +3,7 @@
 
 import pytest
 
-from snakeoil.test import mixins
+from . import mixins
 
 
 class SlotShadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker):

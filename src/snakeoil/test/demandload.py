@@ -1,7 +1,7 @@
 # Copyright: 2005-2011 Brian Harring <ferringb@gmail.com>
 # License: BSD/GPL2
 
-from snakeoil.test import mixins
+from . import mixins
 
 
 class DemandLoadTargets(mixins.PythonNamespaceWalker):
