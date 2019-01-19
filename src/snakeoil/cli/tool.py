@@ -16,7 +16,7 @@ from ..demandload import demandload
 demandload(
     'io',
     'traceback',
-    'snakeoil.errors:dump_error',
+    'snakeoil.errors:walk_exception_chain',
 )
 
 
@@ -122,10 +122,12 @@ class Tool(object):
 
     def handle_exec_exception(self, e):
         """Handle custom runtime exceptions."""
-        # output clean errors when not in debug mode
-        if isinstance(e, CliException) and not self.parser.debug:
-            self.parser.error(e)
-        # show tracebacks for unhandled exceptions
+        # output CLI error if one exists otherwise show debugging traceback
+        cli_errors = [
+            e for e in walk_exception_chain(e) if isinstance(e, CliException)]
+
+        if cli_errors and not self.parser.debug:
+            self.parser.error(cli_errors[0])
         raise
 
     def main(self):
