@@ -229,8 +229,13 @@ class _HelpAction(argparse._HelpAction):
 
     def __call__(self, parser, namespace, values, option_string=None):
         if option_string == '--help':
-            # trying spawning man page
-            p = subprocess.Popen(['man', parser.prog])
+            # Try spawning man page -- assumes one level deep for subcommand
+            # specific man pages with commands separated by hyphen. For example
+            # running `pinspect profile --help` tries to open pinspect-profile
+            # man page, but `pinspect profile masks --help` also tries to open
+            # pinspect-profile.
+            man_page = '-'.join(parser.prog.split()[:2])
+            p = subprocess.Popen(['man', man_page])
             p.communicate()
             if p.returncode == 0:
                 parser.exit()
@@ -643,9 +648,8 @@ class ArgumentParser(argparse.ArgumentParser):
 
         if not suppress:
             if add_help:
-                self.register('action', 'help', _HelpAction)
                 self.add_argument(
-                    '-h', '--help', action='help', default=argparse.SUPPRESS,
+                    '-h', '--help', action=_HelpAction, default=argparse.SUPPRESS,
                     help='show this help message and exit',
                     docs="""
                         Show this help message and exit. To get more
