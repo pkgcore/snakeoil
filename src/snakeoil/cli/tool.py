@@ -9,7 +9,7 @@ import os
 from signal import signal, SIGPIPE, SIG_DFL, SIGINT
 import sys
 
-from .exceptions import CliException
+from .exceptions import CliException, ExitException
 from .. import formatters
 from ..demandload import demandload
 
@@ -78,8 +78,16 @@ class Tool(object):
         :param args: arguments to parse, defaulting to C{sys.argv[1:]}.
         """
         self.args = args
+
         # run script and return exit status
-        return self.main()
+        try:
+            ret = self.main()
+        except ExitException as e:
+            if self.parser.debug:
+                raise
+            ret = e.code
+
+        return ret
 
     def parse_args(self, args=None, namespace=None):
         """Parse the given arguments using argparse.
@@ -142,7 +150,7 @@ class Tool(object):
             self.options, func = self.parse_args(args=self.args, namespace=self.options)
             exitstatus = func(self.options, self.out, self.err)
         except SystemExit as e:
-            # handle argparse or other modules using sys.exit internally
+            # handle argparse or other third party modules using sys.exit internally
             exitstatus = e.code
         except KeyboardInterrupt:
             self._errfile.write('keyboard interrupted- exiting')
