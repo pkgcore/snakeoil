@@ -133,11 +133,13 @@ class Tool(object):
 
     def handle_exec_exception(self, e):
         """Handle custom runtime exceptions."""
+        if self.parser.debug:
+            raise
+
         # output CLI error if one exists otherwise show debugging traceback
         cli_errors = [
             e for e in walk_exception_chain(e) if isinstance(e, CliException)]
-
-        if cli_errors and not self.parser.debug:
+        if cli_errors:
             self.parser.error(cli_errors[0])
         raise
 
