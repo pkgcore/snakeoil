@@ -22,6 +22,7 @@ demandload(
     'copy',
     'operator:attrgetter',
     'logging',
+    'subprocess',
     'textwrap:dedent',
     'traceback',
     'snakeoil:osutils',
@@ -221,6 +222,23 @@ class CommaSeparatedElementsAppend(CommaSeparatedElements):
         new = self.parse_values(values)
         combined = tuple(o + n for o, n in zip(old, new))
         setattr(namespace, self.dest, combined)
+
+
+class _HelpAction(argparse._HelpAction):
+    """Display man pages for long --help option and abbreviated output for -h."""
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if option_string == '--help':
+            # trying spawning man page
+            p = subprocess.Popen(['man', parser.prog])
+            p.communicate()
+            if p.returncode == 0:
+                parser.exit()
+
+        # Fallback to outputting abbreviated help if man page doesn't exist or
+        # it was explicitly requested via -h.
+        parser.print_help()
+        parser.exit()
 
 
 class StoreBool(argparse._StoreAction):
@@ -625,6 +643,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
         if not suppress:
             if add_help:
+                self.register('action', 'help', _HelpAction)
                 self.add_argument(
                     '-h', '--help', action='help', default=argparse.SUPPRESS,
                     help='show this help message and exit',
