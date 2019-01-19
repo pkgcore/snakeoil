@@ -85,6 +85,9 @@ class Tool(object):
         except ExitException as e:
             if self.parser.debug:
                 raise
+            if isinstance(e.code, str):
+                self.err.error(e.code)
+                e.code = 1
             ret = e.code
 
         return ret
