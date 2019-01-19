@@ -647,8 +647,9 @@ class ArgumentParser(argparse.ArgumentParser):
         self.register('action', 'csv_elements_append', CommaSeparatedElementsAppend)
 
         if not suppress:
+            base_opts = self.add_argument_group('base options')
             if add_help:
-                self.add_argument(
+                base_opts.add_argument(
                     '-h', '--help', action=_HelpAction, default=argparse.SUPPRESS,
                     help='show this help message and exit',
                     docs="""
@@ -658,7 +659,7 @@ class ArgumentParser(argparse.ArgumentParser):
             if version and script is not None:
                 # Note that this option will currently only be available on the
                 # base command, not on subcommands.
-                self.add_argument(
+                base_opts.add_argument(
                     '--version', action='version',
                     version=get_version(project, script_path),
                     help="show this program's version info and exit",
@@ -670,21 +671,21 @@ class ArgumentParser(argparse.ArgumentParser):
                         be shown.
                     """)
             if debug:
-                self.add_argument(
+                base_opts.add_argument(
                     '--debug', action=EnableDebug, help='enable debugging checks',
                     docs='Enable debug checks and show verbose debug output.')
             if quiet:
-                self.add_argument(
+                base_opts.add_argument(
                     '-q', '--quiet', action=Verbosity, dest='verbosity', default=0,
                     help='suppress non-error messages',
                     docs="Suppress non-error, informational messages.")
             if verbose:
-                self.add_argument(
+                base_opts.add_argument(
                     '-v', '--verbose', action=Verbosity, dest='verbosity', default=0,
                     help='show verbose output',
                     docs="Increase the verbosity of various output.")
             if color:
-                self.add_argument(
+                base_opts.add_argument(
                     '--color', action=StoreBool,
                     default=sys.stdout.isatty(),
                     help='enable/disable color support',
