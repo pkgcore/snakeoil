@@ -117,8 +117,7 @@ def _native_internal_jit_attr(
     instead of directly consuming this.
     """
     doc = getattr(func, '__doc__', None) if doc is None else doc
-    kls = _raw_native_internal_jit_attr
-    class _native_internal_jit_attr(kls):
+    class _native_internal_jit_attr(_raw_native_internal_jit_attr):
         __doc__ = doc
         __slots__ = ()
     kls = _native_internal_jit_attr
@@ -411,18 +410,18 @@ def jit_attr_none(func, kls=_internal_jit_attr):
     return jit_attr(func, kls=kls, uncached_val=None)
 
 def jit_attr_named(stored_attr_name, use_cls_setattr=False, kls=_internal_jit_attr,
-                   uncached_val=_uncached_singleton):
+                   uncached_val=_uncached_singleton, doc=None):
     """
     Version of :py:func:`jit_attr` decorator that allows for explicit control over the
     attribute name used to store the cache value.
 
     See :py:class:`_internal_jit_attr` for documentation of the misc params.
     """
-    return post_curry(kls, stored_attr_name, uncached_val, use_cls_setattr)
+    return post_curry(kls, stored_attr_name, uncached_val, use_cls_setattr, doc=doc)
 
 def jit_attr_ext_method(func_name, stored_attr_name,
                         use_cls_setattr=False, kls=_internal_jit_attr,
-                        uncached_val=_uncached_singleton):
+                        uncached_val=_uncached_singleton, doc=None):
     """
     Decorator handing maximal control of attribute JIT'ing to the invoker.
 
@@ -432,7 +431,7 @@ def jit_attr_ext_method(func_name, stored_attr_name,
     """
 
     return kls(alias_method(func_name), stored_attr_name,
-               uncached_val, use_cls_setattr)
+               uncached_val, use_cls_setattr, doc=doc)
 
 
 def cached_property(func, kls=_internal_jit_attr, use_cls_setattr=False):
