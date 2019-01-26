@@ -66,6 +66,7 @@ class TestDictMixin(object):
         assert d.pop("foo") == "bar"
         assert d.popitem(), ("baz" == "cat")
         pytest.raises(KeyError, d.popitem)
+        assert d.pop("nonexistent", None) == None
 
     def test_init(self):
         d = MutableDict((('foo', 'bar'), ('spork', 'foon')), baz="cat")

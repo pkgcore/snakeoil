@@ -16,7 +16,7 @@ from collections import defaultdict
 from itertools import chain, filterfalse
 import operator
 
-from .klass import get, contains, steal_docs
+from .klass import get, contains, steal_docs, _sentinel
 
 
 class DictMixin(object):
@@ -96,14 +96,14 @@ class DictMixin(object):
         return not self.__eq__(other)
 
     @steal_docs(dict)
-    def pop(self, key, default=None):
+    def pop(self, key, default=_sentinel):
         if not self.__externally_mutable__:
             raise AttributeError(self, "pop")
         try:
             val = self[key]
             del self[key]
         except KeyError:
-            if default is not None:
+            if default is not _sentinel:
                 return default
             raise
         return val
@@ -676,7 +676,6 @@ else:
 del foo
 
 
-_sentinel = object()
 def native_attr_pop(self, key, *a):
     # faster then the exception form...
     l = len(a)
