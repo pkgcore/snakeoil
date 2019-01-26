@@ -129,7 +129,9 @@ class TestReadBashDict(object):
             "foo2='bar'\n"
             'foo3="bar"\n'
             'foo4=-/:j4\n'
-            'foo5=\n')
+            'foo5=\n'
+            'export foo6="bar"\n'
+        )
         self.valid_file.flush()
         self.sourcing_file = mk_named_tempfile()
         self.sourcing_file.write('source "%s"\n' % self.valid_file.name)
@@ -183,6 +185,7 @@ class TestReadBashDict(object):
             'foo3': 'bar',
             'foo4': '-/:j4',
             'foo5': '',
+            'foo6': 'bar',
         }
         assert bash_dict == d
 
@@ -214,10 +217,10 @@ class TestReadBashDict(object):
 
     def test_sourcing(self):
         output = self.invoke_and_close(self.sourcing_file.name, sourcing_command='source')
-        expected = {'foo1': 'bar', 'foo2': 'bar', 'foo3': 'bar', 'foo4': '-/:j4', 'foo5': ''}
+        expected = {'foo1': 'bar', 'foo2': 'bar', 'foo3': 'bar', 'foo4': '-/:j4', 'foo5': '', 'foo6': 'bar'}
         assert output == expected
         output = self.invoke_and_close(self.sourcing_file2.name, sourcing_command='source')
-        expected = {'foo1': 'bar', 'foo2': 'bar', 'foo3': 'bar', 'foo4': '-/:j4', 'foo5': ''}
+        expected = {'foo1': 'bar', 'foo2': 'bar', 'foo3': 'bar', 'foo4': '-/:j4', 'foo5': '', 'foo6': 'bar'}
         assert output == expected
 
     def test_read_advanced(self):

@@ -124,6 +124,9 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
         try:
             while tok is not None:
                 key = s.get_token()
+                if key == 'export':
+                    # discard 'export' token from "export VAR=VALUE" lines
+                    key = s.get_token()
                 if key is None:
                     break
                 elif key.isspace():
@@ -139,6 +142,8 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
                 val = s.get_token()
                 if val is None:
                     val = ''
+                elif val == 'export':
+                    val = s.get_token()
                 # look ahead to see if we just got an empty assign.
                 next_tok = s.get_token()
                 if next_tok == '=':
