@@ -201,7 +201,7 @@ def read_dict(bash_source, splitter="=", source_isiter=False,
                     filename = getattr(bash_source, 'name', bash_source)
                 if ignore_errors:
                     logger.error(
-                        f'bash parse error in {filename!r}, line {line_count}')
+                        'bash parse error in %r, line %s', filename, line_count)
                     continue
                 else:
                     raise BashParseError(filename, line_count) from e
