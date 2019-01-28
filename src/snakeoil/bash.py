@@ -15,6 +15,7 @@ from shlex import shlex
 
 from .demandload import demand_compile_regexp
 from .fileutils import readlines_utf8
+from .log import logger
 from .mappings import ProtectedDict
 
 demand_compile_regexp('line_cont_regexp', r'^(.*[^\\]|)\\$')
@@ -166,7 +167,8 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
 
 
 def read_dict(bash_source, splitter="=", source_isiter=False,
-              allow_inline_comments=True, strip=False, filename=None):
+              allow_inline_comments=True, strip=False, filename=None,
+              ignore_errors=False):
     """Read key value pairs from a file, ignoring bash-style comments.
 
     :param splitter: the string to split on.  Can be None to
@@ -175,6 +177,7 @@ def read_dict(bash_source, splitter="=", source_isiter=False,
         or a string holding the filename to open.
     :param allow_inline_comments: whether or not to prune characters
         after a # that isn't at the start of a line.
+    :param ignore_errors: parse errors are logged instead of raised
     :raise: :py:class:`BashParseError` if there are parse errors found.
     """
     d = {}
@@ -187,7 +190,7 @@ def read_dict(bash_source, splitter="=", source_isiter=False,
             # XXX what to do?
             filename = '<unknown>'
         i = bash_source
-    line_count = 1
+    line_count = 0
     try:
         for k in i:
             line_count += 1
@@ -196,7 +199,12 @@ def read_dict(bash_source, splitter="=", source_isiter=False,
             except ValueError as e:
                 if filename == "<unknown>":
                     filename = getattr(bash_source, 'name', bash_source)
-                raise BashParseError(filename, line_count) from e
+                if ignore_errors:
+                    logger.error(
+                        f'bash parse error in {filename!r}, line {line_count}')
+                    continue
+                else:
+                    raise BashParseError(filename, line_count) from e
             if strip:
                 k, v = k.strip(), v.strip()
             if len(v) > 2 and v[0] == v[-1] and v[0] in ("'", '"'):
