@@ -9,14 +9,13 @@ import os
 from signal import signal, SIGPIPE, SIG_DFL, SIGINT
 import sys
 
-from .exceptions import CliException, ExitException
+from .exceptions import ExitException, find_cli_exception
 from .. import formatters
 from ..demandload import demandload
 
 demandload(
     'io',
     'traceback',
-    'snakeoil.errors:walk_exception_chain',
 )
 
 
@@ -135,12 +134,10 @@ class Tool(object):
         """Handle custom runtime exceptions."""
         if self.parser.debug:
             raise
-
         # output CLI error if one exists otherwise show debugging traceback
-        cli_errors = [
-            e for e in walk_exception_chain(e) if isinstance(e, CliException)]
-        if cli_errors:
-            self.parser.error(cli_errors[0])
+        cli_error = find_cli_exception(e)
+        if cli_error:
+            self.parser.error(cli_error)
         raise
 
     def main(self):

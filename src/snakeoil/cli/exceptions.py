@@ -1,5 +1,7 @@
 """Command-line related exceptions"""
 
+from ..errors import walk_exception_chain
+
 
 class CliException(Exception):
     """Generic exception with a sane string for non-debug cli output."""
@@ -16,3 +18,11 @@ class ExitException(Exception):
 
     def __init__(self, code=None):
         self.code = code
+
+
+def find_cli_exception(exc):
+    """Find the CLI exception related to a given exception if one exists."""
+    try:
+        return next(e for e in walk_exception_chain(exc) if isinstance(e, CliException))
+    except StopIteration:
+        return None
