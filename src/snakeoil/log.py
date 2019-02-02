@@ -1,5 +1,6 @@
 """Logging utilities."""
 
+from contextlib import contextmanager
 import logging
 
 from . import __title__
@@ -14,3 +15,17 @@ logging.basicConfig()
 
 # Our main logger.
 logger = logging.getLogger(__title__)
+
+
+@contextmanager
+def suppress_logging(level=logging.CRITICAL):
+    """Context manager to suppress logging messages.
+
+    :param level: logging level and below to suppress
+    """
+    orig_level = logging.root.getEffectiveLevel()
+    logging.disable(level)
+    try:
+        yield
+    finally:
+        logging.disable(orig_level)
