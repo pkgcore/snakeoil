@@ -3,8 +3,8 @@
 from ..errors import walk_exception_chain
 
 
-class CliException(Exception):
-    """Generic exception with a sane string for non-debug cli output."""
+class UserException(Exception):
+    """Generic exception with a sane string for non-debug, user-facing output."""
 
 
 class ExitException(Exception):
@@ -20,9 +20,9 @@ class ExitException(Exception):
         self.code = code
 
 
-def find_cli_exception(exc):
-    """Find the CLI exception related to a given exception if one exists."""
+def find_user_exception(exc):
+    """Find the UserException related to a given exception if one exists."""
     try:
-        return next(e for e in walk_exception_chain(exc) if isinstance(e, CliException))
+        return next(e for e in walk_exception_chain(exc) if isinstance(e, UserException))
     except StopIteration:
         return None

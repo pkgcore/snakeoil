@@ -9,7 +9,7 @@ import os
 from signal import signal, SIGPIPE, SIG_DFL, SIGINT
 import sys
 
-from .exceptions import ExitException, find_cli_exception
+from .exceptions import ExitException, find_user_exception
 from .. import formatters
 from ..demandload import demandload
 
@@ -134,10 +134,10 @@ class Tool(object):
         """Handle custom runtime exceptions."""
         if self.parser.debug:
             raise
-        # output CLI error if one exists otherwise show debugging traceback
-        cli_error = find_cli_exception(e)
-        if cli_error:
-            self.parser.error(cli_error)
+        # output user error if one exists otherwise show debugging traceback
+        exc = find_user_exception(e)
+        if exc:
+            self.parser.error(exc)
         raise
 
     def main(self):
