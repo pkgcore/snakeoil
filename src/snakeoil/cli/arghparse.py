@@ -579,7 +579,7 @@ class SubcmdAbbrevArgumentParser(argparse.ArgumentParser):
         return value
 
 
-class OptionalsArgumentParser(argparse.ArgumentParser):
+class OptionalsParser(argparse.ArgumentParser):
     """Argument parser supporting parsing only optional arguments."""
 
     def parse_optionals(self, args=None, namespace=None):
@@ -876,7 +876,21 @@ class OptionalsArgumentParser(argparse.ArgumentParser):
         return namespace, extras
 
 
-class ArgumentParser(OptionalsArgumentParser):
+class CustomActionsParser(argparse.ArgumentParser):
+    """Parser with custom actions registered for usage."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # register our custom actions
+        self.register('action', 'csv', CommaSeparatedValues)
+        self.register('action', 'csv_append', CommaSeparatedValuesAppend)
+        self.register('action', 'csv_negations', CommaSeparatedNegations)
+        self.register('action', 'csv_negations_append', CommaSeparatedNegationsAppend)
+        self.register('action', 'csv_elements', CommaSeparatedElements)
+        self.register('action', 'csv_elements_append', CommaSeparatedElementsAppend)
+
+
+class ArgumentParser(OptionalsParser, CustomActionsParser):
     """Extended, argparse-compatible argument parser."""
 
     def __init__(self, suppress=False, color=True, debug=True, quiet=True,
@@ -936,12 +950,6 @@ class ArgumentParser(OptionalsArgumentParser):
 
         # register our custom actions
         self.register('action', 'parsers', _SubParser)
-        self.register('action', 'csv', CommaSeparatedValues)
-        self.register('action', 'csv_append', CommaSeparatedValuesAppend)
-        self.register('action', 'csv_negations', CommaSeparatedNegations)
-        self.register('action', 'csv_negations_append', CommaSeparatedNegationsAppend)
-        self.register('action', 'csv_elements', CommaSeparatedElements)
-        self.register('action', 'csv_elements_append', CommaSeparatedElementsAppend)
 
         if not suppress:
             base_opts = self.add_argument_group('base options')
