@@ -5,10 +5,27 @@
 Collection of functionality to make using iterators transparently easier
 """
 
-__all__ = ("expandable_chain", "caching_iter", "iter_sort")
+__all__ = ("partition", "expandable_chain", "caching_iter", "iter_sort")
 
 from collections import deque
-from itertools import islice, zip_longest
+import itertools
+
+
+def partition(iterable, predicate=bool):
+    """Partition an iterable into two iterables based on a given filter.
+
+    Taking care that the predicate is called only once for each element.
+
+    Args:
+        iterable: target iterable to split into two
+        predicate: filtering function used to split the iterable
+    Returns:
+        A tuple of iterators, the first containing items that don't match the
+        filter and the second the matched items.
+    """
+    a, b = itertools.tee((predicate(x), x) for x in iterable)
+    return ((x for pred, x in a if not pred),
+            (x for pred, x in b if pred))
 
 
 class expandable_chain(object):
@@ -125,7 +142,7 @@ class caching_iter(object):
 
         elif index >= existing_len - 1:
             if self.iterable is not None:
-                i = islice(self.iterable, 0, index - (existing_len - 1))
+                i = itertools.islice(self.iterable, 0, index - (existing_len - 1))
                 self.cached_list.extend(i)
                 if len(self.cached_list) -1 != index:
                     # consumed, baby.
@@ -147,14 +164,14 @@ class caching_iter(object):
 
     def __lt__(self, other):
         self._flatten()
-        for x, y in zip_longest(self.cached_list, other):
+        for x, y in itertools.zip_longest(self.cached_list, other):
             if x != y:
                 return x < y
         return False
 
     def __gt__(self, other):
         self._flatten()
-        for x, y in zip_longest(self.cached_list, other):
+        for x, y in itertools.zip_longest(self.cached_list, other):
             if x != y:
                 return x > y
         return False

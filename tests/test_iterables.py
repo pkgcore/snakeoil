@@ -5,7 +5,24 @@ import operator
 
 import pytest
 
-from snakeoil.iterables import expandable_chain, caching_iter, iter_sort
+from snakeoil.iterables import partition, expandable_chain, caching_iter, iter_sort
+
+
+class TestPartition(object):
+
+    def test_empty(self):
+        a, b = partition(())
+        assert list(a) == []
+        assert list(b) == []
+
+    def test_split(self):
+        a, b = partition(range(10))
+        assert list(a) == [0]
+        assert list(b) == list(range(1, 10))
+
+        a, b = partition(range(10), lambda x: x >= 5)
+        assert list(a) == [0, 1, 2, 3, 4]
+        assert list(b) == [5, 6, 7, 8, 9]
 
 
 class TestExpandableChain(object):
