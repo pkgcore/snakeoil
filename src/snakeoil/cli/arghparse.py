@@ -579,171 +579,8 @@ class SubcmdAbbrevArgumentParser(argparse.ArgumentParser):
         return value
 
 
-class ArgumentParser(argparse.ArgumentParser):
-    """Extended, argparse-compatible argument parser."""
-
-    def __init__(self, suppress=False, color=True, debug=True, quiet=True,
-                 verbose=True, version=True, add_help=True, sorted_help=False,
-                 description=None, docs=None, script=None, prog=None, **kwds):
-        self.debug = debug and '--debug' in sys.argv[1:]
-        self.verbosity = int(verbose)
-        if self.verbosity:
-            argv = Counter(sys.argv[1:])
-            self.verbosity = sum(chain.from_iterable((
-                (-1 for x in range(argv['-q'] + argv['--quiet'])),
-                (1 for x in range(argv['-v'] + argv['--verbose'])),
-            )))
-
-        # subparser to use if none is specified on the command line and one is required
-        self.__default_subparser = None
-        # subparsers action object from calling add_subparsers()
-        self.__subparsers = None
-        # function to execute for this parser
-        self.__main_func = None
-        # arg checking function to execute for this parser
-        self.__final_check = None
-
-        # Store parent parsers allowing for separating parsing args meant for
-        # the root command with args targeted to subcommands. This enables
-        # usage such as adding conflicting options to both the root command and
-        # subcommands without causing issues in addition to helping support
-        # default subparsers.
-        self._parents = kwds.get('parents', ())
-
-        # extract the description to use and set docs for doc generation
-        description = self._update_desc(description, docs)
-
-        # Consumers can provide the 'script=(__file__, __name__)' parameter in
-        # order for version and prog values to be automatically extracted.
-        if script is not None:
-            try:
-                script_path, script_module = script
-                if not os.path.exists(script_path):
-                    raise TypeError
-            except TypeError:
-                raise ValueError(
-                    "invalid script parameter, should be (__file__, __name__)")
-
-            project = script_module.split('.')[0]
-            if prog is None:
-                prog = script_module.split('.')[-1]
-
-        if sorted_help:
-            formatter = SortedHelpFormatter
-        else:
-            formatter = HelpFormatter
-
-        super().__init__(
-            description=description, formatter_class=formatter,
-            prog=prog, add_help=False, **kwds)
-
-        # register our custom actions
-        self.register('action', 'parsers', _SubParser)
-        self.register('action', 'csv', CommaSeparatedValues)
-        self.register('action', 'csv_append', CommaSeparatedValuesAppend)
-        self.register('action', 'csv_negations', CommaSeparatedNegations)
-        self.register('action', 'csv_negations_append', CommaSeparatedNegationsAppend)
-        self.register('action', 'csv_elements', CommaSeparatedElements)
-        self.register('action', 'csv_elements_append', CommaSeparatedElementsAppend)
-
-        if not suppress:
-            base_opts = self.add_argument_group('base options')
-            if add_help:
-                base_opts.add_argument(
-                    '-h', '--help', action=_HelpAction, default=argparse.SUPPRESS,
-                    help='show this help message and exit',
-                    docs="""
-                        Show this help message and exit. To get more
-                        information see the related man page.
-                    """)
-            if version and script is not None:
-                # Note that this option will currently only be available on the
-                # base command, not on subcommands.
-                base_opts.add_argument(
-                    '--version', action='version',
-                    version=get_version(project, script_path),
-                    help="show this program's version info and exit",
-                    docs="""
-                        Show this program's version information and exit.
-
-                        When running from within a git repo or a version
-                        installed from git the latest commit hash and date will
-                        be shown.
-                    """)
-            if debug:
-                base_opts.add_argument(
-                    '--debug', action=EnableDebug, help='enable debugging checks',
-                    docs='Enable debug checks and show verbose debug output.')
-            if quiet:
-                base_opts.add_argument(
-                    '-q', '--quiet', action=Verbosity, dest='verbosity', default=0,
-                    help='suppress non-error messages',
-                    docs="Suppress non-error, informational messages.")
-            if verbose:
-                base_opts.add_argument(
-                    '-v', '--verbose', action=Verbosity, dest='verbosity', default=0,
-                    help='show verbose output',
-                    docs="Increase the verbosity of various output.")
-            if color:
-                base_opts.add_argument(
-                    '--color', action=StoreBool,
-                    default=sys.stdout.isatty(),
-                    help='enable/disable color support',
-                    docs="""
-                        Toggle colored output support. This can be used to forcibly
-                        enable color support when piping output or other sitations
-                        where stdout is not a tty.
-                    """)
-
-    def _update_desc(self, description=None, docs=None):
-        """Extract the description to use.
-
-        Assumes first line is the short description and the remainder should be
-        used for generated docs.  Generally this works properly if a module's
-        __doc__ attr is assigned to the description parameter.
-        """
-        description_lines = []
-        if description is not None:
-            description_lines = description.strip().split('\n', 1)
-            description = description_lines[0]
-        if _generate_docs:
-            if docs is None and len(description_lines) == 2:
-                docs = description_lines[1]
-            self._docs = docs
-        self.description = description
-        return description
-
-    @klass.cached_property
-    def subparsers(self):
-        """Return the set of registered subparsers."""
-        parsers = {}
-        if self._subparsers is not None:
-            for x in self._subparsers._actions:
-                if isinstance(x, argparse._SubParsersAction):
-                    parsers.update(x._name_parser_map)
-        return ImmutableDict(parsers)
-
-    def _parse_known_args(self, arg_strings, namespace):
-        """Add support for using a specified, default subparser."""
-        skip_subparser_fallback = (
-            self.__default_subparser is None or  # no default requested
-            {'-h', '--help'}.intersection(arg_strings) or  # help requested
-            (arg_strings and arg_strings[0] in self.subparsers)  # subparser already determined
-        )
-
-        if not skip_subparser_fallback:
-            if self.__default_subparser not in self.subparsers:
-                raise ValueError(
-                    'unknown subparser %r (available subparsers %s)' % (
-                    self.__default_subparser, ', '.join(sorted(self.subparsers))))
-            # parse all options the parent parsers know about
-            for parser in self._parents:
-                namespace, arg_strings = parser._parse_known_args(arg_strings, namespace)
-            # prepend the default subcommand to the current arg list
-            arg_strings = [self.__default_subparser] + arg_strings
-
-        # parse the remaining args
-        return super()._parse_known_args(arg_strings, namespace)
+class OptionalsArgumentParser(argparse.ArgumentParser):
+    """Argument parser supporting parsing only optional arguments."""
 
     def parse_optionals(self, args=None, namespace=None):
         """Parse optional arguments until the first positional or -h/--help.
@@ -1037,6 +874,173 @@ class ArgumentParser(argparse.ArgumentParser):
 
         # return the updated namespace and the extra arguments
         return namespace, extras
+
+
+class ArgumentParser(OptionalsArgumentParser):
+    """Extended, argparse-compatible argument parser."""
+
+    def __init__(self, suppress=False, color=True, debug=True, quiet=True,
+                 verbose=True, version=True, add_help=True, sorted_help=False,
+                 description=None, docs=None, script=None, prog=None, **kwds):
+        self.debug = debug and '--debug' in sys.argv[1:]
+        self.verbosity = int(verbose)
+        if self.verbosity:
+            argv = Counter(sys.argv[1:])
+            self.verbosity = sum(chain.from_iterable((
+                (-1 for x in range(argv['-q'] + argv['--quiet'])),
+                (1 for x in range(argv['-v'] + argv['--verbose'])),
+            )))
+
+        # subparser to use if none is specified on the command line and one is required
+        self.__default_subparser = None
+        # subparsers action object from calling add_subparsers()
+        self.__subparsers = None
+        # function to execute for this parser
+        self.__main_func = None
+        # arg checking function to execute for this parser
+        self.__final_check = None
+
+        # Store parent parsers allowing for separating parsing args meant for
+        # the root command with args targeted to subcommands. This enables
+        # usage such as adding conflicting options to both the root command and
+        # subcommands without causing issues in addition to helping support
+        # default subparsers.
+        self._parents = kwds.get('parents', ())
+
+        # extract the description to use and set docs for doc generation
+        description = self._update_desc(description, docs)
+
+        # Consumers can provide the 'script=(__file__, __name__)' parameter in
+        # order for version and prog values to be automatically extracted.
+        if script is not None:
+            try:
+                script_path, script_module = script
+                if not os.path.exists(script_path):
+                    raise TypeError
+            except TypeError:
+                raise ValueError(
+                    "invalid script parameter, should be (__file__, __name__)")
+
+            project = script_module.split('.')[0]
+            if prog is None:
+                prog = script_module.split('.')[-1]
+
+        if sorted_help:
+            formatter = SortedHelpFormatter
+        else:
+            formatter = HelpFormatter
+
+        super().__init__(
+            description=description, formatter_class=formatter,
+            prog=prog, add_help=False, **kwds)
+
+        # register our custom actions
+        self.register('action', 'parsers', _SubParser)
+        self.register('action', 'csv', CommaSeparatedValues)
+        self.register('action', 'csv_append', CommaSeparatedValuesAppend)
+        self.register('action', 'csv_negations', CommaSeparatedNegations)
+        self.register('action', 'csv_negations_append', CommaSeparatedNegationsAppend)
+        self.register('action', 'csv_elements', CommaSeparatedElements)
+        self.register('action', 'csv_elements_append', CommaSeparatedElementsAppend)
+
+        if not suppress:
+            base_opts = self.add_argument_group('base options')
+            if add_help:
+                base_opts.add_argument(
+                    '-h', '--help', action=_HelpAction, default=argparse.SUPPRESS,
+                    help='show this help message and exit',
+                    docs="""
+                        Show this help message and exit. To get more
+                        information see the related man page.
+                    """)
+            if version and script is not None:
+                # Note that this option will currently only be available on the
+                # base command, not on subcommands.
+                base_opts.add_argument(
+                    '--version', action='version',
+                    version=get_version(project, script_path),
+                    help="show this program's version info and exit",
+                    docs="""
+                        Show this program's version information and exit.
+
+                        When running from within a git repo or a version
+                        installed from git the latest commit hash and date will
+                        be shown.
+                    """)
+            if debug:
+                base_opts.add_argument(
+                    '--debug', action=EnableDebug, help='enable debugging checks',
+                    docs='Enable debug checks and show verbose debug output.')
+            if quiet:
+                base_opts.add_argument(
+                    '-q', '--quiet', action=Verbosity, dest='verbosity', default=0,
+                    help='suppress non-error messages',
+                    docs="Suppress non-error, informational messages.")
+            if verbose:
+                base_opts.add_argument(
+                    '-v', '--verbose', action=Verbosity, dest='verbosity', default=0,
+                    help='show verbose output',
+                    docs="Increase the verbosity of various output.")
+            if color:
+                base_opts.add_argument(
+                    '--color', action=StoreBool,
+                    default=sys.stdout.isatty(),
+                    help='enable/disable color support',
+                    docs="""
+                        Toggle colored output support. This can be used to forcibly
+                        enable color support when piping output or other sitations
+                        where stdout is not a tty.
+                    """)
+
+    def _update_desc(self, description=None, docs=None):
+        """Extract the description to use.
+
+        Assumes first line is the short description and the remainder should be
+        used for generated docs.  Generally this works properly if a module's
+        __doc__ attr is assigned to the description parameter.
+        """
+        description_lines = []
+        if description is not None:
+            description_lines = description.strip().split('\n', 1)
+            description = description_lines[0]
+        if _generate_docs:
+            if docs is None and len(description_lines) == 2:
+                docs = description_lines[1]
+            self._docs = docs
+        self.description = description
+        return description
+
+    @klass.cached_property
+    def subparsers(self):
+        """Return the set of registered subparsers."""
+        parsers = {}
+        if self._subparsers is not None:
+            for x in self._subparsers._actions:
+                if isinstance(x, argparse._SubParsersAction):
+                    parsers.update(x._name_parser_map)
+        return ImmutableDict(parsers)
+
+    def _parse_known_args(self, arg_strings, namespace):
+        """Add support for using a specified, default subparser."""
+        skip_subparser_fallback = (
+            self.__default_subparser is None or  # no default requested
+            {'-h', '--help'}.intersection(arg_strings) or  # help requested
+            (arg_strings and arg_strings[0] in self.subparsers)  # subparser already determined
+        )
+
+        if not skip_subparser_fallback:
+            if self.__default_subparser not in self.subparsers:
+                raise ValueError(
+                    'unknown subparser %r (available subparsers %s)' % (
+                    self.__default_subparser, ', '.join(sorted(self.subparsers))))
+            # parse all options the parent parsers know about
+            for parser in self._parents:
+                namespace, arg_strings = parser._parse_known_args(arg_strings, namespace)
+            # prepend the default subcommand to the current arg list
+            arg_strings = [self.__default_subparser] + arg_strings
+
+        # parse the remaining args
+        return super()._parse_known_args(arg_strings, namespace)
 
     def parse_args(self, args=None, namespace=None):
         if namespace is None:
