@@ -513,6 +513,10 @@ class Namespace(argparse.Namespace):
             val = super().__getattribute__(name)
         return val
 
+    def __bool__(self):
+        # force empty namespace boolean to be False
+        return bool(self.__dict__)
+
 
 class SubcmdAbbrevArgumentParser(argparse.ArgumentParser):
     """Argparse-compatible argument parser that supports abbreviating subcommands."""
