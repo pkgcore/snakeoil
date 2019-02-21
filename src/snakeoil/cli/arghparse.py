@@ -1097,11 +1097,11 @@ class ArgumentParser(OptionalsParser, CustomActionsParser):
         try:
             for attr, delayed in sorted(i, key=lambda val: val[1].priority):
                 delayed(args, attr)
-        except (TypeError, ValueError) as err:
-            raise TypeError("failed loading/parsing '%s': %s" % (attr, str(err)))
+        except (TypeError, ValueError) as e:
+            raise TypeError("failed loading/parsing '%s': %s" % (attr, str(e))) from e
         except argparse.ArgumentError:
-            err = sys.exc_info()[1]
-            self.error(str(err))
+            e = sys.exc_info()[1]
+            self.error(str(e))
 
         final_check = getattr(args, 'final_check', None)
         if final_check is not None:
