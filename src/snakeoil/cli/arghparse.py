@@ -586,8 +586,8 @@ class SubcmdAbbrevArgumentParser(argparse.ArgumentParser):
 class OptionalsParser(argparse.ArgumentParser):
     """Argument parser supporting parsing only optional arguments."""
 
-    def parse_optionals(self, args=None, namespace=None):
-        """Parse optional arguments until the first positional or -h/--help.
+    def parse_known_optionals(self, args=None, namespace=None):
+        """Parse known optional arguments until the first positional or -h/--help.
 
         This is used to allow multiple shortcuts (like -c or -h) at both the
         global command level and the subcommand level. Otherwise, the argparse
