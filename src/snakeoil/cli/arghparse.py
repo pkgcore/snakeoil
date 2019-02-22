@@ -895,6 +895,40 @@ class CustomActionsParser(argparse.ArgumentParser):
         self.register('action', 'csv_elements_append', CommaSeparatedElementsAppend)
 
 
+class CopyableParser(argparse.ArgumentParser):
+    """Parser implementing shallow copy() that doesn't allow argument propagation."""
+
+    _group_attrs = (
+        '_registries',
+        '_option_string_actions',
+        '_defaults',
+        '_has_negative_number_optionals',
+        '_mutually_exclusive_groups',
+    )
+
+    def copy(self):
+        parser = copy.copy(self)
+        parser._actions = self._actions.copy()
+
+        action_groups = []
+        for group in self._action_groups:
+            new_group = copy.copy(group)
+            new_group._group_actions = group._group_actions.copy()
+            for attr in self._group_attrs:
+                setattr(new_group, attr, getattr(group, attr).copy())
+            new_group._actions = parser._actions
+            action_groups.append(new_group)
+            if group.title == 'positional arguments':
+                parser._positionals = new_group
+            elif group.title == 'optional arguments':
+                parser._optionals = new_group
+            else:
+                parser._subparsers = new_group
+        parser._action_groups = action_groups
+
+        return parser
+
+
 class ArgumentParser(OptionalsParser, CustomActionsParser):
     """Extended, argparse-compatible argument parser."""
 
