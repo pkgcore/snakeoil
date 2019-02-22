@@ -842,8 +842,9 @@ class OptionalsParser(argparse.ArgumentParser):
         required_actions = []
         for action in self._actions:
             if action not in seen_actions:
-                # ignore required subcommands as they'll be handled later
-                if action.required and not isinstance(action, _SubParsersAction):
+                # ignore required subcommands and positionals as they'll be handled later
+                skip = not action.option_strings or isinstance(action, _SubParsersAction)
+                if action.required and not skip:
                     required_actions.append(_get_action_name(action))
                 else:
                     # Convert action default now instead of doing it before
