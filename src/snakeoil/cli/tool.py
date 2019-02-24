@@ -140,9 +140,9 @@ class Tool(object):
             verbosity = getattr(self.parser, 'verbosity', 0)
             if verbosity > 0:
                 # output verbose error message if it exists
-                msg = exc.msg(verbosity)
+                msg = exc.msg(verbosity).strip('\n')
                 if msg:
-                    sys.stderr.write(msg)
+                    sys.stderr.write(msg + '\n')
             self.parser.error(exc)
         raise
 
