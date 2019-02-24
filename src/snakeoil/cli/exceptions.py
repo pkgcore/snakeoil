@@ -6,6 +6,9 @@ from ..errors import walk_exception_chain
 class UserException(Exception):
     """Generic exception with a sane string for non-debug, user-facing output."""
 
+    def msg(self, verbosity=0):
+        return None
+
 
 class ExitException(Exception):
     """Generic exception for exiting with a specific return message or status.

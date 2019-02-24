@@ -137,6 +137,12 @@ class Tool(object):
         # output user error if one exists otherwise show debugging traceback
         exc = find_user_exception(e)
         if exc:
+            verbosity = getattr(self.parser, 'verbosity', 0)
+            if verbosity > 0:
+                # output verbose error message if it exists
+                msg = exc.msg(verbosity)
+                if msg:
+                    sys.stderr.write(msg)
             self.parser.error(exc)
         raise
 
