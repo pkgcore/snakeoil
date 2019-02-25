@@ -368,8 +368,8 @@ def spawn_get_output(mycommand, spawn_type=None, raw_exit_code=False, collect_fd
         retval = os.waitpid(mypid[0], 0)[1]
         cleanup_pids(mypid)
         if raw_exit_code:
-            return [retval, mydata]
-        return [process_exit_code(retval), mydata]
+            return retval, mydata
+        return process_exit_code(retval), mydata
 
     finally:
         if pr is not None:
