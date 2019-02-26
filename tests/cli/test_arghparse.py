@@ -67,6 +67,51 @@ class TestArgparseDocs(object):
         assert getattr(tuple_action, 'help', None) == 'foo\nbar'
 
 
+class TestCopyableParser(object):
+
+    @pytest.fixture(autouse=True)
+    def __setup(self):
+        self.parser = argparse_helpers.mangle_parser(arghparse.CopyableParser())
+
+    def test_copy(self):
+        new_parser = self.parser.copy()
+        assert new_parser is not self.parser
+
+    def test_add_optional_argument(self):
+        new_parser = self.parser.copy()
+
+        # only the new parser recognizes the added arg
+        new_parser.add_argument('--foo', action='store_true')
+        args, unknown = new_parser.parse_known_args(['--foo'])
+        assert args.foo
+        args, unknown = self.parser.parse_known_args(['--foo'])
+        assert unknown == ['--foo']
+
+        # verify adding args to the old parser don't propagate
+        self.parser.add_argument('--bar', action='store_true')
+        args, unknown = new_parser.parse_known_args(['--bar'])
+        assert unknown == ['--bar']
+        args, unknown = self.parser.parse_known_args(['--bar'])
+        assert args.bar
+
+    def test_add_positional_argument(self):
+        new_parser = self.parser.copy()
+
+        # only the new parser recognizes the added arg
+        new_parser.add_argument('foo')
+        args, unknown = new_parser.parse_known_args(['x'])
+        assert args.foo == 'x'
+        args, unknown = self.parser.parse_known_args(['x'])
+        assert unknown == ['x']
+
+        # verify adding args to the old parser don't propagate
+        self.parser.add_argument('bar', nargs='+')
+        args, unknown = new_parser.parse_known_args(['y'])
+        assert args.foo == 'y'
+        args, unknown = self.parser.parse_known_args(['y'])
+        assert args.bar == ['y']
+
+
 class TestArgumentParser(object):
 
     def test_debug(self):
