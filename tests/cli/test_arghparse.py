@@ -69,6 +69,7 @@ class TestArgparseDocs(object):
 
 class TestCopyableParser(object):
 
+    # TODO: move this to a generic argparse fixture
     @pytest.fixture(autouse=True)
     def __setup(self):
         self.parser = argparse_helpers.mangle_parser(arghparse.CopyableParser())
@@ -150,7 +151,90 @@ class TestCopyableParser(object):
         assert args.arg == 'def'
 
 
-class TestArgumentParser(object):
+class TestOptionalsParser(object):
+
+    # TODO: move this to a generic argparse fixture
+    @pytest.fixture(autouse=True)
+    def __setup_optionals_parser(self):
+        self.optionals_parser = argparse_helpers.mangle_parser(arghparse.OptionalsParser())
+
+    def test_no_args(self):
+        args, unknown = self.optionals_parser.parse_known_optionals([])
+        assert vars(args) == {}
+        assert unknown == []
+
+    def test_only_positionals(self):
+        self.optionals_parser.add_argument('args')
+        args, unknown = self.optionals_parser.parse_known_optionals([])
+        assert vars(args) == {'args': None}
+        assert unknown == []
+
+    def test_optionals(self):
+        self.optionals_parser.add_argument('--opt1')
+        self.optionals_parser.add_argument('args')
+        parse = self.optionals_parser.parse_known_optionals
+
+        # no args
+        args, unknown = parse([])
+        assert args.opt1 is None
+        assert unknown == []
+
+        # only known optional
+        args, unknown = parse(['--opt1', 'yes'])
+        assert args.opt1 == 'yes'
+        assert unknown == []
+
+        # unknown optional
+        args, unknown = parse(['--foo'])
+        assert args.opt1 is None
+        assert unknown == ['--foo']
+
+        # unknown optional and positional
+        args, unknown = parse(['--foo', 'arg'])
+        assert args.opt1 is None
+        assert unknown == ['--foo', 'arg']
+
+        # known optional with unknown optional
+        args, unknown = parse(['--opt1', 'yes', '--foo'])
+        assert args.opt1 == 'yes'
+        assert unknown == ['--foo']
+        # different order
+        args, unknown = parse(['--foo', '--opt1', 'yes'])
+        assert args.opt1 == 'yes'
+        assert unknown == ['--foo']
+
+        # known optional with unknown positional
+        args, unknown = parse(['--opt1', 'yes', 'arg'])
+        assert args.opt1 == 'yes'
+        assert unknown == ['arg']
+        # known optionals parsing stops at the first positional arg
+        args, unknown = parse(['arg', '--opt1', 'yes'])
+        assert args.opt1 is None
+        assert unknown == ['arg', '--opt1', 'yes']
+
+
+class TestCsvActionsParser(object):
+
+    # TODO: move this to a generic argparse fixture
+    @pytest.fixture(autouse=True)
+    def __setup_csv_actions_parser(self):
+        self.csv_parser = argparse_helpers.mangle_parser(arghparse.CsvActionsParser())
+
+    def test_bad_action(self):
+        with pytest.raises(ValueError) as excinfo:
+            self.csv_parser.add_argument('--arg1', action='unknown')
+        assert 'unknown action "unknown"' == str(excinfo.value)
+
+    def test_csv_actions(self):
+        self.csv_parser.add_argument('--arg1', action='csv')
+        self.csv_parser.add_argument('--arg2', action='csv_append')
+        self.csv_parser.add_argument('--arg3', action='csv_negations')
+        self.csv_parser.add_argument('--arg4', action='csv_negations_append')
+        self.csv_parser.add_argument('--arg5', action='csv_elements')
+        self.csv_parser.add_argument('--arg6', action='csv_elements_append')
+
+
+class TestArgumentParser(TestCsvActionsParser, TestOptionalsParser):
 
     def test_debug(self):
         # debug passed
