@@ -139,6 +139,61 @@ class TestCopyableParser(object):
         args, unknown = new_parser.parse_known_args(['-1', '-2'])
         assert unknown == ['-1', '-2']
 
+    def test_argument_groups(self):
+        group = self.parser.add_argument_group('group')
+        new_parser = self.parser.copy()
+        new_group = new_parser.add_argument_group('new_group')
+
+        group.add_argument('-a')
+        new_group.add_argument('-b')
+
+        # only the new parser recognizes the added args
+        args, unknown = new_parser.parse_known_args(['-a', '1', '-b', '2'])
+        assert args.b == '2'
+        assert unknown == ['-a', '1']
+        # while the original parser does not
+        args, unknown = self.parser.parse_known_args(['-a', '1', '-b', '2'])
+        assert args.a == '1'
+        assert unknown == ['-b', '2']
+
+    def test_subparsers(self):
+        new_parser = self.parser.copy()
+        subparsers = self.parser.add_subparsers(description='subparsers')
+        new_subparsers = new_parser.add_subparsers(description='new_subparsers')
+
+        cmd = subparsers.add_parser('cmd')
+        cmd.add_argument('-a')
+        new_cmd = new_subparsers.add_parser('new_cmd')
+        new_cmd.add_argument('-b')
+
+        # no args
+        args = new_parser.parse_args([])
+        assert vars(args) == {}
+        args = self.parser.parse_args([])
+        assert vars(args) == {}
+
+        # only the respective parsers recognize their subcommands
+        with pytest.raises(argparse_helpers.Error) as excinfo:
+            args = new_parser.parse_args(['cmd'])
+        assert "choose from 'new_cmd'" in str(excinfo.value)
+        with pytest.raises(argparse_helpers.Error) as excinfo:
+            args = self.parser.parse_args(['new_cmd'])
+        assert "choose from 'cmd'" in str(excinfo.value)
+
+        # test subcommand arg parsing
+        args, unknown = self.parser.parse_known_args(['cmd', '-a', '1'])
+        assert args.a == '1'
+        assert unknown == []
+        args, unknown = self.parser.parse_known_args(['cmd', '-b', '1'])
+        assert unknown == ['-b', '1']
+
+        args, unknown = new_parser.parse_known_args(['new_cmd', '-a', '1'])
+        assert unknown == ['-a', '1']
+        args, unknown = new_parser.parse_known_args(['new_cmd', '-b', '1'])
+        assert args.b == '1'
+        assert unknown == []
+
+
     def test_defaults(self):
         self.parser.add_argument('--arg', default='abc')
         new_parser = self.parser.copy()
