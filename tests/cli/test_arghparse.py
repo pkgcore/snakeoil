@@ -81,35 +81,73 @@ class TestCopyableParser(object):
         new_parser = self.parser.copy()
 
         # only the new parser recognizes the added arg
-        new_parser.add_argument('--foo', action='store_true')
-        args, unknown = new_parser.parse_known_args(['--foo'])
-        assert args.foo
-        args, unknown = self.parser.parse_known_args(['--foo'])
-        assert unknown == ['--foo']
+        new_parser.add_argument('--new', action='store_true')
+        args, unknown = new_parser.parse_known_args(['--new'])
+        assert args.new
+        args, unknown = self.parser.parse_known_args(['--new'])
+        assert unknown == ['--new']
 
         # verify adding args to the old parser don't propagate
-        self.parser.add_argument('--bar', action='store_true')
-        args, unknown = new_parser.parse_known_args(['--bar'])
-        assert unknown == ['--bar']
-        args, unknown = self.parser.parse_known_args(['--bar'])
-        assert args.bar
+        self.parser.add_argument('--old', action='store_true')
+        args, unknown = new_parser.parse_known_args(['--old'])
+        assert unknown == ['--old']
+        args, unknown = self.parser.parse_known_args(['--old'])
+        assert args.old
 
     def test_add_positional_argument(self):
         new_parser = self.parser.copy()
 
         # only the new parser recognizes the added arg
-        new_parser.add_argument('foo')
+        new_parser.add_argument('new')
         args, unknown = new_parser.parse_known_args(['x'])
-        assert args.foo == 'x'
+        assert args.new == 'x'
         args, unknown = self.parser.parse_known_args(['x'])
+        assert 'new' not in args
         assert unknown == ['x']
 
         # verify adding args to the old parser don't propagate
-        self.parser.add_argument('bar', nargs='+')
+        self.parser.add_argument('old', nargs='+')
         args, unknown = new_parser.parse_known_args(['y'])
-        assert args.foo == 'y'
+        assert 'old' not in args
+        assert args.new == 'y'
         args, unknown = self.parser.parse_known_args(['y'])
-        assert args.bar == ['y']
+        assert 'new' not in args
+        assert args.old == ['y']
+
+    def test_mutually_exclusive_groups(self):
+        group = self.parser.add_mutually_exclusive_group()
+        new_parser = self.parser.copy()
+        new_group = new_parser.add_mutually_exclusive_group()
+
+        group.add_argument('-1')
+        group.add_argument('-2')
+        new_group.add_argument('-3')
+        new_group.add_argument('-4')
+
+        # only the new parser recognizes the added args
+        with pytest.raises(argparse_helpers.Error):
+            args, unknown = new_parser.parse_known_args(['-3', '-4'])
+        # while the original parser does not
+        args, unknown = self.parser.parse_known_args(['-3', '-4'])
+        assert unknown == ['-3', '-4']
+
+        # only the original parser recognizes the old group args
+        with pytest.raises(argparse_helpers.Error):
+            args, unknown = self.parser.parse_known_args(['-1', '-2'])
+        # while the new parser does not
+        args, unknown = new_parser.parse_known_args(['-1', '-2'])
+        assert unknown == ['-1', '-2']
+
+    def test_defaults(self):
+        self.parser.add_argument('--arg', default='abc')
+        new_parser = self.parser.copy()
+
+        # verify that new defaults don't propagate back to the original action
+        new_parser.set_defaults(arg='def')
+        args = self.parser.parse_args([])
+        assert args.arg == 'abc'
+        args = new_parser.parse_args([])
+        assert args.arg == 'def'
 
 
 class TestArgumentParser(object):
