@@ -881,12 +881,11 @@ class OptionalsParser(argparse.ArgumentParser):
         return namespace, extras
 
 
-class CustomActionsParser(argparse.ArgumentParser):
-    """Parser with custom actions registered for usage."""
+class CsvActionsParser(argparse.ArgumentParser):
+    """Parser with custom, CSV actions registered for usage."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # register our custom actions
         self.register('action', 'csv', CommaSeparatedValues)
         self.register('action', 'csv_append', CommaSeparatedValuesAppend)
         self.register('action', 'csv_negations', CommaSeparatedNegations)
@@ -937,7 +936,7 @@ class CopyableParser(argparse.ArgumentParser):
         return parser
 
 
-class ArgumentParser(OptionalsParser, CustomActionsParser):
+class ArgumentParser(OptionalsParser, CsvActionsParser):
     """Extended, argparse-compatible argument parser."""
 
     def __init__(self, suppress=False, color=True, debug=True, quiet=True,
