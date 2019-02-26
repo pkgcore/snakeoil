@@ -43,7 +43,7 @@ class TestSpawn(TempDir):
                 [1, ["blah\n", "dar\n"], "echo blah\necho dar\nexit 1", {}],
                 [0, [], "echo dar 1>&2", {"fd_pipes": {1: 1, 2: self.null}}]):
             fp = self.generate_script(filename, text)
-            assert [r, s] == spawn.spawn_get_output(fp, spawn_type=spawn.spawn_bash, **args)
+            assert (r, s) == spawn.spawn_get_output(fp, spawn_type=spawn.spawn_bash, **args)
         os.unlink(fp)
 
     @pytest.mark.skipif(not spawn.is_sandbox_capable(), reason="missing sandbox binary")
