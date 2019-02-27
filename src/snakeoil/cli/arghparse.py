@@ -224,7 +224,7 @@ class CommaSeparatedElementsAppend(CommaSeparatedElements):
         setattr(namespace, self.dest, combined)
 
 
-class _HelpAction(argparse._HelpAction):
+class ManHelpAction(argparse._HelpAction):
     """Display man pages for long --help option and abbreviated output for -h."""
 
     def __call__(self, parser, namespace, values, option_string=None):
@@ -1000,7 +1000,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
             base_opts = self.add_argument_group('base options')
             if add_help:
                 base_opts.add_argument(
-                    '-h', '--help', action=_HelpAction, default=argparse.SUPPRESS,
+                    '-h', '--help', action=ManHelpAction, default=argparse.SUPPRESS,
                     help='show this help message and exit',
                     docs="""
                         Show this help message and exit. To get more
