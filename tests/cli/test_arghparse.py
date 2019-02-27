@@ -591,3 +591,9 @@ class TestNamespace(object):
         self.parser.set_defaults(delayed=arghparse.DelayedValue(partial(_delayed_val, val=42)))
         namespace = self.parser.parse_args([])
         assert namespace.delayed == 42
+
+    def test_bool(self):
+        namespace = arghparse.Namespace()
+        assert not namespace
+        namespace.arg = 'foo'
+        assert namespace
