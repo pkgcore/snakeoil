@@ -607,7 +607,7 @@ class TestManHelpAction(object):
             # --help long option tries man page first before falling back to help output
             with pytest.raises(argparse_helpers.Exit):
                 namespace = parser.parse_args(['--help'])
-            popen.assert_called_once()
+            assert popen.call_count == 1
             assert popen.call_args[0][0][0] == 'man'
             captured = capsys.readouterr()
             assert captured.out.strip().startswith('usage: ')
@@ -616,7 +616,7 @@ class TestManHelpAction(object):
             # -h short option just displays the regular help output
             with pytest.raises(argparse_helpers.Exit):
                 namespace = parser.parse_args(['-h'])
-            popen.assert_not_called()
+            assert not popen.called
             captured = capsys.readouterr()
             assert captured.out.strip().startswith('usage: ')
             popen.reset_mock()
