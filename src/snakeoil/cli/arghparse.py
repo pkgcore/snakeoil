@@ -913,15 +913,14 @@ class CopyableParser(argparse.ArgumentParser):
 
         # create new actions for new parser so new settings don't propagate
         # back to the original actions
-        parser._actions = [argparse.Action(**dict(a._get_kwargs())) for a in self._actions]
+        parser._actions = [copy.copy(a) for a in self._actions]
 
         action_groups = []
         for group in self._action_groups:
             new_group = copy.copy(group)
             # create new actions for new group so new settings don't propagate
             # back to the original group
-            new_group._group_actions = [
-                argparse.Action(**dict(a._get_kwargs())) for a in group._group_actions]
+            new_group._group_actions = [copy.copy(a) for a in group._group_actions]
             for attr in self._attrs:
                 setattr(new_group, attr, getattr(parser, attr))
             action_groups.append(new_group)
