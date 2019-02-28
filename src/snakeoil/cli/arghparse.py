@@ -469,8 +469,8 @@ class _SubParser(argparse._SubParsersAction):
             getattr(namespace, argparse._UNRECOGNIZED_ARGS_ATTR).extend(arg_strings)
 
 
-class HelpFormatter(argparse.HelpFormatter):
-    """Add custom help formatting for comma-separated list actions."""
+class CsvHelpFormatter(argparse.HelpFormatter):
+    """Add custom help formatting for comma-separated value actions."""
 
     def _format_args(self, action, default_metavar):
         get_metavar = self._metavar_formatter(action, default_metavar)
@@ -485,7 +485,7 @@ class HelpFormatter(argparse.HelpFormatter):
         return result
 
 
-class SortedHelpFormatter(HelpFormatter):
+class SortedHelpFormatter(CsvHelpFormatter):
     """Help formatter that sorts arguments by option strings."""
 
     def add_arguments(self, actions):
@@ -987,7 +987,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
         if sorted_help:
             formatter = SortedHelpFormatter
         else:
-            formatter = HelpFormatter
+            formatter = CsvHelpFormatter
 
         super().__init__(
             description=description, formatter_class=formatter,
