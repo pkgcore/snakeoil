@@ -259,16 +259,6 @@ class SplitExec(object):
             return frame
 
 
-def splitexec(func):
-    """Decorator to run the decorated function in another process."""
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        with SplitExec():
-            return func(*args, **kwargs)
-    return wrapper
-
-
 class Namespace(SplitExec):
     """Context manager that provides Linux namespace support."""
 
@@ -282,18 +272,6 @@ class Namespace(SplitExec):
 
     def _child_setup(self):
         namespaces.simple_unshare(hostname=self._hostname, **self._namespaces)
-
-
-def namespace(**namespaces):
-    """Decorator to run the decorated function in a specified namespace."""
-
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            with Namespace(**namespaces):
-                return func(*args, **kwargs)
-        return wrapper
-    return decorator
 
 
 @contextmanager

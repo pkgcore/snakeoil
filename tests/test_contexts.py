@@ -9,7 +9,7 @@ import sys
 
 import pytest
 
-from snakeoil.contexts import chdir, syspath, namespace, splitexec, SplitExec, Namespace
+from snakeoil.contexts import chdir, syspath, SplitExec, Namespace
 
 
 def test_chdir(tmpdir):
@@ -106,17 +106,6 @@ class TestSplitExec(object):
         assert e.value.errno == errno.EBUSY
 
 
-class TestSplitExecDecorator(object):
-
-    def setup_method(self, method):
-        self.pid = os.getpid()
-
-    @splitexec
-    def test_separate_func_process(self):
-        # code inside the decorated func is run in a different process
-        assert self.pid != os.getpid()
-
-
 @pytest.mark.skipif(not sys.platform.startswith('linux'), reason='supported on Linux only')
 class TestNamespace(object):
 
@@ -137,35 +126,5 @@ class TestNamespace(object):
                 ns_hostname, _, ns_domainname = socket.getfqdn().partition('.')
                 assert ns_hostname == 'host'
                 assert ns_domainname == ''
-        except PermissionError:
-            pytest.skip('No permission to use user and uts namespace')
-
-
-@pytest.mark.skipif(not sys.platform.startswith('linux'), reason='supported on Linux only')
-class TestNamespaceDecorator(object):
-
-    @pytest.mark.skipif(not os.path.exists('/proc/self/ns/user'),
-                        reason='user namespace support required')
-    def test_user_namespace(self):
-        @namespace(user=True)
-        def do_test():
-            assert os.getuid() == 0
-
-        try:
-            do_test()
-        except PermissionError:
-            pytest.skip('No permission to use user namespace')
-
-    @pytest.mark.skipif(not (os.path.exists('/proc/self/ns/user') and os.path.exists('/proc/self/ns/uts')),
-                        reason='user and uts namespace support required')
-    def test_uts_namespace(self):
-        @namespace(user=True, uts=True, hostname='host')
-        def do_test():
-            ns_hostname, _, ns_domainname = socket.getfqdn().partition('.')
-            assert ns_hostname == 'host'
-            assert ns_domainname == ''
-
-        try:
-            do_test()
         except PermissionError:
             pytest.skip('No permission to use user and uts namespace')
