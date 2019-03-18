@@ -6,7 +6,7 @@ import shlex
 
 from .. import klass
 from ..cli.exceptions import UserException
-from ..process import find_binary
+from ..process import find_binary, CommandNotFound
 from ..process.spawn import spawn_get_output
 
 
