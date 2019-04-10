@@ -141,6 +141,19 @@ class _CompressedFile(ArComp):
             raise ArCompError(msg, code=ret)
 
 
+class _CompressedStdin(ArComp):
+    """Compressed data from stdin."""
+
+    def unpack(self, dest=None, **kwargs):
+        cmd = shlex.split(self._unpack_cmd)
+        with open(self.path, 'rb') as src, open(dest, 'wb') as f:
+            ret, output = spawn_get_output(
+                cmd, collect_fds=(2,), fd_pipes={0: src.fileno(), 1: f.fileno()}, **kwargs)
+        if ret:
+            msg = '\n'.join(output) if output else 'unpacking failed: %r' % (self.path,)
+            raise ArCompError(msg, code=ret)
+
+
 class _Tar(_Archive, metaclass=_RegisterCompressionFormat):
 
     exts = ('.tar',)
@@ -197,25 +210,25 @@ class _Zip(_Archive, metaclass=_RegisterCompressionFormat):
     default_unpack_cmd = '{binary} -qo "{path}"'
 
 
-class _GZ(_CompressedFile, metaclass=_RegisterCompressionFormat):
+class _GZ(_CompressedStdin, metaclass=_RegisterCompressionFormat):
 
     exts = ('.gz', '.Z', '.z')
     binary = ('pigz', 'gzip')
-    default_unpack_cmd = '{binary} -d -c "{path}"'
+    default_unpack_cmd = '{binary} -d -c'
 
 
-class _BZ2(_CompressedFile, metaclass=_RegisterCompressionFormat):
+class _BZ2(_CompressedStdin, metaclass=_RegisterCompressionFormat):
 
     exts = ('.bz2', '.bz')
     binary = ('lbzip2', 'pbzip2', 'bzip2')
-    default_unpack_cmd = '{binary} -d -c "{path}"'
+    default_unpack_cmd = '{binary} -d -c'
 
 
-class _XZ(_CompressedFile, metaclass=_RegisterCompressionFormat):
+class _XZ(_CompressedStdin, metaclass=_RegisterCompressionFormat):
 
     exts = ('.xz',)
     binary = ('pixz', 'xz')
-    default_unpack_cmd = '{binary} -d "{path}"'
+    default_unpack_cmd = '{binary} -d -c'
 
 
 class _7Z(_Archive, metaclass=_RegisterCompressionFormat):
