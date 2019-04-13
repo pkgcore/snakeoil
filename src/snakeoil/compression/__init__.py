@@ -72,7 +72,7 @@ class _RegisterCompressionFormat(type):
         new_cls = type.__new__(cls, name, bases, class_dict)
         if not all((new_cls.binary, new_cls.default_unpack_cmd)):
             raise ValueError('class missing required attrs: %r' % (new_cls,))
-        cls.formats[frozenset(new_cls.exts)] = new_cls
+        cls.exts[frozenset(new_cls.exts)] = new_cls
         return new_cls
 
 
@@ -82,16 +82,16 @@ class ArComp(object):
     binary = None
     default_unpack_cmd = None
 
-    def __new__(cls, *args, type, **kwargs):
-        for formats, archive_cls in _RegisterCompressionFormat.formats.items():
-            if type in formats:
+    def __new__(cls, *args, ext, **kwargs):
+        for exts, archive_cls in _RegisterCompressionFormat.exts.items():
+            if ext in exts:
                 cls = archive_cls
                 break
         else:
-            raise ArCompError('unknown compression format: %r' % (type,))
+            raise ArCompError('unknown compression file extension: %r' % (ext,))
         return super(ArComp, cls).__new__(cls)
 
-    def __init__(self, path, type=None):
+    def __init__(self, path, ext=None):
         self.path = path
 
     @klass.jit_attr
