@@ -66,7 +66,7 @@ class ArCompError(UserException):
 class _RegisterCompressionFormat(type):
     """Metaclass for registering archive formats."""
 
-    formats = {}
+    exts = {}
 
     def __new__(cls, name, bases, class_dict):
         new_cls = type.__new__(cls, name, bases, class_dict)
