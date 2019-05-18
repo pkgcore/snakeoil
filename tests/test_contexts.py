@@ -59,9 +59,13 @@ class TestSplitExec(object):
 
     def test_context_exit_status(self):
         # exit status of the child process is available as a context attr
+        with SplitExec() as c:
+            pass
+        assert c.exit_status == 0
+
         exit_status = random.randint(1, 255)
         with SplitExec() as c:
-            os._exit(exit_status)
+            sys.exit(exit_status)
         assert c.exit_status == exit_status
 
     def test_context_locals(self):
