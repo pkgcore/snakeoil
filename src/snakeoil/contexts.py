@@ -111,7 +111,12 @@ class SplitExec(object):
                 pass
             else:
                 raise
-        os._exit(0)  # pylint: disable=W0212
+
+        if isinstance(exc, SystemExit) and exc.code is not None:
+            code = exc.code
+        else:
+            code = 0
+        os._exit(code)  # pylint: disable=W0212
 
     def __enter__(self):
         parent_pipe, child_pipe = Pipe()
