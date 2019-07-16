@@ -40,8 +40,9 @@ class Tool(object):
         if outfile is None:
             if sys.stdout.isatty():
                 outfile = sys.stdout
-            else:
-                # if redirecting/piping stdout use line buffering
+            elif sys.stdout == sys.__stdout__:
+                # if redirecting/piping stdout use line buffering, skip if
+                # stdout has been set to some non-standard object
                 outfile = os.fdopen(sys.stdout.fileno(), 'w', 1)
         if errfile is None:
             errfile = sys.stderr
