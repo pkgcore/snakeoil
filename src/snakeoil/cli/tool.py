@@ -11,6 +11,8 @@ import sys
 
 from .exceptions import ExitException, find_user_exception
 from .. import formatters
+from ..contexts import nullcontext
+from ..log import suppress_logging
 from ..demandload import demandload
 
 demandload(
@@ -160,9 +162,16 @@ class Tool(object):
         # ignore broken pipes
         signal(SIGPIPE, SIG_DFL)
 
+        # suppress warning level log output and below in regular mode
+        if self.parser.verbosity > 0 or self.parser.debug:
+            suppress_warnings = nullcontext()
+        else:
+            suppress_warnings = suppress_logging(logging.WARNING)
+
         try:
-            self.options, func = self.parse_args(args=self.args, namespace=self.options)
-            exitstatus = func(self.options, self.out, self.err)
+            with suppress_warnings:
+                self.options, func = self.parse_args(args=self.args, namespace=self.options)
+                exitstatus = func(self.options, self.out, self.err)
         except SystemExit as e:
             # handle argparse or other third party modules using sys.exit internally
             exitstatus = e.code
