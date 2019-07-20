@@ -162,8 +162,8 @@ class Tool(object):
         # ignore broken pipes
         signal(SIGPIPE, SIG_DFL)
 
-        # suppress warning level log output and below in regular mode
-        if self.parser.verbosity > 0 or self.parser.debug:
+        # suppress warning level log output and below in quiet mode
+        if self.parser.verbosity >= 0 or self.parser.debug:
             suppress_warnings = nullcontext()
         else:
             suppress_warnings = suppress_logging(logging.WARNING)
