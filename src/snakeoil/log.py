@@ -23,7 +23,7 @@ def suppress_logging(level=logging.CRITICAL):
 
     :param level: logging level and below to suppress
     """
-    orig_level = logging.root.getEffectiveLevel()
+    orig_level = logging.root.manager.disable
     logging.disable(level)
     try:
         yield
