@@ -235,7 +235,7 @@ class ManHelpAction(argparse._HelpAction):
             # man page, but `pinspect profile masks --help` also tries to open
             # pinspect-profile.
             man_page = '-'.join(parser.prog.split()[:2])
-            p = subprocess.Popen(['man', man_page])
+            p = subprocess.Popen(['man', man_page], stderr=subprocess.DEVNULL)
             p.communicate()
             if p.returncode == 0:
                 parser.exit()
