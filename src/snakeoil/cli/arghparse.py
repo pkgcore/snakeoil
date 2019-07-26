@@ -945,6 +945,9 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
         self.verbosity = int(verbose)
         if self.verbosity:
             argv = Counter(sys.argv[1:])
+            # Only supports single, short opts (i.e. -vv isn't recognized),
+            # post argparsing the proper value supporting those kind of args is
+            # in the options namespace.
             self.verbosity = sum(chain.from_iterable((
                 (-1 for x in range(argv['-q'] + argv['--quiet'])),
                 (1 for x in range(argv['-v'] + argv['--verbose'])),
