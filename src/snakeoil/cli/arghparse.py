@@ -303,7 +303,11 @@ class Verbosity(argparse.Action):
         count = getattr(namespace, self.dest, None)
         if count is None:
             count = 0
-        setattr(namespace, self.dest, count + change)
+        new = count + change
+        # enable info level logs when running in a heightened verbosity state
+        if new >= 2:
+            logging.root.setLevel(logging.INFO)
+        setattr(namespace, self.dest, new)
 
 
 class DelayedValue(object):
