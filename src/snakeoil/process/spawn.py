@@ -320,6 +320,7 @@ def _exec(binary, mycommand, name=None, fd_pipes=None, env=None, gid=None,
     # unneeded, but being paranoid should spawn grow a spawn_func target again.
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     signal.signal(signal.SIGTERM, signal.SIG_DFL)
+    signal.signal(signal.SIGCHLD, signal.SIG_DFL)
 
     # And switch to the new process.
     os.execve(binary, myargs, env)
