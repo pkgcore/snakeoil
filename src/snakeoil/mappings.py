@@ -312,7 +312,7 @@ class ImmutableDict(dict):
 
     def __delitem__(self, *args):
         raise TypeError(
-            "unmodifiable dict: {!r}: can't remove {!r}".format(self, args))
+            f"unmodifiable dict: {self!r}: can't remove {args!r}")
 
     __setitem__ = clear = update = pop = popitem = setdefault = __delitem__
 
@@ -359,7 +359,7 @@ class IndeterminantDict(object):
 
     def __delitem__(self, *args):
         raise TypeError(
-            "unmodifiable dict: {!r}: can't remove {!r}".format(self, args))
+            f"unmodifiable dict: {self!r}: can't remove {args!r}")
 
     pop = get
 

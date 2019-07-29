@@ -33,10 +33,10 @@ def get_version(project, repo_file, api_version=None):
             try:
                 api_version = getattr(import_module(project), '__version__')
             except ImportError:
-                raise ValueError('no %s module in the syspath' % (project,))
+                raise ValueError(f'no {project} module in the syspath')
         try:
-            version_info = getattr(import_module(
-                '%s._verinfo' % (project,)), 'version_info')
+            version_info = getattr(
+                import_module(f'{project}._verinfo'), 'version_info')
         except ImportError:
             # we're probably in a git repo
             path = os.path.dirname(os.path.abspath(repo_file))
@@ -45,15 +45,15 @@ def get_version(project, repo_file, api_version=None):
         if version_info is None:
             s = " -- extended version info unavailable"
         elif version_info['tag'] == api_version:
-            s = ' -- released %s' % (version_info['date'],)
+            s = f" -- released {version_info['date']}"
         else:
             rev = version_info['rev'][:7]
             date = version_info['date']
             commits = version_info.get('commits', None)
-            commits = '-%s' % commits if commits is not None else ''
-            s = ('%s-g%s -- %s' % (commits, rev, date))
+            commits = f'-{commits}' if commits is not None else ''
+            s = f'{commits}-g{rev} -- {date}'
 
-        _ver = '%s %s%s' % (project, api_version, s)
+        _ver = f'{project} {api_version}{s}'
     return _ver
 
 
@@ -88,7 +88,7 @@ def get_git_version(path):
         if ret == 0:
             prev_tag = stdout.decode().strip()
             stdout, ret = _run_git(
-                path, ['log', '--oneline', '{}..HEAD'.format(prev_tag)])
+                path, ['log', '--oneline', f'{prev_tag}..HEAD'])
             if ret == 0:
                 commits = len(stdout.decode().splitlines())
 

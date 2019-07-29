@@ -124,7 +124,7 @@ def module_version(moduledir=MODULEDIR):
             raise
 
     if version is None:
-        raise RuntimeError('Cannot find version for module: %s' % (MODULE_NAME,))
+        raise RuntimeError(f'Cannot find version for module: {MODULE_NAME}')
 
     # use versioning scheme similar to setuptools_scm for untagged versions
     git_version = get_git_version(REPODIR)
@@ -135,10 +135,10 @@ def module_version(moduledir=MODULEDIR):
             rev = git_version['rev'][:7]
             date = datetime.strptime(git_version['date'], '%a, %d %b %Y %H:%M:%S %z')
             date = datetime.strftime(date, '%Y%m%d')
-            version += ".dev{}+g{}.d{}".format(commits, rev, date)
+            version += f".dev{commits}+g{rev}.d{date}"
         elif tag != version:
             raise DistutilsError(
-                'unmatched git tag %r and %s version %r' % (tag, MODULE_NAME, version))
+                f'unmatched git tag {tag!r} and {MODULE_NAME} version {version!r}')
 
     return version
 
@@ -151,7 +151,7 @@ def generate_verinfo(target_dir):
     """
     data = get_git_version(REPODIR)
     path = os.path.join(target_dir, '_verinfo.py')
-    log.info('generating version info: %s' % path)
+    log.info(f'generating version info: {path}')
     with open(path, 'w') as f:
         f.write('version_info=%r' % (data,))
     return path
@@ -292,7 +292,7 @@ def pkg_config(*packages, **kw):
         tokens = subprocess.check_output(
             ['pkg-config', '--libs', '--cflags'] + list(packages)).split()
     except OSError as e:
-        sys.stderr.write('running pkg-config failed: {}\n'.format(e.strerror))
+        sys.stderr.write(f'running pkg-config failed: {e.strerror}\n')
         sys.exit(1)
 
     for token in tokens:
@@ -571,8 +571,7 @@ class build_docs(Command):
     def skip(self):
         # don't rebuild if one of the output dirs exist
         if any(os.path.exists(x) for x in self.content_search_path):
-            log.info('%s: already built, skipping regeneration...' %
-                     (self.__class__.__name__,))
+            log.info(f'{self.__class__.__name__}: already built, skipping regeneration...')
             return True
         return False
 
@@ -616,7 +615,7 @@ class build_docs(Command):
         else:
             # build all docs
             for target in ('man', 'html'):
-                cmd = 'build_{}'.format(target)
+                cmd = f'build_{target}'
                 build_cmd = self.reinitialize_command(cmd)
                 build_cmd.ensure_finalized()
                 build_cmd.build()
@@ -753,9 +752,9 @@ class build_ext(dst_build_ext.build_ext):
                 val = getattr(self.compiler, x)
                 for d, result in self.distribution.check_defines.items():
                     if result:
-                        val.append('-D%s=1' % d)
+                        val.append(f'-D{d}=1')
                     else:
-                        val.append('-U%s' % d)
+                        val.append(f'-U{d}')
         return dst_build_ext.build_ext.build_extensions(self)
 
 
@@ -772,12 +771,12 @@ class build_scripts(dst_build_scripts.build_scripts):
     def run(self):
         for script in self.scripts:
             with open(script, 'w') as f:
-                f.write(textwrap.dedent("""\
-                    #!%s
+                f.write(textwrap.dedent(f"""\
+                    #!{sys.executable}
                     from os.path import basename
-                    from %s import scripts
+                    from {MODULE_NAME} import scripts
                     scripts.run(basename(__file__))
-                """ % (sys.executable, MODULE_NAME)))
+                """))
         self.copy_scripts()
 
 
@@ -845,7 +844,7 @@ class install_docs(Command):
         if self.docdir is None:
             self.docdir = os.path.join(
                 self.prefix, 'share', 'doc',
-                MODULE_NAME + '-{}'.format(module_version()),
+                MODULE_NAME + f'-{module_version()}',
             )
         if self.htmldir is None:
             self.htmldir = os.path.join(self.docdir, 'html')
@@ -904,7 +903,7 @@ class install_docs(Command):
         else:
             # install all docs that have been generated
             for target in ('man', 'html'):
-                cmd = 'install_{}'.format(target)
+                cmd = f'install_{target}'
                 install_cmd = self.reinitialize_command(cmd)
                 install_cmd.docdir = self.docdir
                 install_cmd.htmldir = self.htmldir
@@ -913,7 +912,7 @@ class install_docs(Command):
                 try:
                     install_cmd.install()
                 except DistutilsExecError:
-                    log.info('built {} pages missing, skipping install'.format(target))
+                    log.info(f'built {target} pages missing, skipping install')
 
 
 class install_html(install_docs):
@@ -946,7 +945,7 @@ class install_man(install_docs):
                 # Only consider extensions .1, .2, .3, etc, and files that
                 # have at least a single char beyond the extension (thus ignore
                 # .1, but allow a.1).
-                d[x] = 'man%s/%s' % (x[-1], os.path.basename(x))
+                d[x] = f'man{x[-1]}/{os.path.basename(x)}'
         return d
 
 
@@ -1032,7 +1031,7 @@ class test(Command):
         ("include-dirs=", "I", "include dirs for build_ext if needed"),
     ]
 
-    default_test_namespace = '%s.test' % MODULE_NAME
+    default_test_namespace = f'{MODULE_NAME}.test'
 
     def initialize_options(self):
         self.inplace = False
@@ -1249,10 +1248,10 @@ def print_check(message, if_yes='found', if_no='not found'):
     """Decorator to print pre/post-check messages."""
     def sub_decorator(f):
         def sub_func(*args, **kwargs):
-            sys.stderr.write('-- %s\n' % (message,))
+            sys.stderr.write(f'-- {message}\n')
             result = f(*args, **kwargs)
-            sys.stderr.write(
-                '-- %s -- %s\n' % (message, if_yes if result else if_no))
+            result_output = if_yes if result else if_no
+            sys.stderr.write(f'-- {message} -- {result_output}\n')
             return result
         sub_func.pkgdist_config_decorated = True
         return sub_func
@@ -1326,7 +1325,7 @@ class config(dst_config.config):
             cache_db = {}
         else:
             if self._cache_env_key() == cache_db.get('env_key'):
-                sys.stderr.write('-- Using cache from %s\n' % self.cache_path)
+                sys.stderr.write(f'-- Using cache: {self.cache_path}\n')
             else:
                 sys.stderr.write('-- Build environment changed, discarding cache\n')
                 cache_db = {}
@@ -1413,7 +1412,7 @@ def get_git_version(path):
         if ret == 0:
             prev_tag = stdout.decode().strip()
             stdout, ret = _run_git(
-                path, ['log', '--oneline', '{}..HEAD'.format(prev_tag)])
+                path, ['log', '--oneline', f'{prev_tag}..HEAD'])
             if ret == 0:
                 commits = len(stdout.decode().splitlines())
 

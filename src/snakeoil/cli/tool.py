@@ -191,9 +191,9 @@ class Tool(object):
         if self.options is not None:
             # set terminal title on exit
             if exitstatus:
-                self.out.title('%s failed' % (self.options.prog,))
+                self.out.title(f'{self.options.prog} failed')
             else:
-                self.out.title('%s succeeded' % (self.options.prog,))
+                self.out.title(f'{self.options.prog} succeeded')
 
         return exitstatus
 
