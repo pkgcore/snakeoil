@@ -1131,7 +1131,9 @@ class pytest(Command):
     def finalize_options(self):
         # if a test dir isn't specified explicitly try to find one
         if self.test_dir is None:
-            for path in (os.path.join(REPODIR, 'test'),
+            for path in (os.path.join(REPODIR, 'test', 'module'),
+                         os.path.join(REPODIR, 'test'),
+                         os.path.join(REPODIR, 'tests', 'module'),
                          os.path.join(REPODIR, 'tests'),
                          os.path.join(MODULEDIR, 'test'),
                          os.path.join(MODULEDIR, 'tests')):
