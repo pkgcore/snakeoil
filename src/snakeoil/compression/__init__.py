@@ -72,7 +72,7 @@ class _RegisterCompressionFormat(type):
         new_cls = type.__new__(cls, name, bases, class_dict)
         if not all((new_cls.binary, new_cls.default_unpack_cmd)):
             raise ValueError('class missing required attrs: %r' % (new_cls,))
-        cls.exts[frozenset(new_cls.exts)] = new_cls
+        cls.exts[new_cls.exts] = new_cls
         return new_cls
 
 
@@ -156,7 +156,7 @@ class _CompressedStdin(ArComp):
 
 class _Tar(_Archive, metaclass=_RegisterCompressionFormat):
 
-    exts = ('.tar',)
+    exts = frozenset(['.tar'])
     binary = ('tar',)
     compress_binary = None
     default_unpack_cmd = '{binary} xf "{path}"'
@@ -181,86 +181,86 @@ class _Tar(_Archive, metaclass=_RegisterCompressionFormat):
 
 class _TarGZ(_Tar, metaclass=_RegisterCompressionFormat):
 
-    exts = ('.tar.gz', '.tgz', '.tar.Z', '.tar.z')
+    exts = frozenset(['.tar.gz', '.tgz', '.tar.Z', '.tar.z'])
     compress_binary = ('pigz', 'gzip')
 
 
 class _TarBZ2(_Tar, metaclass=_RegisterCompressionFormat):
 
-    exts = ('.tar.bz2', '.tbz2', '.tbz')
+    exts = frozenset(['.tar.bz2', '.tbz2', '.tbz'])
     compress_binary = ('lbzip2', 'pbzip2', 'bzip2')
 
 
 class _TarLZMA(_Tar, metaclass=_RegisterCompressionFormat):
 
-    exts = ('.tar.lzma',)
+    exts = frozenset(['.tar.lzma'])
     compress_binary = ('lzma',)
 
 
 class _TarXZ(_Tar, metaclass=_RegisterCompressionFormat):
 
-    exts = ('.tar.xz', '.txz')
+    exts = frozenset(['.tar.xz', '.txz'])
     compress_binary = ('pixz', 'xz')
 
 
 class _Zip(_Archive, metaclass=_RegisterCompressionFormat):
 
-    exts = ('.ZIP', '.zip', '.jar')
+    exts = frozenset(['.ZIP', '.zip', '.jar'])
     binary = ('unzip',)
     default_unpack_cmd = '{binary} -qo "{path}"'
 
 
 class _GZ(_CompressedStdin, metaclass=_RegisterCompressionFormat):
 
-    exts = ('.gz', '.Z', '.z')
+    exts = frozenset(['.gz', '.Z', '.z'])
     binary = ('pigz', 'gzip')
     default_unpack_cmd = '{binary} -d -c'
 
 
 class _BZ2(_CompressedStdin, metaclass=_RegisterCompressionFormat):
 
-    exts = ('.bz2', '.bz')
+    exts = frozenset(['.bz2', '.bz'])
     binary = ('lbzip2', 'pbzip2', 'bzip2')
     default_unpack_cmd = '{binary} -d -c'
 
 
 class _XZ(_CompressedStdin, metaclass=_RegisterCompressionFormat):
 
-    exts = ('.xz',)
+    exts = frozenset(['.xz'])
     binary = ('pixz', 'xz')
     default_unpack_cmd = '{binary} -d -c'
 
 
 class _7Z(_Archive, metaclass=_RegisterCompressionFormat):
 
-    exts = ('.7Z', '.7z')
+    exts = frozenset(['.7Z', '.7z'])
     binary = ('7z',)
     default_unpack_cmd = '{binary} x -y "{path}"'
 
 
 class _Rar(_Archive, metaclass=_RegisterCompressionFormat):
 
-    exts = ('.RAR', '.rar')
+    exts = frozenset(['.RAR', '.rar'])
     binary = ('unrar',)
     default_unpack_cmd = '{binary} x -idq -o+ "{path}"'
 
 
 class _LHA(_Archive, metaclass=_RegisterCompressionFormat):
 
-    exts = ('.LHa', '.LHA', '.lha', '.lzh')
+    exts = frozenset(['.LHa', '.LHA', '.lha', '.lzh'])
     binary = ('lha',)
     default_unpack_cmd = '{binary} xfq "{path}"'
 
 
 class _Ar(_Archive, metaclass=_RegisterCompressionFormat):
 
-    exts = ('.a', '.deb')
+    exts = frozenset(['.a', '.deb'])
     binary = ('ar',)
     default_unpack_cmd = '{binary} x "{path}"'
 
 
 class _LZMA(_CompressedFile, metaclass=_RegisterCompressionFormat):
 
-    exts = ('.lzma',)
+    exts = frozenset(['.lzma'])
     binary = ('lzma',)
     default_unpack_cmd = '{binary} -dc "{path}"'
