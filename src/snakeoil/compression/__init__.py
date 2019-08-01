@@ -17,7 +17,7 @@ class _transform_source(object):
 
     @klass.jit_attr
     def module(self):
-        return import_module('snakeoil.compression._%s' % (self.name,))
+        return import_module(f'snakeoil.compression._{self.name}')
 
     @klass.jit_attr
     def parallelizable(self):
@@ -71,7 +71,7 @@ class _RegisterCompressionFormat(type):
     def __new__(cls, name, bases, class_dict):
         new_cls = type.__new__(cls, name, bases, class_dict)
         if not all((new_cls.binary, new_cls.default_unpack_cmd)):
-            raise ValueError('class missing required attrs: %r' % (new_cls,))
+            raise ValueError(f'class missing required attrs: {new_cls!r}')
         cls.exts[new_cls.exts] = new_cls
         return new_cls
 
@@ -88,7 +88,7 @@ class ArComp(object):
                 cls = archive_cls
                 break
         else:
-            raise ArCompError('unknown compression file extension: %r' % (ext,))
+            raise ArCompError(f'unknown compression file extension: {ext!r}')
         return super(ArComp, cls).__new__(cls)
 
     def __init__(self, path, ext=None):
@@ -105,8 +105,7 @@ class ArComp(object):
         else:
             choices = ', '.join(self.binary)
             raise ArCompError(
-                'required binary not found from the '
-                'following choices: %s' % (choices,))
+                f'required binary not found from the following choices: {choices}')
         cmd = self.default_unpack_cmd.format(binary=binary, path=self.path)
         return cmd
 
@@ -124,7 +123,7 @@ class _Archive(ArComp):
         cmd = shlex.split(self._unpack_cmd.format(path=self.path))
         ret, output = spawn_get_output(cmd, collect_fds=(2,), **kwargs)
         if ret:
-            msg = '\n'.join(output) if output else 'unpacking failed: %r' % (self.path,)
+            msg = '\n'.join(output) if output else f'unpacking failed: {self.path!r}'
             raise ArCompError(msg, code=ret)
 
 
@@ -137,7 +136,7 @@ class _CompressedFile(ArComp):
             ret, output = spawn_get_output(
                 cmd, collect_fds=(2,), fd_pipes={1: f.fileno()}, **kwargs)
         if ret:
-            msg = '\n'.join(output) if output else 'unpacking failed: %r' % (self.path,)
+            msg = '\n'.join(output) if output else f'unpacking failed: {self.path!r}'
             raise ArCompError(msg, code=ret)
 
 
@@ -150,7 +149,7 @@ class _CompressedStdin(ArComp):
             ret, output = spawn_get_output(
                 cmd, collect_fds=(2,), fd_pipes={0: src.fileno(), 1: f.fileno()}, **kwargs)
         if ret:
-            msg = '\n'.join(output) if output else 'unpacking failed: %r' % (self.path,)
+            msg = '\n'.join(output) if output else f'unpacking failed: {self.path!r}'
             raise ArCompError(msg, code=ret)
 
 
@@ -167,7 +166,8 @@ class _Tar(_Archive, metaclass=_RegisterCompressionFormat):
         if self.compress_binary is not None:
             for b in self.compress_binary:
                 try:
-                    cmd += ' --use-compress-program="%s"' % (find_binary(b),)
+                    binary = find_binary(b)
+                    cmd += f' --use-compress-program={b}'
                     break
                 except CommandNotFound:
                     continue
@@ -175,7 +175,7 @@ class _Tar(_Archive, metaclass=_RegisterCompressionFormat):
                 choices = ', '.join(self.compress_binary)
                 raise ArCompError(
                     'no compression binary found from the '
-                    'following choices: %s' % (choices,))
+                    f'following choices: {choices}')
         return cmd
 
 
