@@ -1083,7 +1083,8 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
     def _parse_known_args(self, arg_strings, namespace):
         """Add support for using a specified, default subparser."""
         # parse base command options so selected subparser is the first remaining arg
-        namespace, arg_strings = super().parse_known_optionals(arg_strings, namespace)
+        if self.__default_subparser is not None:
+            namespace, arg_strings = super().parse_known_optionals(arg_strings, namespace)
 
         skip_subparser_fallback = (
             self.__default_subparser is None or  # no default requested
