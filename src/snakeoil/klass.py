@@ -15,7 +15,7 @@ __all__ = (
     "jit_attr_named", "jit_attr_ext_method", "alias_attr", "cached_hash",
     "cached_property", "cached_property_named",
     "steal_docs", "immutable_instance", "inject_immutable_instance",
-    "alias_method", "aliased", "alias", "patch",
+    "alias_method", "aliased", "alias", "patch", "SlotsPicklingMixin",
 )
 
 from collections import deque
@@ -27,7 +27,10 @@ from . import caching, compatibility
 from .currying import post_curry
 from .demandload import demandload
 
-demandload('inspect')
+demandload(
+    'inspect',
+    'itertools',
+)
 
 
 def native_GetAttrProxy(target):
@@ -763,3 +766,23 @@ def aliased(cls):
             for alias in method._aliases:
                 setattr(cls, alias, method)
     return cls
+
+
+class SlotsPicklingMixin(object):
+    """Default pickling support for classes that use __slots__."""
+
+    __slots__ = ()
+
+    def __init__(self):
+        assert hasattr(self, '__slots__')
+
+    def __getstate__(self):
+        all_slots = itertools.chain.from_iterable(
+            getattr(t, '__slots__', ()) for t in type(self).__mro__)
+        state = {attr: getattr(self, attr) for attr in all_slots
+                if hasattr(self, attr) and attr != '__weakref__'}
+        return state
+
+    def __setstate__(self, state):
+        for k, v in state.items():
+            object.__setattr__(self, k, v)
