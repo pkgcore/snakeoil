@@ -13,6 +13,7 @@ __all__ = (
 )
 
 from collections import defaultdict
+from functools import partial
 from itertools import chain, filterfalse
 import operator
 
@@ -310,11 +311,12 @@ class ImmutableDict(dict):
 
     _hash_key_grabber = operator.itemgetter(0)
 
-    def __delitem__(self, *args):
-        raise TypeError(
-            f"unmodifiable dict: {self!r}: can't remove {args!r}")
+    def __unmodifiable(func, *args):
+        raise TypeError(f"unmodifiable dict: '{func}()' can't modify {args!r}")
 
-    __setitem__ = clear = update = pop = popitem = setdefault = __delitem__
+    for func in ('__delitem__', '__setitem__', '__delattr__', '__setattr__',
+                 'clear', 'update', 'pop', 'popitem', 'setdefault'):
+        locals()[func] = partial(__unmodifiable, func)
 
     def __hash__(self):
         k = list(self.items())
@@ -357,14 +359,17 @@ class IndeterminantDict(object):
     def __hash__(self):
         raise TypeError("unhashable")
 
-    def __delitem__(self, *args):
-        raise TypeError(
-            f"unmodifiable dict: {self!r}: can't remove {args!r}")
-
     pop = get
 
-    clear = update = popitem = setdefault = __setitem__ = __delitem__
-    __iter__ = keys = values = items = __len__ = __delitem__
+    def __unmodifiable(func, *args):
+        raise TypeError(f"indeterminate dict: '{func}()' can't modify {args!r}")
+    for func in ('__delitem__', '__setitem__', 'setdefault', 'popitem', 'update', 'clear'):
+        locals()[func] = partial(__unmodifiable, func)
+
+    def __indeterminate(func, *args):
+        raise TypeError(f"indeterminate dict: '{func}()' is inaccessible")
+    for func in ('__iter__', '__len__', 'keys', 'values', 'items'):
+        locals()[func] = partial(__indeterminate, func)
 
 
 class StackedDict(DictMixin):
