@@ -225,15 +225,31 @@ class TestImmutableDict(object):
 
     def test_invalid_operations(self):
         initial_hash = hash(self.dict)
-        pytest.raises(TypeError, operator.delitem, self.dict, 1)
-        pytest.raises(TypeError, operator.delitem, self.dict, 7)
-        pytest.raises(TypeError, operator.setitem, self.dict, 1, -1)
-        pytest.raises(TypeError, operator.setitem, self.dict, 7, -7)
-        pytest.raises(TypeError, self.dict.clear)
-        pytest.raises(TypeError, self.dict.update, {6: -6})
-        pytest.raises(TypeError, self.dict.pop, 1)
-        pytest.raises(TypeError, self.dict.popitem)
-        pytest.raises(TypeError, self.dict.setdefault, 6, -6)
+
+        # __delitem__ isn't allowed
+        with pytest.raises(TypeError):
+            del self.dict[1]
+        with pytest.raises(TypeError):
+            del self.dict[7]
+
+        # __setitem__ isn't allowed
+        with pytest.raises(TypeError):
+            self.dict[1] = -1
+        with pytest.raises(TypeError):
+            self.dict[7] = -7
+
+        # modifying operators aren't defined
+        with pytest.raises(AttributeError):
+            self.dict.clear()
+        with pytest.raises(AttributeError):
+            self.dict.update({6: -6})
+        with pytest.raises(AttributeError):
+            self.dict.pop(1)
+        with pytest.raises(AttributeError):
+            self.dict.popitem()
+        with pytest.raises(AttributeError):
+            self.dict.setdefault(6, -6)
+
         assert initial_hash == hash(self.dict)
 
 

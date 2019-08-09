@@ -13,6 +13,7 @@ __all__ = (
 )
 
 from collections import defaultdict
+from collections.abc import Mapping
 from functools import partial
 from itertools import chain, filterfalse
 import operator
@@ -303,28 +304,49 @@ class ProtectedDict(DictMixin):
                                    key in self.orig)
 
 
-class ImmutableDict(dict):
-    """Immutable Dict, unchangeable after instantiating.
+class ImmutableDict(Mapping):
+    """Immutable dict, unchangeable after instantiating.
 
     Because this is immutable, it's hashable.
     """
 
+    def __init__(self, data=None):
+        if isinstance(data, ImmutableDict):
+            mapping = data._dict
+        elif isinstance(data, Mapping):
+            mapping = data
+        elif isinstance(data, DictMixin):
+            mapping = {k: v for k, v in data.items()}
+        elif data is None:
+            mapping = {}
+        else:
+            try:
+                mapping = {k: v for k, v in data}
+            except (TypeError, ValueError):
+                raise TypeError(f'unsupported data type: {data.__class__}')
+        object.__setattr__(self, '_dict', mapping)
+
+    def __getitem__(self, key):
+        return self._dict[key]
+
+    def __iter__(self):
+        return iter(self._dict.keys())
+
+    def __len__(self):
+        return len(list(self._dict.keys()))
+
+    def __repr__(self):
+        return str(self._dict)
+
+    def __str__(self):
+        return str(self._dict)
+
     _hash_key_grabber = operator.itemgetter(0)
 
-    def __unmodifiable(func, *args):
-        raise TypeError(f"unmodifiable dict: '{func}()' can't modify {args!r}")
-
-    for func in ('__delitem__', '__setitem__', '__delattr__', '__setattr__',
-                 'clear', 'update', 'pop', 'popitem', 'setdefault'):
-        locals()[func] = partial(__unmodifiable, func)
-
     def __hash__(self):
-        k = list(self.items())
+        k = list(self._dict.items())
         k.sort(key=self._hash_key_grabber)
         return hash(tuple(k))
-
-    __delattr__ = __setitem__
-    __setattr__ = __setitem__
 
 
 class IndeterminantDict(object):
