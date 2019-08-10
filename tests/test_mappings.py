@@ -220,37 +220,61 @@ class TestProtectedDict(object):
 
 class TestImmutableDict(object):
 
-    def setup_method(self, method):
-        self.dict = mappings.ImmutableDict({1: -1, 2: -2})
+    def test_init_iterator(self):
+        d = mappings.ImmutableDict((x, x) for x in range(3))
+        assert dict(d) == {0: 0, 1: 1, 2: 2}
+
+    def test_init_dict(self):
+        d = {0: 0, 1: 1, 2: 2}
+        assert d == dict(mappings.ImmutableDict(d))
+        assert d == dict(mappings.ImmutableDict(d.items()))
+
+    def test_init_immutabledict(self):
+        d = mappings.ImmutableDict((x, x) for x in range(3))
+        e = mappings.ImmutableDict(d)
+        assert d == e
+        assert d is not e
+
+    def test_init_empty(self):
+        d = mappings.ImmutableDict()
+        assert not d
+        assert len(d) == 0
+        assert list(d.items()) == []
+
+    def test_init_dictmixin(self):
+        d = MutableDict(baz="cat")
+        e = mappings.ImmutableDict(d)
+        assert dict(d) == {'baz': 'cat'}
 
     def test_invalid_operations(self):
-        initial_hash = hash(self.dict)
+        d = mappings.ImmutableDict({1: -1, 2: -2})
+        initial_hash = hash(d)
 
         # __delitem__ isn't allowed
         with pytest.raises(TypeError):
-            del self.dict[1]
+            del d[1]
         with pytest.raises(TypeError):
-            del self.dict[7]
+            del d[7]
 
         # __setitem__ isn't allowed
         with pytest.raises(TypeError):
-            self.dict[1] = -1
+            d[1] = -1
         with pytest.raises(TypeError):
-            self.dict[7] = -7
+            d[7] = -7
 
         # modifying operators aren't defined
         with pytest.raises(AttributeError):
-            self.dict.clear()
+            d.clear()
         with pytest.raises(AttributeError):
-            self.dict.update({6: -6})
+            d.update({6: -6})
         with pytest.raises(AttributeError):
-            self.dict.pop(1)
+            d.pop(1)
         with pytest.raises(AttributeError):
-            self.dict.popitem()
+            d.popitem()
         with pytest.raises(AttributeError):
-            self.dict.setdefault(6, -6)
+            d.setdefault(6, -6)
 
-        assert initial_hash == hash(self.dict)
+        assert initial_hash == hash(d)
 
 
 class TestStackedDict(object):
