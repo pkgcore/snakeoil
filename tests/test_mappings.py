@@ -246,6 +246,21 @@ class TestImmutableDict(object):
         e = mappings.ImmutableDict(d)
         assert dict(d) == {'baz': 'cat'}
 
+    def test_init_bad_data(self):
+        for data in (range(10), list(range(10)), [([], 1)]):
+            with pytest.raises(TypeError):
+                d = mappings.ImmutableDict(data)
+
+    def test_str(self):
+        d = {1: 1, 2: 2}
+        e = mappings.ImmutableDict(d)
+        assert str(d) == str(e)
+
+    def test_repr(self):
+        d = {1: 1, 2: 2}
+        e = mappings.ImmutableDict(d)
+        assert repr(d) == repr(e)
+
     def test_invalid_operations(self):
         d = mappings.ImmutableDict({1: -1, 2: -2})
         initial_hash = hash(d)

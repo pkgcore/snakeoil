@@ -322,8 +322,8 @@ class ImmutableDict(Mapping):
         else:
             try:
                 mapping = {k: v for k, v in data}
-            except (TypeError, ValueError):
-                raise TypeError(f'unsupported data type: {data.__class__}')
+            except TypeError as e:
+                raise TypeError(f'unsupported data format: {e}')
         object.__setattr__(self, '_dict', mapping)
 
     def __getitem__(self, key):
