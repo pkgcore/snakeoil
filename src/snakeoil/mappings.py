@@ -310,10 +310,14 @@ class ImmutableDict(Mapping):
     Because this is immutable, it's hashable.
     """
 
-    def __init__(self, data=None):
+    def __new__(cls, data=None):
+        # don't recreate nested ImmutableDicts
         if isinstance(data, ImmutableDict):
-            mapping = data._dict
-        elif isinstance(data, Mapping):
+            return data
+        return super(ImmutableDict, cls).__new__(cls)
+
+    def __init__(self, data=None):
+        if isinstance(data, Mapping):
             mapping = data
         elif isinstance(data, DictMixin):
             mapping = {k: v for k, v in data.items()}
