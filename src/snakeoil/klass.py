@@ -173,7 +173,10 @@ class _raw_native_internal_jit_attr(object):
             obj = self.function(instance)
             self._setter(instance, self.storage_attr, obj)
         else:
-            obj = getattr(instance, self.storage_attr, self.singleton)
+            try:
+                obj = object.__getattribute__(instance, self.storage_attr)
+            except AttributeError:
+                obj = self.singleton
             if obj is self.singleton:
                 obj = self.function(instance)
                 self._setter(instance, self.storage_attr, obj)
