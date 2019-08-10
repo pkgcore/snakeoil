@@ -41,8 +41,12 @@ def native_GetAttrProxy(target):
 
 def DirProxy(target):
     def combined_dir(obj):
-        target_attrs = dir(getattr(obj, target))
-        return sorted(set(target_attrs + list(obj.__dict__.keys())))
+        attrs = dir(getattr(obj, target))
+        try:
+            attrs.extend(obj.__dict__)
+        except AttributeError:
+            attrs.extend(obj.__slots__)
+        return sorted(set(attrs))
     return combined_dir
 
 

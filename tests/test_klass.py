@@ -116,6 +116,22 @@ class TestDirProxy(object):
         assert self.noninternal_attrs(o2) == []
         assert self.noninternal_attrs(o) == ['obj']
 
+    def test_slots(self):
+        class foo1(object):
+            __slots__ = ('obj',)
+            def __init__(self, obj):
+                self.obj = obj
+            __dir__ = klass.DirProxy('obj')
+
+        class foo2(object):
+            __slots__ = ('attr',)
+            def __init__(self):
+                self.attr = 'foo'
+
+        o2 = foo2()
+        o = foo1(o2)
+        assert self.noninternal_attrs(o) == ['attr', 'obj']
+
 
 class Test_native_contains(object):
     func = staticmethod(klass.native_contains)
