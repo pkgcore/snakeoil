@@ -327,6 +327,10 @@ class ImmutableDict(Mapping):
         object.__setattr__(self, '_dict', mapping)
 
     def __getitem__(self, key):
+        # hack to avoid recursion exceptions for subclasses that use
+        # inject_getitem_as_getattr()
+        if key == '_dict':
+            return object.__getattribute__(self, '_dict')
         return self._dict[key]
 
     def __iter__(self):
