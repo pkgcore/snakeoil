@@ -211,8 +211,7 @@ def generic_equality(name, bases, scope, real_type=type,
     :raise: TypeError if __attr_comparison__ is incorrectly defined
 
     >>> from snakeoil.klass import generic_equality
-    >>> class foo(object):
-    ...   __metaclass__ = generic_equality
+    >>> class foo(object, metaclass=generic_equality):
     ...   __attr_comparison__ = ("a", "b", "c")
     ...   def __init__(self, a=1, b=2, c=3):
     ...     self.a, self.b, self.c = a, b, c

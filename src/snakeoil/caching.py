@@ -28,8 +28,7 @@ There are some caveats to be aware of in using this metaclass:
 Simple usage example:
 
 >>> from snakeoil.caching import WeakInstMeta
->>> class myfoo(object):
-...   __metaclass__ = WeakInstMeta
+>>> class myfoo(object, metaclass=WeakInstMeta):
 ...   __inst_caching__ = True # safety measure turning caching on
 ...   counter = 0
 ...
