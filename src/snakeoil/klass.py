@@ -205,8 +205,9 @@ def generic_equality(name, bases, scope, real_type=type,
     metaclass generating __eq__/__ne__ methods from an attribute list
 
     The consuming class must set a class attribute named __attr_comparison__
-    that is a sequence- this lists the attributes to compare in determining
-    equality.
+    that is a sequence that lists the attributes to compare in determining
+    equality or a string naming the class attribute to pull the list of
+    attributes from (e.g. '__slots__').
 
     :raise: TypeError if __attr_comparison__ is incorrectly defined
 
@@ -224,6 +225,8 @@ def generic_equality(name, bases, scope, real_type=type,
     attrlist = scope.pop("__attr_comparison__", None)
     if attrlist is None:
         raise TypeError("__attr_comparison__ must be in the classes scope")
+    elif isinstance(attrlist, str):
+        attrlist = scope[attrlist]
     for x in attrlist:
         if not isinstance(x, str):
             raise TypeError("all members of attrlist must be strings- "
