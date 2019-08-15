@@ -1240,8 +1240,18 @@ class ArgparseCommand(object):
 def existent_path(value):
     """Check if file argument path exists."""
     if not os.path.exists(value):
-        raise argparse.ArgumentTypeError("nonexistent path: %r" % (value,))
+        raise argparse.ArgumentTypeError(f'nonexistent path: {value!r}')
     try:
         return osutils.abspath(value)
     except EnvironmentError as e:
-        raise ValueError("while resolving path %r, encountered error: %r" % (value, e)) from e
+        raise ValueError(f'while resolving path {value!r}, encountered error: {e}') from e
+
+
+def existent_dir(value):
+    """Check if argument path exists and is a directory."""
+    if not os.path.isdir(value):
+        raise argparse.ArgumentTypeError(f'nonexistent dir: {value!r}')
+    try:
+        return osutils.abspath(value)
+    except EnvironmentError as e:
+        raise ValueError(f'while resolving path {value!r}, encountered error: {e}') from e

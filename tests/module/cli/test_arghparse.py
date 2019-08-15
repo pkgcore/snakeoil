@@ -568,6 +568,35 @@ class TestExistentPathType(BaseArgparseOptions):
         assert namespace.path == str(tmpdir)
 
 
+class TestExistentDirType(BaseArgparseOptions):
+
+    def setup_method(self, method):
+        super().setup_method(method)
+        self.parser.add_argument('--path', type=arghparse.existent_dir)
+
+    def test_nonexistent(self):
+        # nonexistent path arg raises an error
+        with pytest.raises(argparse_helpers.Error):
+            self.parser.parse_args(['--path=/path/to/nowhere'])
+
+    def test_os_errors(self, tmp_path):
+        # random OS/FS issues raise errors
+        with mock.patch('snakeoil.osutils.abspath') as abspath:
+            abspath.side_effect = OSError(19, 'Random OS error')
+            with pytest.raises(argparse_helpers.Error):
+                self.parser.parse_args([f'--path={tmp_path}'])
+
+    def test_file_path(self, tmp_path):
+        f = tmp_path / 'file'
+        f.touch()
+        with pytest.raises(argparse_helpers.Error):
+            self.parser.parse_args([f'--path={f}'])
+
+    def test_regular_usage(self, tmp_path):
+        namespace = self.parser.parse_args([f'--path={tmp_path}'])
+        assert namespace.path == str(tmp_path)
+
+
 class TestNamespace(object):
 
     def setup_method(self, method):
