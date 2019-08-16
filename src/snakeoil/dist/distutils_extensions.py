@@ -135,7 +135,9 @@ def module_version(moduledir=MODULEDIR):
             rev = git_version['rev'][:7]
             date = datetime.strptime(git_version['date'], '%a, %d %b %Y %H:%M:%S %z')
             date = datetime.strftime(date, '%Y%m%d')
-            version += f".dev{commits}+g{rev}.d{date}"
+            if commits is not None:
+                version += f'.dev{commits}'
+            version += f'+g{rev}.d{date}'
         elif tag != version:
             raise DistutilsError(
                 f'unmatched git tag {tag!r} and {MODULE_NAME} version {version!r}')
