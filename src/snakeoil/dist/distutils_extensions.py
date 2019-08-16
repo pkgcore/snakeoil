@@ -10,7 +10,7 @@ passing in distutils.
 Specifically, this module is only meant to be imported in setup.py scripts.
 """
 
-from contextlib import contextmanager
+from contextlib import contextmanager, redirect_stdout, redirect_stderr, ExitStack
 import copy
 from datetime import datetime
 import errno
@@ -556,8 +556,11 @@ def generate_man():
 class build_docs(Command):
     """Generic documentation build command."""
 
+    # use custom verbosity option since distutils appears to
+    # statically assign the default verbose option
     user_options = [
         ('force', 'f', 'force build as needed'),
+        ('verbosity', 'v', 'run verbosely (default disabled)'),
     ]
 
     content_search_path = ()
@@ -565,9 +568,11 @@ class build_docs(Command):
 
     def initialize_options(self):
         self.force = False
+        self.verbosity = 0
 
     def finalize_options(self):
         self.force = bool(self.force)
+        self.verbosity = int(bool(self.verbosity))
 
     @property
     def skip(self):
@@ -603,12 +608,17 @@ class build_docs(Command):
             # generated via 2to3 or other conversions instead of straight from
             # the build directory.
             with syspath(os.path.abspath(build_py.build_lib)):
-                self._generate_doc_content()
-                for target in self.sphinx_targets:
-                    build_sphinx = self.reinitialize_command('build_sphinx')
-                    build_sphinx.builder = target
-                    build_sphinx.ensure_finalized()
-                    self.run_command('build_sphinx')
+                # Generating man pages with sphinx is unnecessarily noisy by
+                # default since sphinx assumes files are laid out in a manner
+                # for technical doc generation. Therefore, suppress all stderr
+                # by default unless verbose mode is enabled.
+                with suppress(self.verbosity):
+                    self._generate_doc_content()
+                    for target in self.sphinx_targets:
+                        build_sphinx = self.reinitialize_command('build_sphinx')
+                        build_sphinx.builder = target
+                        build_sphinx.ensure_finalized()
+                        self.run_command('build_sphinx')
 
     def run(self):
         if self.sphinx_targets:
@@ -1457,3 +1467,15 @@ def _get_git_tag(path, rev):
     if tag.startswith("v"):
         tag = tag[1:]
     return tag
+
+
+@contextmanager
+def suppress(verbosity=0):
+    """Context manager that conditionally suppresses stdout/stderr."""
+    with ExitStack() as stack:
+        with open(os.devnull, 'w') as null:
+            if verbosity < 0:
+                stack.enter_context(redirect_stdout(null))
+            if verbosity < 1:
+                stack.enter_context(redirect_stderr(null))
+            yield
