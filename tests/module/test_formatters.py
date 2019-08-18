@@ -1,7 +1,3 @@
-# Copyright: 2007 Brian Harring <ferringb@gmail.com>
-# Copyright: 2006 Marien Zwart <marienz@gentoo.org>
-# License: BSD/GPL2
-
 # TODO:
 # for PlainTextFormatter, wouldn't be a bad idea to add a method for testing
 # that compares native vs cpy behaviour behind the scenes for each test.

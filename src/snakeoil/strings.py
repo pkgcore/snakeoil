@@ -1,5 +1,3 @@
-# License: BSD/GPL2
-
 """string related methods"""
 
 

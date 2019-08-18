@@ -1,6 +1,3 @@
-# Copyright: 2005-2011 Brian Harring <ferringb@gmail.com>
-# License: BSD/GPL2
-
 """
 Function currying, generating a functor with a set of args/defaults pre bound.
 

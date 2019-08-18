@@ -1,6 +1,3 @@
-# Copyright: 2007-2010 Brian Harring <ferringb@gmail.com>
-# License: BSD/GPL2
-
 """
 pickling convenience module
 """

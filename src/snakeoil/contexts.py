@@ -1,5 +1,3 @@
-# Copyright: 2015 Tim Harder <radhermit@gmail.com>
-
 """Various with-statement context utilities."""
 
 from contextlib import AbstractContextManager, contextmanager

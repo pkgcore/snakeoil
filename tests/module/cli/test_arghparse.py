@@ -1,6 +1,3 @@
-# Copyright: 2015 Tim Harder <radhermit@gmail.com>
-# License: GPL2/BSD 3 clause
-
 import argparse
 from functools import partial
 from importlib import reload

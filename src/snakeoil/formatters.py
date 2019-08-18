@@ -1,7 +1,3 @@
-# Copyright: 2009-2010 Brian Harring <ferringb@gmail.com>
-# Copyright: 2006 Marien Zwart <marienz@gentoo.org>
-# License: BSD/GPL2
-
 """Classes wrapping a file-like object to do fancy output on it."""
 
 import errno

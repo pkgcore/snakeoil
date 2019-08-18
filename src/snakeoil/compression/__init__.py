@@ -1,6 +1,3 @@
-# Copyright: 2011 Brian Harring <ferringb@gmail.com>
-# License: GPL2/BSD 3 clause
-
 from importlib import import_module
 import shlex
 

@@ -1,6 +1,3 @@
-# Copyright: 2017 Tim Harder <radhermit@gmail.com>
-# License: BSD/GPL2
-
 """Generic support for running commandline tools."""
 
 from functools import partial

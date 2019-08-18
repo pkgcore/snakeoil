@@ -1,6 +1,3 @@
-# Copyright: 2006-2011 Brian Harring <ferringb@gmail.com>
-# License: BSD/GPL2
-
 """
 Object trickery including delayed instantiation and proxying
 

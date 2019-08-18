@@ -1,6 +1,3 @@
-# Copyright: 2006-2011 Brian Harring <ferringb@gmail.com>
-# License: BSD/GPL2
-
 """
 default chksum implementation- sha1, sha256, rmd160, and md5
 

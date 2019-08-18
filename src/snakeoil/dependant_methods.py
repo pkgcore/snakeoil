@@ -1,6 +1,3 @@
-# Copyright: 2005-2011 Brian Harring <ferringb@gmail.com>
-# License: BSD/GPL2
-
 """Metaclass to inject dependencies into method calls.
 
 Roughly, if you have 3 methods- that must be ran in the order of start, transfer, finish,

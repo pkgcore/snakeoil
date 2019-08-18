@@ -1,8 +1,3 @@
-# Copyright: 2004-2011 Brian Harring <ferringb@gmail.com> (BSD/GPL2)
-# Copyright: 2005-2006 Jason Stubbs <jstubbs@gmail.com> (BSD/GPL2)
-# Copyright: 2004-2005 Gentoo Foundation
-# License: GPL2
-
 """
 subprocess related functionality
 """

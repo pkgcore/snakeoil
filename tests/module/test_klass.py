@@ -1,6 +1,3 @@
-# Copyright: 2006-2007 Brian Harring <ferringb@gmail.com>
-# License: BSD/GPL2
-
 from functools import partial
 import math
 import re

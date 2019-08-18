@@ -1,6 +1,3 @@
-# Copyright: 2006-2012 Brian Harring <ferringb@gmail.com>
-# License: GPL2/BSD 3 clause
-
 import os
 import signal
 import sys

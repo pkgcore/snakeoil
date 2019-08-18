@@ -1,6 +1,3 @@
-# Copyright: 2006-2012 Brian Harring <ferringb@gmail.com>
-# License: GPL2/BSD
-
 __all__ = ("compress_data", "decompress_data")
 
 import errno

@@ -1,6 +1,3 @@
-# Copyright: 2005-2011 Brian Harring <ferringb@gmail.com>
-# License: BSD/GPL2
-
 """Functionality for reading bash like files
 
 Please note that while this functionality can do variable interpolation,

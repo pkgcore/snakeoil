@@ -1,9 +1,3 @@
-/*
- Copyright: 2007-2010 Charlie Shepherd <masterdriverz@gentoo.org>
- Copyright: 2009-2011 Brian Harring <ferringb@gmail.com>
- License: BSD/GPL2
-*/
-
 #include "snakeoil/common.h"
 #include "structmember.h"
 

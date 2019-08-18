@@ -1,6 +1,3 @@
-# Copyright: 2006-2010 Brian Harring <ferringb@gmail.com>
-# License: BSD/GPL2
-
 """
 Transparent opportunistic weakref instance caching
 

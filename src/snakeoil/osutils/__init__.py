@@ -1,7 +1,3 @@
-# Copyright 2004-2011 Brian Harring <ferringb@gmail.com>
-# Copyright 2006 Marien Zwart <marienz@gentoo.org>
-# License: BSD/GPL2
-
 """
 OS related functionality
 

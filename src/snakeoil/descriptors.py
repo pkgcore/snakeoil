@@ -1,7 +1,3 @@
-# Copyright: 2006 Marien Zwart <marienz@gentoo.org>
-# License: BSD/GPL2
-
-
 """Classes implementing the descriptor protocol."""
 
 __all__ = ("classproperty",)

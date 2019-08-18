@@ -1,6 +1,3 @@
-# Copyright: 2009-2010 Brian Harring <ferringb@gmail.com>
-# License: GPL2/BSD
-
 """
 Minor struct enhancements, and python version compatibility implementations
 

@@ -1,7 +1,3 @@
-# Copyright: 2015-2016 Tim Harder <radhermit@gmail.com>
-# Copyright: 2005 Marien Zwart <marienz@gentoo.org>
-# License: GPL2/BSD 3 clause
-
 from collections import OrderedDict
 from itertools import chain
 from operator import itemgetter

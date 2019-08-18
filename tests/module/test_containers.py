@@ -1,7 +1,3 @@
-# Copyright: 2005 Marien Zwart <marienz@gentoo.org>
-# Copyright: 2010 Brian Harring <ferringb@gmail.com>
-# License: BSD/GPL2
-
 from itertools import chain
 
 import pytest

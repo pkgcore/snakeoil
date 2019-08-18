@@ -1,6 +1,3 @@
-# Copyright: 2016 Tim Harder <radhermit@gmail.com>
-# License: BSD/GPL2
-
 """Various methods involving user input."""
 
 import errno

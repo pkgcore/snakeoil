@@ -1,6 +1,4 @@
-# Copyright: 2011-2012 Brian Harring <ferringb@gmail.com>
 # Copyright 2014 The Chromium OS Authors. All rights reserved. (get_exit_status and exit_as_status)
-# License: GPL2/BSD 3 clause
 
 """Process related utilities."""
 

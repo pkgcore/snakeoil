@@ -1,7 +1,3 @@
-# Copyright: 2007 Marien Zwart <marienz@gentoo.org>: GPL2/BSD
-# Copyright: 2009-2011 Brian Harring <ferringb@gmail.com>: GPL2/BSD
-# License: GPL2
-
 """Demand load things when used.
 
 This uses :py:func:`Placeholder` objects which create an actual object on

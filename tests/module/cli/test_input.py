@@ -1,6 +1,3 @@
-# Copyright: 2017 Tim Harder <radhermit@gmail.com>
-# License: BSD/GPL2
-
 import errno
 from functools import partial
 
