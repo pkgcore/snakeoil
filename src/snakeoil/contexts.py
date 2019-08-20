@@ -2,22 +2,19 @@
 
 from contextlib import AbstractContextManager, contextmanager
 from functools import wraps
+from importlib import import_module
+from multiprocessing.connection import Pipe
+import errno
+import inspect
 import os
+import pickle
+import signal
 import sys
+import threading
+import traceback
 
-from .demandload import demandload
+from .process import namespaces
 
-demandload(
-    'errno',
-    'inspect',
-    'multiprocessing.connection:Pipe',
-    'pickle',
-    'signal',
-    'threading',
-    'traceback',
-    'importlib:import_module',
-    'snakeoil.process:namespaces',
-)
 
 # Ideas and code for SplitExec have been borrowed from withhacks
 # (https://pypi.python.org/pypi/withhacks) governed by the MIT license found

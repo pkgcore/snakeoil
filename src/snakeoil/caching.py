@@ -54,11 +54,8 @@ Simple usage example:
 
 __all__ = ("WeakInstMeta",)
 
-from .demandload import demandload
-demandload(
-    'warnings',
-    'weakref:WeakValueDictionary',
-)
+import warnings
+from weakref import WeakValueDictionary
 
 
 class native_WeakInstMeta(type):

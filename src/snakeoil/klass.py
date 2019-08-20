@@ -18,16 +18,12 @@ __all__ = (
 from collections import deque
 from functools import partial, wraps
 from importlib import import_module
+import inspect
+import itertools
 from operator import attrgetter
 
 from . import caching, compatibility
 from .currying import post_curry
-from .demandload import demandload
-
-demandload(
-    'inspect',
-    'itertools',
-)
 
 
 def native_GetAttrProxy(target):

@@ -2,17 +2,14 @@
 
 """Process related utilities."""
 
+import errno
 import os
+import signal
 import sys
+import time
 
-from ..demandload import demandload
+from ..osutils import access
 
-demandload(
-    'errno',
-    'signal',
-    'time',
-    'snakeoil.osutils:access',
-)
 
 def is_running(pid):
     """Determine if a process is running or not.

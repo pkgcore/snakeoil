@@ -1,10 +1,5 @@
 import sys
-
-from .demandload import demandload
-
-demandload(
-    'traceback',
-)
+import traceback
 
 
 def walk_exception_chain(exc, ignore_first=False, reverse=False):

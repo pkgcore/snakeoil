@@ -2,16 +2,13 @@
 chksum verification/generation subsystem
 """
 
-from .. import klass
-from ..demandload import demandload
+from importlib import import_module
+import os
+import sys
 
-demandload(
-    "importlib:import_module",
-    "os",
-    "sys",
-    "snakeoil.chksum.defaults:chksum_loop_over_file",
-    "snakeoil:osutils",
-)
+from .. import osutils, klass
+from .defaults import chksum_loop_over_file
+
 
 chksum_types = {}
 __inited__ = False

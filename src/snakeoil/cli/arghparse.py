@@ -6,27 +6,22 @@ from argparse import (
     SUPPRESS, _get_action_name, _SubParsersAction, _,
 )
 from collections import Counter
+import copy
 from functools import partial
 from itertools import chain
+import logging
+from operator import attrgetter
 import os
+import subprocess
 import sys
+from textwrap import dedent
+import traceback
 
-from .. import klass
-from ..demandload import demandload
+from .. import klass, osutils
 from ..mappings import ImmutableDict
-
-demandload(
-    'copy',
-    'operator:attrgetter',
-    'logging',
-    'subprocess',
-    'textwrap:dedent',
-    'traceback',
-    'snakeoil:osutils',
-    'snakeoil.obj:popattr',
-    'snakeoil.version:get_version',
-    'snakeoil.sequences:split_negations,split_elements',
-)
+from ..obj import popattr
+from ..sequences import split_negations, split_elements
+from ..version import get_version
 
 
 # Enable flag to pull extended docs keyword args into arguments during doc

@@ -3,13 +3,11 @@
 import errno
 from functools import partial
 import io
+import locale
 import os
 
-from .demandload import demandload
 from .klass import GetAttrProxy, steal_docs
 from .mappings import defaultdictkey
-
-demandload('locale')
 
 
 __all__ = (

@@ -8,19 +8,16 @@ available.
 
 from functools import partial
 import hashlib
+from multiprocessing import cpu_count
+import os
+import queue
 from sys import intern
 import threading
-import queue
 
 from .. import modules
 from ..data_source import base as base_data_source
-from ..demandload import demandload
+from ..fileutils import mmap_or_open_for_read
 
-demandload(
-    'multiprocessing:cpu_count',
-    'os',
-    'snakeoil.fileutils:mmap_or_open_for_read',
-)
 
 blocksize = 2 ** 17
 

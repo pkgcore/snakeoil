@@ -40,13 +40,8 @@ __all__ = (
 import errno
 from functools import partial
 
-from . import stringio, klass
+from . import compression, fileutils, klass, stringio
 from .currying import post_curry
-from .demandload import demandload
-
-demandload(
-    'snakeoil:compression,fileutils',
-)
 
 
 def _mk_writable_cls(base, name):

@@ -23,9 +23,6 @@ import subprocess
 import sys
 import textwrap
 
-os.environ["SNAKEOIL_DEMANDLOAD_PROTECTION"] = 'n'
-os.environ["SNAKEOIL_DEMANDLOAD_WARN"] = 'n'
-
 from setuptools import find_packages
 from setuptools.command import (
     install as dst_install, sdist as dst_sdist,
@@ -37,6 +34,9 @@ from distutils.errors import DistutilsExecError, DistutilsError
 from distutils.command import (
     build as dst_build, build_scripts as dst_build_scripts, config as dst_config)
 
+
+# forcibly disable lazy module loading
+os.environ['SNAKEOIL_DEMANDIMPORT'] = 'false'
 
 # getting built by readthedocs
 READTHEDOCS = os.environ.get('READTHEDOCS', None) == 'True'

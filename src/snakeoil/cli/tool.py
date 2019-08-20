@@ -2,20 +2,16 @@
 
 from functools import partial
 import logging
+import io
 import os
 from signal import signal, SIGPIPE, SIG_DFL, SIGINT
 import sys
+import traceback
 
 from .exceptions import ExitException, find_user_exception
 from .. import formatters
 from ..contexts import nullcontext
 from ..log import suppress_logging
-from ..demandload import demandload
-
-demandload(
-    'io',
-    'traceback',
-)
 
 
 class Tool(object):

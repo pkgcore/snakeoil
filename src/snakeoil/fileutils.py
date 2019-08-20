@@ -8,18 +8,13 @@ __all__ += tuple("readfile%s" % x for x in types) + tuple("readlines%s" % x for 
 del types
 
 from functools import partial
+import mmap
 import os
 
+from . import _fileutils, data_source
 from .compatibility import IGNORED_EXCEPTIONS
 from .currying import pretty_docs
-from .demandload import demandload
 from .klass import GetAttrProxy
-
-demandload(
-    'mmap',
-    'snakeoil:data_source',
-    'snakeoil:_fileutils',
-)
 
 
 def touch(fname, mode=0o644, **kwargs):

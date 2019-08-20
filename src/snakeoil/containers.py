@@ -8,12 +8,9 @@ __all__ = (
     "ProtectedSet", "RefCountingSet"
 )
 
-from .demandload import demandload
-from .klass import steal_docs
+from itertools import chain, filterfalse
 
-demandload(
-    'itertools:chain,filterfalse',
-)
+from .klass import steal_docs
 
 
 class InvertedContains(set):
