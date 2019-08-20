@@ -1229,6 +1229,31 @@ class ArgparseCommand(object):
         raise NotImplementedError(self, '__call__')
 
 
+class FileType(argparse.FileType):
+    """Extended file object factory supporting binary modes for stdin/stdout.
+
+    See https://bugs.python.org/issue14156 for a discussion of the issue.
+    """
+
+    def __call__(self, string):
+        # the special argument "-" means sys.std{in,out}
+        if string == '-':
+            if 'r' in self._mode:
+                return sys.stdin.buffer if 'b' in self._mode else sys.stdin
+            elif any(c in self._mode for c in 'wax'):
+                return sys.stdout.buffer if 'b' in self._mode else sys.stdout
+            else:
+                msg = _('argument "-" with mode %r') % self._mode
+                raise ValueError(msg)
+
+        # all other arguments are used as file names
+        try:
+            return open(string, self._mode, self._bufsize, self._encoding, self._errors)
+        except OSError as e:
+            message = _("can't open '%s': %s")
+            raise argparse.ArgumentTypeError(message % (string, e))
+
+
 def existent_path(value):
     """Check if file argument path exists."""
     if not os.path.exists(value):
