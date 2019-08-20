@@ -102,9 +102,11 @@ class TestSpawn(TempDir):
             os.kill(pid, 0)
         assert pid not in spawn.spawned_pids, "pid wasn't removed from global pids"
 
-    def test_bash(self):
+    def test_spawn_bash(self, capfd):
         # bash builtin for true without exec'ing true (eg, no path lookup)
-        assert 0 == spawn.spawn_bash(":")
+        assert 0 == spawn.spawn_bash('echo bash')
+        out, err = capfd.readouterr()
+        assert out.strip() == 'bash'
 
     def test_umask(self):
         fp = self.generate_script(
