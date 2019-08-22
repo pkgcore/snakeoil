@@ -29,40 +29,41 @@ matrix:
   fast_finish: true
 
 jobs:
-  # push tarball and wheels to pypi
-  - stage: deploy
-    python: 3.6
-    sudo: required
-    services:
-      - docker
-    env:
-      - secure: MwrWS6pO8qyerApKbDQ6kwgf8zO5jj5PCoqPlk5cS1IPrBqBj5PknPuLbrbzmCQq4+WjxxUhf3Ij3IrrefH0s/CffHGC0Sr5EwJNJuiJAAeODH/lRbNWJLW+T+iOH6vVhXRK5Kk68pX/JMJqH3lOxN4QzvYwSQoyl1Gmj8hRF24=
-      - secure: PBcqHye5lfkmWudQeuH5uqx7w1PcVqxafLrlnJjYJesTWbaW19l66596YNxMXQz1CBjKrz2oEoN2L5iW52UMuiXJ4ceJBvmqJp8Q707dikARoJVk9+gp0FfIyh5dGxclBZ9UgC9RmfS8fmrCgh/ODsp/PqasmKH7ODI0Rqe8gQ4=
-      - CIBW_PLATFORM=linux
-      - CIBW_BUILD="cp36-* cp37-*"
-      - CIBW_BEFORE_BUILD="{pip} install -r requirements/wheel.txt -r requirements/test.txt"
-      - CIBW_TEST_COMMAND="py.test {project}/tests"
-    before_script:
-      - git clone https://github.com/pkgcore/pkgdist.git
-      - cp -R pkgdist/requirements/* requirements/
-    script: pkgdist/build-dist-files.sh
-    after_success:
+  include:
+    # push tarball and wheels to pypi
+    - stage: deploy
+      python: 3.6
+      sudo: required
+      services:
+        - docker
+      env:
+        - secure: MwrWS6pO8qyerApKbDQ6kwgf8zO5jj5PCoqPlk5cS1IPrBqBj5PknPuLbrbzmCQq4+WjxxUhf3Ij3IrrefH0s/CffHGC0Sr5EwJNJuiJAAeODH/lRbNWJLW+T+iOH6vVhXRK5Kk68pX/JMJqH3lOxN4QzvYwSQoyl1Gmj8hRF24=
+        - secure: PBcqHye5lfkmWudQeuH5uqx7w1PcVqxafLrlnJjYJesTWbaW19l66596YNxMXQz1CBjKrz2oEoN2L5iW52UMuiXJ4ceJBvmqJp8Q707dikARoJVk9+gp0FfIyh5dGxclBZ9UgC9RmfS8fmrCgh/ODsp/PqasmKH7ODI0Rqe8gQ4=
+        - CIBW_PLATFORM=linux
+        - CIBW_BUILD="cp36-* cp37-*"
+        - CIBW_BEFORE_BUILD="{pip} install -r requirements/wheel.txt -r requirements/test.txt"
+        - CIBW_TEST_COMMAND="py.test {project}/tests"
+      before_script:
+        - git clone https://github.com/pkgcore/pkgdist.git
+        - cp -R pkgdist/requirements/* requirements/
+      script: pkgdist/build-dist-files.sh
+      after_success:
 
-  # push tarball to github
-  - stage: deploy
-    python: 3.6
-    before_script:
-      - git clone https://github.com/pkgcore/pkgdist.git
-      - cp -R pkgdist/requirements/* requirements/
-      - pip install -r requirements/sdist.txt
-    script: python setup.py sdist
-    after_success: tar -ztf dist/*.tar.gz | sort
-    deploy:
-      provider: releases
-      api_key:
-        secure: d1KgGpoHFf/au8m+08NItMGuENBZB5qwuVpobhtmZ2RQUo/uS6e0GoGa/k7OD0+3dQwzsSvJNMs6tfeiYdXnI+3c5BRfyfvtUnLJKs3zSdUsobfUdLrWalNVMAON0EWQIwWOagjFTsxU2/ZKEjgKvD7MjMzdL0xSdv504E+Cmpc=
-      file_glob: true
-      file: dist/*.tar.gz
-      skip_cleanup: true
-      on:
-        tags: true
+    # push tarball to github
+    - stage: deploy
+      python: 3.6
+      before_script:
+        - git clone https://github.com/pkgcore/pkgdist.git
+        - cp -R pkgdist/requirements/* requirements/
+        - pip install -r requirements/sdist.txt
+      script: python setup.py sdist
+      after_success: tar -ztf dist/*.tar.gz | sort
+      deploy:
+        provider: releases
+        api_key:
+          secure: d1KgGpoHFf/au8m+08NItMGuENBZB5qwuVpobhtmZ2RQUo/uS6e0GoGa/k7OD0+3dQwzsSvJNMs6tfeiYdXnI+3c5BRfyfvtUnLJKs3zSdUsobfUdLrWalNVMAON0EWQIwWOagjFTsxU2/ZKEjgKvD7MjMzdL0xSdv504E+Cmpc=
+        file_glob: true
+        file: dist/*.tar.gz
+        skip_cleanup: true
+        on:
+          tags: true
