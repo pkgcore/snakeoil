@@ -24,7 +24,7 @@ stages:
   - name: test
     if: NOT branch IN (lint, deploy)
   - name: deploy
-    if: (type IN (api, cron)) OR (branch = deploy) OR (branch = master AND type IN (push, api) AND tag IS present)
+    if: (type = api) OR (branch = deploy) OR (tag IS present)
 
 jobs:
   include:
