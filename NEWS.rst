@@ -2,6 +2,52 @@
 Release Notes
 =============
 
+snakeoil 0.8.0 (2019-08-22)
+---------------------------
+
+- snakeoil.demandimport: Add new module for lazy loading to replace
+  snakeoil.demandload.
+
+- GPL2/BSD dual licensing was dropped to BSD as agreed by all contributors.
+
+- snakeoil.klass: Add support for pull attribute list from __slots__ for
+  DirProxy.
+
+- snakeoil.klass: Add SlotsPicklingMixin class to aid pickling class with
+  __slots__ defined.
+
+- Minimum supported python version is now 3.6 (dropped python2 support).
+
+- snakeoil.compression: Add generic archive/compressed file unpack support to
+  aid in pkgcore's unpack() move from bash to python.
+
+- snakeoil.cli.arghparse: Add CopyableParser class that allows for shallow
+  copies of argparsers to be made that don't allow argument propagation to
+  their ancestors.
+
+- snakeoil.iterables: Add partition() function that splits an iterable into two
+  iterables based on a given filter.
+
+- snakeoil.log: Add suppress_logging context manager that allows suppressing
+  logging messages at a given level.
+
+- snakeoil.cli.arghparse: Add custom help action to show man pages for --help
+  and still regular terminal output for -h.
+
+- snakeoil.cli.arghparse: Add SubcmdAbbrevArgumentParser class that supports
+  abbreviating subcommands.
+
+- Merge pkgdist back into snakeoil.dist.distutils_extensions as pip now
+  supports basic PEP 518 functionality so projects can depend on snakeoil to be
+  pulled in before running setup.py.
+
+- snakeoil.cli.arghparse: Add append variants of csv arg parsing actions.
+
+- snakeoil.decorators: Add new module for various decorator utilities currently
+  supporting splitexec, namespace, and coroutine decorators.
+
+- snakeoil.contexts: Fix SplitExec when running under system tracers like coverage.
+
 snakeoil 0.7.5 (2017-11-26)
 ---------------------------
 
