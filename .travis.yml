@@ -30,7 +30,6 @@ jobs:
   include:
     # push tarball and wheels to pypi
     - stage: deploy
-      python: 3.6
       sudo: required
       services:
         - docker
@@ -49,7 +48,6 @@ jobs:
 
     # push tarball to github
     - stage: deploy
-      python: 3.6
       before_script:
         - git clone https://github.com/pkgcore/pkgdist.git
         - cp -R pkgdist/requirements/* requirements/
