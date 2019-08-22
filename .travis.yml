@@ -1,9 +1,13 @@
 dist: xenial
 language: python
+python:
+- 3.6
+- 3.7
 cache:
   pip: true
   directories:
     - $HOME/downloads
+
 install:
   - pip install -U pip
 before_script:
@@ -21,12 +25,6 @@ stages:
     if: NOT branch IN (lint, deploy)
   - name: deploy
     if: (type IN (api, cron)) OR (branch = deploy) OR (branch = master AND type IN (push, api) AND tag IS present)
-
-matrix:
-  include:
-    - python: 3.6
-    - python: 3.7
-  fast_finish: true
 
 jobs:
   include:
