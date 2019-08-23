@@ -2,6 +2,11 @@
 Release Notes
 =============
 
+snakeoil 0.8.1 (2019-08-23)
+---------------------------
+
+- snakeoil.dist.distutils_extensions: Fix sdist builds for pkgcore.
+
 snakeoil 0.8.0 (2019-08-22)
 ---------------------------
 
