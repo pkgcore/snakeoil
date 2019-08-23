@@ -24,14 +24,13 @@ import sys
 import textwrap
 
 from setuptools import find_packages
-from setuptools.command import (
-    install as dst_install, sdist as dst_sdist,
-    build_ext as dst_build_ext, build_py as dst_build_py)
+from setuptools.command import install as dst_install
 
 from distutils import log
 from distutils.core import Command, Extension
 from distutils.errors import DistutilsExecError, DistutilsError
 from distutils.command import (
+    sdist as dst_sdist, build_ext as dst_build_ext, build_py as dst_build_py,
     build as dst_build, build_scripts as dst_build_scripts, config as dst_config)
 
 
