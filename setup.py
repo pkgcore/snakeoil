@@ -87,11 +87,11 @@ setup(**dict(pkgdist_setup,
         build_ext=pkgdist.build_ext,
         config=config,
         ),
-    classifiers=(
+    classifiers=[
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        ),
+        ],
     )
 )
