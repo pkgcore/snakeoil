@@ -118,8 +118,8 @@ class SplitExec(object):
         childpid = os.fork()
 
         if childpid != 0:
-            self._parent_setup()
             self.childpid = childpid
+            self._parent_setup()
             self.__pipe = parent_pipe
             frame = self.__get_context_frame()
             self.__inject_trace_func(frame, self.__exit_context)
