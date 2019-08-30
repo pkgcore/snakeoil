@@ -2,6 +2,14 @@
 Release Notes
 =============
 
+snakeoil 0.8.2 (2019-08-30)
+---------------------------
+
+- contexts: SplitExec: Set childpid attr before running _parent_setup().
+
+- snakeoil.dist.distutils_extensions: Force sphinx to run at our chosen
+  verbosity when running sdist.
+
 snakeoil 0.8.1 (2019-08-23)
 ---------------------------
 
