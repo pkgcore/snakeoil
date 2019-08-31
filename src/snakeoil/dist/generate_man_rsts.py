@@ -8,10 +8,11 @@ import os
 import re
 from string import capwords
 import sys
-from textwrap import dedent
 
 from ..cli import arghparse
 from ..osutils import force_symlink
+from ..strings import doc_dedent
+
 
 # enable extended docs keyword arg support
 arghparse._generate_docs = True
@@ -132,7 +133,7 @@ class ManConverter(object):
         if data:
             l.extend(_rst_header(self.header_char, action_group.title))
             if action_group.description:
-                l.extend(dedent(action_group.description).split("\n"))
+                l.extend(doc_dedent(action_group.description).split("\n"))
             l.extend(self.positional_re(x) for x in data.split("\n"))
             l.append('')
         return l
@@ -146,7 +147,7 @@ class ManConverter(object):
             assert len(action_group._group_actions) == 1
             l.extend(_rst_header(self.header_char, action_group.title))
             if action_group.description:
-                l.extend(dedent(action_group.description).split("\n"))
+                l.extend(doc_dedent(action_group.description).split("\n"))
 
             for subcommand, parser in action_group._group_actions[0].choices.items():
                 self.__class__(
@@ -180,7 +181,7 @@ class ManConverter(object):
                 continue
             l.extend(_rst_header(self.header_char, action_group.title))
             if action_group.description:
-                l.extend(dedent(action_group.description).split("\n"))
+                l.extend(doc_dedent(action_group.description).split("\n"))
                 l.append('')
             options = data.split('\n')
             for i, opt in enumerate(options):
@@ -249,7 +250,7 @@ class ManConverter(object):
         docs = getattr(parser, '_docs', None)
         if docs:
             description = _rst_header(self.header_char, "description")
-            description.append(dedent(docs).strip())
+            description.append(doc_dedent(docs).strip())
         options, subcmds = self.process_action_groups(parser, name)
 
         yield ('_synopsis', synopsis)
