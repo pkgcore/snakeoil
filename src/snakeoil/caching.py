@@ -59,8 +59,7 @@ from weakref import WeakValueDictionary
 
 
 class native_WeakInstMeta(type):
-    """
-    metaclass for instance caching, resulting in reuse of unique instances
+    """Metaclass for instance caching, resulting in reuse of unique instances.
 
     few notes-
       - instances must be immutable (or effectively so).
@@ -121,6 +120,7 @@ class native_WeakInstMeta(type):
             instance = super(native_WeakInstMeta, cls).__call__(*a, **kw)
 
         return instance
+
 
 # "Invalid name"
 # pylint: disable=C0103

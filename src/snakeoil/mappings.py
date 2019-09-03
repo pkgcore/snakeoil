@@ -739,15 +739,14 @@ except ImportError:
     attr_get = native_attr_get
 
 
-slotted_dict_cache = {}
-def make_SlottedDict_kls(keys):
-    """Create a space efficient mapping class with a limited set of keys.
+class _SlottedDict(DictMixin):
+    """A space efficient mapping class with a limited set of keys.
 
-    Specifically, this function returns a class with its __slots__ locked
-    to the passed in keys- this eliminates the allocation of a dict for the
-    instance thus avoiding the wasted memory common to dictionary overallocation-
-    for small mappings that waste is roughly 75%, for 100 item mappings it's roughly
-    95%, and for 1000 items it's roughly 84%.  Point is, it's sizable, consistantly so.
+    Specifically, this class has its __slots__ locked to the passed in keys-
+    this eliminates the allocation of a dict for the instance thus avoiding the
+    wasted memory common to dictionary overallocation- for small mappings that
+    waste is roughly 75%, for 100 item mappings it's roughly 95%, and for 1000
+    items it's roughly 84%.  Point is, it's sizable, consistantly so.
 
     The constraint of this is that the resultant mapping has a locked set of
     keys- you cannot add a key that wasn't allowed up front.
@@ -759,7 +758,7 @@ def make_SlottedDict_kls(keys):
 
     Example usage:
 
-    >>> from snakeoil.obj import make_SlottedDict_kls
+    >>> from snakeoil.mappings import make_SlottedDict_kls
     >>> import sys
     >>> my_kls = make_SlottedDict_kls(["key1", "key2", "key3"])
     >>> items = (("key1", 1), ("key2", 2), ("key3",3))
@@ -792,44 +791,48 @@ def make_SlottedDict_kls(keys):
     sizeof(key) due to the interning.
     """
 
+    __slots__ = ()
+    __externally_mutable__ = True
+
+    def __init__(self, iterables=()):
+        if iterables:
+            self.update(iterables)
+
+    __setitem__ = attr_setitem
+    __getitem__ = attr_getitem
+    __delitem__ = attr_delitem
+    __contains__ = attr_contains
+    update = attr_update
+    pop = attr_pop
+    get = attr_get
+
+    def __iter__(self):
+        for k in self.__slots__:
+            if hasattr(self, k):
+                yield k
+
+    def keys(self):
+        return iter(self)
+
+    def values(self):
+        for k in self:
+            yield self[k]
+
+    def clear(self):
+        for k in self:
+            del self[k]
+
+    def __len__(self):
+        return len(list(self.keys()))
+
+
+def make_SlottedDict_kls(keys):
+    """Create a space efficient mapping class with a limited set of keys."""
     new_keys = tuple(sorted(keys))
-    o = slotted_dict_cache.get(new_keys, None)
+    cls_name = f'SlottedDict_{hash(new_keys)}'
+    o = globals().get(cls_name, None)
     if o is None:
-        class SlottedDict(DictMixin):
-            __slots__ = new_keys
-            __externally_mutable__ = True
-
-            def __init__(self, iterables=()):
-                if iterables:
-                    self.update(iterables)
-
-            __setitem__ = attr_setitem
-            __getitem__ = attr_getitem
-            __delitem__ = attr_delitem
-            __contains__ = attr_contains
-            update = attr_update
-            pop = attr_pop
-            get = attr_get
-
-            def __iter__(self):
-                for k in self.__slots__:
-                    if hasattr(self, k):
-                        yield k
-
-            def keys(self):
-                return iter(self)
-
-            def values(self):
-                for k in self:
-                    yield self[k]
-
-            def clear(self):
-                for k in self:
-                    del self[k]
-
-            def __len__(self):
-                return len(list(self.keys()))
-
-        o = SlottedDict
-        slotted_dict_cache[new_keys] = o
+        o = type(cls_name, (_SlottedDict,), {})
+        o.__slots__ = new_keys
+        globals()[cls_name] = o
     return o
