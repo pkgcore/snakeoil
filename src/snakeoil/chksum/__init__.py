@@ -132,7 +132,6 @@ def get_chksums(location, *chksums, **kwds):
 
 
 class LazilyHashedPath(object, metaclass=klass.immutable_instance):
-
     """Given a pathway, compute chksums on demand via attribute access."""
 
     def __init__(self, path, **initial_values):
@@ -159,3 +158,10 @@ class LazilyHashedPath(object, metaclass=klass.immutable_instance):
         for key in get_handlers():
             if hasattr(self, key):
                 delattr(self, key)
+
+    def __getstate__(self):
+        return self.__dict__.copy()
+
+    def __setstate__(self, state):
+        for k, v in state.items():
+            object.__setattr__(self, k, v)

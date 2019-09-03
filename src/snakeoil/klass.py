@@ -694,6 +694,20 @@ def inject_immutable_instance(scope):
     scope.setdefault("__delattr__", _immutable_delattr)
 
 
+class ImmutableInstance(object):
+    """Class that disables surface-level attribute modifications."""
+
+    __setattr__ = _immutable_setattr
+    __delattr__ = _immutable_delattr
+
+    def __getstate__(self):
+        return self.__dict__.copy()
+
+    def __setstate__(self, state):
+        for k, v in state.items():
+            object.__setattr__(self, k, v)
+
+
 def alias_method(attr, name=None, doc=None):
     """at runtime, redirect to another method
 
@@ -775,14 +789,11 @@ class SlotsPicklingMixin(object):
 
     __slots__ = ()
 
-    def __init__(self):
-        assert hasattr(self, '__slots__')
-
     def __getstate__(self):
         all_slots = itertools.chain.from_iterable(
             getattr(t, '__slots__', ()) for t in type(self).__mro__)
         state = {attr: getattr(self, attr) for attr in all_slots
-                if hasattr(self, attr) and attr != '__weakref__'}
+                 if hasattr(self, attr) and attr != '__weakref__'}
         return state
 
     def __setstate__(self, state):
