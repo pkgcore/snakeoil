@@ -365,21 +365,28 @@ def patch(target, new):
         return module
 
     def _get_target(target):
-        try:
-            module, attr = target.rsplit('.', 1)
-        except (TypeError, ValueError):
-            raise TypeError("invalid target: %r" % (target,))
-        module = _import_module(module)
-        return module, attr
+        if isinstance(target, str):
+            try:
+                module, attr = target.rsplit('.', 1)
+            except (TypeError, ValueError):
+                raise TypeError(f'invalid target: {target!r}')
+            module = _import_module(module)
+            return module, attr
+        else:
+            try:
+                obj, attr = target
+            except (TypeError, ValueError):
+                raise TypeError(f'invalid target: {target!r}')
+            return obj, attr
 
-    module, attr = _get_target(target)
-    orig_attr = getattr(module, attr)
-    setattr(module, attr, new)
+    obj, attr = _get_target(target)
+    orig_attr = getattr(obj, attr)
+    setattr(obj, attr, new)
 
     try:
         yield
     finally:
-        setattr(module, attr, orig_attr)
+        setattr(obj, attr, orig_attr)
 
 
 # TODO: drop when >=py37 only
