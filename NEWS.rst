@@ -2,6 +2,15 @@
 Release Notes
 =============
 
+snakeoil 0.8.3 (2019-09-13)
+---------------------------
+
+- contexts: Support modifying attributes from object instances with patch().
+
+- Fix pickling various objects for pkgcore/pkgcheck parallelization work.
+
+- strings: Add doc_dedent() for properly dedenting docstrings.
+
 snakeoil 0.8.2 (2019-08-30)
 ---------------------------
 
