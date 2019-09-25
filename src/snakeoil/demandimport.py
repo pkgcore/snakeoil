@@ -20,6 +20,7 @@ _skip = frozenset([
     'builtins',
     'grp',
     'pwd',
+    'OpenSSL.SSL', # pyopenssl
 ])
 
 
