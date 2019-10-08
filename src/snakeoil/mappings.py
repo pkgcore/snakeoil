@@ -342,12 +342,8 @@ class ImmutableDict(Mapping):
     def __str__(self):
         return str(self._dict)
 
-    _hash_key_grabber = operator.itemgetter(0)
-
     def __hash__(self):
-        k = list(self._dict.items())
-        k.sort(key=self._hash_key_grabber)
-        return hash(tuple(k))
+        return hash(tuple(sorted(self._dict.items(), key=operator.itemgetter(0))))
 
 
 class IndeterminantDict(object):
