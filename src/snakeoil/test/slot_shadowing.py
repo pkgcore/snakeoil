@@ -42,6 +42,8 @@ class SlotShadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker):
 
             if isinstance(slots, str):
                 slots = (slots,)
+            elif isinstance(slots, dict):
+                slots = tuple(slots)
 
             raw_slottings[slots] = parent
             for slot in slots:
