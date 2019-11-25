@@ -1296,7 +1296,7 @@ def existent_dir(value):
         raise ValueError(f'while resolving path {value!r}, encountered error: {e}') from e
 
 
-def bounded_integer(func, desc, x):
+def bounded_int(func, desc, x):
     """Check if argument is an integer and matches defined bounds."""
     try:
         n = int(x)
@@ -1305,3 +1305,8 @@ def bounded_integer(func, desc, x):
     if not func(n):
         raise argparse.ArgumentTypeError(f'must be {desc}')
     return n
+
+
+def positive_int(x):
+    """Check if argument is a positive integer."""
+    return bounded_int(lambda n: n >= 1, '>= 1', x)
