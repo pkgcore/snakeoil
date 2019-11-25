@@ -1147,9 +1147,8 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
             e = sys.exc_info()[1]
             self.error(str(e))
 
-        final_check = getattr(args, 'final_check', None)
+        final_check = args.pop('final_check', None)
         if final_check is not None:
-            del args.final_check
             final_check(self, args)
 
         return args
