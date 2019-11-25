@@ -955,6 +955,8 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
         self.__subparsers = None
         # function to execute for this parser
         self.__main_func = None
+        # pre-parse functions to execute for this parser
+        self.__pre_parse = []
         # arg checking function to execute for this parser
         self.__final_check = None
 
@@ -1072,17 +1074,46 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
                     parsers.update(x._name_parser_map)
         return ImmutableDict(parsers)
 
+    def _run_pre_parse(self, l, namespace):
+        """Run registered pre-parsing functions."""
+        if l:
+            for functor, parser in l:
+                functor(parser, namespace)
+            # wipe pre-parse functions so they only run once
+            del l[:]
+
     def _parse_known_args(self, arg_strings, namespace):
         """Add support for using a specified, default subparser."""
         # parse base command options so selected subparser is the first remaining arg
         if self.__default_subparser is not None:
             namespace, arg_strings = super().parse_known_optionals(arg_strings, namespace)
 
+        try:
+            subparser = self.subparsers[arg_strings[0]]
+        except (IndexError, KeyError):
+            subparser = None
+
         skip_subparser_fallback = (
             self.__default_subparser is None or  # no default requested
             {'-h', '--help'}.intersection(arg_strings) or  # help requested
-            (arg_strings and arg_strings[0] in self.subparsers)  # subparser already determined
+            subparser  # subparser already determined
         )
+
+        # run registered main command pre-parse functions
+        self._run_pre_parse(self.__pre_parse, namespace)
+
+        if subparser:
+            # override the running program with full subcommand
+            self.prog = subparser.prog
+            namespace.prog = subparser.prog
+            # override the function to be run if the subcommand sets one
+            if subparser.__main_func is not None:
+                namespace.main_func = subparser.__main_func
+            # override the arg checking function if the subcommand sets one
+            if subparser.__final_check is not None:
+                namespace.final_check = subparser.__final_check
+            # run registered subcommand pre-parse functions
+            self._run_pre_parse(subparser.__pre_parse, namespace)
 
         if not skip_subparser_fallback:
             if self.__default_subparser not in self.subparsers:
@@ -1103,19 +1134,6 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
             namespace = Namespace()
 
         args, unknown_args = self.parse_known_args(args, namespace)
-
-        # make sure the correct function and prog are set if running a subcommand
-        subcmd_parser = self.subparsers.get(getattr(args, 'subcommand', None), None)
-        if subcmd_parser is not None:
-            # override the running program with full subcommand
-            self.prog = subcmd_parser.prog
-            namespace.prog = subcmd_parser.prog
-            # override the function to be run if the subcommand sets one
-            if subcmd_parser.__main_func is not None:
-                namespace.main_func = subcmd_parser.__main_func
-            # override the arg checking function if the subcommand sets one
-            if subcmd_parser.__final_check is not None:
-                namespace.final_check = subcmd_parser.__final_check
 
         if unknown_args:
             self.error('unrecognized arguments: %s' % ' '.join(unknown_args))
@@ -1211,6 +1229,11 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
         subparsers.required = True
         self.__subparsers = subparsers
         return subparsers
+
+    def bind_pre_parse(self, functor):
+        """Decorator to bind a function for pre-parsing parser manipulation."""
+        self.__pre_parse.append((functor, self))
+        return functor
 
     def bind_final_check(self, functor):
         """Decorator to bind a function for argument validation."""
