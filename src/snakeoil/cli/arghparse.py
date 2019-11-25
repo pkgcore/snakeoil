@@ -1294,3 +1294,14 @@ def existent_dir(value):
         return osutils.abspath(value)
     except EnvironmentError as e:
         raise ValueError(f'while resolving path {value!r}, encountered error: {e}') from e
+
+
+def bounded_integer(func, desc, x):
+    """Check if argument is an integer and matches defined bounds."""
+    try:
+        n = int(x)
+    except ValueError:
+        raise argparse.ArgumentTypeError('invalid integer value')
+    if not func(n):
+        raise argparse.ArgumentTypeError(f'must be {desc}')
+    return n
