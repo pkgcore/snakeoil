@@ -949,8 +949,6 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
                 (1 for x in range(argv['-v'] + argv['--verbose'])),
             )))
 
-        # subparser to use if none is specified on the command line and one is required
-        self.__default_subparser = None
         # subparsers action object from calling add_subparsers()
         self.__subparsers = None
         # function to execute for this parser
@@ -1072,54 +1070,16 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
                     parsers.update(x._name_parser_map)
         return ImmutableDict(parsers)
 
-    def _run_pre_parse(self, l, namespace):
-        """Run registered pre-parsing functions."""
-        if l:
-            for functor, parser in l:
-                functor(parser, namespace)
-            # wipe pre-parse functions so they only run once
-            del l[:]
-
     def _parse_known_args(self, arg_strings, namespace):
         """Add support for using a specified, default subparser."""
-        # parse base command options so selected subparser is the first remaining arg
-        if self.__default_subparser is not None:
+        # run registered pre-parse functions
+        if self.__pre_parse:
+            for functor, parser in self.__pre_parse:
+                functor(parser, namespace)
+            # re-parse to catch any argument additions/changes
             namespace, arg_strings = super().parse_known_optionals(arg_strings, namespace)
-
-        try:
-            subparser = self.subparsers[arg_strings[0]]
-        except (IndexError, KeyError):
-            subparser = None
-
-        skip_subparser_fallback = (
-            self.__default_subparser is None or  # no default requested
-            {'-h', '--help'}.intersection(arg_strings) or  # help requested
-            subparser  # subparser already determined
-        )
-
-        # run registered main command pre-parse functions
-        self._run_pre_parse(self.__pre_parse, namespace)
-
-        if subparser:
-            # override the running program with full subcommand
-            self.prog = subparser.prog
-            namespace.prog = subparser.prog
-            # override the function to be run if the subcommand sets one
-            if subparser.__main_func is not None:
-                namespace.main_func = subparser.__main_func
-            # run registered subcommand pre-parse functions
-            self._run_pre_parse(subparser.__pre_parse, namespace)
-
-        if not skip_subparser_fallback:
-            if self.__default_subparser not in self.subparsers:
-                raise ValueError(
-                    'unknown subparser %r (available subparsers %s)' % (
-                    self.__default_subparser, ', '.join(sorted(self.subparsers))))
-            # parse all options the parent parsers know about
-            for parser in self._parents:
-                namespace, arg_strings = parser._parse_known_args(arg_strings, namespace)
-            # prepend the default subcommand to the current arg list
-            arg_strings = [self.__default_subparser] + arg_strings
+            # wipe pre-parse functions so they only run once
+            del self.__pre_parse[:]
 
         # parse the remaining args
         return super()._parse_known_args(arg_strings, namespace)
@@ -1129,6 +1089,16 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
             namespace = Namespace()
 
         args, unknown_args = self.parse_known_args(args, namespace)
+
+        # make sure the correct function and prog are set if running a subcommand
+        subcmd_parser = self.subparsers.get(getattr(args, 'subcommand', None), None)
+        if subcmd_parser is not None:
+            # override the running program with full subcommand
+            self.prog = subcmd_parser.prog
+            namespace.prog = subcmd_parser.prog
+            # override the function to be run if the subcommand sets one
+            if subcmd_parser.__main_func is not None:
+                namespace.main_func = subcmd_parser.__main_func
 
         if unknown_args:
             self.error('unrecognized arguments: %s' % ' '.join(unknown_args))
@@ -1210,10 +1180,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
             return functor
         return f
 
-    def add_subparsers(self, default=None, **kwargs):
-        # set the default subparser to use
-        self.__default_subparser = default
-
+    def add_subparsers(self, **kwargs):
         # If add_subparsers() has already been called return the previous
         # object as argparse doesn't allow multiple objects of this type.
         if self.__subparsers is not None:
