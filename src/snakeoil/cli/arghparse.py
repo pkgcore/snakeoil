@@ -957,8 +957,6 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
         self.__main_func = None
         # pre-parse functions to execute for this parser
         self.__pre_parse = []
-        # arg checking function to execute for this parser
-        self.__final_check = None
 
         # Store parent parsers allowing for separating parsing args meant for
         # the root command with args targeted to subcommands. This enables
@@ -1109,9 +1107,6 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
             # override the function to be run if the subcommand sets one
             if subparser.__main_func is not None:
                 namespace.main_func = subparser.__main_func
-            # override the arg checking function if the subcommand sets one
-            if subparser.__final_check is not None:
-                namespace.final_check = subparser.__final_check
             # run registered subcommand pre-parse functions
             self._run_pre_parse(subparser.__pre_parse, namespace)
 
@@ -1165,9 +1160,11 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
             e = sys.exc_info()[1]
             self.error(str(e))
 
-        final_check = args.pop('final_check', None)
-        if final_check is not None:
-            final_check(self, args)
+        # run final arg validation
+        final_checks = [k for k in args.__dict__.keys() if k.startswith('__final_check__')]
+        for check in final_checks:
+            functor = args.pop(check)
+            functor(self, args)
 
         return args
 
@@ -1237,8 +1234,8 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
 
     def bind_final_check(self, functor):
         """Decorator to bind a function for argument validation."""
-        self.set_defaults(final_check=functor)
-        self.__final_check = functor
+        name = f'__final_check__{functor.__name__}'
+        self.set_defaults(**{name: functor})
         return functor
 
 
