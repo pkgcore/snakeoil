@@ -2,6 +2,21 @@
 Release Notes
 =============
 
+snakeoil 0.8.4 (2019-11-30)
+---------------------------
+
+- snakeoil.cli.arghparse: Drop default subparser support.
+
+- snakeoil.cli.arghparse: Run multiple registered final check functions,
+  previously only the last registered function would be run.
+
+- snakeoil.cli.arghparse: Add positive_int and bounded_int argparse types.
+
+- snakeoil.cli.arghparse: Add bind_pre_parse() to support running a decorated
+  function for pre-parsing parser manipulation purposes.
+
+- Add py3.8 support.
+
 snakeoil 0.8.3 (2019-09-13)
 ---------------------------
 
