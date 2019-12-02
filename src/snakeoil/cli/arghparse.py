@@ -21,6 +21,7 @@ from .. import klass, osutils
 from ..mappings import ImmutableDict
 from ..obj import popattr
 from ..sequences import split_negations, split_elements
+from ..strings import pluralism as _pl
 from ..version import get_version
 
 
@@ -154,6 +155,11 @@ class CommaSeparatedNegations(argparse._AppendAction):
                 raise argparse.ArgumentTypeError(e)
             disabled.extend(neg)
             enabled.extend(pos)
+        colliding = set(disabled).intersection(enabled)
+        if colliding:
+            collisions = ', '.join(map(repr, sorted(colliding)))
+            msg = f'colliding enabled and disabled value{_pl(colliding)}: {collisions}'
+            raise argparse.ArgumentError(self, msg)
         return disabled, enabled
 
     def __call__(self, parser, namespace, values, option_string=None):
