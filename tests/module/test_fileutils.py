@@ -128,8 +128,8 @@ def cpy_setup_class(scope, func_name):
     else:
         scope['func'] = staticmethod(getattr(fileutils, func_name))
 
-class Test_native_readfile(TempDir):
-    func = staticmethod(fileutils.native_readfile)
+class Test_readfile(TempDir):
+    func = staticmethod(fileutils.readfile)
 
     test_cases = ['asdf\nfdasswer\1923', '', '987234']
 
@@ -178,34 +178,24 @@ class Test_native_readfile(TempDir):
         assert self.func(pjoin(fp, 'extra'), True) == None
 
 
-class Test_cpy_readfile(Test_native_readfile):
-    cpy_setup_class(locals(), 'readfile')
+class Test_readfile_ascii(Test_readfile):
+    func = staticmethod(fileutils.readfile_ascii)
 
 
-class Test_native_readfile_ascii(Test_native_readfile):
-    func = staticmethod(fileutils.native_readfile_ascii)
-
-
-class Test_cpy_readfile_ascii(Test_native_readfile_ascii):
-    cpy_setup_class(locals(), 'readfile_ascii')
-
-
-class Test_native_readfile_utf8(Test_native_readfile):
-    func = staticmethod(fileutils.native_readfile_utf8)
+class Test_readfile_utf8(Test_readfile):
+    func = staticmethod(fileutils.readfile_utf8)
     default_encoding = 'utf8'
 
-class Test_cpy_readfile_utf8(Test_native_readfile_utf8):
-    cpy_setup_class(locals(), 'readfile_utf8')
 
-class Test_native_readfile_bytes(Test_native_readfile):
-    func = staticmethod(fileutils.native_readfile_bytes)
+class Test_readfile_bytes(Test_readfile):
+    func = staticmethod(fileutils.readfile_bytes)
     default_encoding = None
     test_cases = list(map(
-        currying.post_curry(Test_native_readfile.convert_data, 'ascii'),
-        Test_native_readfile.test_cases))
+        currying.post_curry(Test_readfile.convert_data, 'ascii'),
+        Test_readfile.test_cases))
     test_cases.append('\ua000fa'.encode("utf8"))
-    none_on_missing_ret_data = Test_native_readfile.convert_data(
-        Test_native_readfile.none_on_missing_ret_data, 'ascii')
+    none_on_missing_ret_data = Test_readfile.convert_data(
+        Test_readfile.none_on_missing_ret_data, 'ascii')
 
 
 class readlines_mixin(TempDir):
@@ -273,7 +263,7 @@ class readlines_mixin(TempDir):
 
 def mk_readlines_test(scope, mode):
     func_name = 'readlines_%s' % mode
-    base = globals()['Test_native_readfile_%s' % mode]
+    base = globals()['Test_readfile_%s' % mode]
 
     class kls(readlines_mixin, base):
         func = staticmethod(getattr(fileutils, func_name))

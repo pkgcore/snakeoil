@@ -191,25 +191,16 @@ def _mk_pretty_derived_func(func, name_base, name, *args, **kwds):
 _mk_readfile = partial(
     _mk_pretty_derived_func, _fileutils.native_readfile, 'readfile')
 
-native_readfile_ascii = _mk_readfile('ascii', 'rt')
-native_readfile = native_readfile_ascii
-native_readfile_bytes = _mk_readfile('bytes', 'rb')
-native_readfile_utf8 = _mk_readfile('utf8', 'r', encoding='utf8')
+readfile_ascii = _mk_readfile('ascii', 'rt')
+readfile_bytes = _mk_readfile('bytes', 'rb')
+readfile_utf8 = _mk_readfile('utf8', 'r', encoding='utf8')
+readfile = readfile_utf8
+
 
 _mk_readlines = partial(
     _mk_pretty_derived_func, _fileutils.native_readlines, 'readlines')
 
-try:
-    from ._posix import readfile, readlines
-    readfile_ascii = readfile
-    readlines_ascii = readlines
-except ImportError:
-    readfile_ascii = native_readfile_ascii
-    readfile = native_readfile
-    readlines_ascii = _mk_readlines('ascii', 'r', encoding='ascii')
-    readlines = readlines_ascii
-
+readlines_ascii = _mk_readlines('ascii', 'r', encoding='ascii')
 readlines_bytes = _mk_readlines('bytes', 'rb')
 readlines_utf8 = _mk_readlines('utf8', 'r', encoding='utf8')
-readfile_bytes = native_readfile_bytes
-readfile_utf8 = native_readfile_utf8
+readlines = readlines_utf8
