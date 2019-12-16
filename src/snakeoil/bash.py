@@ -11,7 +11,7 @@ libtool .la files that are bash compatible, but non-executable.
 from shlex import shlex
 
 from .demandload import demand_compile_regexp
-from .fileutils import readlines_utf8
+from .fileutils import readlines
 from .log import logger
 from .mappings import ProtectedDict
 
@@ -44,7 +44,7 @@ def iter_read_bash(bash_source, allow_inline_comments=True,
     :return: yields lines w/ commenting stripped out
     """
     if isinstance(bash_source, str):
-        bash_source = readlines_utf8(bash_source, True)
+        bash_source = readlines(bash_source, True)
     s = ''
     for lineno, line in enumerate(bash_source):
         if allow_line_cont and s:
