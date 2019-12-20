@@ -2,6 +2,14 @@
 Release Notes
 =============
 
+snakeoil 0.8.5 (2019-12-20)
+---------------------------
+
+- snakeoil.fileutils: Default to utf8 for readfile() and readlines().
+
+- snakeoil.cli.arghparse: Raise error for colliding disabled and enabled values
+  for arguments using the CommaSeparatedNegations action.
+
 snakeoil 0.8.4 (2019-11-30)
 ---------------------------
 
