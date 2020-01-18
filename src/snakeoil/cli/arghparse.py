@@ -961,6 +961,8 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
         self.__main_func = None
         # pre-parse functions to execute for this parser
         self.__pre_parse = []
+        # defaults setting functions to execute for this parser
+        self.__reset_defaults = []
 
         # Store parent parsers allowing for separating parsing args meant for
         # the root command with args targeted to subcommands. This enables
@@ -1078,6 +1080,10 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
 
     def _parse_known_args(self, arg_strings, namespace):
         """Add support for using a specified, default subparser."""
+        # reset any flagged defaults
+        for functor, parser in self.__reset_defaults:
+            functor(parser, namespace)
+
         # run registered pre-parse functions
         if self.__pre_parse:
             for functor, parser in self.__pre_parse:
@@ -1170,6 +1176,11 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
                 "ArgparseCommand; got %r" % (obj,))
         obj.bind_to_parser(self)
         return self
+
+    def bind_reset_defaults(self, functor):
+        """Decorator to bind a function for resetting defaults before every parse run."""
+        self.__reset_defaults.append((functor, self))
+        return functor
 
     def bind_delayed_default(self, priority, name=None):
         def f(functor, name=name):
