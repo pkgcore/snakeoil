@@ -200,6 +200,9 @@ class ManConverter(object):
         return (x for x in text.split('\n') if x)
 
     def process_parser(self, parser, name):
+        # forcibly run pre-parse functionality as extra arguments may be added
+        parser.pre_parse()
+
         # subcommands all have names using the format "command subcommand ...",
         # e.g. "pmaint sync" or "pinspect query get_profiles"
         main_command = ' ' not in name
