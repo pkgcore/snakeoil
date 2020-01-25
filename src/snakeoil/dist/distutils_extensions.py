@@ -235,8 +235,13 @@ def build_requires():
 
 
 def install_requires():
-    """Determine a project's runtime dependencies."""
-    return _requires(os.path.join(REPODIR, 'requirements', 'install.txt'))
+    """Determine a project's runtime dependencies.
+
+    Note that this returns development dependencies for non-release installs.
+    """
+    if os.path.exists(os.path.join(REPODIR, 'PKG-INFO')):
+        return _requires(os.path.join(REPODIR, 'requirements', 'install.txt'))
+    return _requires(os.path.join(REPODIR, 'requirements', 'dev.txt'))
 
 
 def test_requires():
