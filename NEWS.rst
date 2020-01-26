@@ -2,6 +2,16 @@
 Release Notes
 =============
 
+snakeoil 0.8.6 (2020-01-25)
+---------------------------
+
+- snakeoil.dist.distutils_extensions: Support pulling dev deps for non-release
+  installs when generating install dep list.
+
+- snakeoil.cli.arghparse: Add a separate pre-parse phase that resets registered
+  defaults and runs pre-parse functions. Helps fix man page generation for
+  scripts registering pre-parse functions.
+
 snakeoil 0.8.5 (2019-12-20)
 ---------------------------
 
