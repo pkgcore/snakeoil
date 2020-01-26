@@ -2,6 +2,12 @@
 Release Notes
 =============
 
+snakeoil 0.8.7 (2020-01-26)
+---------------------------
+
+- snakeoil.dist.distutils_extensions: Revert dev deps change to fix wheel
+  builds.
+
 snakeoil 0.8.6 (2020-01-25)
 ---------------------------
 
