@@ -56,7 +56,7 @@ class SetMixin(object):
         # there's no point doing it twice.
         return (kls or self.__class__)(x for x in self if x in other)
 
-    @steal_docs(set)
+    @steal_docs(set, ignore_missing=True)
     def __rand__(self, other):
         return self.__and__(other, kls=other.__class__)
 
@@ -64,7 +64,7 @@ class SetMixin(object):
     def __or__(self, other, kls=None):
         return (kls or self.__class__)(chain(self, other))
 
-    @steal_docs(set)
+    @steal_docs(set, ignore_missing=True)
     def __ror__(self, other):
         return self.__or__(other, kls=other.__class__)
 
@@ -74,7 +74,7 @@ class SetMixin(object):
             (x for x in self if x not in other),
             (x for x in other if x not in self)))
 
-    @steal_docs(set)
+    @steal_docs(set, ignore_missing=True)
     def __rxor__(self, other):
         return self.__xor__(other, kls=other.__class__)
 
@@ -82,12 +82,12 @@ class SetMixin(object):
     def __sub__(self, other):
         return self.__class__(x for x in self if x not in other)
 
-    @steal_docs(set)
+    @steal_docs(set, ignore_missing=True)
     def __rsub__(self, other):
         return other.__class__(x for x in other if x not in self)
 
     __add__ = steal_docs(set)(__or__)
-    __radd__ = steal_docs(set)(__ror__)
+    __radd__ = steal_docs(set, ignore_missing=True)(__ror__)
 
 
 class LimitedChangeSet(SetMixin):
