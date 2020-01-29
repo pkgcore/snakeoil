@@ -588,6 +588,7 @@ def steal_docs(target, ignore_missing=False, name=None):
             except AttributeError:
                 if not ignore_missing:
                     raise
+                return functor
         else:
             obj = target
         functor.__doc__ = obj.__doc__
