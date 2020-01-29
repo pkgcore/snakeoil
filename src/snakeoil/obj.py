@@ -90,10 +90,12 @@ from . import klass
 base_kls_descriptors = [
     '__delattr__', '__hash__', '__reduce__',
     '__reduce_ex__', '__repr__', '__setattr__', '__str__',
-    '__sizeof__', '__format__', '__subclasshook__',  # >=py2.6
+    '__format__', '__subclasshook__',  # >=py2.6
     '__le__', '__lt__', '__ge__', '__gt__', '__eq__', '__ne__',  # py3
     '__dir__',  # >=py3.3
 ]
+if hasattr(object, '__sizeof__'):
+    base_kls_descriptors.append('__sizeof__')
 base_kls_descriptors = frozenset(base_kls_descriptors)
 
 
@@ -190,7 +192,7 @@ kls_descriptors = frozenset([
     '__coerce__', '__trunc__', '__radd__', '__floor__', '__ceil__',
     '__round__',
     # remaining...
-    '__call__',
+    '__call__', '__sizeof__',
 ])
 
 
