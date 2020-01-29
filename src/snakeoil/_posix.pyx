@@ -236,9 +236,6 @@ cdef extern from "dirent.h" nogil:
     dirent *readdir(DIR *dirp)
     int readdir_r(DIR *dirp, dirent *entry, dirent **result)
 
-cdef extern from "osdefs.h" nogil:
-    enum: MAXPATHLEN
-
 
 def closerange(int start, int end):
     """Close a range of fds."""
@@ -249,7 +246,8 @@ def closerange(int start, int end):
 
     cdef DIR *dir_handle
     cdef dirent *entry
-    cdef char path[MAXPATHLEN]
+    # this is sufficient for a 64-bit pid_t
+    cdef char path[32]
 
     # Note that the version I submitted to python upstream has this in a
     # ALLOW_THREADS block; snakeoils doesn't since it's pointless.
@@ -257,7 +255,7 @@ def closerange(int start, int end):
     # fork- where no threads can be running. Thus no gain to releasing the GIL
     # then reacquiring it, thus we skip it.
 
-    snprintf(path, MAXPATHLEN, "/proc/%i/fd", getpid())
+    snprintf(path, sizeof(path), "/proc/%i/fd", getpid())
 
     dir_handle = opendir(path)
     if dir_handle == NULL:
