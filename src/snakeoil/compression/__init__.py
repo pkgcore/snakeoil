@@ -7,7 +7,7 @@ from ..process import find_binary, CommandNotFound
 from ..process.spawn import spawn_get_output
 
 
-class _transform_source(object):
+class _transform_source:
 
     def __init__(self, name):
         self.name = name
@@ -73,7 +73,7 @@ class _RegisterCompressionFormat(type):
         return new_cls
 
 
-class ArComp(object):
+class ArComp:
     """Generic archive and compressed file format support."""
 
     binary = None

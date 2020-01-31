@@ -8,7 +8,7 @@ import pytest
 from snakeoil.decorators import namespace, splitexec, coroutine
 
 
-class TestSplitExecDecorator(object):
+class TestSplitExecDecorator:
 
     def setup_method(self, method):
         self.pid = os.getpid()
@@ -20,7 +20,7 @@ class TestSplitExecDecorator(object):
 
 
 @pytest.mark.skipif(not sys.platform.startswith('linux'), reason='supported on Linux only')
-class TestNamespaceDecorator(object):
+class TestNamespaceDecorator:
 
     @pytest.mark.skipif(not os.path.exists('/proc/self/ns/user'),
                         reason='user namespace support required')
@@ -49,7 +49,7 @@ class TestNamespaceDecorator(object):
             pytest.skip('No permission to use user and uts namespace')
 
 
-class TestCoroutineDecorator(object):
+class TestCoroutineDecorator:
 
     def test_coroutine(self):
         @coroutine

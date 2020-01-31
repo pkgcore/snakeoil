@@ -12,7 +12,7 @@ def documented():
     """original docstring"""
 
 
-class TestPreCurry(object):
+class TestPreCurry:
 
     pre_curry = staticmethod(currying.pre_curry)
 
@@ -45,13 +45,13 @@ class TestPreCurry(object):
         assert self.pre_curry(passthrough).func is passthrough
 
     def test_instancemethod(self):
-        class Test(object):
+        class Test:
             method = self.pre_curry(passthrough, 'test')
         test = Test()
         assert (('test', test), {}) == test.method()
 
 
-class Test_pretty_docs(object):
+class Test_pretty_docs:
 
     currying_targets = (currying.pre_curry, currying.post_curry)
 
@@ -70,7 +70,7 @@ class Test_pretty_docs(object):
                 assert currying.pretty_docs(target(func)).__doc__ is func.__doc__
 
 
-class TestPostCurry(object):
+class TestPostCurry:
 
     def test_post_curry(self):
         noop = currying.post_curry(passthrough)
@@ -101,13 +101,13 @@ class TestPostCurry(object):
         assert currying.post_curry(passthrough).func is passthrough
 
     def test_instancemethod(self):
-        class Test(object):
+        class Test:
             method = currying.post_curry(passthrough, 'test')
         test = Test()
         assert ((test, 'test'), {}) == test.method()
 
 
-class Test_wrap_exception(object):
+class Test_wrap_exception:
 
     def test_wrap_exception_complex(self):
         inner, outer = [], []

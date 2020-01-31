@@ -131,7 +131,7 @@ def get_chksums(location, *chksums, **kwds):
                                  parallelize=parallelize, can_mmap=can_mmap)
 
 
-class LazilyHashedPath(object, metaclass=klass.immutable_instance):
+class LazilyHashedPath(metaclass=klass.immutable_instance):
     """Given a pathway, compute chksums on demand via attribute access."""
 
     def __init__(self, path, **initial_values):

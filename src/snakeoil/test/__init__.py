@@ -79,7 +79,7 @@ def not_a_test(obj):
 not_a_test = not_a_test(not_a_test)
 
 
-class Todo(object):
+class Todo:
 
     def __init__(self, reason, errors=None):
         self.reason = reason
@@ -106,7 +106,7 @@ class Todo(object):
         return False
 
 
-class TestCase(unittest.TestCase, object):
+class TestCase(unittest.TestCase):
 
     """Our additions to the standard TestCase.
 

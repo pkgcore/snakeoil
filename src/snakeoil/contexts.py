@@ -40,7 +40,7 @@ from .process import namespaces
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-class SplitExec(object):
+class SplitExec:
     """Context manager separating code execution across parent/child processes.
 
     This is done by forking and doing some magic on the stack so the contents

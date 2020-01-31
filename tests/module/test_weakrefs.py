@@ -5,7 +5,7 @@ import pytest
 from snakeoil.weakrefs import WeakValCache
 
 
-class RefObj(object):
+class RefObj:
     pass
 
 
@@ -13,7 +13,7 @@ class RefObj(object):
     WeakValueDictionary is WeakValCache,
     reason="WeakValCache is weakref.WeakValueDictionary; indicates "
            "snakeoil._caching isn't compiled")
-class TestWeakValCache(object):
+class TestWeakValCache:
 
     def setup_method(self, method):
         self.o = RefObj()

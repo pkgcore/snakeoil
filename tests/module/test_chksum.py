@@ -3,7 +3,7 @@ import pytest
 from snakeoil import chksum
 
 
-class Test_funcs(object):
+class Test_funcs:
 
     def setup_method(self, method):
         chksum.__inited__ = False

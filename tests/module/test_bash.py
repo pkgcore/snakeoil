@@ -9,7 +9,7 @@ from snakeoil.fileutils import write_file
 from snakeoil.test.mixins import mk_named_tempfile
 
 
-class TestBashCommentStripping(object):
+class TestBashCommentStripping:
 
     def test_iter_read_bash(self):
         output = iter_read_bash(StringIO(
@@ -90,7 +90,7 @@ class TestBashCommentStripping(object):
         assert output == ['I am not']
 
 
-class TestReadDictConfig(object):
+class TestReadDictConfig:
 
     def test_read_dict(self):
         bash_dict = read_dict(StringIO(
@@ -115,7 +115,7 @@ class TestReadDictConfig(object):
         assert bash_dict == {}.fromkeys(('foo', 'foo2', 'foo3'), 'blah')
 
 
-class TestReadBashDict(object):
+class TestReadBashDict:
 
     def setup_method(self, method):
         self.valid_file = mk_named_tempfile()

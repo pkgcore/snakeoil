@@ -237,7 +237,7 @@ class TestAbsSymlink(TempDir):
         assert osutils.abssymlink(linkname) == target
 
 
-class Test_Native_NormPath(object):
+class Test_Native_NormPath:
 
     func = staticmethod(osutils.native_normpath)
 
@@ -278,7 +278,7 @@ class Test_Cpy_NormPath(Test_Native_NormPath):
 
 
 @pytest.mark.skipif(osutils.join is osutils.native_join, reason="extension isn't compiled")
-class Test_Cpy_Join(object):
+class Test_Cpy_Join:
 
     def test_reimplementation(self):
         vals = [
@@ -437,7 +437,7 @@ class Test_unlink_if_exists(TempDir):
         f(path)
 
 
-class TestSupportedSystems(object):
+class TestSupportedSystems:
 
     def test_supported_system(self):
         @supported_systems('supported')

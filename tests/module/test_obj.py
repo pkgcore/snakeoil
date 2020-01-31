@@ -7,7 +7,7 @@ make_DI = obj.DelayedInstantiation
 make_DIkls = obj.DelayedInstantiation_kls
 
 
-class TestDelayedInstantiation(object):
+class TestDelayedInstantiation:
 
     def test_simple(self):
         t = tuple([1, 2, 3])
@@ -58,14 +58,14 @@ class TestDelayedInstantiation(object):
         # it must always be a custom
         o = make_DI(object, object)
         assert object.__getattribute__(o, '__class__') is not obj.BaseDelayedObject
-        class foon(object):
+        class foon:
             pass
         o = make_DI(foon, foon)
         cls = object.__getattribute__(o, '__class__')
         assert cls is obj.BaseDelayedObject
 
         # now ensure we always get the same kls back for derivatives
-        class foon(object):
+        class foon:
             def __bool__(self):
                 return True
 
@@ -90,7 +90,7 @@ class TestDelayedInstantiation(object):
         def f():
             l.append(True)
             return foon()
-        class foon(object):
+        class foon:
             __doc__ = "monkey"
 
         o = make_DI(foon, f)
@@ -101,9 +101,9 @@ class TestDelayedInstantiation(object):
             "trigger instantiation")
 
 
-class TestPopattr(object):
+class TestPopattr:
 
-    class Object(object):
+    class Object:
         pass
 
     def setup_method(self, method):

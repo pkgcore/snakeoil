@@ -36,7 +36,7 @@ class ImmutableDict(BasicDict):
     __externally_mutable__ = False
 
 
-class TestDictMixin(object):
+class TestDictMixin:
 
     def test_immutability(self):
         d = ImmutableDict()
@@ -80,7 +80,7 @@ class TestDictMixin(object):
         assert not d
 
 
-class RememberingNegateMixin(object):
+class RememberingNegateMixin:
 
     def setup_method(self, method):
         self.negate_calls = []
@@ -94,7 +94,7 @@ class RememberingNegateMixin(object):
         del self.negate_calls
 
 
-class LazyValDictTestMixin(object):
+class LazyValDictTestMixin:
 
     def test_invalid_operations(self):
         pytest.raises(AttributeError, operator.setitem, self.dict, 7, 7)
@@ -155,7 +155,7 @@ class TestLazyValDictWithFunc(LazyValDictTestMixin, RememberingNegateMixin):
         self.dict = mappings.LazyValDict(a_dozen, self.negate)
 
 
-class TestLazyValDict(object):
+class TestLazyValDict:
 
     def test_invalid_init_args(self):
         pytest.raises(TypeError, mappings.LazyValDict, [1], 42)
@@ -164,7 +164,7 @@ class TestLazyValDict(object):
 
 # TODO check for valid values for dict.new, since that seems to be
 # part of the interface?
-class TestProtectedDict(object):
+class TestProtectedDict:
 
     def setup_method(self, method):
         self.orig = {1: -1, 2: -2}
@@ -214,7 +214,7 @@ class TestProtectedDict(object):
         assert 1 not in self.dict
 
 
-class TestImmutableDict(object):
+class TestImmutableDict:
 
     def test_init_iterator(self):
         d = mappings.ImmutableDict((x, x) for x in range(3))
@@ -288,7 +288,7 @@ class TestImmutableDict(object):
         assert initial_hash == hash(d)
 
 
-class TestStackedDict(object):
+class TestStackedDict:
 
     orig_dict = dict.fromkeys(range(100))
     new_dict = dict.fromkeys(range(100, 200))
@@ -337,7 +337,7 @@ class TestStackedDict(object):
             sorted(list(self.orig_dict.keys()) + list(self.new_dict.keys()))
 
 
-class TestIndeterminantDict(object):
+class TestIndeterminantDict:
 
     def test_disabled_methods(self):
         d = mappings.IndeterminantDict(lambda *a: None)
@@ -390,7 +390,7 @@ class TestIndeterminantDict(object):
         assert d.get(3) == True
 
 
-class TestFoldingDict(object):
+class TestFoldingDict:
 
     def test_preserve(self):
         dct = mappings.PreservingFoldingDict(
@@ -440,7 +440,7 @@ class TestFoldingDict(object):
         assert {} == dict(dct)
 
 
-class Testdefaultdictkey(object):
+class Testdefaultdictkey:
 
     kls = mappings.defaultdictkey
 
@@ -453,7 +453,7 @@ class Testdefaultdictkey(object):
         assert d[0] is val
 
 
-class Test_attr_to_item_mapping(object):
+class Test_attr_to_item_mapping:
 
     kls = mappings.AttrAccessible
     inject = staticmethod(mappings.inject_getitem_as_getattr)
@@ -488,12 +488,12 @@ class Test_attr_to_item_mapping(object):
         self.test_AttrAccessible(foon)
 
 
-class Test_ProxiedAttrs(object):
+class Test_ProxiedAttrs:
 
     kls = mappings.ProxiedAttrs
 
     def test_it(self):
-        class foo(object):
+        class foo:
             def __init__(self, **kwargs):
                 for attr, val in kwargs.items():
                     setattr(self, attr, val)
@@ -523,7 +523,7 @@ class Test_ProxiedAttrs(object):
             operator.__delitem__(d, 'x')
 
 
-class TestSlottedDict(object):
+class TestSlottedDict:
 
     kls = staticmethod(mappings.make_SlottedDict_kls)
 

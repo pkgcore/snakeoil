@@ -41,7 +41,7 @@ def mangle_parser(parser):
     return parser
 
 
-class FormatterObject(object, metaclass=WeakInstMeta):
+class FormatterObject(metaclass=WeakInstMeta):
     __inst_caching__ = True
 
     def __call__(self, formatter):
@@ -116,7 +116,7 @@ class FakeStreamFormatter(PlainTextFormatter):
              if not isinstance(x, FormatterObject)]).decode('ascii')
 
 
-class ArgParseMixin(object):
+class ArgParseMixin:
     """Provide some utility methods for testing the parser and main.
 
     :cvar parser: ArgumentParser subclass to test.

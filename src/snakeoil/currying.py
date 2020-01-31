@@ -11,7 +11,7 @@ is this
 ...   return arg, self
 >>> curry = pre_curry(func, True)
 >>> part = partial(func, True)
->>> class Test(object):
+>>> class Test:
 ...   curry = pre_curry(func, True)
 ...   part = partial(func, True)
 ...   def __repr__(self):

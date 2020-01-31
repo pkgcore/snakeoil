@@ -26,7 +26,7 @@ def reset_globals(functor):
     return f
 
 
-class TestParser(object):
+class TestParser:
 
     @reset_globals
     def test_parse(self):
@@ -45,7 +45,7 @@ class TestParser(object):
         pytest.raises(ValueError, list, demandload.parse_imports([' b_x']))
 
 
-class TestPlaceholder(object):
+class TestPlaceholder:
 
     @reset_globals
     def test_getattr(self):
@@ -80,7 +80,7 @@ class TestPlaceholder(object):
 
     @reset_globals
     def test_setattr(self):
-        class Struct(object):
+        class Struct:
             pass
 
         scope = {}
@@ -92,7 +92,7 @@ class TestPlaceholder(object):
         assert 7 == scope['foo'].val
 
 
-class TestImport(object):
+class TestImport:
 
     @reset_globals
     def test_demandload(self):
@@ -109,7 +109,7 @@ class TestImport(object):
         assert demandload is scope['demandload']
 
 
-class TestDemandCompileRegexp(object):
+class TestDemandCompileRegexp:
 
     @reset_globals
     def test_demand_compile_regexp(self):

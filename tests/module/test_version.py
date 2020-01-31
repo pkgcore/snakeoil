@@ -9,7 +9,7 @@ from snakeoil import __version__
 from snakeoil import version
 
 
-class TestVersion(object):
+class TestVersion:
 
     def setup_method(self, method):
         # reset the cached version in the module
@@ -49,7 +49,7 @@ class TestVersion(object):
         }
 
         # fake snakeoil._verinfo module object
-        class Verinfo(object):
+        class Verinfo:
             version_info=verinfo
 
         with mock.patch('snakeoil.version.import_module') as import_module:
@@ -78,7 +78,7 @@ class TestVersion(object):
         assert not import_module.called
 
 
-class TestGitVersion(object):
+class TestGitVersion:
 
     def test_get_git_version_not_available(self):
         with mock.patch('snakeoil.version._run_git') as run_git:

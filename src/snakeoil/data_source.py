@@ -122,7 +122,7 @@ def open_file(*args, **kwds):
     return handle
 
 
-class base(object):
+class base:
     """
     base data_source class; implementations of the protocol are advised
     to derive from this.

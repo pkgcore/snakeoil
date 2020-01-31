@@ -113,7 +113,7 @@ def loop_over_file(handle, callbacks, parallelize=True, can_mmap=True):
             f.close()
 
 
-class Chksummer(object):
+class Chksummer:
 
     def __init__(self, chf_type, obj, str_size, can_mmap=True):
         self.obj = obj
@@ -299,7 +299,7 @@ for k, v, str_size in (
 del k, v
 
 
-class SizeUpdater(object):
+class SizeUpdater:
 
     def __init__(self):
         self.count = 0

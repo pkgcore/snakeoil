@@ -48,7 +48,7 @@ def mk_named_tempfile(*args, **kwds):
     return io.TextIOWrapper(tmp_f)
 
 
-class PythonNamespaceWalker(object):
+class PythonNamespaceWalker:
 
     ignore_all_import_failures = False
 
@@ -178,7 +178,7 @@ class TargetedNamespaceWalker(PythonNamespaceWalker):
         for _mod in self.walk_namespace(namespace):
             pass
 
-class _classWalker(object):
+class _classWalker:
 
     cls_blacklist = frozenset()
 

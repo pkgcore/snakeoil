@@ -44,7 +44,7 @@ def test_syspath(tmpdir):
             assert mangled_syspath == tuple(sys.path)
 
 
-class TestSplitExec(object):
+class TestSplitExec:
 
     def test_context_process(self):
         # code inside the with statement is run in a separate process
@@ -108,7 +108,7 @@ class TestSplitExec(object):
 
 
 @pytest.mark.skipif(not sys.platform.startswith('linux'), reason='supported on Linux only')
-class TestNamespace(object):
+class TestNamespace:
 
     @pytest.mark.skipif(not os.path.exists('/proc/self/ns/user'),
                         reason='user namespace support required')

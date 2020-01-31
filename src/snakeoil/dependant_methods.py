@@ -17,7 +17,7 @@ all necessary steps will be ran in the correct order.
 Example usage:
 
 >>> from snakeoil.dependant_methods import ForcedDepends
->>> class foo(object, metaclass=ForcedDepends):
+>>> class foo(metaclass=ForcedDepends):
 ...   stage_depends = {"finish": ("do_step1", "do_step2"),
 ...     "do_step1":"start", "do_step2": "start"}
 ...

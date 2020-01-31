@@ -21,7 +21,7 @@ def require_chf(func):
     return subfunc
 
 
-class base(object):
+class base:
 
     def get_chf(self):
         try:

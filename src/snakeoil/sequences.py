@@ -148,7 +148,7 @@ except ImportError:
     iflatten_func = native_iflatten_func
 
 
-class ChainedLists(object):
+class ChainedLists:
     """Given a set of sequences, this will act as a proxy to them without collapsing them into a single list.
 
     This is primarily useful when you're dealing in large sets (or custom

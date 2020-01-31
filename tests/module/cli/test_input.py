@@ -14,7 +14,7 @@ def mocked_input():
         yield mocked_input
 
 
-class TestUserQuery(object):
+class TestUserQuery:
 
     @pytest.fixture(autouse=True)
     def __setup(self):

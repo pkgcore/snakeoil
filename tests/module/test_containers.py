@@ -5,7 +5,7 @@ import pytest
 from snakeoil import containers
 
 
-class TestInvertedContains(object):
+class TestInvertedContains:
 
     def setup_method(self, method):
         self.set = containers.InvertedContains(range(12))
@@ -43,7 +43,7 @@ class BasicSet(containers.SetMixin):
         return not self == other
 
 
-class TestSetMethods(object):
+class TestSetMethods:
 
     def test_and(self):
         c = BasicSet(range(100))
@@ -81,7 +81,7 @@ class TestSetMethods(object):
         assert c - s == r1
         assert s - c == r2
 
-class TestLimitedChangeSet(object):
+class TestLimitedChangeSet:
 
     def setup_method(self, method):
         self.set = containers.LimitedChangeSet(range(12))
@@ -199,7 +199,7 @@ class TestLimitedChangeSet(object):
         assert containers.LimitedChangeSet([]) != object()
 
 
-class TestLimitedChangeSetWithBlacklist(object):
+class TestLimitedChangeSetWithBlacklist:
 
     def setup_method(self, method):
         self.set = containers.LimitedChangeSet(range(12), [3, 13])
@@ -222,7 +222,7 @@ class TestLimitedChangeSetWithBlacklist(object):
             self.set.remove(3)
 
 
-class TestProtectedSet(object):
+class TestProtectedSet:
 
     def setup_method(self, method):
         self.set = containers.ProtectedSet(set(range(12)))
@@ -247,7 +247,7 @@ class TestProtectedSet(object):
         assert 13 == len(self.set)
 
 
-class TestRefCountingSet(object):
+class TestRefCountingSet:
 
     kls = containers.RefCountingSet
 

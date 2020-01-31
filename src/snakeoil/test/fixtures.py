@@ -5,7 +5,7 @@ import pytest
 from . import random_str
 
 
-class TempDir(object):
+class TempDir:
     """Provide temporary directory to every test method."""
 
     @pytest.fixture(autouse=True)
@@ -13,7 +13,7 @@ class TempDir(object):
         self.dir = str(tmpdir)
 
 
-class RandomPath(object):
+class RandomPath:
     """Provide random path in a temporary directory to every test method."""
 
     @pytest.fixture(autouse=True)

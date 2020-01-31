@@ -5,7 +5,7 @@ import pytest
 from snakeoil import stringio
 
 
-class base(object):
+class base:
 
     encoding = None
     kls = None

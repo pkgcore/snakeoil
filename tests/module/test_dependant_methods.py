@@ -7,11 +7,11 @@ def func(self, seq, data, val=True):
     return val
 
 
-class TestDependantMethods(object):
+class TestDependantMethods:
 
     @staticmethod
     def generate_instance(methods, dependencies):
-        class Class(object, metaclass=dm.ForcedDepends):
+        class Class(metaclass=dm.ForcedDepends):
             stage_depends = dict(dependencies)
 
             locals().update(list(methods.items()))

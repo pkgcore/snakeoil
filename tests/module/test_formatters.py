@@ -18,7 +18,7 @@ from snakeoil.test import mk_cpy_loadable_testcase, protect_process
 issue7567 = protect_process
 
 
-class Test_native_PlainTextFormatter(object):
+class Test_native_PlainTextFormatter:
 
     kls = staticmethod(formatters.native_PlainTextFormatter)
 
@@ -159,7 +159,7 @@ class Test_cpy_PlainTextFormatter(Test_native_PlainTextFormatter):
     kls = staticmethod(formatters.PlainTextFormatter)
 
 
-class TerminfoFormatterTest(object):
+class TerminfoFormatterTest:
 
     def _test_stream(self, stream, formatter, inputs, output):
         stream.seek(0)
@@ -230,7 +230,7 @@ def _get_pty_pair(encoding='ascii'):
     return master, out
 
 
-class TestGetFormatter(object):
+class TestGetFormatter:
 
     @issue7567
     def test_dumb_terminal(self):

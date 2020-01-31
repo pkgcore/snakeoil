@@ -277,7 +277,7 @@ for case in ("ascii", "bytes", "utf8"):
     mk_readlines_test(locals(), case)
 
 
-class TestBrokenStats(object):
+class TestBrokenStats:
 
     test_cases = ['/proc/crypto', '/sys/devices/system/cpu/present']
 

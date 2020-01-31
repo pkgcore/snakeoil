@@ -41,7 +41,7 @@ class RawTextFormatter(argparse.RawTextHelpFormatter):
         return super()._format_action(action)
 
 
-class ManConverter(object):
+class ManConverter:
     """Convert argparse help docs into rST man pages."""
 
     positional_re = re.compile("^([^: \t]+)")

@@ -5,7 +5,7 @@ import pytest
 from snakeoil.iterables import partition, expandable_chain, caching_iter, iter_sort
 
 
-class TestPartition(object):
+class TestPartition:
 
     def test_empty(self):
         a, b = partition(())
@@ -22,7 +22,7 @@ class TestPartition(object):
         assert list(b) == [5, 6, 7, 8, 9]
 
 
-class TestExpandableChain(object):
+class TestExpandableChain:
 
     def test_normal_function(self):
         i = [iter(range(100)) for x in range(3)]
@@ -61,7 +61,7 @@ class TestExpandableChain(object):
             e.appendleft([])
 
 
-class TestCachingIter(object):
+class TestCachingIter:
 
     def test_iter_consumption(self):
         i = iter(range(100))
@@ -149,7 +149,7 @@ class TestCachingIter(object):
         assert str(caching_iter(range(10)))
 
 
-class Test_iter_sort(object):
+class Test_iter_sort:
     def test_ordering(self):
         def f(l):
             return sorted(l, key=operator.itemgetter(0))

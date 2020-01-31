@@ -29,7 +29,7 @@ def mmap_and_close(fd, *args, **kwargs):
             pass
 
 
-class readlines_iter(object):
+class readlines_iter:
     __slots__ = ("iterable", "mtime", "source")
     def __init__(self, iterable, mtime, close=True, source=None):
         if source is None:

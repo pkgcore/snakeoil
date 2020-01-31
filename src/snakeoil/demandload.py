@@ -123,7 +123,7 @@ else:
     _noisy_protection = _noisy_protection_enabled
 
 
-class Placeholder(object):
+class Placeholder:
 
     """Object that knows how to replace itself when first accessed.
 

@@ -15,7 +15,7 @@ if hasattr(sys, 'getPlatform'):
 
 
 def sorted_key_from_cmp(cmp_func, key_func=None):
-    class _key_proxy(object):
+    class _key_proxy:
 
         __slots__ = ('_obj',)
 

@@ -314,7 +314,7 @@ class GenericFailed(LockException):
 # IMO, it shouldn't, but opening/closing everytime around is expensive
 
 
-class FsLock(object):
+class FsLock:
     """fnctl based filesystem lock"""
     __slots__ = ("path", "fd", "create")
 

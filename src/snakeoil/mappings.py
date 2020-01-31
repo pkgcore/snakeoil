@@ -18,7 +18,7 @@ import operator
 from .klass import get, contains, steal_docs, _sentinel
 
 
-class DictMixin(object):
+class DictMixin:
     """
     new style class replacement for :py:func:`UserDict.DictMixin`
     designed around iter* methods rather then forcing lists as DictMixin does
@@ -346,7 +346,7 @@ class ImmutableDict(Mapping):
         return hash(tuple(sorted(self._dict.items(), key=operator.itemgetter(0))))
 
 
-class IndeterminantDict(object):
+class IndeterminantDict:
     """A wrapped dict with constant defaults, and a function for other keys.
 
     The primary use for this class is to make a JIT loaded mapping- for instance, a
@@ -605,7 +605,7 @@ class ProxiedAttrs(DictMixin):
 
     Example usage:
 
-    >>> class foo(object):
+    >>> class foo:
     ...     pass
     >>> obj = foo()
     >>> obj.x, obj.y = 1, 2
@@ -665,7 +665,7 @@ def native_attr_contains(self, key):
 # python issue 7604; depending on the python version, delattr'ing an empty slot
 # doesn't throw AttributeError; we vary our implementation for efficiency
 # dependent on a onetime runtime test of that.
-class foo(object):
+class foo:
     __slots__ = ("slot",)
 
 # track which is required since if we can use extensions, we'll have

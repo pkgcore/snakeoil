@@ -9,16 +9,16 @@ from snakeoil import klass
 from snakeoil.test import mk_cpy_loadable_testcase
 
 
-class Test_native_GetAttrProxy(object):
+class Test_native_GetAttrProxy:
     kls = staticmethod(klass.native_GetAttrProxy)
 
     def test_it(self):
-        class foo1(object):
+        class foo1:
             def __init__(self, obj):
                 self.obj = obj
             __getattr__ = self.kls('obj')
 
-        class foo2(object):
+        class foo2:
             pass
 
         o2 = foo2()
@@ -33,7 +33,7 @@ class Test_native_GetAttrProxy(object):
 
     def test_attrlist(self):
         def make_class(attr_list=None):
-            class foo(object, metaclass=self.kls):
+            class foo(metaclass=self.kls):
                 if attr_list is not None:
                     locals()['__attr_comparison__'] = attr_list
 
@@ -45,10 +45,10 @@ class Test_native_GetAttrProxy(object):
             make_class([None])
 
     def test_instancemethod(self):
-        class foo(object):
+        class foo:
             bar = "baz"
 
-        class Test(object):
+        class Test:
             method = self.kls('test')
             test = foo()
 
@@ -69,7 +69,7 @@ class Test_CPY_GetAttrProxy(Test_native_GetAttrProxy):
         # results in a segfault.. so if it's horked, this will bail the test
         # runner.
 
-        class c(object):
+        class c:
             __getattr__ = self.kls("obj")
 
         o = c()
@@ -79,19 +79,19 @@ class Test_CPY_GetAttrProxy(Test_native_GetAttrProxy):
             getattr(o, "hooey")
 
 
-class TestDirProxy(object):
+class TestDirProxy:
 
     @staticmethod
     def noninternal_attrs(obj):
         return sorted(x for x in dir(obj) if not re.match(r'__\w+__', x))
 
     def test_combined(self):
-        class foo1(object):
+        class foo1:
             def __init__(self, obj):
                 self.obj = obj
             __dir__ = klass.DirProxy('obj')
 
-        class foo2(object):
+        class foo2:
             def __init__(self):
                 self.attr = 'foo'
 
@@ -100,12 +100,12 @@ class TestDirProxy(object):
         assert self.noninternal_attrs(o) == ['attr', 'obj']
 
     def test_empty(self):
-        class foo1(object):
+        class foo1:
             def __init__(self, obj):
                 self.obj = obj
             __dir__ = klass.DirProxy('obj')
 
-        class foo2(object):
+        class foo2:
             pass
 
         o2 = foo2()
@@ -114,13 +114,13 @@ class TestDirProxy(object):
         assert self.noninternal_attrs(o) == ['obj']
 
     def test_slots(self):
-        class foo1(object):
+        class foo1:
             __slots__ = ('obj',)
             def __init__(self, obj):
                 self.obj = obj
             __dir__ = klass.DirProxy('obj')
 
-        class foo2(object):
+        class foo2:
             __slots__ = ('attr',)
             def __init__(self):
                 self.attr = 'foo'
@@ -130,7 +130,7 @@ class TestDirProxy(object):
         assert self.noninternal_attrs(o) == ['attr', 'obj']
 
 
-class Test_native_contains(object):
+class Test_native_contains:
     func = staticmethod(klass.native_contains)
 
     def test_it(self):
@@ -147,7 +147,7 @@ class Test_CPY_contains(Test_native_contains):
     func = staticmethod(klass.contains)
 
 
-class Test_native_get(object):
+class Test_native_get:
     func = staticmethod(klass.native_get)
 
     def test_it(self):
@@ -166,7 +166,7 @@ class Test_CPY_get(Test_native_get):
     func = staticmethod(klass.get)
 
 
-class Test_chained_getter(object):
+class Test_chained_getter:
 
     kls = klass.chained_getter
 
@@ -186,7 +186,7 @@ class Test_chained_getter(object):
             self.kls("asdf", disable_inst_caching=True)
 
     def test_it(self):
-        class maze(object):
+        class maze:
             def __init__(self, kwargs):
                 self.__data__ = kwargs
 
@@ -205,7 +205,7 @@ class Test_chained_getter(object):
             f('foon.dar')(m)
 
 
-class Test_native_jit_attr(object):
+class Test_native_jit_attr:
 
     kls = staticmethod(klass._native_internal_jit_attr)
 
@@ -231,7 +231,7 @@ class Test_native_jit_attr(object):
                 self._invokes.append(self)
                 return 54321
 
-        class cls(object):
+        class cls:
 
             def __init__(self):
                 sf = partial(object.__setattr__, self)
@@ -285,7 +285,7 @@ class Test_native_jit_attr(object):
     def test_jit_attr(self):
         now = time()
 
-        class cls(object):
+        class cls:
             @self.jit_attr
             def my_attr(self):
                 return now
@@ -294,7 +294,7 @@ class Test_native_jit_attr(object):
         assert o.my_attr == now
         assert o._my_attr == now
 
-        class cls(object):
+        class cls:
             @self.jit_attr
             def attr2(self):
                 return now
@@ -313,7 +313,7 @@ class Test_native_jit_attr(object):
         now = time()
 
         # check attrname control and default object.__setattr__ avoidance
-        class cls(object):
+        class cls:
             @self.jit_attr_named("_blah")
             def my_attr(self):
                 return now
@@ -325,7 +325,7 @@ class Test_native_jit_attr(object):
         assert o.my_attr == now
         assert o._blah == now
 
-        class cls(object):
+        class cls:
             @self.jit_attr_named("_blah2", use_cls_setattr=True)
             def my_attr(self):
                 return now
@@ -344,7 +344,7 @@ class Test_native_jit_attr(object):
         now = time()
         now2 = now + 100
 
-        class base(object):
+        class base:
             def f1(self):
                 return now
 
@@ -393,7 +393,7 @@ class Test_native_jit_attr(object):
         def throw_assert(*args, **kwds):
             raise AssertionError("I shouldn't be invoked: %s, %s" % (args, kwds,))
 
-        class puker(object):
+        class puker:
             __eq__ = throw_assert
 
         puker_singleton = puker()
@@ -406,7 +406,7 @@ class Test_native_jit_attr(object):
 
     def test_cached_property(self):
         l = []
-        class foo(object):
+        class foo:
             @klass.cached_property
             def blah(self, l=l, i=iter(range(5))):
                 l.append(None)
@@ -427,7 +427,7 @@ class Test_native_jit_attr(object):
             l.append(None)
             return next(i)
 
-        class foo(object):
+        class foo:
             blah = klass.cached_property_named("blah")(named)
 
         f = foo()
@@ -446,12 +446,12 @@ class Test_cpy_jit_attr(Test_native_jit_attr):
     kls = staticmethod(klass._internal_jit_attr)
 
 
-class Test_aliased_attr(object):
+class Test_aliased_attr:
 
     func = staticmethod(klass.alias_attr)
 
     def test_it(self):
-        class cls(object):
+        class cls:
             attr = self.func("dar.blah")
 
         o = cls()
@@ -467,10 +467,10 @@ class Test_aliased_attr(object):
         assert o.attr == 'monkey'
 
         # verify it'll cross properties...
-        class blah(object):
+        class blah:
             target = object()
 
-        class cls(object):
+        class cls:
             @property
             def foon(self):
                 return blah()
@@ -480,12 +480,12 @@ class Test_aliased_attr(object):
         assert o.alias is blah.target
 
 
-class Test_cached_hash(object):
+class Test_cached_hash:
     func = staticmethod(klass.cached_hash)
 
     def test_it(self):
         now = int(time())
-        class cls(object):
+        class cls:
             invoked = []
             @self.func
             def __hash__(self):
@@ -500,11 +500,11 @@ class Test_cached_hash(object):
         assert o._hash == now
 
 
-class Test_native_reflective_hash(object):
+class Test_native_reflective_hash:
     func = staticmethod(klass.native_reflective_hash)
 
     def test_it(self):
-        class cls(object):
+        class cls:
             __hash__ = self.func('_hash')
 
         obj = cls()
@@ -519,7 +519,7 @@ class Test_native_reflective_hash(object):
         with pytest.raises(AttributeError):
             hash(obj)
 
-        class cls2(object):
+        class cls2:
             __hash__ = self.func('_dar')
         obj = cls2()
         with pytest.raises(AttributeError):
@@ -538,7 +538,7 @@ cpy_loaded_Test = mk_cpy_loadable_testcase(
     "snakeoil._klass", "snakeoil.klass", "reflective_hash", "reflective_hash")
 
 
-class TestImmutableInstance(object):
+class TestImmutableInstance:
 
     def test_metaclass(self):
         self.common_test(lambda x: x, metaclass=klass.immutable_instance)
@@ -550,7 +550,7 @@ class TestImmutableInstance(object):
         self.common_test(f)
 
     def common_test(self, modify_kls, **kwargs):
-        class kls(object, **kwargs):
+        class kls(**kwargs):
             modify_kls(locals())
 
         o = kls()
@@ -565,7 +565,7 @@ class TestImmutableInstance(object):
 
         # ensure it only sets it if nothing is in place already.
 
-        class kls(object, **kwargs):
+        class kls(**kwargs):
             def __setattr__(self, attr, value):
                 raise TypeError(self)
 
@@ -578,12 +578,12 @@ class TestImmutableInstance(object):
             delattr(o, "dar")
 
 
-class TestAliasMethod(object):
+class TestAliasMethod:
 
     func = staticmethod(klass.alias_method)
 
     def test_alias_method(self):
-        class kls(object):
+        class kls:
             __len__ = lambda s: 3
             lfunc = self.func("__len__")
 
@@ -593,7 +593,7 @@ class TestAliasMethod(object):
         assert c.__len__() == c.lfunc()
 
 
-class TestPatch(object):
+class TestPatch:
 
     def setup_method(self, method):
         # cache original methods

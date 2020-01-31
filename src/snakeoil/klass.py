@@ -127,7 +127,7 @@ def _native_internal_jit_attr(
         use_singleton=use_singleton)
 
 
-class _raw_native_internal_jit_attr(object):
+class _raw_native_internal_jit_attr:
     """See _native_internal_jit_attr; this is an implementation detail of that"""
 
     __slots__ = ("storage_attr", "function", "_setter", "singleton", "use_singleton")
@@ -205,7 +205,7 @@ def generic_equality(name, bases, scope, real_type=type,
     :raise: TypeError if __attr_comparison__ is incorrectly defined
 
     >>> from snakeoil.klass import generic_equality
-    >>> class foo(object, metaclass=generic_equality):
+    >>> class foo(metaclass=generic_equality):
     ...   __attr_comparison__ = ("a", "b", "c")
     ...   def __init__(self, a=1, b=2, c=3):
     ...     self.a, self.b, self.c = a, b, c
@@ -276,7 +276,7 @@ def inject_richcmp_methods_from_cmp(scope, inject_always=False):
 
     >>> from snakeoil.klass import inject_richcmp_methods_from_cmp
     >>> from snakeoil.compatibility import cmp
-    >>> class foo(object):
+    >>> class foo:
     ...
     ...   # note that for this example, we inject always since we're
     ...   # explicitly accessing __ge__ methods- under py2k, they wouldn't
@@ -310,7 +310,7 @@ def inject_richcmp_methods_from_cmp(scope, inject_always=False):
         scope.setdefault(key, func)
 
 
-class chained_getter(object, metaclass=partial(generic_equality, real_type=caching.WeakInstMeta)):
+class chained_getter(metaclass=partial(generic_equality, real_type=caching.WeakInstMeta)):
 
     """
     object that will do multi part lookup, regardless of if it's in the context
@@ -329,7 +329,7 @@ class chained_getter(object, metaclass=partial(generic_equality, real_type=cachi
     >>> print(chained_getter("extend")(list).__name__)
     extend
     >>>
-    >>> class foo(object):
+    >>> class foo:
     ...
     ...   seq = (1,2,3)
     ...
@@ -379,7 +379,7 @@ instance_attrgetter = chained_getter
 # we suppress the repr since if it's unmodified, it'll expose the id;
 # this annoyingly means our docs have to be recommited every change,
 # even if no real code changed (since the id() continually moves)...
-class _singleton_kls(object):
+class _singleton_kls:
 
     def __str__(self):
         return "uncached singleton instance"
@@ -454,7 +454,7 @@ def cached_property(func, kls=_internal_jit_attr, use_cls_setattr=False):
     Example Usage:
 
     >>> from snakeoil.klass import cached_property
-    >>> class foo(object):
+    >>> class foo:
     ...
     ...   @cached_property
     ...   def attr(self):
@@ -480,7 +480,7 @@ def cached_property_named(name, kls=_internal_jit_attr, use_cls_setattr=False):
     Example Usage:
 
     >>> from snakeoil.klass import cached_property_named
-    >>> class foo(object):
+    >>> class foo:
     ...
     ...   @cached_property_named("attr")
     ...   def attr(self):
@@ -505,7 +505,7 @@ def alias_attr(target_attr):
     Example Usage:
 
     >>> from snakeoil.klass import alias_attr
-    >>> class foo(object):
+    >>> class foo:
     ...
     ...   seq = (1,2,3)
     ...
@@ -535,7 +535,7 @@ def cached_hash(func):
     if you know it cannot change.
 
     >>> from snakeoil.klass import cached_hash
-    >>> class foo(object):
+    >>> class foo:
     ...   def __init__(self):
     ...     self.hash_invocations = 0
     ...
@@ -694,7 +694,7 @@ def inject_immutable_instance(scope):
     scope.setdefault("__delattr__", _immutable_delattr)
 
 
-class ImmutableInstance(object):
+class ImmutableInstance:
     """Class that disables surface-level attribute modifications."""
 
     __setattr__ = _immutable_setattr
@@ -720,7 +720,7 @@ def alias_method(attr, name=None, doc=None):
     :param doc: ``__doc__`` to force for the new method if desired
 
     >>> from snakeoil.klass import alias_method
-    >>> class foon(object):
+    >>> class foon:
     ...   def orig(self):
     ...     return 1
     ...   alias = alias_method("orig")
@@ -742,7 +742,7 @@ def alias_method(attr, name=None, doc=None):
     return _asecond_level_call
 
 
-class alias(object):
+class alias:
     """Decorator for making methods callable through aliases.
 
     This decorator must be used inside a class decorated with @aliased.
@@ -751,7 +751,7 @@ class alias(object):
 
     >>> from snakeoil.klass import aliased, alias
     >>> @aliased
-    >>> class Speak(object):
+    >>> class Speak:
     ...     @alias('yell', 'scream')
     ...     def shout(message):
     ...         return message.upper()
@@ -784,7 +784,7 @@ def aliased(cls):
     return cls
 
 
-class SlotsPicklingMixin(object):
+class SlotsPicklingMixin:
     """Default pickling support for classes that use __slots__."""
 
     __slots__ = ()

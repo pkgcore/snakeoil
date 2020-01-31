@@ -15,7 +15,7 @@ class UnhashableComplex(complex):
         raise TypeError
 
 
-class TestStableUnique(object):
+class TestStableUnique:
 
     def common_check(self, func):
         # silly
@@ -51,7 +51,7 @@ class TestStableUnique(object):
         assert sorted(sequences.unstable_unique(self._generator())) == sorted(range(6))
 
 
-class TestChainedLists(object):
+class TestChainedLists:
 
     @staticmethod
     def gen_cl():
@@ -104,7 +104,7 @@ class TestChainedLists(object):
         assert len(cl) == 150
 
 
-class Test_iflatten_instance(object):
+class Test_iflatten_instance:
     func = staticmethod(sequences.native_iflatten_instance)
 
     def test_it(self):
@@ -144,7 +144,7 @@ class Test_iflatten_instance(object):
         assert self.func((), **{})
 
 
-class Test_iflatten_func(object):
+class Test_iflatten_func:
     func = staticmethod(sequences.native_iflatten_func)
 
     def test_it(self):
@@ -192,7 +192,7 @@ class Test_CPY_iflatten_func(Test_iflatten_func):
     func = staticmethod(sequences.iflatten_func)
 
 
-class Test_predicate_split(object):
+class Test_predicate_split:
     kls = staticmethod(sequences.predicate_split)
 
     def test_simple(self):
@@ -211,7 +211,7 @@ cpy_loaded_Test = mk_cpy_loadable_testcase(
     "snakeoil._sequences", "snakeoil.sequences", "iflatten_func", "iflatten_func")
 
 
-class TestNamedTuple(object):
+class TestNamedTuple:
 
     def setup_method(self, method):
         self.point = namedtuple('Point', ('x', 'y', 'z'))
@@ -249,7 +249,7 @@ class TestNamedTuple(object):
             q = self.point(x=1, y=2, z=3)
 
 
-class TestSplitNegations(object):
+class TestSplitNegations:
 
     def test_empty(self):
         # empty input
@@ -290,7 +290,7 @@ class TestSplitNegations(object):
         assert split_negations(seq, int) == (tuple(range(100)), tuple(range(100)))
 
 
-class TestSplitElements(object):
+class TestSplitElements:
 
     def test_empty(self):
         # empty input

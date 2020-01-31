@@ -1,7 +1,7 @@
 from snakeoil import descriptors
 
 
-class ClassProp(object):
+class ClassProp:
 
     @descriptors.classproperty
     def test(cls):
@@ -9,7 +9,7 @@ class ClassProp(object):
         return 'good', cls
 
 
-class TestDescriptor(object):
+class TestDescriptor:
 
     def test_classproperty(self):
         assert ('good', ClassProp) == ClassProp.test

@@ -8,11 +8,11 @@ from snakeoil import caching
 
 
 def gen_test(WeakInstMeta):
-    class weak_slotted(object, metaclass=WeakInstMeta):
+    class weak_slotted(metaclass=WeakInstMeta):
         __inst_caching__ = True
         __slots__ = ('one',)
 
-    class weak_inst(object, metaclass=WeakInstMeta):
+    class weak_inst(metaclass=WeakInstMeta):
         __inst_caching__ = True
         counter = 0
         def __new__(cls, *args, **kwargs):
@@ -33,7 +33,7 @@ def gen_test(WeakInstMeta):
     class reenabled_weak_inst(automatic_disabled_weak_inst):
         __inst_caching__ = True
 
-    class TestWeakInstMeta(object):
+    class TestWeakInstMeta:
 
         def test_reuse(self, kls=weak_inst):
             kls.reset()
@@ -103,7 +103,7 @@ def gen_test(WeakInstMeta):
             weak_inst.reset()
 
             # This name is *important*, see above.
-            class RaisingHashForTestUncachable(object):
+            class RaisingHashForTestUncachable:
                 def __init__(self, error):
                     self.error = error
                 def __hash__(self):
@@ -118,7 +118,7 @@ def gen_test(WeakInstMeta):
         @pytest.mark.filterwarnings('error::UserWarning')
         def test_uncachable_warning_msg(self):
             # This name is *important*, see above.
-            class RaisingHashForTestUncachableWarnings(object):
+            class RaisingHashForTestUncachableWarnings:
                 def __init__(self, error):
                     self.error = error
                 def __hash__(self):
@@ -129,7 +129,7 @@ def gen_test(WeakInstMeta):
                     weak_inst(RaisingHashForTestUncachableWarnings(x))
 
         def test_hash_collision(self):
-            class BrokenHash(object):
+            class BrokenHash:
                 def __hash__(self):
                     return 1
             assert weak_inst(BrokenHash()) is not weak_inst(BrokenHash())
@@ -144,7 +144,7 @@ def gen_test(WeakInstMeta):
 
         def test_existing_weakref_slot(self):
             # The actual test is that the class definition works.
-            class ExistingWeakrefSlot(object):
+            class ExistingWeakrefSlot:
                 __inst_caching__ = True
                 __slots__ = ('one', '__weakref__')
 

@@ -63,7 +63,7 @@ class TestFindBinary(TempDir):
             process.find_binary(self.dir)
 
 
-class TestIsRunning(object):
+class TestIsRunning:
 
     def test_is_running(self):
         # confirm we're running

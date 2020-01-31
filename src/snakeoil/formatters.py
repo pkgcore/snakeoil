@@ -30,7 +30,7 @@ class native_StreamClosed(KeyboardInterrupt):
 # pylint: disable=C0103
 
 
-class Formatter(object):
+class Formatter:
 
     """
     Abstract formatter base class.
@@ -363,7 +363,7 @@ try:
 except ImportError:
     TerminfoColor = None
 else:
-    class TerminfoColor(object):
+    class TerminfoColor:
         """
         class encapsulating a specific terminfo entry for a color
 
@@ -405,7 +405,7 @@ else:
             raise AttributeError("%s instances are immutable" %
                                  (self.__class__.__name__,))
 
-    class TerminfoCode(object):
+    class TerminfoCode:
         """
         Encapsulates specific terminfo entry commands, reset for example.
 
@@ -568,7 +568,7 @@ else:
             self.stream.flush()
 
 
-class ObserverFormatter(object):
+class ObserverFormatter:
 
     def __init__(self, real_formatter):
         self._formatter = real_formatter

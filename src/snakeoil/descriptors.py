@@ -3,7 +3,7 @@
 __all__ = ("classproperty",)
 
 
-class classproperty(object):
+class classproperty:
 
     """Like the builtin :py:func:`property` but takes a single classmethod.
 
@@ -13,7 +13,7 @@ class classproperty(object):
     Used like this:
 
     >>> from snakeoil.descriptors import classproperty
-    >>> class foo(object):
+    >>> class foo:
     ...
     ...   @classproperty
     ...   def test(cls):

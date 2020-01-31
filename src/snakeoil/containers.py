@@ -38,7 +38,7 @@ class InvertedContains(set):
         raise TypeError("InvertedContains cannot be iterated over")
 
 
-class SetMixin(object):
+class SetMixin:
     """
     Base class for implementing set classes
 

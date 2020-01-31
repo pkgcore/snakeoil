@@ -11,7 +11,7 @@ from snakeoil.cli import arghparse
 from snakeoil.test import argparse_helpers
 
 
-class TestArgparseDocs(object):
+class TestArgparseDocs:
 
     def test_add_argument_docs(self):
         # force using an unpatched version of argparse
@@ -64,7 +64,7 @@ class TestArgparseDocs(object):
         assert getattr(tuple_action, 'help', None) == 'foo\nbar'
 
 
-class TestCopyableParser(object):
+class TestCopyableParser:
 
     # TODO: move this to a generic argparse fixture
     @pytest.fixture(autouse=True)
@@ -203,7 +203,7 @@ class TestCopyableParser(object):
         assert args.arg == 'def'
 
 
-class TestOptionalsParser(object):
+class TestOptionalsParser:
 
     # TODO: move this to a generic argparse fixture
     @pytest.fixture(autouse=True)
@@ -265,7 +265,7 @@ class TestOptionalsParser(object):
         assert unknown == ['arg', '--opt1', 'yes']
 
 
-class TestCsvActionsParser(object):
+class TestCsvActionsParser:
 
     # TODO: move this to a generic argparse fixture
     @pytest.fixture(autouse=True)
@@ -354,7 +354,7 @@ class TestArgumentParser(TestCsvActionsParser, TestOptionalsParser):
         assert not hasattr(namespace, 'verbosity')
 
 
-class BaseArgparseOptions(object):
+class BaseArgparseOptions:
 
     def setup_method(self, method):
         self.parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser())
@@ -594,7 +594,7 @@ class TestExistentDirType(BaseArgparseOptions):
         assert namespace.path == str(tmp_path)
 
 
-class TestNamespace(object):
+class TestNamespace:
 
     def setup_method(self, method):
         self.parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser())
@@ -625,7 +625,7 @@ class TestNamespace(object):
         assert namespace
 
 
-class TestManHelpAction(object):
+class TestManHelpAction:
 
     def test_help(self, capsys):
         parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser())

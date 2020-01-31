@@ -26,7 +26,7 @@ By and large, this proxying is transparent if dealing in python objects (newstyl
 for example,
 
 >>> from snakeoil.obj import DelayedInstantiation_kls
->>> class foo(object):
+>>> class foo:
 ...   def __init__(self, value):
 ...     print("instance was created")
 ...     self.attribute = value
@@ -108,7 +108,7 @@ def popattr(obj, name, default=klass._sentinel):
         getattr(obj, name)
 
 
-class BaseDelayedObject(object):
+class BaseDelayedObject:
     """
     Base proxying object
 

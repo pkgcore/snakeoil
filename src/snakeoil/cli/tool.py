@@ -14,7 +14,7 @@ from ..contexts import nullcontext
 from ..log import suppress_logging
 
 
-class Tool(object):
+class Tool:
     """Abstraction for commandline tools."""
 
     def __init__(self, parser, outfile=None, errfile=None):

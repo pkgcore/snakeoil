@@ -308,7 +308,7 @@ class Verbosity(argparse.Action):
         setattr(namespace, self.dest, new)
 
 
-class DelayedValue(object):
+class DelayedValue:
 
     def __init__(self, invokable, priority=0):
         self.priority = priority
@@ -1232,7 +1232,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
         return functor
 
 
-class ArgparseCommand(object):
+class ArgparseCommand:
 
     def bind_to_parser(self, parser):
         parser.bind_main_func(self)

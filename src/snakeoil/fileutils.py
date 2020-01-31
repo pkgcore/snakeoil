@@ -68,7 +68,7 @@ def mmap_or_open_for_read(path):
         raise
 
 
-class UnbufferedWriteHandle(object):
+class UnbufferedWriteHandle:
     """Class designed to work around py3k buffering issues
 
     see http://stackoverflow.com/questions/107705/python-output-buffering
@@ -84,7 +84,7 @@ class UnbufferedWriteHandle(object):
     __getattr__ = GetAttrProxy("stream")
 
 
-class AtomicWriteFile_mixin(object):
+class AtomicWriteFile_mixin:
 
     """File class that stores the changes in a tempfile.
 

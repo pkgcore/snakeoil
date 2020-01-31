@@ -25,7 +25,7 @@ def partition(iterable, predicate=bool):
             (x for pred, x in b if pred))
 
 
-class expandable_chain(object):
+class expandable_chain:
     """
     chained iterables, with the ability to add new iterables to the chain
     as long as the instance hasn't raised StopIteration already.  This is
@@ -94,7 +94,7 @@ class expandable_chain(object):
         self.iterables.extendleft(iter(x) for x in iterables)
 
 
-class caching_iter(object):
+class caching_iter:
     """
     On demand consumes from an iterable so as to appear like a tuple
 
