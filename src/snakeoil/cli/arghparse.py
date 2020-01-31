@@ -1080,15 +1080,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
                     parsers.update(x._name_parser_map)
         return ImmutableDict(parsers)
 
-    def parse_known_args(self, args, namespace):
-        """Add support for running registered pre-parse functions."""
-        if args is None:
-            # args default to the system args
-            args = sys.argv[1:]
-        else:
-            # make sure that args are mutable
-            args = list(args)
-
+    def pre_parse(self, namespace=None):
         # default Namespace built from parser defaults
         if namespace is None:
             namespace = Namespace()
@@ -1103,6 +1095,24 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
                 functor(parser, namespace)
             # wipe pre-parse functions so they only run once
             del self.__pre_parse[:]
+
+        return namespace
+
+    def parse_known_args(self, args, namespace):
+        """Add support for running registered pre-parse functions."""
+        if args is None:
+            # args default to the system args
+            args = sys.argv[1:]
+        else:
+            # make sure that args are mutable
+            args = list(args)
+
+        # default Namespace built from parser defaults
+        if namespace is None:
+            namespace = Namespace()
+
+        # run registered pre-parse functions
+        namespace = self.pre_parse(namespace)
 
         # add any action defaults that aren't present
         for action in self._actions:
