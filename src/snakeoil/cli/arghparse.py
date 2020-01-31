@@ -961,6 +961,8 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
         self.__main_func = None
         # pre-parse functions to execute for this parser
         self.__pre_parse = []
+        # early parse functions to execute for this parser
+        self.__early_parse = []
         # defaults setting functions to execute for this parser
         self.__reset_defaults = []
 
@@ -1098,6 +1100,11 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
             # wipe pre-parse functions so they only run once
             del self.__pre_parse[:]
 
+        # run registered early parse functions
+        if self.__early_parse:
+            for functor, parser in self.__early_parse:
+                namespace, arg_strings = functor(parser, namespace, arg_strings)
+
         return namespace, arg_strings
 
     def _parse_known_args(self, arg_strings, namespace):
@@ -1223,6 +1230,11 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
     def bind_pre_parse(self, functor):
         """Decorator to bind a function for pre-parsing parser manipulation."""
         self.__pre_parse.append((functor, self))
+        return functor
+
+    def bind_early_parse(self, functor):
+        """Decorator to bind a function for early parsing support."""
+        self.__early_parse.append((functor, self))
         return functor
 
     def bind_final_check(self, functor):
