@@ -3,7 +3,7 @@
 import argparse
 from argparse import (
     ArgumentError, PARSER, REMAINDER, OPTIONAL, ZERO_OR_MORE,
-    SUPPRESS, _get_action_name, _SubParsersAction, _,
+    SUPPRESS, _get_action_name, _SubParsersAction, _, _UNRECOGNIZED_ARGS_ATTR,
 )
 from collections import Counter
 import copy
@@ -1080,10 +1080,16 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
                     parsers.update(x._name_parser_map)
         return ImmutableDict(parsers)
 
-    def pre_parse(self, arg_strings=None, namespace=None):
-        """Reset registered defaults and pre-parse functions."""
-        if arg_strings is None:
-            arg_strings = []
+    def parse_known_args(self, args, namespace):
+        """Add support for running registered pre-parse functions."""
+        if args is None:
+            # args default to the system args
+            args = sys.argv[1:]
+        else:
+            # make sure that args are mutable
+            args = list(args)
+
+        # default Namespace built from parser defaults
         if namespace is None:
             namespace = Namespace()
 
@@ -1095,22 +1101,36 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
         if self.__pre_parse:
             for functor, parser in self.__pre_parse:
                 functor(parser, namespace)
-            # re-parse to catch any argument additions/changes
-            namespace, arg_strings = super().parse_known_optionals(arg_strings, namespace)
             # wipe pre-parse functions so they only run once
             del self.__pre_parse[:]
+
+        # add any action defaults that aren't present
+        for action in self._actions:
+            if action.dest is not SUPPRESS:
+                if not hasattr(namespace, action.dest):
+                    if action.default is not SUPPRESS:
+                        setattr(namespace, action.dest, action.default)
+
+        # add any parser defaults that aren't present
+        for dest in self._defaults:
+            if not hasattr(namespace, dest):
+                setattr(namespace, dest, self._defaults[dest])
 
         # run registered early parse functions
         if self.__early_parse:
             for functor, parser in self.__early_parse:
-                namespace, arg_strings = functor(parser, namespace, arg_strings)
+                namespace, args = functor(parser, namespace, args)
 
-        return namespace, arg_strings
-
-    def _parse_known_args(self, arg_strings, namespace):
-        """Add support for running registered pre-parse functions."""
-        namespace, arg_strings = self.pre_parse(arg_strings, namespace)
-        return super()._parse_known_args(arg_strings, namespace)
+        # parse the arguments and exit if there are any errors
+        try:
+            namespace, args = self._parse_known_args(args, namespace)
+            if hasattr(namespace, _UNRECOGNIZED_ARGS_ATTR):
+                args.extend(getattr(namespace, _UNRECOGNIZED_ARGS_ATTR))
+                delattr(namespace, _UNRECOGNIZED_ARGS_ATTR)
+            return namespace, args
+        except ArgumentError:
+            err = sys.exc_info()[1]
+            self.error(str(err))
 
     def parse_args(self, args=None, namespace=None):
         if namespace is None:
