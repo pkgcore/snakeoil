@@ -2,6 +2,12 @@
 Release Notes
 =============
 
+snakeoil 0.8.8 (2020-02-09)
+---------------------------
+
+- snakeoil.cli.arghparse: Add support for registering early parse functions and
+  rework known arg parsing to allow config file option defaults.
+
 snakeoil 0.8.7 (2020-01-26)
 ---------------------------
 
