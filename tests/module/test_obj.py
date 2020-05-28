@@ -23,7 +23,8 @@ class TestDelayedInstantiation:
         def assertKls(cls, ignores=(),
                       default_ignores=("__new__", "__init__", "__init_subclass__",
                                        "__getattribute__", "__class__",
-                                       "__getnewargs__", "__doc__")):
+                                       "__getnewargs__", "__doc__",
+                                       "__class_getitem__")):
             required = set(x for x in dir(cls)
                            if x.startswith("__") and x.endswith("__"))
             missing = required.difference(obj.kls_descriptors)
