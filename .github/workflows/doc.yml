@@ -31,7 +31,7 @@ jobs:
 
     - name: Build sphinx documentation
       run: |
-        python setup.py build_docs
+        python setup.py build_html
         # notify github this isn't a jekyll site
         touch build/sphinx/html/.nojekyll
 
