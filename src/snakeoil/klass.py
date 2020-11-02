@@ -64,7 +64,7 @@ def native_get(self, key, default=None):
     except KeyError:
         return default
 
-_sentinel = object()
+sentinel = object()
 
 _attrlist_getter = attrgetter("__attr_comparison__")
 def native_generic_attr_eq(inst1, inst2):
@@ -76,8 +76,8 @@ def native_generic_attr_eq(inst1, inst2):
     if inst1 is inst2:
         return True
     for attr in _attrlist_getter(inst1):
-        if getattr(inst1, attr, _sentinel) != \
-            getattr(inst2, attr, _sentinel):
+        if getattr(inst1, attr, sentinel) != \
+            getattr(inst2, attr, sentinel):
             return False
     return True
 
@@ -91,7 +91,7 @@ def native_generic_attr_ne(inst1, inst2):
     if inst1 is inst2:
         return False
     for attr in _attrlist_getter(inst1):
-        if getattr(inst1, attr, _sentinel) != getattr(inst2, attr, _sentinel):
+        if getattr(inst1, attr, sentinel) != getattr(inst2, attr, sentinel):
             return True
     return False
 

@@ -15,7 +15,7 @@ from functools import partial
 from itertools import chain, filterfalse
 import operator
 
-from .klass import get, contains, steal_docs, _sentinel
+from .klass import get, contains, steal_docs, sentinel
 
 
 class DictMixin:
@@ -95,14 +95,14 @@ class DictMixin:
         return not self.__eq__(other)
 
     @steal_docs(dict)
-    def pop(self, key, default=_sentinel):
+    def pop(self, key, default=sentinel):
         if not self.__externally_mutable__:
             raise AttributeError(self, "pop")
         try:
             val = self[key]
             del self[key]
         except KeyError:
-            if default is not _sentinel:
+            if default is not sentinel:
                 return default
             raise
         return val
@@ -705,8 +705,8 @@ def native_attr_pop(self, key, *a):
     l = len(a)
     if l > 1:
         raise TypeError("pop accepts 1 or 2 args only")
-    o = getattr(self, key, _sentinel)
-    if o is not _sentinel:
+    o = getattr(self, key, sentinel)
+    if o is not sentinel:
         object.__delattr__(self, key)
     elif l:
         o = a[0]

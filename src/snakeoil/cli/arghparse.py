@@ -498,12 +498,12 @@ class SortedHelpFormatter(CsvHelpFormatter):
 class Namespace(argparse.Namespace):
     """Add support for popping attrs from the namespace."""
 
-    def pop(self, key, default=klass._sentinel):
+    def pop(self, key, default=klass.sentinel):
         """Remove and return an object from the namespace if it exists."""
         try:
             return popattr(self, key)
         except AttributeError:
-            if default is not klass._sentinel:
+            if default is not klass.sentinel:
                 return default
             raise
 

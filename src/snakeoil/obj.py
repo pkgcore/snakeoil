@@ -97,12 +97,12 @@ base_kls_descriptors = [
 base_kls_descriptors = frozenset(base_kls_descriptors)
 
 
-def popattr(obj, name, default=klass._sentinel):
+def popattr(obj, name, default=klass.sentinel):
     """Remove and return an attribute from an object if it exists."""
     try:
         return obj.__dict__.pop(name)
     except KeyError:
-        if default is not klass._sentinel:
+        if default is not klass.sentinel:
             return default
         # force AttributeError to be raised
         getattr(obj, name)
