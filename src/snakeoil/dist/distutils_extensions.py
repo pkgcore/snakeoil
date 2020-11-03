@@ -10,7 +10,6 @@ from contextlib import contextmanager, redirect_stdout, redirect_stderr, ExitSta
 import copy
 from datetime import datetime
 import errno
-from importlib import import_module
 import inspect
 import math
 from multiprocessing import cpu_count
@@ -39,6 +38,9 @@ os.environ['SNAKEOIL_DEMANDIMPORT'] = 'false'
 
 # getting built by readthedocs
 READTHEDOCS = os.environ.get('READTHEDOCS', None) == 'True'
+
+# running under pip
+PIP = os.environ.get('PIP_REQ_TRACKER', None) is not None
 
 # top level repo/tarball directory
 REPODIR = os.environ.get('PKGDIST_REPODIR')
@@ -172,14 +174,20 @@ def readme(topdir=REPODIR):
 
 def setup():
     """Parameters and commands for setuptools."""
+    # pip installing from git forces development versions to be used
+    if PIP and get_git_version(REPODIR) is not None:
+        install_deps = _requires('dev.txt')
+    else:
+        install_deps = _requires('install.txt')
+
     params = {
         'name': MODULE_NAME,
         'version': module_version(),
         'long_description': readme(),
         'packages': find_packages(PACKAGEDIR),
-        'package_dir': {'':os.path.basename(PACKAGEDIR)},
-        'install_requires': install_requires(),
-        'tests_require': test_requires(),
+        'package_dir': {'': os.path.basename(PACKAGEDIR)},
+        'install_requires': install_deps,
+        'tests_require': _requires('test.txt'),
     }
 
     cmds = {
@@ -216,32 +224,14 @@ def setup():
     return params, cmds
 
 
-def _requires(path):
+def _requires(filename):
     """Determine a project's various dependencies from requirements files."""
     try:
-        with open(path) as f:
+        with open(os.path.join(REPODIR, 'requirements', filename)) as f:
             return f.read().splitlines()
-    except IOError as e:
-        if e.errno == errno.ENOENT:
-            pass
-        else:
-            raise
+    except FileNotFoundError:
+        pass
     return None
-
-
-def build_requires():
-    """Determine a project's build dependencies."""
-    return _requires(os.path.join(REPODIR, 'requirements', 'build.txt'))
-
-
-def install_requires():
-    """Determine a project's runtime dependencies."""
-    return _requires(os.path.join(REPODIR, 'requirements', 'install.txt'))
-
-
-def test_requires():
-    """Determine a project's test dependencies."""
-    return _requires(os.path.join(REPODIR, 'requirements', 'test.txt'))
 
 
 def get_file_paths(path):
