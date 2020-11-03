@@ -1,4 +1,4 @@
-|pypi| |test| |coverage| |docs|
+|pypi| |test| |coverage|
 
 ========
 snakeoil
@@ -48,14 +48,10 @@ For bugs and feature requests please create an issue on Github_.
 
 .. _#pkgcore: https://webchat.freenode.net?channels=%23pkgcore&uio=d4
 .. _Github: https://github.com/pkgcore/snakeoil/issues
-.. _mock: https://pypi.python.org/pypi/mock
 
 .. |pypi| image:: https://img.shields.io/pypi/v/snakeoil.svg
     :target: https://pypi.python.org/pypi/snakeoil
-.. |test| image:: https://travis-ci.org/pkgcore/snakeoil.svg?branch=master
-    :target: https://travis-ci.org/pkgcore/snakeoil
+.. |test| image:: https://github.com/pkgcore/snakeoil/workflows/Run%20tests/badge.svg
+    :target: https://github.com/pkgcore/snakeoil/actions?query=workflow%3A%22Run+tests%22
 .. |coverage| image:: https://codecov.io/gh/pkgcore/snakeoil/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/pkgcore/snakeoil
-.. |docs| image:: https://readthedocs.org/projects/snakeoil/badge/?version=latest
-    :target: http://snakeoil.readthedocs.org/
-    :alt: Documentation Status
