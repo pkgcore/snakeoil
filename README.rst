@@ -11,15 +11,15 @@ but they all have native python implementations too.
 Installing
 ==========
 
-Installing latest pypi release in a virtualenv::
+Installing latest pypi release::
 
     pip install snakeoil
 
-Installing from git in a virtualenv::
+Installing from git::
 
     pip install https://github.com/pkgcore/snakeoil/archive/master.tar.gz
 
-Installing from a tarball or git repo::
+Installing from a tarball::
 
     python setup.py install
 
