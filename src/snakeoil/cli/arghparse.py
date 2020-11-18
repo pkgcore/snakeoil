@@ -97,12 +97,11 @@ class ParseStdin(ExtendAction):
 
     def __call__(self, parser, namespace, values, option_string=None):
         if self.allow_stdin and (values is not None and len(values) == 1 and values[0] == '-'):
-            if not sys.stdin.isatty():
-                values = [x.strip() for x in sys.stdin.readlines() if x.strip() != '']
-                # reassign stdin to allow interactivity (currently only works for unix)
-                sys.stdin = open('/dev/tty')
-            else:
+            if sys.stdin.isatty():
                 raise argparse.ArgumentError(self, "'-' is only valid when piping data in")
+            values = [x.strip() for x in sys.stdin.readlines() if x.strip() != '']
+            # reassign stdin to allow interactivity (currently only works for unix)
+            sys.stdin = open('/dev/tty')
         super().__call__(parser, namespace, values, option_string)
 
 
