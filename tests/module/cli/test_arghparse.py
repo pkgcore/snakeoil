@@ -435,7 +435,7 @@ class TestParseStdinEnabled(ParseStdinTest):
                 (['foo '], ['foo']),
                 (['foo\n'], ['foo']),
                 (['foo', 'bar', 'baz'], ['foo', 'bar', 'baz']),
-                (['\nfoo\n', ' bar ', '\nbaz'], ['foo', 'bar', 'baz']),
+                (['\nfoo\n', ' bar ', '\nbaz'], ['\nfoo', ' bar', '\nbaz']),
         ):
             with mock.patch('sys.stdin') as stdin, \
                     mock.patch("builtins.open", mock.mock_open()) as mock_file:

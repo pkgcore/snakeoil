@@ -93,16 +93,17 @@ class ParseNonblockingStdin(argparse._StoreAction):
 
     def __init__(self, *args, **kwargs):
         self.allow_stdin = kwargs.pop('allow_stdin', False)
+        self.filter_func = kwargs.pop('filter_func', lambda x: x.strip())
         super().__init__(*args, **kwargs)
 
-    @staticmethod
-    def _stdin():
+    def _stdin(self):
         """Generator yielding lines from stdin."""
         while True:
             line = sys.stdin.readline()
             if not line:
                 break
-            yield line.rstrip()
+            if self.filter_func(line):
+                yield line.rstrip()
 
     def __call__(self, parser, namespace, values, option_string=None):
         if self.allow_stdin and (values is not None and len(values) == 1 and values[0] == '-'):
@@ -117,13 +118,14 @@ class ParseStdin(ExtendAction):
 
     def __init__(self, *args, **kwargs):
         self.allow_stdin = kwargs.pop('allow_stdin', False)
+        self.filter_func = kwargs.pop('filter_func', lambda x: x.strip())
         super().__init__(*args, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
         if self.allow_stdin and (values is not None and len(values) == 1 and values[0] == '-'):
             if sys.stdin.isatty():
                 raise argparse.ArgumentError(self, "'-' is only valid when piping data in")
-            values = [x.strip() for x in sys.stdin.readlines() if x.strip() != '']
+            values = [x.rstrip() for x in sys.stdin.readlines() if self.filter_func(x)]
             # reassign stdin to allow interactivity (currently only works for unix)
             sys.stdin = open('/dev/tty')
         super().__call__(parser, namespace, values, option_string)
