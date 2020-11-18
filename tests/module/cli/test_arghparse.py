@@ -385,10 +385,10 @@ class TestStoreBoolAction(BaseArgparseOptions):
 
 class ParseStdinTest(BaseArgparseOptions):
 
-    def setup_method(self, method, allow_stdin):
+    def setup_method(self, method):
         super().setup_method(method)
         self.parser.add_argument(
-            "testing", nargs='+', allow_stdin=allow_stdin, action=arghparse.ParseStdin)
+            "testing", nargs='+', action=arghparse.ParseStdin)
 
     def test_none_invalid(self):
         with pytest.raises(argparse_helpers.Error):
@@ -401,22 +401,6 @@ class ParseStdinTest(BaseArgparseOptions):
     def test_non_stdin_multiple(self):
         namespace = self.parser.parse_args(['foo', 'bar'])
         assert namespace.testing == ['foo', 'bar']
-
-    def test_stdin(self):
-        namespace = self.parser.parse_args(['-'])
-        assert namespace.testing == ['-']
-
-
-class TestParseStdinDisabled(ParseStdinTest):
-
-    def setup_method(self, method):
-        super().setup_method(method, allow_stdin=False)
-
-
-class TestParseStdinEnabled(ParseStdinTest):
-
-    def setup_method(self, method):
-        super().setup_method(method, allow_stdin=True)
 
     def test_stdin(self):
         # stdin is an interactive tty

@@ -88,11 +88,10 @@ class ExtendAction(argparse._AppendAction):
         setattr(namespace, self.dest, items)
 
 
-class ParseNonblockingStdin(argparse._StoreAction):
+class ParseNonblockingStdin(argparse.Action):
     """Accept arguments from standard input in a non-blocking fashion."""
 
     def __init__(self, *args, **kwargs):
-        self.allow_stdin = kwargs.pop('allow_stdin', False)
         self.filter_func = kwargs.pop('filter_func', lambda x: x.strip())
         super().__init__(*args, **kwargs)
 
@@ -106,7 +105,7 @@ class ParseNonblockingStdin(argparse._StoreAction):
                 yield line.rstrip()
 
     def __call__(self, parser, namespace, values, option_string=None):
-        if self.allow_stdin and (values is not None and len(values) == 1 and values[0] == '-'):
+        if values is not None and len(values) == 1 and values[0] == '-':
             if sys.stdin.isatty():
                 raise argparse.ArgumentError(self, "'-' is only valid when piping data in")
             values = self._stdin()
@@ -117,12 +116,11 @@ class ParseStdin(ExtendAction):
     """Accept arguments from standard input in a blocking fashion."""
 
     def __init__(self, *args, **kwargs):
-        self.allow_stdin = kwargs.pop('allow_stdin', False)
         self.filter_func = kwargs.pop('filter_func', lambda x: x.strip())
         super().__init__(*args, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
-        if self.allow_stdin and (values is not None and len(values) == 1 and values[0] == '-'):
+        if values is not None and len(values) == 1 and values[0] == '-':
             if sys.stdin.isatty():
                 raise argparse.ArgumentError(self, "'-' is only valid when piping data in")
             values = [x.rstrip() for x in sys.stdin.readlines() if self.filter_func(x)]
