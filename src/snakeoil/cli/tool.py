@@ -95,29 +95,33 @@ class Tool:
         :type namespace: argparse.Namespace object
         :param namespace: Namespace object to use for created attributes.
         """
-        self.pre_parse(args, namespace)
-        options = self.parser.parse_args(args=args, namespace=namespace)
-        main_func = options.pop('main_func', None)
-        if main_func is None:
-            raise RuntimeError("argparser missing main method")
+        try:
+            self.pre_parse(args, namespace)
+            options = self.parser.parse_args(args=args, namespace=namespace)
+            main_func = options.pop('main_func', None)
+            if main_func is None:
+                raise RuntimeError("argparser missing main method")
 
-        # reconfigure formatters for colored output if enabled
-        if getattr(options, 'color', True):
-            formatter_factory = partial(
-                formatters.get_formatter, force_color=getattr(options, 'color', False))
-            self.out = formatter_factory(self._outfile)
-            self.err = formatter_factory(self._errfile)
+            # reconfigure formatters for colored output if enabled
+            if getattr(options, 'color', True):
+                formatter_factory = partial(
+                    formatters.get_formatter, force_color=getattr(options, 'color', False))
+                self.out = formatter_factory(self._outfile)
+                self.err = formatter_factory(self._errfile)
 
-        # reconfigure formatters with properly parsed output verbosity
-        self.out.verbosity = self.err.verbosity = getattr(options, 'verbosity', 0)
+            # reconfigure formatters with properly parsed output verbosity
+            self.out.verbosity = self.err.verbosity = getattr(options, 'verbosity', 0)
 
-        if logging.root.handlers:
-            # Remove the default handler.
-            logging.root.handlers.pop(0)
-        logging.root.addHandler(FormattingHandler(self.err))
+            if logging.root.handlers:
+                # Remove the default handler.
+                logging.root.handlers.pop(0)
+            logging.root.addHandler(FormattingHandler(self.err))
 
-        options = self.post_parse(options)
-        return options, main_func
+            options = self.post_parse(options)
+            return options, main_func
+        except Exception as e:
+            # handle custom execution-related exceptions
+            self.handle_exec_exception(e)
 
     def pre_parse(self, args, namespace):
         """Handle custom options before argparsing."""
