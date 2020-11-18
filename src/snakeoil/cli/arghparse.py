@@ -109,7 +109,7 @@ class ParseNonblockingStdin(argparse.Action):
             if sys.stdin.isatty():
                 raise argparse.ArgumentError(self, "'-' is only valid when piping data in")
             values = self._stdin()
-        super().__call__(parser, namespace, values, option_string)
+        setattr(namespace, self.dest, values)
 
 
 class ParseStdin(ExtendAction):
