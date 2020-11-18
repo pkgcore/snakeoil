@@ -132,7 +132,7 @@ class Tool:
             raise
         # output user error if one exists otherwise show debugging traceback
         exc = find_user_exception(e)
-        if exc:
+        if exc is not None:
             # allow exception attribute to override user verbosity level
             if getattr(exc, '_verbosity', None) is not None:
                 verbosity = exc._verbosity
@@ -149,7 +149,6 @@ class Tool:
 
     def main(self):
         """Execute the main script function."""
-        options = None
         exitstatus = -10
 
         # ignore broken pipes
