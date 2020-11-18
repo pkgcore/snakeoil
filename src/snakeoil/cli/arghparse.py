@@ -88,6 +88,30 @@ class ExtendAction(argparse._AppendAction):
         setattr(namespace, self.dest, items)
 
 
+class ParseNonblockingStdin(argparse._StoreAction):
+    """Accept arguments from standard input in a non-blocking fashion."""
+
+    def __init__(self, *args, **kwargs):
+        self.allow_stdin = kwargs.pop('allow_stdin', False)
+        super().__init__(*args, **kwargs)
+
+    @staticmethod
+    def _stdin():
+        """Generator yielding lines from stdin."""
+        while True:
+            line = sys.stdin.readline()
+            if not line:
+                break
+            yield line.rstrip()
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if self.allow_stdin and (values is not None and len(values) == 1 and values[0] == '-'):
+            if sys.stdin.isatty():
+                raise argparse.ArgumentError(self, "'-' is only valid when piping data in")
+            values = self._stdin()
+        super().__call__(parser, namespace, values, option_string)
+
+
 class ParseStdin(ExtendAction):
     """Accept arguments from standard input in a blocking fashion."""
 
