@@ -17,7 +17,7 @@ import sys
 from textwrap import dedent
 import traceback
 
-from .. import klass, osutils
+from .. import klass
 from ..mappings import ImmutableDict
 from ..obj import popattr
 from ..sequences import split_negations, split_elements
@@ -1336,19 +1336,33 @@ def existent_path(value):
     if not os.path.exists(value):
         raise argparse.ArgumentTypeError(f'nonexistent path: {value!r}')
     try:
-        return osutils.abspath(value)
+        return os.path.realpath(value)
     except EnvironmentError as e:
         raise ValueError(f'while resolving path {value!r}, encountered error: {e}') from e
 
 
 def existent_dir(value):
     """Check if argument path exists and is a directory."""
-    if not os.path.isdir(value):
+    if not os.path.exists(value):
         raise argparse.ArgumentTypeError(f'nonexistent dir: {value!r}')
+    elif not os.path.isdir(value):
+        raise argparse.ArgumentTypeError(f'file already exists: {value!r}')
     try:
-        return osutils.abspath(value)
+        return os.path.realpath(value)
     except EnvironmentError as e:
         raise ValueError(f'while resolving path {value!r}, encountered error: {e}') from e
+
+
+def create_dir(value):
+    """Check if argument path exists and is a directory, if it doesn't exist create it."""
+    path = os.path.realpath(value)
+    try:
+        os.makedirs(path, exist_ok=True)
+    except FileExistsError:
+        raise argparse.ArgumentTypeError(f'file already exists: {value!r}')
+    except IOError as e:
+        raise argparse.ArgumentTypeError(f'failed creating dir: {e}')
+    return path
 
 
 def bounded_int(func, desc, x):
