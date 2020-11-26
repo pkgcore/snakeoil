@@ -386,9 +386,10 @@ class Delayed(argparse.Action):
         self.priority = int(priority)
         self.target = target(option_strings=option_strings, dest=dest, **kwds.copy())
         super().__init__(
-            option_strings=option_strings[:],
-            dest=dest, nargs=kwds.get("nargs", None), required=kwds.get("required", None),
-            help=kwds.get("help", None), metavar=kwds.get("metavar", None))
+            option_strings=option_strings[:], dest=dest,
+            nargs=kwds.get("nargs", None), required=kwds.get("required", None),
+            help=kwds.get("help", None), metavar=kwds.get("metavar", None),
+            default=kwds.get("default", None))
 
     def __call__(self, parser, namespace, values, option_string=None):
         setattr(namespace, self.dest, DelayedParse(
