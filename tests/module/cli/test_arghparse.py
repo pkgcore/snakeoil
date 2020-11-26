@@ -539,8 +539,8 @@ class TestExistentPathType(BaseArgparseOptions):
 
     def test_os_errors(self, tmpdir):
         # random OS/FS issues raise errors
-        with mock.patch('snakeoil.osutils.abspath') as abspath:
-            abspath.side_effect = OSError(19, 'Random OS error')
+        with mock.patch('os.path.realpath') as realpath:
+            realpath.side_effect = OSError(19, 'Random OS error')
             with pytest.raises(argparse_helpers.Error):
                 self.parser.parse_args(['--path=%s' % tmpdir])
 
@@ -562,8 +562,8 @@ class TestExistentDirType(BaseArgparseOptions):
 
     def test_os_errors(self, tmp_path):
         # random OS/FS issues raise errors
-        with mock.patch('snakeoil.osutils.abspath') as abspath:
-            abspath.side_effect = OSError(19, 'Random OS error')
+        with mock.patch('os.path.realpath') as realpath:
+            realpath.side_effect = OSError(19, 'Random OS error')
             with pytest.raises(argparse_helpers.Error):
                 self.parser.parse_args([f'--path={tmp_path}'])
 
