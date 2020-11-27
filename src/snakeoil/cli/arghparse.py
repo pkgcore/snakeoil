@@ -1109,16 +1109,20 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
         if namespace is None:
             namespace = Namespace()
 
-        # reset any flagged defaults
-        for functor, parser in self.__reset_defaults:
-            functor(parser, namespace)
-
-        # run registered pre-parse functions
-        if self.__pre_parse:
-            for functor, parser in self.__pre_parse:
+        try:
+            # reset any flagged defaults
+            for functor, parser in self.__reset_defaults:
                 functor(parser, namespace)
-            # wipe pre-parse functions so they only run once
-            del self.__pre_parse[:]
+
+            # run registered pre-parse functions
+            if self.__pre_parse:
+                for functor, parser in self.__pre_parse:
+                    functor(parser, namespace)
+                # wipe pre-parse functions so they only run once
+                del self.__pre_parse[:]
+        except ArgumentError:
+            err = sys.exc_info()[1]
+            self.error(str(err))
 
         return namespace
 
@@ -1150,13 +1154,13 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
             if not hasattr(namespace, dest):
                 setattr(namespace, dest, self._defaults[dest])
 
-        # run registered early parse functions
-        if self.__early_parse:
-            for functor, parser in self.__early_parse:
-                namespace, args = functor(parser, namespace, args)
-
-        # parse the arguments and exit if there are any errors
         try:
+            # run registered early parse functions
+            if self.__early_parse:
+                for functor, parser in self.__early_parse:
+                    namespace, args = functor(parser, namespace, args)
+
+            # parse the arguments and exit if there are any errors
             namespace, args = self._parse_known_args(args, namespace)
             if hasattr(namespace, _UNRECOGNIZED_ARGS_ATTR):
                 args.extend(getattr(namespace, _UNRECOGNIZED_ARGS_ATTR))
