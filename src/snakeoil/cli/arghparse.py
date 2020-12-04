@@ -961,7 +961,7 @@ class CopyableParser(argparse.ArgumentParser):
         return parser
 
 
-class ArgumentParser(OptionalsParser, CsvActionsParser):
+class ArgumentParser(OptionalsParser, CsvActionsParser, CopyableParser):
     """Extended, argparse-compatible argument parser."""
 
     def __init__(self, suppress=False, color=True, debug=True, quiet=True,
