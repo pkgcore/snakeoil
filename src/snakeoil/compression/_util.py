@@ -20,10 +20,12 @@ def _drive_process(args, mode, data):
         if p is not None and p.returncode is None:
             p.kill()
 
+
 def compress_data(binary, data, compresslevel=9, extra_args=()):
     args = [binary, '-%ic' % compresslevel]
     args.extend(extra_args)
     return _drive_process(args, 'compression', data)
+
 
 def decompress_data(binary, data, extra_args=()):
     args = [binary, '-dc']
@@ -31,7 +33,7 @@ def decompress_data(binary, data, extra_args=()):
     return _drive_process(args, 'decompression', data)
 
 
-class _process_handle(object):
+class _process_handle:
 
     def __init__(self, handle, args, is_read=False):
         self.mode = 'wb'
@@ -166,6 +168,7 @@ def compress_handle(binary_path, handle, compresslevel=9, extra_args=()):
     args = [binary_path, '-%ic' % compresslevel]
     args.extend(extra_args)
     return _process_handle(handle, args, False)
+
 
 def decompress_handle(binary_path, handle, extra_args=()):
     args = [binary_path, '-dc']
