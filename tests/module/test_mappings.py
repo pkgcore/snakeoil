@@ -288,6 +288,65 @@ class TestImmutableDict:
         assert initial_hash == hash(d)
 
 
+class TestOrderedSet:
+
+    def test_magic_methods(self):
+        s = mappings.OrderedSet(range(9))
+        for x in range(9):
+            assert x in s
+        assert len(s) == 9
+        assert s == set(range(9))
+        assert str(s) == str(set(range(9)))
+
+    def test_add(self):
+        s = mappings.OrderedSet()
+        s.add('a')
+        assert 'a' in s
+        s.add(1)
+        assert 1 in s
+        assert list(s) == ['a', 1]
+
+    def test_discard(self):
+        s = mappings.OrderedSet()
+        s.discard('a')
+        s.add('a')
+        assert s
+        s.discard('a')
+        assert not s
+
+    def test_remove(self):
+        s = mappings.OrderedSet()
+        with pytest.raises(KeyError):
+            s.remove('a')
+        s.add('a')
+        assert 'a' in s
+        s.remove('a')
+        assert 'a' not in s
+
+    def test_clear(self):
+        s = mappings.OrderedSet()
+        s.clear()
+        assert len(s) == 0
+        s.add('a')
+        assert len(s) == 1
+        s.clear()
+        assert len(s) == 0
+
+    def test_update(self):
+        s = mappings.OrderedSet()
+        with pytest.raises(TypeError):
+            s.update()
+        s.update(range(9))
+        assert len(s) == 9
+
+    def test_ordering(self):
+        s = mappings.OrderedSet()
+        s.update('set')
+        assert 'set' == ''.join(s)
+        s.update('ordered')
+        assert 'setord' == ''.join(s)
+
+
 class TestStackedDict:
 
     orig_dict = dict.fromkeys(range(100))

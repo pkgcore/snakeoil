@@ -10,7 +10,7 @@ __all__ = (
 )
 
 from collections import defaultdict
-from collections.abc import Mapping
+from collections.abc import Mapping, MutableSet
 from functools import partial
 from itertools import chain, filterfalse
 import operator
@@ -344,6 +344,50 @@ class ImmutableDict(Mapping):
 
     def __hash__(self):
         return hash(tuple(sorted(self._dict.items(), key=operator.itemgetter(0))))
+
+
+class OrderedSet(MutableSet):
+    """Ordered set using guaranteed insertion order dicts in py3.6 onwards."""
+
+    def __init__(self, iterable=()):
+        try:
+            self._dict = {x: None for x in iterable}
+        except TypeError as e:
+            raise TypeError('not iterable') from e
+
+    def __contains__(self, key):
+        return key in self._dict
+
+    def __iter__(self):
+        return iter(self._dict)
+
+    def __len__(self):
+        return len(self._dict)
+
+    def __eq__(self, other):
+        return set(self._dict) == other
+
+    def __str__(self):
+        elements_str = ', '.join(map(repr, self._dict))
+        return f'{{{elements_str}}}'
+
+    def add(self, value):
+        self._dict[value] = None
+
+    def discard(self, value):
+        try:
+            del self._dict[value]
+        except KeyError:
+            pass
+
+    def remove(self, value):
+        del self._dict[value]
+
+    def clear(self):
+        self._dict = {}
+
+    def update(self, iterable):
+        self._dict.update((x, None) for x in iterable)
 
 
 class IndeterminantDict:
