@@ -34,8 +34,6 @@ jobs:
     # TODO: use cibuildwheel action to build wheels
     - name: Build release files
       run: |
-        # use release version of pyproject.toml (without URL dev deps)
-        cp requirements/pyproject.toml ./pyproject.toml
         python setup.py sdist
         python setup.py bdist_wheel
 
