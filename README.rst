@@ -36,7 +36,7 @@ Using tox for all supported python versions::
 
 Using tox for a specific python version::
 
-    tox -e py36
+    tox -e py39
 
 Contact
 =======
