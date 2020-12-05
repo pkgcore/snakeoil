@@ -2,6 +2,30 @@
 Release Notes
 =============
 
+snakeoil 0.8.9 (2020-12-04)
+---------------------------
+
+- snakeoil.cli.arghparse: Make ArgumentParser copyable by default.
+
+- snakeoil.mappings: Add OrderedSet implementation leveraging
+  guaranteed insertion order for dicts py37 onwards.
+
+- snakeoil.cli.arghparse: Add create_dir argument type that's
+  similar to the existent_dir type except it creates the dir if
+  it's missing.
+
+- snakeoil.cli.arghparse: Add ParseNonblockingStdin argparse action
+  that accepts arguments from stdin in a non-blocking fashion.
+
+- snakeoil.cli.tool: Explicitly handle UserExceptions when parsing args.
+
+- Remove old py2 C extensions.
+
+- snakeoil.dist.distutils_extensions: Force development version
+  usage when installing from git with pip.
+
+- Add py39 support.
+
 snakeoil 0.8.8 (2020-02-09)
 ---------------------------
 
