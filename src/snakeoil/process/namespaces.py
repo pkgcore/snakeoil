@@ -138,8 +138,7 @@ def create_pidns():
     # Now that we're in the new pid namespace, fork.  The parent is the master
     # of it in the original namespace, so it only monitors the child inside it.
     # It is only allowed to fork once too.
-    pid = os.fork()
-    if pid:
+    if pid := os.fork():
         # Mask SIGINT with the assumption that the child will catch & process it.
         # We'll pass that back up below.
         signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -163,8 +162,7 @@ def create_pidns():
             'proc', '/proc', 'proc',
             MS_NOSUID | MS_NODEV | MS_NOEXEC | MS_RELATIME)
 
-        pid = os.fork()
-        if pid:
+        if pid := os.fork():
             # Mask SIGINT with the assumption that the child will catch & process it.
             # We'll pass that back up below.
             signal.signal(signal.SIGINT, signal.SIG_IGN)

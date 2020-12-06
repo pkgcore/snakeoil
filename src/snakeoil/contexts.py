@@ -115,10 +115,9 @@ class SplitExec:
 
     def __enter__(self):
         parent_pipe, child_pipe = Pipe()
-        childpid = os.fork()
 
-        if childpid != 0:
-            self.childpid = childpid
+        if pid := os.fork():
+            self.childpid = pid
             self._parent_setup()
             self.__pipe = parent_pipe
             frame = self.__get_context_frame()
