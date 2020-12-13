@@ -371,6 +371,9 @@ class OrderedSet(MutableSet):
         elements_str = ', '.join(map(repr, self._dict))
         return f'{{{elements_str}}}'
 
+    def __repr__(self):
+        return self.__str__()
+
     def add(self, value):
         self._dict[value] = None
 

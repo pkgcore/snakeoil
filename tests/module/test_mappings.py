@@ -297,6 +297,7 @@ class TestOrderedSet:
         assert len(s) == 9
         assert s == set(range(9))
         assert str(s) == str(set(range(9)))
+        assert repr(s) == str(s)
 
     def test_add(self):
         s = mappings.OrderedSet()
