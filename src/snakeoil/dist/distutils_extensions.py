@@ -913,11 +913,10 @@ class test(Command):
     user_options = [
         ("inplace", "i", "do building/testing in place"),
         ("skip-rebuilding", "s", "skip rebuilds. primarily for development"),
-        ("disable-fork", None, "disable forking of the testloader; primarily for debugging.  "
-                               "Automatically set in jython, disabled for cpython/unladen-swallow."),
+        ("disable-fork", None, "disable forking of the testloader; primarily for debugging"),
         ("namespaces=", "t", "run only tests matching these namespaces.  "
                              "comma delimited"),
-        ("pure-python", None, "disable building of extensions.  Enabled for jython, disabled elsewhere"),
+        ("pure-python", None, "disable building of extensions"),
         ("force", "f", "force build_py/build_ext as needed"),
         ("include-dirs=", "I", "include dirs for build_ext if needed"),
     ]
@@ -926,9 +925,9 @@ class test(Command):
 
     def initialize_options(self):
         self.inplace = False
-        self.disable_fork = is_jython
+        self.disable_fork = False
         self.namespaces = ''
-        self.pure_python = is_jython
+        self.pure_python = False
         self.force = False
         self.include_dirs = None
 
@@ -1252,12 +1251,6 @@ class config(dst_config.config):
         return self.try_compile(
             'int main() { %s x; (void) x.%s; return 0; }'
             % (typename, member), headers, include_dirs, lang)
-
-
-# yes these are in snakeoil.compatibility; we can't rely on that module however
-# since snakeoil source is in 2k form, but this module is 2k/3k compatible.
-# in other words, it could be invoked by py3k to translate snakeoil to py3k
-is_jython = 'java' in getattr(sys, 'getPlatform', lambda: '')().lower()
 
 
 # directly copied from snakeoil.contexts
