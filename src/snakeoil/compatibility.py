@@ -2,12 +2,10 @@
 Compatibility functionality stubs
 """
 
-__all__ = ("is_py3k", "is_jython", "cmp", "sorted_cmp", "sort_cmp")
+__all__ = ("is_jython", "cmp", "sorted_cmp", "sort_cmp")
 
 import sys
 
-
-is_py3k = int(sys.version[0]) == 3
 
 is_jython = False
 if hasattr(sys, 'getPlatform'):

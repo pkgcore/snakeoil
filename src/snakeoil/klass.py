@@ -302,7 +302,7 @@ def inject_richcmp_methods_from_cmp(scope, inject_always=False):
         it'll always inject the rich comparison methods
     """
 
-    if not (inject_always or compatibility.is_py3k):
+    if not inject_always:
         return
     for key, func in (("__lt__", generic_lt), ("__le__", generic_le),
                       ("__eq__", generic_eq), ("__ne__", generic_ne),
