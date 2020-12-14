@@ -1,7 +1,6 @@
 """Various with-statement context utilities."""
 
-from contextlib import AbstractContextManager, contextmanager
-from functools import wraps
+from contextlib import contextmanager
 from importlib import import_module
 from multiprocessing.connection import Pipe
 import errno
@@ -386,17 +385,3 @@ def patch(target, new):
         yield
     finally:
         setattr(obj, attr, orig_attr)
-
-
-# TODO: drop when >=py37 only
-class nullcontext(AbstractContextManager):
-    """Context manager that does no additional processing."""
-
-    def __init__(self, enter_result=None):
-        self.enter_result = enter_result
-
-    def __enter__(self):
-        return self.enter_result
-
-    def __exit__(self, *excinfo):
-        pass
