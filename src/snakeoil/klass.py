@@ -22,7 +22,7 @@ import inspect
 import itertools
 from operator import attrgetter
 
-from . import caching, compatibility
+from . import caching
 from .currying import post_curry
 
 
@@ -261,7 +261,7 @@ def generic_gt(self, other):
     return self.__cmp__(other) > 0
 
 
-def inject_richcmp_methods_from_cmp(scope, inject_always=False):
+def inject_richcmp_methods_from_cmp(scope):
     """
     class namespace modifier injecting richcmp methods that rely on __cmp__ for py3k
     compatibility
@@ -283,7 +283,7 @@ def inject_richcmp_methods_from_cmp(scope, inject_always=False):
     ...   # exist (__cmp__ would be sufficient).
     ...
     ...   # add the generic rich comparsion methods to the local class namespace
-    ...   inject_richcmp_methods_from_cmp(locals(), True)
+    ...   inject_richcmp_methods_from_cmp(locals())
     ...
     ...   def __init__(self, a, b):
     ...     self.a, self.b = a, b
@@ -298,12 +298,8 @@ def inject_richcmp_methods_from_cmp(scope, inject_always=False):
     >>> assert foo(1, 1).__eq__(foo(1, 1))
 
     :param scope: the modifiable scope of a class namespace to work on
-    :param inject_always: normally injection is only done if it's py3k; if True,
-        it'll always inject the rich comparison methods
     """
 
-    if not inject_always:
-        return
     for key, func in (("__lt__", generic_lt), ("__le__", generic_le),
                       ("__eq__", generic_eq), ("__ne__", generic_ne),
                       ("__ge__", generic_ge), ("__gt__", generic_gt)):
