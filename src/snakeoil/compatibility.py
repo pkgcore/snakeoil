@@ -2,14 +2,9 @@
 Compatibility functionality stubs
 """
 
-__all__ = ("is_jython", "cmp", "sorted_cmp", "sort_cmp")
+__all__ = ("cmp", "sorted_cmp", "sort_cmp")
 
 import sys
-
-
-is_jython = False
-if hasattr(sys, 'getPlatform'):
-    is_jython = 'java' in sys.getPlatform().lower()
 
 
 def sorted_key_from_cmp(cmp_func, key_func=None):

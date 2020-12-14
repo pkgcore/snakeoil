@@ -56,7 +56,7 @@ class PythonNamespaceWalker:
 
     # This is for py3.2/PEP3149; dso's now have the interp + major/minor embedded
     # in the name.
-    # TODO: Update this for pypy's naming, and jythons.
+    # TODO: update this for pypy's naming
     abi_target = 'cpython-%i%i' % tuple(sys.version_info[:2])
 
     module_blacklist = frozenset([
