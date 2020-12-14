@@ -420,118 +420,6 @@ class build_py(dst_build_py.build_py):
             self._run_generate_verinfo()
 
 
-class build_py2to3(build_py):
-    """build_py command wrapper that runs 2to3 for py3 targets."""
-
-    def _compute_rebuilds(self, force=False):
-        for base, mod_name, path in self.find_all_modules():
-            try:
-                new_mtime = math.floor(os.lstat(path).st_mtime)
-            except EnvironmentError:
-                # ok... wtf distutils?
-                continue
-            trg_path = os.path.join(
-                self.build_lib,
-                path.lstrip(self.package_dir.get('', '')).lstrip(os.path.sep))
-            if force:
-                yield trg_path, new_mtime
-                continue
-            try:
-                old_mtime = math.floor(os.lstat(trg_path).st_mtime)
-            except EnvironmentError:
-                yield trg_path, new_mtime
-                continue
-            if old_mtime != new_mtime:
-                yield trg_path, new_mtime
-
-    def _inner_run(self, rebuilds):
-        pass
-
-    def get_py2to3_converter(self, options=None, proc_count=0):
-        from lib2to3 import refactor as ref_mod
-        with syspath(PACKAGEDIR, MODULE_NAME == 'snakeoil'):
-            from snakeoil.dist import caching_2to3
-
-        if proc_count == 0:
-            proc_count = cpu_count()
-
-        assert proc_count >= 1
-
-        if proc_count > 1 and not caching_2to3.multiprocessing_available:
-            proc_count = 1
-
-        refactor_kls = caching_2to3.MultiprocessRefactoringTool
-
-        fixer_names = ref_mod.get_fixers_from_package('lib2to3.fixes')
-        f = refactor_kls(fixer_names, options=options).refactor
-
-        def f2(*args, **kwds):
-            if caching_2to3.multiprocessing_available:
-                kwds['num_processes'] = proc_count
-            return f(*args, **kwds)
-
-        return f2
-
-    def run(self):
-        py3k_rebuilds = []
-        if not self.inplace:
-            if is_py3k:
-                py3k_rebuilds = list(self._compute_rebuilds(self.force))
-            dst_build_py.build_py.run(self)
-
-        if self.generate_verinfo:
-            self._run_generate_verinfo(py3k_rebuilds)
-
-        self._inner_run(py3k_rebuilds)
-
-        if not is_py3k:
-            return
-
-        converter = self.get_py2to3_converter()
-        log.info("starting 2to3 conversion; this may take a while...")
-        converter([x[0] for x in py3k_rebuilds], write=True)
-        for path, mtime in py3k_rebuilds:
-            os.utime(path, (-1, mtime))
-        log.info("completed py3k conversions")
-
-
-class build_py3to2(build_py2to3):
-    """build_py command wrapper that runs 3to2 for py2 targets."""
-
-    def run(self):
-        py2k_rebuilds = []
-        if not self.inplace:
-            if not is_py3k:
-                py2k_rebuilds = list(self._compute_rebuilds(self.force))
-            dst_build_py.build_py.run(self)
-
-        if self.generate_verinfo:
-            self._run_generate_verinfo(py2k_rebuilds)
-
-        self._inner_run(py2k_rebuilds)
-
-        if is_py3k:
-            return
-
-        from lib3to2.build import run_3to2
-        from lib2to3 import refactor
-
-        # assume a few fixes are already handled in the code or aren't needed
-        # for py27
-        skip_list = (
-            'lib3to2.fixes.fix_str', 'lib3to2.fixes.fix_printfunction',
-            'lib3to2.fixes.fix_except', 'lib3to2.fixes.fix_with',
-        )
-        fixer_names = [x for x in refactor.get_fixers_from_package('lib3to2.fixes')
-                       if x not in skip_list]
-
-        log.info("starting 3to2 conversion; this may take a while...")
-        run_3to2([x[0] for x in py2k_rebuilds], fixer_names=fixer_names)
-        for path, mtime in py2k_rebuilds:
-            os.utime(path, (-1, mtime))
-        log.info("completed py2k conversions")
-
-
 def generate_html():
     """Generate html docs for the project."""
     from snakeoil.dist.generate_docs import generate_html
@@ -1369,7 +1257,6 @@ class config(dst_config.config):
 # yes these are in snakeoil.compatibility; we can't rely on that module however
 # since snakeoil source is in 2k form, but this module is 2k/3k compatible.
 # in other words, it could be invoked by py3k to translate snakeoil to py3k
-is_py3k = sys.version_info >= (3, 0)
 is_jython = 'java' in getattr(sys, 'getPlatform', lambda: '')().lower()
 
 
