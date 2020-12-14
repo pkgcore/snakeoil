@@ -36,9 +36,6 @@ from distutils.command import (
 # forcibly disable lazy module loading
 os.environ['SNAKEOIL_DEMANDIMPORT'] = 'false'
 
-# getting built by readthedocs
-READTHEDOCS = os.environ.get('READTHEDOCS', None) == 'True'
-
 # top level repo/tarball directory
 REPODIR = os.environ.get('PKGDIST_REPODIR')
 if REPODIR is None:
@@ -559,7 +556,7 @@ class build_ext(dst_build_ext.build_ext):
 
     def finalize_options(self):
         dst_build_ext.build_ext.finalize_options(self)
-        if self.build_optional is None and not READTHEDOCS:
+        if self.build_optional is None:
             self.build_optional = True
         self.build_optional = bool(self.build_optional)
         if not self.build_optional:
