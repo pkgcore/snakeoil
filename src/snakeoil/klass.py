@@ -25,8 +25,10 @@ from operator import attrgetter
 from . import caching
 from .currying import post_curry
 
+sentinel = object()
 
-def native_GetAttrProxy(target):
+
+def GetAttrProxy(target):
     def reflected_getattr(self, attr):
         return getattr(object.__getattribute__(self, target), attr)
     return reflected_getattr
@@ -43,7 +45,7 @@ def DirProxy(target):
     return combined_dir
 
 
-def native_contains(self, key):
+def contains(self, key):
     """
     return True if key is in self, False otherwise
     """
@@ -55,7 +57,7 @@ def native_contains(self, key):
         return False
 
 
-def native_get(self, key, default=None):
+def get(self, key, default=None):
     """
     return ``default`` if ``key`` is not in self, else the value associated with ``key``
     """
@@ -64,10 +66,9 @@ def native_get(self, key, default=None):
     except KeyError:
         return default
 
-sentinel = object()
 
 _attrlist_getter = attrgetter("__attr_comparison__")
-def native_generic_attr_eq(inst1, inst2):
+def generic_attr_eq(inst1, inst2):
     """
     compare inst1 to inst2, returning True if equal, False if not.
 
@@ -82,7 +83,7 @@ def native_generic_attr_eq(inst1, inst2):
     return True
 
 
-def native_generic_attr_ne(inst1, inst2):
+def generic_attr_ne(inst1, inst2):
     """
     compare inst1 to inst2, returning True if different, False if equal.
 
@@ -96,7 +97,7 @@ def native_generic_attr_ne(inst1, inst2):
     return False
 
 
-def native_reflective_hash(attr):
+def reflective_hash(attr):
     """
     default __hash__ implementation that returns a pregenerated hash attribute
 
@@ -108,7 +109,7 @@ def native_reflective_hash(attr):
     return __hash__
 
 
-def _native_internal_jit_attr(
+def _internal_jit_attr(
         func, attr_name, singleton=None,
         use_cls_setattr=False, use_singleton=True, doc=None):
     """Object implementing the descriptor protocol for use in Just In Time access to attributes.
@@ -117,18 +118,19 @@ def _native_internal_jit_attr(
     instead of directly consuming this.
     """
     doc = getattr(func, '__doc__', None) if doc is None else doc
-    class _native_internal_jit_attr(_raw_native_internal_jit_attr):
+
+    class _internal_jit_attr(_raw_internal_jit_attr):
         __doc__ = doc
         __slots__ = ()
-    kls = _native_internal_jit_attr
+    kls = _internal_jit_attr
 
     return kls(
         func, attr_name, singleton=singleton, use_cls_setattr=use_cls_setattr,
         use_singleton=use_singleton)
 
 
-class _raw_native_internal_jit_attr:
-    """See _native_internal_jit_attr; this is an implementation detail of that"""
+class _raw_internal_jit_attr:
+    """See _internal_jit_attr; this is an implementation detail of that"""
 
     __slots__ = ("storage_attr", "function", "_setter", "singleton", "use_singleton")
 
@@ -174,22 +176,6 @@ class _raw_native_internal_jit_attr:
                 obj = self.function(instance)
                 self._setter(instance, self.storage_attr, obj)
         return obj
-
-
-try:
-    # pylint: disable=unused-import
-    from ._klass import (
-        GetAttrProxy, contains, get,
-        generic_eq as generic_attr_eq, generic_ne as generic_attr_ne,
-        reflective_hash, _internal_jit_attr)
-except ImportError:
-    GetAttrProxy = native_GetAttrProxy
-    contains = native_contains
-    get = native_get
-    generic_attr_eq = native_generic_attr_eq
-    generic_attr_ne = native_generic_attr_ne
-    reflective_hash = native_reflective_hash
-    _internal_jit_attr = _native_internal_jit_attr
 
 
 def generic_equality(name, bases, scope, real_type=type,
@@ -368,6 +354,7 @@ class chained_getter(metaclass=partial(generic_equality, real_type=caching.WeakI
     def __call__(self, obj):
         return self.getter(obj)
 
+
 static_attrgetter = attrgetter
 instance_attrgetter = chained_getter
 
@@ -382,6 +369,7 @@ class _singleton_kls:
 
 
 _uncached_singleton = _singleton_kls
+
 
 def jit_attr(func, kls=_internal_jit_attr, uncached_val=_uncached_singleton):
     """
@@ -399,6 +387,7 @@ def jit_attr(func, kls=_internal_jit_attr, uncached_val=_uncached_singleton):
     attr_name = "_%s" % func.__name__
     return kls(func, attr_name, uncached_val, False)
 
+
 def jit_attr_none(func, kls=_internal_jit_attr):
     """
     Version of :py:func:`jit_attr` decorator that forces the uncached_val
@@ -410,6 +399,7 @@ def jit_attr_none(func, kls=_internal_jit_attr):
     """
     return jit_attr(func, kls=kls, uncached_val=None)
 
+
 def jit_attr_named(stored_attr_name, use_cls_setattr=False, kls=_internal_jit_attr,
                    uncached_val=_uncached_singleton, doc=None):
     """
@@ -419,6 +409,7 @@ def jit_attr_named(stored_attr_name, use_cls_setattr=False, kls=_internal_jit_at
     See :py:class:`_internal_jit_attr` for documentation of the misc params.
     """
     return post_curry(kls, stored_attr_name, uncached_val, use_cls_setattr, doc=doc)
+
 
 def jit_attr_ext_method(func_name, stored_attr_name,
                         use_cls_setattr=False, kls=_internal_jit_attr,
@@ -467,6 +458,7 @@ def cached_property(func, kls=_internal_jit_attr, use_cls_setattr=False):
     return kls(func, func.__name__, None, use_singleton=False,
                use_cls_setattr=use_cls_setattr)
 
+
 def cached_property_named(name, kls=_internal_jit_attr, use_cls_setattr=False):
     """
     variation of `cached_property`, just with the ability to explicitly set the attribute name
@@ -491,6 +483,7 @@ def cached_property_named(name, kls=_internal_jit_attr, use_cls_setattr=False):
     1
     """
     return post_curry(kls, name, use_singleton=False, use_cls_setattr=False)
+
 
 def alias_attr(target_attr):
     """
@@ -666,8 +659,10 @@ def patch(target, external_decorator=None):
 def _immutable_setattr(self, attr, value):
     raise AttributeError(self, attr)
 
+
 def _immutable_delattr(self, attr):
     raise AttributeError(self, attr)
+
 
 def immutable_instance(name, bases, scope, real_type=type):
     """metaclass that makes instances of this class effectively immutable
@@ -677,6 +672,7 @@ def immutable_instance(name, bases, scope, real_type=type):
     modification, instead requiring explicit modification."""
     inject_immutable_instance(scope)
     return real_type(name, bases, scope)
+
 
 def inject_immutable_instance(scope):
     """inject immutable __setattr__ and __delattr__ implementations

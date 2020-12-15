@@ -6,11 +6,10 @@ from time import time
 import pytest
 
 from snakeoil import klass
-from snakeoil.test import mk_cpy_loadable_testcase
 
 
-class Test_native_GetAttrProxy:
-    kls = staticmethod(klass.native_GetAttrProxy)
+class Test_GetAttrProxy:
+    kls = staticmethod(klass.GetAttrProxy)
 
     def test_it(self):
         class foo1:
@@ -54,29 +53,6 @@ class Test_native_GetAttrProxy:
 
         test = Test()
         assert test.method('bar') == foo.bar
-
-
-@pytest.mark.skipif(klass.GetAttrProxy is klass.native_GetAttrProxy,
-                    reason="cpython extension isn't available")
-class Test_CPY_GetAttrProxy(Test_native_GetAttrProxy):
-
-    kls = staticmethod(klass.GetAttrProxy)
-
-    def test_sane_recursion_bail(self):
-        # people are stupid; if protection isn't in place, we wind up blowing
-        # the c stack, which doesn't result in a friendly Exception being
-        # thrown.
-        # results in a segfault.. so if it's horked, this will bail the test
-        # runner.
-
-        class c:
-            __getattr__ = self.kls("obj")
-
-        o = c()
-        o.obj = o
-        # now it's cyclical.
-        with pytest.raises(AttributeError, RuntimeError):
-            getattr(o, "hooey")
 
 
 class TestDirProxy:
@@ -130,8 +106,8 @@ class TestDirProxy:
         assert self.noninternal_attrs(o) == ['attr', 'obj']
 
 
-class Test_native_contains:
-    func = staticmethod(klass.native_contains)
+class Test_contains:
+    func = staticmethod(klass.contains)
 
     def test_it(self):
         class c(dict):
@@ -141,14 +117,8 @@ class Test_native_contains:
         assert 1 not in d
 
 
-@pytest.mark.skipif(klass.contains is klass.native_contains,
-                    reason="cpython extension isn't available")
-class Test_CPY_contains(Test_native_contains):
-    func = staticmethod(klass.contains)
-
-
-class Test_native_get:
-    func = staticmethod(klass.native_get)
+class Test_get:
+    func = staticmethod(klass.get)
 
     def test_it(self):
         class c(dict):
@@ -158,12 +128,6 @@ class Test_native_get:
         assert d.get("1", 3) == 2
         assert d.get(1) is None
         assert d.get(1, 3) == 3
-
-
-@pytest.mark.skipif(klass.get is klass.native_get,
-                    reason="cpython extension isn't available")
-class Test_CPY_get(Test_native_get):
-    func = staticmethod(klass.get)
 
 
 class Test_chained_getter:
@@ -205,9 +169,9 @@ class Test_chained_getter:
             f('foon.dar')(m)
 
 
-class Test_native_jit_attr:
+class Test_jit_attr:
 
-    kls = staticmethod(klass._native_internal_jit_attr)
+    kls = staticmethod(klass._internal_jit_attr)
 
     @property
     def jit_attr(self):
@@ -440,12 +404,6 @@ class Test_native_jit_attr:
         assert len(l) == 2
 
 
-@pytest.mark.skipif(klass._internal_jit_attr is klass._native_internal_jit_attr,
-                    reason="cpython extension isn't available")
-class Test_cpy_jit_attr(Test_native_jit_attr):
-    kls = staticmethod(klass._internal_jit_attr)
-
-
 class Test_aliased_attr:
 
     func = staticmethod(klass.alias_attr)
@@ -500,8 +458,8 @@ class Test_cached_hash:
         assert o._hash == now
 
 
-class Test_native_reflective_hash:
-    func = staticmethod(klass.native_reflective_hash)
+class Test_reflective_hash:
+    func = staticmethod(klass.reflective_hash)
 
     def test_it(self):
         class cls:
@@ -526,16 +484,6 @@ class Test_native_reflective_hash:
             hash(obj)
         obj._dar = 4
         assert hash(obj) == 4
-
-
-@pytest.mark.skipif(klass.reflective_hash is klass.native_reflective_hash,
-                    reason="cpython extension isn't available")
-class Test_cpy_reflective_hash(Test_native_reflective_hash):
-    func = staticmethod(klass.reflective_hash)
-
-
-cpy_loaded_Test = mk_cpy_loadable_testcase(
-    "snakeoil._klass", "snakeoil.klass", "reflective_hash", "reflective_hash")
 
 
 class TestImmutableInstance:
