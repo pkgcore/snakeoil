@@ -289,8 +289,7 @@ class bash_parser(shlex):
     def var_expand(self, val):
         prev, pos = 0, 0
         l = []
-        match = var_find.search(val)
-        while match is not None:
+        while match := var_find.search(val, pos):
             pos = match.start()
             if val[pos] == '\\':
                 # it's escaped. either it's \\$ or \\${ , either way,
@@ -309,7 +308,6 @@ class bash_parser(shlex):
                 else:
                     l.append("")
                 prev = pos = match.end()
-            match = var_find.search(val, pos)
 
         # do \\ cleansing, collapsing val down also.
         val = backslash_find.sub(_nuke_backslash, ''.join(l) + val[prev:])
