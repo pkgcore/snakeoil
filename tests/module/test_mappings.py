@@ -288,16 +288,68 @@ class TestImmutableDict:
         assert initial_hash == hash(d)
 
 
-class TestOrderedSet:
+class TestOrderedFrozenSet:
 
     def test_magic_methods(self):
-        s = mappings.OrderedSet(range(9))
+        s = mappings.OrderedFrozenSet(range(9))
         for x in range(9):
             assert x in s
         assert len(s) == 9
         assert s == set(range(9))
         assert str(s) == str(set(range(9)))
         assert repr(s) == str(s)
+        assert hash(s)
+
+    def test_ordering(self):
+        s = mappings.OrderedFrozenSet('set')
+        assert 'set' == ''.join(s)
+        s = mappings.OrderedFrozenSet('setordered')
+        assert 'setord' == ''.join(s)
+
+    def test_immmutability(self):
+        s = mappings.OrderedFrozenSet(range(9))
+        assert len(s) == 9
+        with pytest.raises(AttributeError):
+            s.add(9)
+        with pytest.raises(AttributeError):
+            s.discard(0)
+        with pytest.raises(AttributeError):
+            s.update(range(5))
+
+    def test_intersection(self):
+        s = mappings.OrderedFrozenSet(range(9))
+        new = s.intersection({1, 9})
+        assert new == mappings.OrderedFrozenSet({1})
+        assert new == s & {1, 9}
+        assert isinstance(new, mappings.OrderedFrozenSet)
+
+    def test_union(self):
+        s = mappings.OrderedFrozenSet(range(9))
+        new = s.union({9})
+        assert new == mappings.OrderedFrozenSet(range(10))
+        assert new == s | {9}
+        assert isinstance(new, mappings.OrderedFrozenSet)
+
+    def test_difference(self):
+        s = mappings.OrderedFrozenSet(range(9))
+        new = s.difference({8})
+        assert new == mappings.OrderedFrozenSet(range(8))
+        assert new == s - {8}
+        assert isinstance(new, mappings.OrderedFrozenSet)
+
+    def test_symmetric_difference(self):
+        s = mappings.OrderedFrozenSet(range(9))
+        new = s.symmetric_difference({0, 9})
+        assert new == mappings.OrderedFrozenSet(range(1, 10))
+        assert new == s ^ {0, 9}
+        assert isinstance(new, mappings.OrderedFrozenSet)
+
+
+class TestOrderedSet:
+
+    def test_hash(self):
+        with pytest.raises(TypeError):
+            assert hash(mappings.OrderedSet('set'))
 
     def test_add(self):
         s = mappings.OrderedSet()
@@ -339,13 +391,6 @@ class TestOrderedSet:
             s.update()
         s.update(range(9))
         assert len(s) == 9
-
-    def test_ordering(self):
-        s = mappings.OrderedSet()
-        s.update('set')
-        assert 'set' == ''.join(s)
-        s.update('ordered')
-        assert 'setord' == ''.join(s)
 
 
 class TestStackedDict:

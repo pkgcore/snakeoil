@@ -10,7 +10,7 @@ __all__ = (
 )
 
 from collections import defaultdict
-from collections.abc import Mapping, MutableSet
+from collections.abc import Mapping, MutableSet, Set
 from functools import partial
 from itertools import chain, filterfalse
 import operator
@@ -346,12 +346,12 @@ class ImmutableDict(Mapping):
         return hash(tuple(sorted(self._dict.items(), key=operator.itemgetter(0))))
 
 
-class OrderedSet(MutableSet):
-    """Ordered set using guaranteed insertion order dicts in py3.6 onwards."""
+class OrderedFrozenSet(Set):
+    """Ordered, immutable set using guaranteed insertion order dicts in py3.6 onwards."""
 
     def __init__(self, iterable=()):
         try:
-            self._dict = {x: None for x in iterable}
+            self._dict = ImmutableDict({x: None for x in iterable})
         except TypeError as e:
             raise TypeError('not iterable') from e
 
@@ -374,6 +374,31 @@ class OrderedSet(MutableSet):
     def __repr__(self):
         return self.__str__()
 
+    def __hash__(self):
+        return hash(self._dict)
+
+    def intersection(self, other):
+        return self.__class__(self._dict.keys() & other)
+
+    def union(self, other):
+        return self.__class__(self._dict.keys() | other)
+
+    def difference(self, other):
+        return self.__class__(self._dict.keys() - other)
+
+    def symmetric_difference(self, other):
+        return self.__class__(self._dict.keys() ^ other)
+
+
+class OrderedSet(OrderedFrozenSet, MutableSet):
+    """Ordered, mutable set using guaranteed insertion order dicts in py3.6 onwards."""
+
+    def __init__(self, iterable=()):
+        try:
+            self._dict = {x: None for x in iterable}
+        except TypeError as e:
+            raise TypeError('not iterable') from e
+
     def add(self, value):
         self._dict[value] = None
 
@@ -391,6 +416,9 @@ class OrderedSet(MutableSet):
 
     def update(self, iterable):
         self._dict.update((x, None) for x in iterable)
+
+    def __hash__(self):
+        raise TypeError(f'unhashable type: {self.__class__.__name__!r}')
 
 
 class IndeterminantDict:
