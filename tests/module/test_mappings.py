@@ -303,8 +303,10 @@ class TestOrderedFrozenSet:
     def test_ordering(self):
         s = mappings.OrderedFrozenSet('set')
         assert 'set' == ''.join(s)
+        assert 'tes' == ''.join(reversed(s))
         s = mappings.OrderedFrozenSet('setordered')
         assert 'setord' == ''.join(s)
+        assert 'drotes' == ''.join(reversed(s))
 
     def test_immmutability(self):
         s = mappings.OrderedFrozenSet(range(9))
@@ -345,7 +347,7 @@ class TestOrderedFrozenSet:
         assert isinstance(new, mappings.OrderedFrozenSet)
 
 
-class TestOrderedSet:
+class TestOrderedSet(TestOrderedFrozenSet):
 
     def test_hash(self):
         with pytest.raises(TypeError):

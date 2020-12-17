@@ -333,6 +333,9 @@ class ImmutableDict(Mapping):
     def __iter__(self):
         return iter(self._dict)
 
+    def __reversed__(self):
+        return reversed(self._dict)
+
     def __len__(self):
         return len(self._dict)
 
@@ -360,6 +363,9 @@ class OrderedFrozenSet(Set):
 
     def __iter__(self):
         return iter(self._dict)
+
+    def __reversed__(self):
+        return reversed(self._dict)
 
     def __len__(self):
         return len(self._dict)
