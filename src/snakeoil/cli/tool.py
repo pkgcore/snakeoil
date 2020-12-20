@@ -217,6 +217,8 @@ class FormattingHandler(logging.Handler):
         try:
             for line in self.format(record).split('\n'):
                 self.out.write(line, wrap=True)
+        except Exception:
+            self.handleError(record)
         finally:
             self.out.later_prefix.pop()
             for i in range(len(first_prefix)):
