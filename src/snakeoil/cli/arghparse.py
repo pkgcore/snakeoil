@@ -1258,9 +1258,13 @@ class ArgumentParser(OptionalsParser, CsvActionsParser, CopyableParser):
 
     def bind_delayed_default(self, priority, name=None):
         def f(functor, name=name):
+            def default(namespace, attr):
+                """Only run delayed default functor if the attribute isn't set."""
+                if isinstance(object.__getattribute__(namespace, attr), DelayedValue):
+                    functor(namespace, attr)
             if name is None:
                 name = functor.__name__
-            self.set_defaults(**{name: DelayedValue(functor, priority)})
+            self.set_defaults(**{name: DelayedValue(default, priority)})
             return functor
         return f
 
