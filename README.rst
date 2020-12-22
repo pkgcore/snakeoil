@@ -41,12 +41,9 @@ Using tox for a specific python version::
 Contact
 =======
 
-For support and development inquiries join `#pkgcore`_ on Freenode.
-
 For bugs and feature requests please create an issue on Github_.
 
 
-.. _#pkgcore: https://webchat.freenode.net?channels=%23pkgcore&uio=d4
 .. _Github: https://github.com/pkgcore/snakeoil/issues
 
 .. |pypi| image:: https://img.shields.io/pypi/v/snakeoil.svg

@@ -38,8 +38,6 @@ Community
 
 Snakeoil now lives in full at |homepage|.  Issue tracking, wiki, groups, source, are all available from there.
 
-For IRC, the core developers are generally accessible for bugs/questions via `the freenode network in the #pkgcore channel <irc://freenode.net/#pkgcore>`_.
-
 Getting the source (downloading releases or trunk)
 --------------------------------------------------
 
