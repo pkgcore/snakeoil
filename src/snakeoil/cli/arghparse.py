@@ -331,9 +331,7 @@ class Verbosity(argparse.Action):
 
     def __call__(self, parser, namespace, values, option_string=None):
         change = self.value_map.get(option_string, 0)
-        count = getattr(namespace, self.dest, None)
-        if count is None:
-            count = 0
+        count = getattr(namespace, self.dest, 0)
         new = count + change
         # enable info level logs when running in a heightened verbosity state
         if new >= 2:
