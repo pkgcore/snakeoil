@@ -21,7 +21,7 @@ from .. import klass
 from ..mappings import ImmutableDict
 from ..obj import popattr
 from ..sequences import split_negations, split_elements
-from ..strings import pluralism as _pl
+from ..strings import pluralism
 from ..version import get_version
 
 
@@ -178,11 +178,13 @@ class CommaSeparatedNegations(argparse._AppendAction):
                 raise argparse.ArgumentTypeError(e)
             disabled.extend(neg)
             enabled.extend(pos)
-        colliding = set(disabled).intersection(enabled)
-        if colliding:
+
+        if colliding := set(disabled).intersection(enabled):
             collisions = ', '.join(map(repr, sorted(colliding)))
-            msg = f'colliding enabled and disabled value{_pl(colliding)}: {collisions}'
+            s = pluralism(colliding)
+            msg = f'colliding value{s}: {collisions}'
             raise argparse.ArgumentError(self, msg)
+
         return disabled, enabled
 
     def __call__(self, parser, namespace, values, option_string=None):
@@ -225,6 +227,14 @@ class CommaSeparatedElements(argparse._AppendAction):
             disabled.extend(neg)
             neutral.extend(neu)
             enabled.extend(pos)
+
+        elements = [set(x) for x in (disabled, neutral, enabled) if x]
+        if len(elements) > 1 and (colliding := set.intersection(*elements)):
+            collisions = ', '.join(map(repr, sorted(colliding)))
+            s = pluralism(colliding)
+            msg = f'colliding value{s}: {collisions}'
+            raise argparse.ArgumentError(self, msg)
+
         return disabled, neutral, enabled
 
     def __call__(self, parser, namespace, values, option_string=None):
