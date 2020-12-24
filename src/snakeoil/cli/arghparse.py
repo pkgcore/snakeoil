@@ -98,11 +98,11 @@ class ParseNonblockingStdin(argparse.Action):
     def _stdin(self):
         """Generator yielding lines from stdin."""
         while True:
-            line = sys.stdin.readline()
-            if not line:
+            if line := sys.stdin.readline():
+                if self.filter_func(line):
+                    yield line.rstrip()
+            else:
                 break
-            if self.filter_func(line):
-                yield line.rstrip()
 
     def __call__(self, parser, namespace, values, option_string=None):
         if values is not None and len(values) == 1 and values[0] == '-':
