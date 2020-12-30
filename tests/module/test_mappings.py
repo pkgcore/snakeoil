@@ -298,7 +298,7 @@ class TestOrderedFrozenSet:
 
         # test indexing support
         for i in range(9):
-            assert s[i] is None
+            assert s[i] == i
         with pytest.raises(IndexError, match='index out of range'):
             s[9]
 

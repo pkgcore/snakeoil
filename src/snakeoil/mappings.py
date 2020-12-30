@@ -366,7 +366,7 @@ class OrderedFrozenSet(Set):
 
     def __getitem__(self, key):
         try:
-            next(islice(self, key, None))
+            return next(islice(self._dict, key, None))
         except StopIteration:
             raise IndexError('index out of range')
 
