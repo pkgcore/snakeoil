@@ -12,7 +12,7 @@ __all__ = (
 from collections import defaultdict
 from collections.abc import Mapping, MutableSet, Set
 from functools import partial
-from itertools import chain, filterfalse
+from itertools import chain, filterfalse, islice
 import operator
 
 from .klass import get, contains, steal_docs, sentinel
@@ -363,6 +363,12 @@ class OrderedFrozenSet(Set):
 
     def __iter__(self):
         return iter(self._dict)
+
+    def __getitem__(self, key):
+        try:
+            next(islice(self, key, None))
+        except StopIteration:
+            raise IndexError('index out of range')
 
     def __reversed__(self):
         return reversed(self._dict)

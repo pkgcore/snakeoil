@@ -295,6 +295,13 @@ class TestOrderedFrozenSet:
         for x in range(9):
             assert x in s
         assert len(s) == 9
+
+        # test indexing support
+        for i in range(9):
+            assert s[i] is None
+        with pytest.raises(IndexError, match='index out of range'):
+            s[9]
+
         assert s == set(range(9))
         assert str(s) == str(set(range(9)))
         assert repr(s) == str(s)
