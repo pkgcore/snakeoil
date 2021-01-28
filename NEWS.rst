@@ -2,6 +2,16 @@
 Release Notes
 =============
 
+snakeoil 0.9.0 (2021-01-27)
+---------------------------
+
+- snakeoil.cli.arghparse: Check for colliding CommaSeparatedElements.
+
+- snakeoil.mappings: Add OrderedFrozenSet implementation which is a
+  immutable OrderedSet.
+
+- Drop support for python 3.6 and 3.7.
+
 snakeoil 0.8.9 (2020-12-04)
 ---------------------------
 
