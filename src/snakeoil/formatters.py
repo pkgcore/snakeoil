@@ -548,7 +548,7 @@ def get_formatter(stream, force_color=False):
         # needs an fd to pass to curses, not just a filelike talking to a tty.
         if os.isatty(fd) or force_color:
             try:
-                term = 'xterm' if force_color else None
+                term = 'ansi' if force_color else None
                 return TerminfoFormatter(stream, term=term)
             except (curses.error, TerminfoDisabled, TerminfoHatesOurTerminal):
                 # This happens if TERM is unset and possibly in more cases.
