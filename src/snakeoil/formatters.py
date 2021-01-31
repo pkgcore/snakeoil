@@ -31,9 +31,7 @@ class StreamClosed(KeyboardInterrupt):
 
 
 class Formatter:
-
-    """
-    Abstract formatter base class.
+    """Abstract formatter base class.
 
     The types of most of the instance attributes is undefined (depends
     on the implementation of the particular Formatter subclass).
@@ -117,7 +115,6 @@ class Formatter:
 
 
 class PlainTextFormatter(Formatter):
-
     """Formatter writing plain text to a file-like object.
 
     :ivar width: contains the current maximum line length.
@@ -334,7 +331,7 @@ class TerminfoHatesOurTerminal(Exception):
         self.term = term
 
     def __str__(self):
-        return '"%s" is not a supported terminal type' % (self.term,)
+        return f'unsupported terminal type: {self.term!r}'
 
 
 # This is necessary because the curses module is optional (and we
@@ -345,11 +342,10 @@ except ImportError:
     TerminfoColor = None
 else:
     class TerminfoColor:
-        """
-        class encapsulating a specific terminfo entry for a color
+        """Class encapsulating a specific terminfo entry for a color.
 
         This should not generally be invoked by hand, instead returned by
-        the formatter itself
+        the formatter itself.
         """
 
         __slots__ = ("mode", "color", "__weakref__")
@@ -387,8 +383,7 @@ else:
                                  (self.__class__.__name__,))
 
     class TerminfoCode:
-        """
-        Encapsulates specific terminfo entry commands, reset for example.
+        """Encapsulates specific terminfo entry commands, reset for example.
 
         This should not generally be invoked by hand, instead returned by
         the formatter itself.
@@ -424,7 +419,6 @@ else:
             formatter.stream.write(self.value)
 
     class TerminfoFormatter(PlainTextFormatter):
-
         """Formatter writing to a tty, using terminfo to do colors."""
 
         _colors = dict(
@@ -564,9 +558,7 @@ def get_formatter(stream, force_color=False):
 
 
 def decorate_forced_wrapping(setting=True):
-    """
-    Decorator to force a specific line wrapping state for the duration of invocation
-    """
+    """Decorator to force a specific line wrapping state for the duration of invocation."""
     def wrapped_func(func):
         def f(out, *args, **kwds):
             oldwrap = out.wrap
