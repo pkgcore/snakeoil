@@ -309,6 +309,8 @@ class PlainTextFormatter(Formatter):
         """
         return ''
 
+    def flush(self):
+        self.stream.flush()
 
 class TerminfoDisabled(Exception):
     """
@@ -515,10 +517,6 @@ else:
                 self.stream.write(
                     tsl + string.encode(self.encoding, 'replace') + fsl)
                 self.stream.flush()
-
-        @steal_docs(Formatter)
-        def flush(self):
-            self.stream.flush()
 
 
 class ObserverFormatter:
