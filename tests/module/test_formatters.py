@@ -183,9 +183,9 @@ class TerminfoFormatterTest:
         self._test_stream(
             stream, f, ('lala',), ('lala', '\n'))
 
-    def test_terminfo_hates_term(self):
+    def test_unsupported_term(self):
         stream = TemporaryFile()
-        with pytest.raises(formatters.TerminfoHatesOurTerminal):
+        with pytest.raises(formatters.TerminfoUnsupported):
             formatters.TerminfoFormatter(stream, term='dumb')
 
     @issue7567

@@ -312,21 +312,20 @@ class PlainTextFormatter(Formatter):
     def flush(self):
         self.stream.flush()
 
-class TerminfoDisabled(Exception):
-    """
-    Raised if Terminfo is disabled.
 
-    Only possible to see this is you're trying to generate a formatter directly
-    yourself
-    """
+
+
+
+
+class TerminfoDisabled(Exception):
+    """Raised if Terminfo is disabled."""
 
 
 class _BogusTerminfo(ValueError):
-    """Used internally."""
+    """Internal terminfo exception."""
 
 
-class TerminfoHatesOurTerminal(Exception):
-
+class TerminfoUnsupported(Exception):
     """Raised if our terminal type is unsupported."""
 
     def __init__(self, term):
@@ -467,7 +466,7 @@ else:
                     curses.tigetstr('setaf'),
                     curses.tigetstr('setab'))
             except (_BogusTerminfo, curses.error) as e:
-                raise TerminfoHatesOurTerminal(self._term) from e
+                raise TerminfoUnsupported(self._term) from e
 
             if not all(self._set_color):
                 raise TerminfoDisabled(
@@ -492,7 +491,7 @@ else:
 
         @steal_docs(Formatter)
         def write(self, *args, **kwargs):
-            PlainTextFormatter.write(self, *args, **kwargs)
+            super().write(self, *args, **kwargs)
             try:
                 if self._modes:
                     self.reset(self)
@@ -548,7 +547,7 @@ def get_formatter(stream, force_color=False):
             try:
                 term = 'ansi' if force_color else None
                 return TerminfoFormatter(stream, term=term)
-            except (curses.error, TerminfoDisabled, TerminfoHatesOurTerminal):
+            except (curses.error, TerminfoDisabled, TerminfoUnsupported):
                 # This happens if TERM is unset and possibly in more cases.
                 # Just fall back to the PlainTextFormatter.
                 pass
