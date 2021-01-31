@@ -1,8 +1,3 @@
-# TODO:
-# for PlainTextFormatter, wouldn't be a bad idea to add a method for testing
-# that compares native vs cpy behaviour behind the scenes for each test.
-# aside from that, tests need heavy expansion
-
 import curses
 from io import BytesIO
 import os
@@ -18,9 +13,9 @@ from snakeoil.test import mk_cpy_loadable_testcase, protect_process
 issue7567 = protect_process
 
 
-class Test_native_PlainTextFormatter:
+class TestPlainTextFormatter:
 
-    kls = staticmethod(formatters.native_PlainTextFormatter)
+    kls = staticmethod(formatters.PlainTextFormatter)
 
     def test_basics(self):
         # As many sporks as fit in 20 chars.
@@ -151,12 +146,6 @@ class Test_native_PlainTextFormatter:
             for input in inputs:
                 formatter.write(wrap=True, later_prefix='foon', *input)
             assert output.encode() == stream.getvalue()
-
-
-@pytest.mark.skipif(formatters.native_PlainTextFormatter is formatters.PlainTextFormatter,
-                    reason="extension isn't compiled")
-class Test_cpy_PlainTextFormatter(Test_native_PlainTextFormatter):
-    kls = staticmethod(formatters.PlainTextFormatter)
 
 
 class TerminfoFormatterTest:

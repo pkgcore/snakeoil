@@ -16,7 +16,7 @@ __all__ = (
 )
 
 
-class native_StreamClosed(KeyboardInterrupt):
+class StreamClosed(KeyboardInterrupt):
     """Raised by :py:func:`Formatter.write` if the stream it prints to was closed.
 
     This inherits from :py:class:`KeyboardInterrupt` because it should usually
@@ -116,7 +116,7 @@ class Formatter:
         """Flush the underlying stream buffer."""
 
 
-class native_PlainTextFormatter(Formatter):
+class PlainTextFormatter(Formatter):
 
     """Formatter writing plain text to a file-like object.
 
@@ -137,7 +137,7 @@ class native_PlainTextFormatter(Formatter):
         :param width: maximum line width (defaults to 79).
         :param encoding: encoding unicode strings are converted to.
         """
-        Formatter.__init__(self)
+        super().__init__()
         # We used to require a TextIOWrapper on py3. We still accept
         # one, guess the encoding from it and grab its underlying
         # bytestream.
@@ -312,25 +312,6 @@ class native_PlainTextFormatter(Formatter):
         """
         return ''
 
-try:
-    from ._formatters import PlainTextFormatter, StreamClosed
-
-    class PlainTextFormatter(PlainTextFormatter, Formatter):
-        __doc__ = native_PlainTextFormatter.__doc__
-        __slots__ = ()
-
-        @steal_docs(native_PlainTextFormatter)
-        def fg(self, color=None):
-            return ''
-
-        @steal_docs(native_PlainTextFormatter)
-        def bg(self, color=None):
-            return ''
-
-except ImportError:
-    PlainTextFormatter = native_PlainTextFormatter
-    StreamClosed = native_StreamClosed
-
 
 class TerminfoDisabled(Exception):
     """
@@ -476,7 +457,7 @@ else:
             :param forcetty: force output of colors even if the wrapped stream
                              is not a tty.
             """
-            PlainTextFormatter.__init__(self, stream, encoding=encoding)
+            super().__init__(stream, encoding=encoding)
             fd = stream.fileno()
             if term is None:
                 # We only apply the remapping if we are guessing the
