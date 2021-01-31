@@ -438,14 +438,6 @@ else:
             white=curses.COLOR_WHITE,
         )
 
-        # Remapping of TERM setting to more capable equivalent.
-        # Mainly used to force on the hardstatus (aka title bar updates)
-        # capability for terminals that do not support this by default.
-        term_alternates = {
-            'xterm': 'xterm+sl',
-            'screen': 'screen-s',
-        }
-
         def __init__(self, stream, term=None, forcetty=False, encoding=None):
             """Initialize.
 
@@ -460,24 +452,13 @@ else:
             super().__init__(stream, encoding=encoding)
             fd = stream.fileno()
             if term is None:
-                # We only apply the remapping if we are guessing the
-                # terminal type from the environment. If we get a term
-                # type passed explicitly we just use it as-is (if the
-                # caller wants the remap just doing the
-                # term_alternates lookup there is easy enough.)
-                term_env = os.environ.get('TERM')
-                term_alt = self.term_alternates.get(term_env)
-                for term in (term_alt, term_env):
-                    if term is not None:
-                        try:
-                            curses.setupterm(fd=fd, term=term)
-                        except curses.error:
-                            pass
-                        else:
-                            break
+                if term := os.environ.get('TERM'):
+                    try:
+                        curses.setupterm(fd=fd, term=term)
+                    except curses.error:
+                        pass
                 else:
-                    raise TerminfoDisabled(
-                        'no terminfo entries, not even for "dumb"?')
+                    raise TerminfoDisabled('no terminfo entries')
             else:
                 # TODO maybe do something more useful than raising curses.error
                 # if term is not in the terminfo db here?
