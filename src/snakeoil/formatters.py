@@ -491,7 +491,7 @@ else:
 
         @steal_docs(Formatter)
         def write(self, *args, **kwargs):
-            super().write(self, *args, **kwargs)
+            super().write(*args, **kwargs)
             try:
                 if self._modes:
                     self.reset(self)
