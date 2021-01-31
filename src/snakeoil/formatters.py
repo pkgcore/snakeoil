@@ -438,16 +438,13 @@ else:
             white=curses.COLOR_WHITE,
         )
 
-        def __init__(self, stream, term=None, forcetty=False, encoding=None):
+        def __init__(self, stream, term=None, encoding=None):
             """Initialize.
 
             :type stream: file-like object.
             :param stream: stream to output to, defaulting to :py:class:`sys.stdout`.
             :type term: string.
             :param term: terminal type, pulled from the environment if omitted.
-            :type forcetty: bool
-            :param forcetty: force output of colors even if the wrapped stream
-                             is not a tty.
             """
             super().__init__(stream, encoding=encoding)
             fd = stream.fileno()
