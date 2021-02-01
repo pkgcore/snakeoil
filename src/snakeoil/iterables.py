@@ -212,9 +212,12 @@ class caching_iter:
 
     def __iter__(self):
         if (self.sorter is not None and
-                self.iterable is not None and
-                len(self.cached_list) == 0):
-            self.cached_list = tuple(self.sorter(self.iterable))
+                self.iterable is not None):
+            if self.cached_list:
+                self.cached_list.extend(self.iterable)
+                self.cached_list = tuple(self.sorter(self.cached_list))
+            else:
+                self.cached_list = tuple(self.sorter(self.iterable))
             self.iterable = self.sorter = None
 
         for x in self.cached_list:
