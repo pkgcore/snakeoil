@@ -188,6 +188,7 @@ def setup():
         'package_dir': {'': os.path.basename(PACKAGEDIR)},
         'install_requires': install_deps,
         'tests_require': _requires('test.txt'),
+        'python_requires': '>=3.8',
     }
 
     cmds = {
