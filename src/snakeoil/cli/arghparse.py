@@ -475,15 +475,12 @@ class _SubParser(argparse._SubParsersAction):
         return parser
 
     def add_command(self, subcmd):
-        """Import and add a given subcommand.
+        """Register a given subcommand to be imported on demand.
 
         Note that this assumes a specific module naming and layout scheme for commands.
         """
         prog = self._prog_prefix
-        mod = importlib.import_module(f'{prog}.scripts.{prog}_{subcmd}')
-        parser = getattr(mod, subcmd)
-        self._name_parser_map[subcmd] = parser
-        return parser
+        self._name_parser_map[subcmd] = f'{prog}.scripts.{prog}_{subcmd}'
 
     def __call__(self, parser, namespace, values, option_string=None):
         """override stdlib argparse to revert subparser namespace changes
@@ -505,6 +502,10 @@ class _SubParser(argparse._SubParsersAction):
             tup = parser_name, ', '.join(self._name_parser_map)
             msg = _('unknown parser %r (choices: %s)') % tup
             raise argparse.ArgumentError(self, msg)
+
+        # import parser related to registered subcommand
+        if isinstance(parser, str):
+            parser = getattr(importlib.import_module(parser), parser_name)
 
         # parse all the remaining options into the namespace
         # store any unrecognized options on the object, so that the top
@@ -1198,7 +1199,10 @@ class ArgumentParser(OptionalsParser, CsvActionsParser, CopyableParser):
 
         # make sure the correct function and prog are set if running a subcommand
         subcmd_parser = self.subparsers.get(getattr(args, 'subcommand', None), None)
-        if subcmd_parser is not None:
+        if isinstance(subcmd_parser, str):
+            # handle lazily-imported subcommand parsers
+            self.prog = args.prog
+        elif subcmd_parser is not None:
             # override the running program with full subcommand
             self.prog = subcmd_parser.prog
             namespace.prog = subcmd_parser.prog
