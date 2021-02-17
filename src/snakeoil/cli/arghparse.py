@@ -18,6 +18,8 @@ import sys
 from textwrap import dedent
 import traceback
 
+import lazy_object_proxy
+
 from .. import klass
 from ..mappings import ImmutableDict
 from ..obj import popattr
@@ -474,13 +476,19 @@ class _SubParser(argparse._SubParsersAction):
 
         return parser
 
+    def _lazy_parser(self, module, subcmd):
+        """Lazily-import the subcommand parser for a given module."""
+        return getattr(importlib.import_module(module), subcmd)
+
     def add_command(self, subcmd):
         """Register a given subcommand to be imported on demand.
 
         Note that this assumes a specific module naming and layout scheme for commands.
         """
         prog = self._prog_prefix
-        self._name_parser_map[subcmd] = f'{prog}.scripts.{prog}_{subcmd}'
+        module = f'{prog}.scripts.{prog}_{subcmd}'
+        func = partial(self._lazy_parser, module, subcmd)
+        self._name_parser_map[subcmd] = lazy_object_proxy.Proxy(func)
 
     def __call__(self, parser, namespace, values, option_string=None):
         """override stdlib argparse to revert subparser namespace changes
@@ -502,10 +510,6 @@ class _SubParser(argparse._SubParsersAction):
             tup = parser_name, ', '.join(self._name_parser_map)
             msg = _('unknown parser %r (choices: %s)') % tup
             raise argparse.ArgumentError(self, msg)
-
-        # import parser related to registered subcommand
-        if isinstance(parser, str):
-            parser = getattr(importlib.import_module(parser), parser_name)
 
         # parse all the remaining options into the namespace
         # store any unrecognized options on the object, so that the top
@@ -1199,10 +1203,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser, CopyableParser):
 
         # make sure the correct function and prog are set if running a subcommand
         subcmd_parser = self.subparsers.get(getattr(args, 'subcommand', None), None)
-        if isinstance(subcmd_parser, str):
-            # handle lazily-imported subcommand parsers
-            self.prog = args.prog
-        elif subcmd_parser is not None:
+        if subcmd_parser is not None:
             # override the running program with full subcommand
             self.prog = subcmd_parser.prog
             namespace.prog = subcmd_parser.prog
