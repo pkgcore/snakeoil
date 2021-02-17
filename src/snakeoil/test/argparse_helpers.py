@@ -92,6 +92,9 @@ class ListStream(list):
             self[-1] = self[-1] + objectlist.pop(0)
         self.extend(objectlist)
 
+    def flush(self):
+        """Stub function to fake flush() support."""
+
 
 class FakeStreamFormatter(PlainTextFormatter):
 
