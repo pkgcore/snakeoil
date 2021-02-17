@@ -8,6 +8,7 @@ from argparse import (
 from collections import Counter
 import copy
 from functools import partial
+import importlib
 from itertools import chain
 import logging
 from operator import attrgetter
@@ -455,7 +456,7 @@ class Expansion(argparse.Action):
 class _SubParser(argparse._SubParsersAction):
 
     def add_parser(self, name, cls=None, **kwds):
-        """argparser subparser that links description/help if one is specified"""
+        """Subparser that links description/help if one is specified."""
         description = kwds.get("description")
         help_txt = kwds.get("help")
         if description is None:
@@ -471,6 +472,17 @@ class _SubParser(argparse._SubParsersAction):
         parser = super().add_parser(name, **kwds)
         self._parser_class = orig_class
 
+        return parser
+
+    def add_command(self, subcmd):
+        """Import and add a given subcommand.
+
+        Note that this assumes a specific module naming and layout scheme for commands.
+        """
+        prog = self._prog_prefix
+        mod = importlib.import_module(f'{prog}.scripts.{prog}_{subcmd}')
+        parser = getattr(mod, subcmd)
+        self._name_parser_map[subcmd] = parser
         return parser
 
     def __call__(self, parser, namespace, values, option_string=None):
