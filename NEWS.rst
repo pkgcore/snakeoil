@@ -2,6 +2,18 @@
 Release Notes
 =============
 
+snakeoil 0.9.2 (2021-02-18)
+---------------------------
+
+- snakeoil.dist.iterables: Fix caching_iter sorting when bool is used (#57).
+
+- snakeoil.cli.arghparse: Initial subparser support for lazily-imported
+  subcommand modules using lazy-object-proxy. This allows scripts to split
+  subcommands into separate modules that are only imported as required.
+
+- snakeoil.dist.distutils_extensions: Force pip to require supported
+  python versions.
+
 snakeoil 0.9.1 (2021-01-31)
 ---------------------------
 
