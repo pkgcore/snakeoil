@@ -94,35 +94,29 @@ class TestCachingIter:
 
     def test_bool(self):
         c = caching_iter(range(100))
-        assert bool(c) == True
+        assert bool(c)
         # repeat to check if it works when cached.
-        assert bool(c) == True
-        assert bool(caching_iter(iter([]))) == False
-
-    @staticmethod
-    def _py3k_protection(*args, **kwds):
-        return tuple(caching_iter(*args, **kwds))
+        assert bool(c)
+        assert not bool(caching_iter(iter([])))
 
     def test_cmp(self):
-        get_inst = self._py3k_protection
-        assert get_inst(range(100)) == tuple(range(100))
-        assert get_inst(range(90)) != tuple(range(100))
-        assert get_inst(range(100)) > tuple(range(90))
-        assert not get_inst(range(90)) > tuple(range(100))
-        assert get_inst(range(100)) >= tuple(range(100))
-        assert get_inst(range(90)) < tuple(range(100))
-        assert not get_inst(range(100)) < tuple(range(90))
-        assert get_inst(range(90)) <= tuple(range(100))
+        assert tuple(caching_iter(range(100))) == tuple(range(100))
+        assert tuple(caching_iter(range(90))) != tuple(range(100))
+        assert tuple(caching_iter(range(100))) > tuple(range(90))
+        assert not tuple(caching_iter(range(90))) > tuple(range(100))
+        assert tuple(caching_iter(range(100))) >= tuple(range(100))
+        assert tuple(caching_iter(range(90))) < tuple(range(100))
+        assert not tuple(caching_iter(range(100))) < tuple(range(90))
+        assert tuple(caching_iter(range(90))) <= tuple(range(100))
 
     def test_sorter(self):
-        get_inst = self._py3k_protection
-        assert get_inst(range(100, 0, -1), sorted) == tuple(range(1, 101))
+        assert tuple(caching_iter(range(100, 0, -1), sorted)) == tuple(range(1, 101))
         c = caching_iter(range(100, 0, -1), sorted)
         assert c
-        assert tuple(c) == tuple(range(1, 101))
+        assert tuple(iter(c)) == tuple(range(1, 101))
         c = caching_iter(range(50, 0, -1), sorted)
         assert c[10] == 11
-        assert tuple(range(1, 51)) == tuple(c)
+        assert tuple(iter(c)) == tuple(range(1, 51))
 
     def test_getitem(self):
         c = caching_iter(range(20))
