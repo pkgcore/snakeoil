@@ -46,7 +46,7 @@ def iter_read_bash(bash_source, allow_inline_comments=True,
     if isinstance(bash_source, str):
         bash_source = readlines(bash_source, True)
     s = ''
-    for lineno, line in enumerate(bash_source):
+    for lineno, line in enumerate(bash_source, 1):
         if allow_line_cont and s:
             s += line
         else:
@@ -62,13 +62,13 @@ def iter_read_bash(bash_source, allow_inline_comments=True,
                     s = s.rstrip('\\\n')
                     continue
                 if enum_line:
-                    yield lineno + 1, s.rstrip()
+                    yield lineno, s.rstrip()
                 else:
                     yield s.rstrip()
             s = ''
     if s:
         if enum_line:
-            yield lineno + 1, s
+            yield lineno, s
         else:
             yield s
 
