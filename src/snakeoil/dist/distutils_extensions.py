@@ -194,6 +194,7 @@ def setup():
     cmds = {
         'sdist': sdist,
         'build_py': build_py,
+        'install': install,
         'test': pytest,
     }
 
