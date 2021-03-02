@@ -13,6 +13,7 @@ from itertools import chain
 import logging
 from operator import attrgetter
 import os
+import pkgutil
 import subprocess
 import sys
 from textwrap import dedent
@@ -989,7 +990,7 @@ class CopyableParser(argparse.ArgumentParser):
 class ArgumentParser(OptionalsParser, CsvActionsParser, CopyableParser):
     """Extended, argparse-compatible argument parser."""
 
-    def __init__(self, suppress=False, color=True, debug=True, quiet=True,
+    def __init__(self, suppress=False, subcmds=False, color=True, debug=True, quiet=True,
                  verbose=True, version=True, add_help=True, sorted_help=False,
                  description=None, docs=None, script=None, prog=None, **kwds):
         self.debug = debug and '--debug' in sys.argv[1:]
@@ -1049,7 +1050,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser, CopyableParser):
             description=description, formatter_class=formatter,
             prog=prog, add_help=False, **kwds)
 
-        # register our custom actions
+        # register custom actions
         self.register('action', 'parsers', _SubParser)
 
         if not suppress:
@@ -1100,6 +1101,17 @@ class ArgumentParser(OptionalsParser, CsvActionsParser, CopyableParser):
                         enable color support when piping output or other sitations
                         where stdout is not a tty.
                     """)
+
+        # register existing subcommands
+        if subcmds:
+            prefix = f'{prog}.scripts.{prog}_'
+            if subcmd_modules := [
+                    name[len(prefix):] for _, name, _ in
+                    pkgutil.walk_packages([os.path.dirname(script_path)], f'{prog}.scripts.')
+                    if name.startswith(prefix)]:
+                subparsers = self.add_subparsers()
+                for subcmd in subcmd_modules:
+                    subparsers.add_command(subcmd)
 
     def _update_desc(self, description=None, docs=None):
         """Extract the description to use.
