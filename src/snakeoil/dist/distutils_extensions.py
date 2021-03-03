@@ -196,6 +196,7 @@ def setup():
         'build_py': build_py,
         'install': install,
         'test': pytest,
+        'lint': pylint,
     }
 
     # check for scripts
