@@ -1,6 +1,5 @@
 import errno
 from importlib import reload
-import os
 from unittest import mock
 
 import pytest
@@ -38,11 +37,10 @@ class TestVersion:
             get_git_version.return_value = verinfo
 
             result = version.get_version('snakeoil', __file__, __version__)
-            expected = 'snakeoil %s-g%s -- %s' % (__version__, verinfo['rev'][:7], verinfo['date'])
-            assert result == expected
+            assert result == f"snakeoil {__version__}-g{verinfo['rev'][:7]} -- {verinfo['date']}"
 
     def test_get_version_git_release(self):
-        verinfo={
+        verinfo = {
             'rev': 'ab38751890efa8be96b7f95938d6b868b769bab6',
             'date': 'Thu Sep 21 15:57:38 2017 -0400',
             'tag': '2.3.4',
@@ -50,13 +48,12 @@ class TestVersion:
 
         # fake snakeoil._verinfo module object
         class Verinfo:
-            version_info=verinfo
+            version_info = verinfo
 
         with mock.patch('snakeoil.version.import_module') as import_module:
             import_module.return_value = Verinfo()
             result = version.get_version('snakeoil', __file__, verinfo['tag'])
-            expected = 'snakeoil %s -- released %s' % (verinfo['tag'], verinfo['date'])
-            assert result == expected
+            assert result == f"snakeoil {verinfo['tag']} -- released {verinfo['date']}"
 
     def test_get_version_no_git_version(self):
         with mock.patch('snakeoil.version.import_module') as import_module, \
@@ -64,13 +61,12 @@ class TestVersion:
             import_module.side_effect = ImportError
             get_git_version.return_value = None
             result = version.get_version('snakeoil', 'nonexistent', __version__)
-            expected = '%s %s -- extended version info unavailable' % ('snakeoil', __version__)
-            assert result == expected
+            assert result == f'snakeoil {__version__}'
 
     def test_get_version_caching(self):
         # retrieved version info is cached in a module attr
         v = version.get_version('snakeoil', __file__)
-        assert v.startswith('%s %s' % ('snakeoil', __version__))
+        assert v.startswith(f'snakeoil {__version__}')
 
         # re-running get_version returns the cached attr instead of reprocessing
         with mock.patch('snakeoil.version.import_module') as import_module:
@@ -110,7 +106,7 @@ class TestGitVersion:
                 'date': 'Mon Sep 25 13:50:24 2017 -0400',
                 'tag': None,
                 'commits': 2,
-                }
+            }
             assert result == expected
 
     def test_get_git_version_good_tag(self):
@@ -126,7 +122,7 @@ class TestGitVersion:
                 'date': 'Mon Sep 25 13:50:24 2017 -0400',
                 'tag': '1.1.1',
                 'commits': 2,
-                }
+            }
             assert result == expected
 
     def test_get_git_tag_bad_output(self):
