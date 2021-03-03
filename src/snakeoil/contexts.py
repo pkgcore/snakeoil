@@ -310,6 +310,35 @@ def syspath(path, condition=True, position=0):
         sys.path = syspath
 
 
+@contextmanager
+def os_environ(*remove, **update):
+    """Mangle the ``os.environ`` dictionary and revert on exit.
+
+    :param remove: variables to remove
+    :param update: variable -> value mapping to add or alter
+    """
+    env = os.environ
+    update = update or {}
+    remove = remove or []
+
+    # variables being updated or removed
+    changed = (set(update) | set(remove)) & set(env)
+    # variables to restore on exit
+    update_after = {k: env[k] for k in changed}
+    # variables to remove on exit
+    remove_after = frozenset(k for k in update if k not in env)
+
+    try:
+        env.update(update)
+        for k in remove:
+            env.pop(k, None)
+        yield
+    finally:
+        env.update(update_after)
+        for k in remove_after:
+            env.pop(k)
+
+
 # Ideas and code for the patch context manager have been borrowed from mock
 # (https://github.com/testing-cabal/mock) governed by the BSD-2 license found
 # below.
