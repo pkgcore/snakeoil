@@ -48,7 +48,7 @@ For bugs and feature requests please create an issue on Github_.
 
 .. |pypi| image:: https://img.shields.io/pypi/v/snakeoil.svg
     :target: https://pypi.python.org/pypi/snakeoil
-.. |test| image:: https://github.com/pkgcore/snakeoil/workflows/Run%20tests/badge.svg
-    :target: https://github.com/pkgcore/snakeoil/actions?query=workflow%3A%22Run+tests%22
+.. |test| image:: https://github.com/pkgcore/snakeoil/workflows/test/badge.svg
+    :target: https://github.com/pkgcore/snakeoil/actions?query=workflow%3A%22test%22
 .. |coverage| image:: https://codecov.io/gh/pkgcore/snakeoil/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/pkgcore/snakeoil
