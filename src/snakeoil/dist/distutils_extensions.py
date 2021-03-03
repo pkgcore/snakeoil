@@ -224,6 +224,9 @@ def setup():
         cmds['build_man'] = build_man
         cmds['install_man'] = install_man
 
+    # set default commands -- individual commands can be overridden as required
+    params['cmdclass'] = cmds
+
     return params, cmds
 
 
