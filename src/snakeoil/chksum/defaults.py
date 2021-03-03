@@ -1,10 +1,4 @@
-"""
-default chksum implementation- sha1, sha256, rmd160, and md5
-
-Specifically designed to provide maximal compatibility for >=python2.4
-for chksum implementations, while also preferring the fastest implementation
-available.
-"""
+"""default chksum implementation- sha1, sha256, rmd160, and md5"""
 
 from functools import partial
 import hashlib
@@ -14,7 +8,6 @@ import queue
 from sys import intern
 import threading
 
-from .. import modules
 from ..data_source import base as base_data_source
 from ..fileutils import mmap_or_open_for_read
 
@@ -139,85 +132,6 @@ class Chksummer:
         return "%s chksummer" % self.chf_type
 
 
-# We have a couple of options:
-#
-# - If we are on python 2.5 or newer we can use hashlib, which uses
-#   openssl if available (this will be fast and support a whole bunch
-#   of hashes) and use a c implementation from python itself otherwise
-#   (does not support as many hashes, slower).
-# - On older pythons we can use the sha and md5 module for sha1 and md5.
-#   On python 2.5 these are deprecated wrappers around hashlib.
-# - On any python we can use the fchksum module (if available) which can
-#   hash an entire file faster than we can, probably just because it does the
-#   file-reading and hashing both in c.
-# - For any python we can use PyCrypto. Supports many hashes, fast but not
-#   as fast as openssl-powered hashlib. Not compared to cpython hashlib.
-#
-# To complicate matters hashlib has a couple of hashes always present
-# as attributes of the hashlib module and less common hashes available
-# through a constructor taking a string. The former is faster.
-#
-# Some timing data from my athlonxp 2600+, python 2.4.3, python 2.5rc1,
-# pycrypto 2.0.1-r5, openssl 0.9.7j, fchksum 1.7.1 (not exhaustive obviously):
-# (test file is the Python 2.4.3 tarball, 7.7M)
-#
-# python2.4 -m timeit -s 'import fchksum'
-#   'fchksum.fmd5t("/home/marienz/tmp/Python-2.4.3.tar.bz2")[0]'
-# 40 +/- 1 msec roughly
-#
-# same with python2.5: same results.
-#
-# python2.4 -m timeit -s 'from snakeoil.chksum import defaults;import md5'
-#   'defaults.loop_over_file(md5, "/home/marienz/tmp/Python-2.4.3.tar.bz2")'
-# 64 +/- 1 msec roughly
-#
-# Same with python2.5:
-# 37 +/- 1 msec roughly
-#
-# python2.5 -m timeit -s
-#   'from snakeoil.chksum import defaults; from snakeoil import currying;'
-# -s 'import hashlib; hash = currying.pre_curry(hashlib.new, "md5")'
-#   'defaults.loop_over_file(hash, "/home/marienz/tmp/Python-2.4.3.tar.bz2")'
-# 37 +/- 1 msec roughly
-#
-# python2.5 -m timeit -s 'import hashlib'
-#   'h=hashlib.new("md5"); h.update("spork"); h.hexdigest()'
-# 6-7 usec per loop
-#
-# python2.5 -m timeit -s 'import hashlib'
-#   'h=hashlib.md5(); h.update("spork"); h.hexdigest()'
-# ~4 usec per loop
-#
-# python2.5 -m timeit -s 'import hashlib;data = 1024 * "spork"'
-#   'h=hashlib.new("md5"); h.update(data); h.hexdigest()'
-# ~20 usec per loop
-#
-# python2.5 -m timeit -s 'import hashlib;data = 1024 * "spork"'
-#   'h=hashlib.md5(); h.update(data); h.hexdigest()'
-# ~18 usec per loop
-#
-# Summarized:
-# - hashlib is faster than fchksum, fchksum is faster than python 2.4's md5.
-# - using hashlib's new() instead of the predefined type is still noticably
-#   slower for 5k of data. Since ebuilds and patches will often be smaller
-#   than 5k we should avoid hashlib's new if there is a predefined type.
-# - If we do not have hashlib preferring fchksum over python md5 is worth it.
-# - Testing PyCrypto is unnecessary since its Crypto.Hash.MD5 is an
-#   alias for python's md5 (same for sha1).
-#
-# An additional advantage of using hashlib instead of PyCrypto is it
-# is more reliable (PyCrypto has a history of generating bogus hashes,
-# especially on non-x86 platforms, OpenSSL should be more reliable
-# because it is more widely used).
-#
-# TODO do benchmarks for more hashes?
-#
-# Hash function we use is:
-# - hashlib attr if available
-# - hashlib through new() if available.
-# - pyblake2/pysha3
-# - PyCrypto
-
 chksum_types = {}
 
 # Always available according to docs.python.org:
@@ -243,60 +157,11 @@ for hashlibname, chksumname, size in [
     try:
         hashlib.new(hashlibname)
     except ValueError:
-        pass # This hash is not available.
+        pass
     else:
         chksum_types[chksumname] = Chksummer(
             chksumname, partial(hashlib.new, hashlibname), size)
 del hashlibname, chksumname
-
-# prefer lightweight extensions over big pycryptodome
-for k, modattr, str_size in (
-        ('sha3_256', 'sha3.sha3_256', sha3_256_size),
-        ('sha3_512', 'sha3.sha3_512', sha3_512_size),
-        ('blake2b', 'pyblake2.blake2b', blake2b_size),
-        ('blake2s', 'pyblake2.blake2s', blake2s_size),
-    ):
-    if k in chksum_types:
-        continue
-    try:
-        chksum_types[k] = Chksummer(k, modules.load_attribute(
-            modattr), str_size, can_mmap=False)
-    except modules.FailedImport:
-        pass
-
-# expand this to load all available at some point
-for k, v, str_size in (
-        ("sha1", "SHA", sha1_size),
-        ("sha256", "SHA256", sha256_size),
-        ("sha512", "SHA512", sha512_size),
-        ("rmd160", "RIPEMD", rmd160_size),
-        ("sha3_256", "SHA3_256", sha3_256_size),
-        ("sha3_512", "SHA3_512", sha3_512_size),
-    ):
-    if k in chksum_types:
-        continue
-    try:
-        chksum_types[k] = Chksummer(k, modules.load_attribute(
-            "Crypto.Hash.%s.new" % v), str_size, can_mmap=False)
-    except modules.FailedImport:
-        pass
-
-# BLAKE2 in pycryptodome needs explicit length parameter
-for k, v, str_size in (
-        ("blake2b", "BLAKE2b", blake2b_size),
-        ("blake2s", "BLAKE2s", blake2s_size),
-    ):
-    if k in chksum_types:
-        continue
-    try:
-        chksum_types[k] = Chksummer(k, partial(modules.load_attribute(
-            "Crypto.Hash.%s.new" % v), digest_bytes=str_size//2), str_size,
-            can_mmap=False)
-    except modules.FailedImport:
-        pass
-
-# pylint: disable=undefined-loop-variable
-del k, v
 
 
 class SizeUpdater:
