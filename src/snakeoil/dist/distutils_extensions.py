@@ -1078,25 +1078,19 @@ class pytest(Command):
             raise DistutilsExecError('pytest is not installed')
 
         if self.skip_build:
-            builddir = MODULEDIR
+            packagedir = PACKAGEDIR
         else:
-            # build extensions and byte-compile python
-            build_ext = self.reinitialize_command('build_ext')
-            build_py = self.reinitialize_command('build_py')
-            build_ext.ensure_finalized()
-            build_py.ensure_finalized()
-            self.run_command('build_ext')
-            self.run_command('build_py')
-            builddir = os.path.abspath(build_py.build_lib)
+            # install package into builddir
+            install = self.reinitialize_command('install')
+            install.prefix = os.path.join(REPODIR, 'build', 'install')
+            install.ensure_finalized()
+            self.run_command('install')
+            packagedir = os.path.abspath(install.install_lib)
 
-        # force reimport of project from builddir
-        sys.modules.pop(MODULE_NAME, None)
-
-        with syspath(builddir):
+        with syspath(packagedir):
             from snakeoil.contexts import chdir
-            # Change the current working directory to the builddir during testing
-            # so coverage paths are correct.
-            with chdir(builddir):
+            # Change the current working directory so coverage paths are correct.
+            with chdir(packagedir):
                 ret = pytest.main(self.test_args)
         sys.exit(ret)
 
