@@ -6,8 +6,8 @@ omit = tests/*, */snakeoil/dist/*, */_verinfo.py
 [paths]
 source =
 	src/snakeoil
+	build/install/lib/python*/site-packages/snakeoil
 	.tox/*/lib/python*/site-packages/snakeoil
-	.tox/pypy*/site-packages/snakeoil
 
 [report]
 show_missing = True
