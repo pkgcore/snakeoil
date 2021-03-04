@@ -1092,11 +1092,7 @@ class pytest(Command):
             packagedir = os.path.abspath(install.install_lib)
 
         with syspath(packagedir):
-            from snakeoil.contexts import chdir
-            # Change the current working directory so coverage paths are correct.
-            with chdir(packagedir):
-                ret = pytest.main(self.test_args)
-        sys.exit(ret)
+            sys.exit(pytest.main(self.test_args))
 
 
 class pylint(Command):
