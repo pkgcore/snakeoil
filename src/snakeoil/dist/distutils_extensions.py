@@ -1055,10 +1055,6 @@ class pytest(Command):
             except ImportError:
                 raise DistutilsExecError('install pytest-cov for coverage support')
 
-            coveragerc = os.path.join(REPODIR, '.coveragerc')
-            if os.path.exists(coveragerc):
-                self.test_args.extend(['--cov-config', coveragerc])
-
             if self.report is None:
                 # disable coverage report output
                 self.test_args.extend(['--cov-report='])
