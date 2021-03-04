@@ -1193,9 +1193,9 @@ class ArgumentParser(OptionalsParser, CsvActionsParser, CopyableParser):
 
         try:
             # run registered early parse functions
-            if self.__early_parse:
-                for functor, parser in self.__early_parse:
-                    namespace, args = functor(parser, namespace, args)
+            early_parse_funcs = (x.__early_parse for x in (*self._parents, self))
+            for functor, parser in chain.from_iterable(early_parse_funcs):
+                namespace, args = functor(parser, namespace, args)
 
             # parse the arguments and exit if there are any errors
             namespace, args = self._parse_known_args(args, namespace)
