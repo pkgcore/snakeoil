@@ -1,21 +1,18 @@
 [run]
 source = snakeoil
 branch = True
-omit = tests/*, */snakeoil/dist/*, */_verinfo.py
+omit = src/*, tests/*
 
 [paths]
-source =
-	src/snakeoil
-	build/install/lib/python*/site-packages/snakeoil
-	.tox/*/lib/python*/site-packages/snakeoil
+source = **/site-packages/snakeoil
 
 [report]
 show_missing = True
 skip_covered = True
 exclude_lines =
-	# Have to re-enable the standard pragma
+	# re-enable the standard pragma
 	pragma: no cover
 
-	# Don't complain if tests don't hit defensive assertion code
+	# ignore defensive assertions
 	raise AssertionError
 	raise NotImplementedError
