@@ -306,11 +306,11 @@ class StoreBool(argparse._StoreAction):
     @staticmethod
     def boolean(value):
         value = value.lower()
-        if value in ('y', 'yes', 'true'):
+        if value in ('y', 'yes', 'true', '1'):
             return True
-        elif value in ('n', 'no', 'false'):
+        elif value in ('n', 'no', 'false', '0'):
             return False
-        raise ValueError("value %r must be [y|yes|true|n|no|false]" % (value,))
+        raise ValueError("value %r must be [y|yes|true|1|n|no|false|0]" % (value,))
 
 
 class EnableDebug(argparse._StoreTrueAction):
