@@ -2,6 +2,26 @@
 Release Notes
 =============
 
+snakeoil 0.9.3 (2021-03-05)
+---------------------------
+
+- snakeoil.cli.arghparse: Add support for nargs param and accept '0' and '1'
+  values for the StoreBool action.
+
+- snakeoil.cli.arghparse: Run early parse funcs registered in parent parsers.
+
+- snakeoil.contexts: Add os_environ context manager for os.environ mangling.
+
+- snakeoil.dist.distutils_extensions: Set commands for setuptools by default.
+
+- snakeoil.dist.distutils_extensions: Fully install packages for pytest runs.
+
+- snakeoil.version: Don't display missing extended version message for
+  releases.
+
+- snakeoil.cli.arghparse: Add support for auto-registering existing
+  subcommands.
+
 snakeoil 0.9.2 (2021-02-18)
 ---------------------------
 
