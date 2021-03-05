@@ -391,17 +391,17 @@ class OrderedParse(DelayedValue):
 
 class Delayed(argparse.Action):
 
-    def __init__(self, option_strings, dest, target=None, priority=0, **kwds):
+    def __init__(self, option_strings, dest, target=None, priority=0, **kwargs):
         if target is None:
             raise ValueError("target must be non None for Delayed")
 
         self.priority = int(priority)
-        self.target = target(option_strings=option_strings, dest=dest, **kwds.copy())
+        self.target = target(option_strings=option_strings, dest=dest, **kwargs.copy())
         super().__init__(
             option_strings=option_strings[:], dest=dest,
-            nargs=kwds.get("nargs", None), required=kwds.get("required", None),
-            help=kwds.get("help", None), metavar=kwds.get("metavar", None),
-            default=kwds.get("default", None))
+            nargs=kwargs.get("nargs", None), required=kwargs.get("required", None),
+            help=kwargs.get("help", None), metavar=kwargs.get("metavar", None),
+            default=kwargs.get("default", None))
 
     def __call__(self, parser, namespace, values, option_string=None):
         setattr(namespace, self.dest, DelayedParse(
@@ -458,21 +458,21 @@ class Expansion(argparse.Action):
 
 class _SubParser(argparse._SubParsersAction):
 
-    def add_parser(self, name, cls=None, **kwds):
+    def add_parser(self, name, cls=None, **kwargs):
         """Subparser that links description/help if one is specified."""
-        description = kwds.get("description")
-        help_txt = kwds.get("help")
+        description = kwargs.get("description")
+        help_txt = kwargs.get("help")
         if description is None:
             if help_txt is not None:
-                kwds["description"] = help_txt
+                kwargs["description"] = help_txt
         elif help_txt is None:
-            kwds["help"] = description.split('\n', 1)[0]
+            kwargs["help"] = description.split('\n', 1)[0]
 
         # support using a custom parser class for the subparser
         orig_class = self._parser_class
         if cls is not None:
             self._parser_class = cls
-        parser = super().add_parser(name, **kwds)
+        parser = super().add_parser(name, **kwargs)
         self._parser_class = orig_class
 
         return parser
@@ -992,7 +992,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser, CopyableParser):
 
     def __init__(self, suppress=False, subcmds=False, color=True, debug=True, quiet=True,
                  verbose=True, version=True, add_help=True, sorted_help=False,
-                 description=None, docs=None, script=None, prog=None, **kwds):
+                 description=None, docs=None, script=None, prog=None, **kwargs):
         self.debug = debug and '--debug' in sys.argv[1:]
         self.verbosity = int(verbose)
         if self.verbosity:
@@ -1021,7 +1021,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser, CopyableParser):
         # usage such as adding conflicting options to both the root command and
         # subcommands without causing issues in addition to helping support
         # default subparsers.
-        self._parents = tuple(kwds.get('parents', ()))
+        self._parents = tuple(kwargs.get('parents', ()))
 
         # extract the description to use and set docs for doc generation
         description = self._update_desc(description, docs)
@@ -1048,7 +1048,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser, CopyableParser):
 
         super().__init__(
             description=description, formatter_class=formatter,
-            prog=prog, add_help=False, **kwds)
+            prog=prog, add_help=False, **kwargs)
 
         # register custom actions
         self.register('action', 'parsers', _SubParser)
