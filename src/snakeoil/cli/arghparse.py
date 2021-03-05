@@ -1021,7 +1021,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser, CopyableParser):
         # usage such as adding conflicting options to both the root command and
         # subcommands without causing issues in addition to helping support
         # default subparsers.
-        self._parents = kwds.get('parents', ())
+        self._parents = tuple(kwds.get('parents', ()))
 
         # extract the description to use and set docs for doc generation
         description = self._update_desc(description, docs)
@@ -1132,6 +1132,11 @@ class ArgumentParser(OptionalsParser, CsvActionsParser, CopyableParser):
         return description
 
     @klass.cached_property
+    def parsers(self):
+        """Return the ordered sequence of inherited parsers."""
+        return self._parents + (self,)
+
+    @klass.cached_property
     def subparsers(self):
         """Return the set of registered subparsers."""
         parsers = {}
@@ -1192,9 +1197,8 @@ class ArgumentParser(OptionalsParser, CsvActionsParser, CopyableParser):
                 setattr(namespace, dest, self._defaults[dest])
 
         try:
-            # run registered early parse functions
-            early_parse_funcs = (x.__early_parse for x in (*self._parents, self))
-            for functor, parser in chain.from_iterable(early_parse_funcs):
+            # run registered early parse functions from all parsers
+            for functor, parser in chain.from_iterable(x.__early_parse for x in self.parsers):
                 namespace, args = functor(parser, namespace, args)
 
             # parse the arguments and exit if there are any errors
