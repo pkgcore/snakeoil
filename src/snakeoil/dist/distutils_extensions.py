@@ -11,7 +11,6 @@ import copy
 from datetime import datetime
 import errno
 import inspect
-import math
 from multiprocessing import cpu_count
 import operator
 import os
@@ -352,16 +351,14 @@ class sdist(dst_sdist.sdist):
         exist in a working tree.
         """
 
-        # don't build man pages when running under tox
-        if ('build_man' in self.distribution.cmdclass and
-                not os.path.basename(os.environ.get('_', '')) == 'tox'):
-            build_man = self.reinitialize_command('build_man')
-            # force sphinx to run at our chosen verbosity
-            build_man.verbosity = self.verbose
-            build_man.ensure_finalized()
-            self.run_command('build_man')
-            shutil.copytree(os.path.join(os.getcwd(), build_man.content_search_path[0]),
-                            os.path.join(base_dir, build_man.content_search_path[1]))
+        build_man = self.reinitialize_command('build_man')
+        # force sphinx to run at our chosen verbosity
+        build_man.verbosity = self.verbose
+        build_man.ensure_finalized()
+        if paths := self.run_command('build_man'):
+            built_path, dist_path = paths
+            shutil.copytree(os.path.join(os.getcwd(), built_path),
+                            os.path.join(base_dir, dist_path))
 
         dst_sdist.sdist.make_release_tree(self, base_dir, files)
         build_py = self.reinitialize_command('build_py')
@@ -494,6 +491,7 @@ class build_docs(Command):
                         build_sphinx.builder = target
                         build_sphinx.ensure_finalized()
                         self.run_command('build_sphinx')
+            return self.content_search_path
 
     def run(self):
         if self.sphinx_targets:
