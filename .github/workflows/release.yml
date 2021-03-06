@@ -19,14 +19,16 @@ jobs:
 
     - name: Install dependencies
       run: |
-        # pull in pkgdist dep lists
+        # use release version of pyproject.toml
+        cp requirements/pyproject.toml ./pyproject.toml
+        # pull in pkgdist
         git clone https://github.com/pkgcore/pkgdist.git
         cp -Rv pkgdist/requirements/* requirements/
 
     - name: Build dist files
       env:
         CIBW_BUILD: "cp38-* cp39-*"
-        CIBW_BEFORE_BUILD: "pip install -r {project}/requirements/wheel.txt"
+        CIBW_BEFORE_BUILD: "pip install -r {project}/requirements/dist.txt"
         CIBW_BEFORE_TEST: "pip install -r {project}/requirements/test.txt"
         CIBW_TEST_COMMAND: "py.test {project}/tests"
       run: pkgdist/build-dist-files.sh
