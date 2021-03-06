@@ -31,7 +31,8 @@ jobs:
       run: python setup.py test
 
     - name: Build release files
-      env: CIBW_BUILD: "cp38-* cp39-*"
+      env:
+        CIBW_BUILD: "cp38-* cp39-*"
       run: |
         # use release version of pyproject.toml
         cp requirements/pyproject.toml ./pyproject.toml
