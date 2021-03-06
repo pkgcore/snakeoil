@@ -355,7 +355,7 @@ class sdist(dst_sdist.sdist):
         # force sphinx to run at our chosen verbosity
         build_man.verbosity = self.verbose
         build_man.ensure_finalized()
-        if paths := self.run_command('build_man'):
+        if paths := build_man.build():
             built_path, dist_path = paths
             shutil.copytree(os.path.join(os.getcwd(), built_path),
                             os.path.join(base_dir, dist_path))
