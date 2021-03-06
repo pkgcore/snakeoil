@@ -204,25 +204,15 @@ def setup():
         params['scripts'] = os.listdir(SCRIPTS_DIR)
         cmds['build_scripts'] = build_scripts
 
-    docdir = os.path.join(REPODIR, 'doc')
-    doc = os.path.exists(docdir)
-    mandir = os.path.join(REPODIR, 'doc', 'man')
-    man = os.path.exists(mandir)
+    cmds['build'] = build
+    cmds['build_docs'] = build_docs
+    cmds['install_docs'] = install_docs
 
-    if doc or man:
-        cmds['build'] = build
-        cmds['build_docs'] = build_docs
-        cmds['install_docs'] = install_docs
+    cmds['build_html'] = build_html
+    cmds['install_html'] = install_html
 
-    # check for docs
-    if doc:
-        cmds['build_html'] = build_html
-        cmds['install_html'] = install_html
-
-    # check for man pages
-    if man:
-        cmds['build_man'] = build_man
-        cmds['install_man'] = install_man
+    cmds['build_man'] = build_man
+    cmds['install_man'] = install_man
 
     # set default commands -- individual commands can be overridden as required
     params['cmdclass'] = cmds
@@ -458,9 +448,12 @@ class build_docs(Command):
 
     @property
     def skip(self):
-        # don't rebuild if one of the output dirs exist
-        if any(os.path.exists(x) for x in self.content_search_path):
-            log.info(f'{self.__class__.__name__}: already built, skipping regeneration...')
+        if not os.path.exists(os.path.join(REPODIR, self.exists_path)):
+            log.info(f'{self.__class__.__name__}: nonexistent content, skipping build')
+            return True
+        elif any(os.path.exists(x) for x in self.content_search_path):
+            # don't rebuild if one of the output dirs exist
+            log.info(f'{self.__class__.__name__}: already built, skipping regeneration')
             return True
         return False
 
@@ -518,7 +511,8 @@ class build_docs(Command):
 class build_man(build_docs):
     """Build man pages."""
 
-    description = "build man pages"
+    description = 'build man pages'
+    exists_path = 'doc/man'
     content_search_path = ('build/sphinx/man', 'man')
     sphinx_targets = ('man',)
 
@@ -531,7 +525,8 @@ class build_man(build_docs):
 class build_html(build_docs):
     """Build html docs."""
 
-    description = "build HTML documentation"
+    description = 'build HTML documentation'
+    exists_path = 'doc'
     content_search_path = ('build/sphinx/html', 'html')
     sphinx_targets = ('html',)
 
@@ -632,7 +627,6 @@ class build_ext(dst_build_ext.build_ext):
         return dst_build_ext.build_ext.run(self)
 
     def build_extensions(self):
-        # say it with me kids... distutils sucks!
         for x in ("compiler_so", "compiler", "compiler_cxx"):
             if self.debug:
                 l = [y for y in getattr(self.compiler, x) if y != '-DNDEBUG']
@@ -788,6 +782,9 @@ class install_docs(Command):
 
     def run(self):
         if self.build_command is not None:
+            if not os.path.exists(os.path.join(REPODIR, self.exists_path)):
+                log.info(f'{self.__class__.__name__}: nonexistent content, skipping install')
+                return
             # run regular install, rebuilding as necessary
             try:
                 self.install()
@@ -797,23 +794,28 @@ class install_docs(Command):
         else:
             # install all docs that have been generated
             for target in ('man', 'html'):
-                cmd = f'install_{target}'
-                install_cmd = self.reinitialize_command(cmd)
+                install_cmd = self.reinitialize_command(f'install_{target}')
                 install_cmd.docdir = self.docdir
                 install_cmd.htmldir = self.htmldir
                 install_cmd.mandir = self.mandir
                 install_cmd.ensure_finalized()
+
+                if not os.path.exists(os.path.join(REPODIR, install_cmd.exists_path)):
+                    log.info(f'{self.__class__.__name__}: nonexistent {target} docs, skipping install')
+                    continue
+
                 try:
                     install_cmd.install()
                 except DistutilsExecError:
-                    log.info(f'built {target} pages missing, skipping install')
+                    log.info(f'{self.__class__.__name__}: built {target} pages missing, skipping install')
 
 
 class install_html(install_docs):
     """Install html documentation."""
 
-    content_search_path = build_html.content_search_path
     description = "install HTML documentation"
+    exists_path = build_html.exists_path
+    content_search_path = build_html.content_search_path
     build_command = 'build_html'
 
     @property
@@ -825,6 +827,7 @@ class install_man(install_docs):
     """Install man pages."""
 
     description = "install man pages"
+    exists_path = build_man.exists_path
     content_search_path = build_man.content_search_path
     build_command = 'build_man'
 
