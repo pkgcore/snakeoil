@@ -23,7 +23,6 @@ jobs:
         cp requirements/pyproject.toml ./pyproject.toml
         # pull in pkgdist
         git clone https://github.com/pkgcore/pkgdist.git
-        cp -Rv pkgdist/requirements/* requirements/
 
     - name: Build dist files
       env:
