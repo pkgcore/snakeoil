@@ -1036,41 +1036,41 @@ class pytest(Command):
             else:
                 raise DistutilsExecError('cannot automatically determine test directory')
 
-        self.test_args = []
+        self.pytest_cmd = ['pytest']
         if self.targets is not None:
             targets = [os.path.join(self.test_dir, x) for x in self.targets.split()]
-            self.test_args.extend(targets)
+            self.pytest_cmd.extend(targets)
         else:
-            self.test_args.append(self.test_dir)
+            self.pytest_cmd.append(self.test_dir)
         self.coverage = bool(self.coverage)
         self.skip_build = bool(self.skip_build)
         if self.verbose:
-            self.test_args.append('-v')
+            self.pytest_cmd.append('-v')
         if self.match is not None:
-            self.test_args.extend(['-k', self.match])
+            self.pytest_cmd.extend(['-k', self.match])
 
         if self.coverage or self.report:
             try:
                 import pytest_cov
-                self.test_args.extend(['--cov', MODULE_NAME])
+                self.pytest_cmd.extend(['--cov', MODULE_NAME])
             except ImportError:
                 raise DistutilsExecError('install pytest-cov for coverage support')
 
             if self.report is None:
                 # disable coverage report output
-                self.test_args.extend(['--cov-report='])
+                self.pytest_cmd.extend(['--cov-report='])
             else:
-                self.test_args.extend(['--cov-report', self.report])
+                self.pytest_cmd.extend(['--cov-report', self.report])
 
         if self.jobs is not None:
             try:
                 import xdist
-                self.test_args.extend(['-n', self.jobs])
+                self.pytest_cmd.extend(['-n', self.jobs])
             except ImportError:
                 raise DistutilsExecError('install pytest-xdist for -j/--jobs support')
 
         # add custom pytest args
-        self.test_args.extend(shlex.split(self.pytest_args))
+        self.pytest_cmd.extend(shlex.split(self.pytest_args))
 
     def run(self):
         try:
@@ -1088,8 +1088,8 @@ class pytest(Command):
             self.run_command('install')
             packagedir = os.path.abspath(install.install_lib)
 
-        with syspath(packagedir):
-            sys.exit(pytest.main(self.test_args))
+        p = subprocess.run(self.pytest_cmd, env={'PYTHONPATH': packagedir})
+        sys.exit(p.returncode)
 
 
 class pylint(Command):
