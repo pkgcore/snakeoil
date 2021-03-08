@@ -1078,6 +1078,8 @@ class pytest(Command):
         except ImportError:
             raise DistutilsExecError('pytest is not installed')
 
+        env = os.environ.copy()
+
         if self.skip_build:
             packagedir = PACKAGEDIR
         else:
@@ -1087,8 +1089,11 @@ class pytest(Command):
             install.ensure_finalized()
             self.run_command('install')
             packagedir = os.path.abspath(install.install_lib)
+            # prepend built package directory to PYTHONPATH
+            pythonpath = os.environ.get('PYTHONPATH', '')
+            env['PYTHONPATH'] = f"{packagedir}:{pythonpath}"
 
-        p = subprocess.run(self.pytest_cmd, env={'PYTHONPATH': packagedir})
+        p = subprocess.run(self.pytest_cmd, env=env)
         sys.exit(p.returncode)
 
 
