@@ -365,10 +365,14 @@ class OrderedFrozenSet(Set):
         return iter(self._dict)
 
     def __getitem__(self, key):
-        try:
-            return next(islice(self._dict, key, None))
-        except StopIteration:
-            raise IndexError('index out of range')
+        if isinstance(key, int):
+            try:
+                return next(islice(self._dict, key, None))
+            except StopIteration:
+                raise IndexError('index out of range')
+
+        # handle keys using slice notation
+        return self.__class__(list(self._dict)[key])
 
     def __reversed__(self):
         return reversed(self._dict)
