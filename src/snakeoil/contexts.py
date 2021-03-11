@@ -1,6 +1,6 @@
 """Various with-statement context utilities."""
 
-from contextlib import contextmanager
+from contextlib import AbstractContextManager, contextmanager
 from importlib import import_module
 from multiprocessing.connection import Pipe
 import errno
@@ -8,11 +8,14 @@ import inspect
 import os
 import pickle
 import signal
+import subprocess
 import sys
 import threading
 import traceback
 
+from .cli.exceptions import UserException
 from .process import namespaces
+from .sequences import predicate_split
 
 
 # Ideas and code for SplitExec have been borrowed from withhacks
@@ -270,6 +273,59 @@ class Namespace(SplitExec):
 
     def _child_setup(self):
         namespaces.simple_unshare(hostname=self._hostname, **self._namespaces)
+
+
+class GitStash(AbstractContextManager):
+    """Context manager for stashing untracked or modified/uncommitted files."""
+
+    def __init__(self, path, staged=False):
+        self.path = path
+        self._staged = ['--keep-index'] if staged else []
+        self._stashed = False
+
+    def __enter__(self):
+        """Stash all untracked or modified files in working tree."""
+        # check for untracked or modified/uncommitted files
+        try:
+            p = subprocess.run(
+                ['git', 'status', '--porcelain=1', '-u'],
+                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                cwd=self.path, encoding='utf8', check=True)
+        except subprocess.CalledProcessError:
+            raise ValueError(f'not a git repo: {self.path}')
+
+        # split file changes into unstaged vs staged
+        unstaged, staged = predicate_split(lambda x: x[1] == ' ', p.stdout.splitlines())
+
+        # don't stash when no relevant changes exist
+        if self._staged:
+            if not unstaged:
+                return
+        elif not p.stdout:
+            return
+
+        # stash all existing untracked or modified/uncommitted files
+        try:
+            subprocess.run(
+                ['git', 'stash', 'push', '-u', '-m', 'pkgcheck scan --commits'] + self._staged,
+                stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+                cwd=self.path, check=True, encoding='utf8')
+        except subprocess.CalledProcessError as e:
+            error = e.stderr.splitlines()[0]
+            raise UserException(f'git failed stashing files: {error}')
+        self._stashed = True
+
+    def __exit__(self, _exc_type, _exc_value, _traceback):
+        """Apply any previously stashed files back to the working tree."""
+        if self._stashed:
+            try:
+                subprocess.run(
+                    ['git', 'stash', 'pop'],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+                    cwd=self.path, check=True, encoding='utf8')
+            except subprocess.CalledProcessError as e:
+                error = e.stderr.splitlines()[0]
+                raise UserException(f'git failed applying stash: {error}')
 
 
 @contextmanager
