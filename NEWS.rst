@@ -2,6 +2,19 @@
 Release Notes
 =============
 
+snakeoil 0.9.4 (2021-03-12)
+---------------------------
+
+- snakeoil.contents: Add GitStash context manager.
+
+- snakeoil.mappings.OrderedFrozenSet: Support slice notation.
+
+- snakeoil.dist.distutils_extensions: Run pytest as a separate process to
+  control module search path.
+
+- snakeoil.dist.distutils_extensions: Unconditionally add doc building
+  commands.
+
 snakeoil 0.9.3 (2021-03-05)
 ---------------------------
 
