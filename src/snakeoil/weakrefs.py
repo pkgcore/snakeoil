@@ -1,25 +1,9 @@
-"""Optimized WeakValCache implementation."""
-
-__all__ = ("WeakValCache",)
-
-# Unused import
-# pylint: disable=W0611
-
-import atexit
-from collections import defaultdict
 from functools import partial
 import os
-import sys
 
-from weakref import ref, WeakKeyDictionary
-try:
-    # No name in module
-    # pylint: disable=E0611
-    from ._caching import WeakValCache
-except ImportError:
-    from weakref import WeakValueDictionary as WeakValCache
+from weakref import ref
 
-from .obj import make_kls, BaseDelayedObject
+from .obj import BaseDelayedObject
 
 
 def finalize_instance(obj, weakref_inst):
