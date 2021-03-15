@@ -11,36 +11,6 @@ import time
 from ..osutils import access
 
 
-def is_running(pid):
-    """Determine if a process is running or not.
-
-    :param pid: a process ID
-    :raises ProcessNotFound: if pid doesn't exist
-    :return: boolean of whether the process is running or not
-    """
-    try:
-        # see if the process exists
-        os.kill(pid, 0)
-
-        # Assume process existence is enough when a linux-style procfs is not
-        # available.
-        if not sys.platform.startswith('linux'):
-            return True
-
-        # get the process status
-        with open("/proc/%s/status" % pid, 'r') as f:
-            for line in f:
-                if line.startswith('State:'):
-                    status = line.split()[1]
-                    break
-    except EnvironmentError as e:
-        if e.errno in (errno.ENOENT, errno.ESRCH):
-            raise ProcessNotFound(pid)
-        raise
-
-    return status in ('R', 'S', 'D')
-
-
 def find_binary(binary, paths=None, fallback=None):
     """look through the PATH environment, finding the binary to execute"""
 
