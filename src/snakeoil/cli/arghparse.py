@@ -948,48 +948,7 @@ class CsvActionsParser(argparse.ArgumentParser):
         self.register('action', 'csv_elements_append', CommaSeparatedElementsAppend)
 
 
-class CopyableParser(argparse.ArgumentParser):
-    """Parser implementing shallow copy() that doesn't allow argument propagation."""
-
-    _attrs = (
-        '_registries',
-        '_actions',
-        '_option_string_actions',
-        '_defaults',
-        '_has_negative_number_optionals',
-        '_mutually_exclusive_groups',
-    )
-
-    def copy(self):
-        parser = copy.copy(self)
-        for attr in self._attrs:
-            setattr(parser, attr, getattr(self, attr).copy())
-
-        # create new actions for new parser so new settings don't propagate
-        # back to the original actions
-        parser._actions = [copy.copy(a) for a in self._actions]
-
-        action_groups = []
-        for group in self._action_groups:
-            new_group = copy.copy(group)
-            # create new actions for new group so new settings don't propagate
-            # back to the original group
-            new_group._group_actions = [copy.copy(a) for a in group._group_actions]
-            for attr in self._attrs:
-                setattr(new_group, attr, getattr(parser, attr))
-            action_groups.append(new_group)
-            if group.title == 'positional arguments':
-                parser._positionals = new_group
-            elif group.title == 'optional arguments':
-                parser._optionals = new_group
-            else:
-                parser._subparsers = new_group
-        parser._action_groups = action_groups
-
-        return parser
-
-
-class ArgumentParser(OptionalsParser, CsvActionsParser, CopyableParser):
+class ArgumentParser(OptionalsParser, CsvActionsParser):
     """Extended, argparse-compatible argument parser."""
 
     def __init__(self, suppress=False, subcmds=False, color=True, debug=True, quiet=True,
