@@ -9,13 +9,9 @@ import re
 from string import capwords
 import sys
 
-from ..cli import arghparse
+from ..contexts import patch
 from ..osutils import force_symlink
 from ..strings import doc_dedent
-
-
-# enable extended docs keyword arg support
-arghparse._generate_docs = True
 
 
 def _rst_header(char, text, leading=False, capitalize=True):
@@ -114,9 +110,11 @@ class ManConverter:
 
     def run(self):
         sys.stdout.write(f"regenerating rst for {self.name}\n")
-        for filename, data in self.process_parser(self.parser, self.name):
-            with open(os.path.join(self.out_path, filename + '.rst'), "w") as f:
-                f.write("\n".join(data))
+        # enable extended docs keyword arg support
+        with patch('snakeoil.cli.arghparse._generate_docs', True):
+            for filename, data in self.process_parser(self.parser, self.name):
+                with open(os.path.join(self.out_path, filename + '.rst'), "w") as f:
+                    f.write("\n".join(data))
 
         if self.mtime:
             os.utime(self.out_path, (self.mtime, self.mtime))
