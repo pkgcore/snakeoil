@@ -109,12 +109,12 @@ class ManConverter:
         self.header_char = header_chars[len(name.split(' ')) - 1]
 
     def run(self):
-        sys.stdout.write(f"regenerating rst for {self.name}\n")
+        sys.stdout.write(f'regenerating rst for {self.name}\n')
         # enable extended docs keyword arg support
         with patch('snakeoil.cli.arghparse._generate_docs', True):
             for filename, data in self.process_parser(self.parser, self.name):
-                with open(os.path.join(self.out_path, filename + '.rst'), "w") as f:
-                    f.write("\n".join(data))
+                with open(os.path.join(self.out_path, f'{filename}.rst'), 'w') as f:
+                    f.write('\n'.join(data))
 
         if self.mtime:
             os.utime(self.out_path, (self.mtime, self.mtime))
