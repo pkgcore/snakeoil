@@ -33,6 +33,7 @@ from distutils.command import (
 
 from ..contexts import syspath
 from ..version import get_git_version
+from .generate_docs import generate_html, generate_man
 
 
 # forcibly disable lazy module loading
@@ -413,18 +414,6 @@ class build_py(dst_build_py.build_py):
             self._run_generate_verinfo()
 
 
-def generate_html():
-    """Generate html docs for the project."""
-    from snakeoil.dist.generate_docs import generate_html
-    generate_html(REPODIR, PACKAGEDIR, MODULE_NAME)
-
-
-def generate_man():
-    """Generate man pages for the project."""
-    from snakeoil.dist.generate_docs import generate_man
-    generate_man(REPODIR, PACKAGEDIR, MODULE_NAME)
-
-
 class build_docs(Command):
     """Generic documentation build command."""
 
@@ -520,7 +509,7 @@ class build_man(build_docs):
     def _generate_doc_content(self):
         # generate man page content for scripts we create
         if 'build_scripts' in self.distribution.cmdclass:
-            generate_man()
+            generate_man(REPODIR, PACKAGEDIR, MODULE_NAME)
 
 
 class build_html(build_docs):
@@ -536,7 +525,7 @@ class build_html(build_docs):
         self.run_command('build_man')
 
         # generate API docs
-        generate_html()
+        generate_html(REPODIR, PACKAGEDIR, MODULE_NAME)
 
 
 class build_ext(dst_build_ext.build_ext):
