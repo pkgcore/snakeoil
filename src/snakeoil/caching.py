@@ -58,7 +58,7 @@ import warnings
 from weakref import WeakValueDictionary
 
 
-class native_WeakInstMeta(type):
+class WeakInstMeta(type):
     """Metaclass for instance caching, resulting in reuse of unique instances.
 
     few notes-
@@ -112,24 +112,11 @@ class native_WeakInstMeta(type):
                 key = instance = None
 
             if instance is None:
-                instance = super(native_WeakInstMeta, cls).__call__(*a, **kw)
+                instance = super(WeakInstMeta, cls).__call__(*a, **kw)
 
                 if key is not None:
                     cls.__inst_dict__[key] = instance
         else:
-            instance = super(native_WeakInstMeta, cls).__call__(*a, **kw)
+            instance = super(WeakInstMeta, cls).__call__(*a, **kw)
 
         return instance
-
-
-# "Invalid name"
-# pylint: disable=C0103
-
-try:
-    # No name in module
-    # pylint: disable=E0611
-    from ._caching import WeakInstMeta
-    cpy_WeakInstMeta = WeakInstMeta
-except ImportError:
-    cpy_WeakInstMeta = None
-    WeakInstMeta = native_WeakInstMeta
