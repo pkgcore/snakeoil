@@ -44,10 +44,10 @@ class RawTextFormatter(argparse.RawTextHelpFormatter):
 class ManConverter:
     """Convert argparse help docs into rST man pages."""
 
-    positional_re = re.compile("^([^: \t]+)")
-    positional_re = partial(positional_re.sub, ':\g<1>:')
+    positional_re = re.compile(r'^([^: \t]+)')
+    positional_re = partial(positional_re.sub, r':\g<1>:')
 
-    arg_enumeration_re = re.compile("{([^}]+)}")
+    arg_enumeration_re = re.compile(r'{([^}]+)}')
 
     def _rewrite_option(self, text):
         def f(match):
@@ -186,7 +186,7 @@ class ManConverter:
             options = data.split('\n')
             for i, opt in enumerate(options):
                 l.append(opt)
-                if i < len(options)-1 and re.match('\S+', options[i+1]) is not None:
+                if i < len(options)-1 and re.match(r'\S+', options[i+1]) is not None:
                     # add empty line between options to avoid formatting issues
                     l.append('')
         return l, subcmds
