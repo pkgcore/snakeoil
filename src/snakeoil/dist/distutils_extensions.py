@@ -937,7 +937,7 @@ class pytest(Command):
             else:
                 raise DistutilsExecError('cannot automatically determine test directory')
 
-        self.pytest_cmd = ['pytest']
+        self.pytest_cmd = ['pytest', f'--verbosity={self.verbose}']
         if self.targets is not None:
             targets = [os.path.join(self.test_dir, x) for x in self.targets.split()]
             self.pytest_cmd.extend(targets)
@@ -945,8 +945,6 @@ class pytest(Command):
             self.pytest_cmd.append(self.test_dir)
         self.coverage = bool(self.coverage)
         self.skip_build = bool(self.skip_build)
-        if self.verbose:
-            self.pytest_cmd.append('-v')
         if self.match is not None:
             self.pytest_cmd.extend(['-k', self.match])
 
