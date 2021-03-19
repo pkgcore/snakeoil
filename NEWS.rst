@@ -9,7 +9,7 @@ snakeoil 0.9.5 (2021-03-19)
 
 - snakeoil.dist.generate_man_rsts: Drop unused script running support.
 
-- snakeoil.cli.arghparse: Drop overly fragile CopyParser support.
+- snakeoil.cli.arghparse: Drop overly fragile CopyableParser support.
 
 - snakeoil.weakrefs: Drop old WeakValCache support since the related CPython
   extension doesn't exist anymore.
