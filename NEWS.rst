@@ -2,6 +2,18 @@
 Release Notes
 =============
 
+snakeoil 0.9.5 (2021-03-19)
+---------------------------
+
+- snakeoil.dist.distutils_extensions: Drop unittest test command support.
+
+- snakeoil.dist.generate_man_rsts: Drop unused script running support.
+
+- snakeoil.cli.arghparse: Drop overly fragile CopyParser support.
+
+- snakeoil.weakrefs: Drop old WeakValCache support since the related CPython
+  extension doesn't exist anymore.
+
 snakeoil 0.9.4 (2021-03-12)
 ---------------------------
 
