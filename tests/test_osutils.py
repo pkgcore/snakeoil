@@ -504,7 +504,7 @@ class TestMount(TempDir):
     def test_missing_dirs(self):
         with pytest.raises(OSError) as cm:
             mount('source', 'target', None, MS_BIND)
-        assert cm.value.errno == errno.ENOENT
+        assert cm.value.errno in (errno.EPERM, errno.ENOENT)
 
     @pytest.mark.skipif(os.getuid() == 0, reason='this test must be run as non-root')
     def test_no_perms(self):
@@ -516,7 +516,7 @@ class TestMount(TempDir):
         assert cm.value.errno in (errno.EPERM, errno.EINVAL)
 
     @pytest.mark.skipif(not (os.path.exists('/proc/self/ns/mnt') and os.path.exists('/proc/self/ns/user')),
-                   reason='user and mount namespace support required')
+                        reason='user and mount namespace support required')
     def test_bind_mount(self):
         src_file = pjoin(self.source, 'file')
         bind_file = pjoin(self.target, 'file')
