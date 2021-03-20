@@ -354,7 +354,6 @@ class sdist(dst_sdist.sdist):
         into the release and adds generated files that should not
         exist in a working tree.
         """
-
         build_man = self.reinitialize_command('build_man')
         # force sphinx to run at our chosen verbosity
         build_man.verbosity = self.verbose
@@ -365,10 +364,20 @@ class sdist(dst_sdist.sdist):
                             os.path.join(base_dir, dist_path))
 
         dst_sdist.sdist.make_release_tree(self, base_dir, files)
+
+        # generate version module
         build_py = self.reinitialize_command('build_py')
         build_py.ensure_finalized()
         generate_verinfo(os.path.join(
             base_dir, build_py.package_dir.get('', ''), MODULE_NAME))
+
+        # replace pyproject.toml file with release version if it exists
+        try:
+            shutil.copy(
+                os.path.join(base_dir, 'requirements', 'pyproject.toml'),
+                os.path.join(base_dir))
+        except FileNotFoundError:
+            pass
 
     def run(self):
         build_ext = self.reinitialize_command('build_ext')
