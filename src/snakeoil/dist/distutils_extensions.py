@@ -51,6 +51,8 @@ if REPODIR is None:
     else:
         raise ImportError('this module is only meant to be imported in setup.py scripts')
 
+# running under pip
+PIP = os.path.basename(os.environ.get('_', '')) == 'pip' or REPODIR.split(os.sep)[2].startswith('pip-')
 
 # executable scripts directory
 SCRIPTS_DIR = os.path.join(REPODIR, 'bin')
@@ -100,6 +102,9 @@ def find_moduledir(searchdir=REPODIR):
 MODULEDIR = find_moduledir()
 PACKAGEDIR = os.path.dirname(MODULEDIR)
 MODULE_NAME = os.path.basename(MODULEDIR)
+
+# running against git/unreleased version
+GIT = not os.path.exists(os.path.join(PACKAGEDIR, '_verinfo.py'))
 
 
 def module_version(moduledir=MODULEDIR):
@@ -173,10 +178,7 @@ def readme(topdir=REPODIR):
 def setup():
     """Parameters and commands for setuptools."""
     # pip installing from git forces development versions to be used
-    with open(os.path.join(REPODIR, 'pyproject.toml')) as f:
-        dev = f.readline().strip() == '# dev'
-
-    if dev:
+    if PIP and GIT:
         install_deps = _requires('dev.txt')
     else:
         install_deps = _requires('install.txt')
@@ -371,9 +373,7 @@ class sdist(dst_sdist.sdist):
 
         # replace pyproject.toml file with release version if it exists
         try:
-            shutil.copy(
-                os.path.join(base_dir, 'requirements', 'pyproject.toml'),
-                os.path.join(base_dir))
+            shutil.copy(os.path.join(base_dir, 'requirements', 'pyproject.toml'), base_dir)
         except FileNotFoundError:
             pass
 
