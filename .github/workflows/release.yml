@@ -32,14 +32,16 @@ jobs:
 
     - name: Build sdist
       run: |
+        git clean -fxd
         # use release version of pyproject.toml
         cp requirements/pyproject.toml ./pyproject.toml
         # build sdist
-        git clean -fxd
         python setup.py sdist
 
     - name: Build wheels
       uses: joerick/cibuildwheel@v1.10.0
+      with:
+        output-dir: dist
       env:
         CIBW_BUILD: cp38-* cp39-*
         CIBW_ARCHS_LINUX: x86_64 i686
@@ -51,7 +53,6 @@ jobs:
 
     - name: Output dist file info
       run: |
-        cp wheelhouse/* dist/
         ls dist/
         tar -ztf dist/*.tar.gz | sort
         sha512sum dist/*
