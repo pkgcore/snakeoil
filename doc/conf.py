@@ -54,7 +54,7 @@ master_doc = 'index'
 # General information about the project.
 project = 'snakeoil'
 authors = ''
-copyright = '2007-2017, snakeoil contributors'
+copyright = '2007-2021, snakeoil contributors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
