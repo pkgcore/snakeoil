@@ -330,17 +330,6 @@ def cython_exts(build_deps=None, build_exts=None, build_opts=None, path=MODULEDI
     return build_deps, build_exts
 
 
-class OptionalExtension(Extension):
-    """Python extension that is optional to build.
-
-    If it's not required to have the exception built, just preferable,
-    use this class instead of :py:class:`Extension` since the machinery
-    in this module relies on isinstance to identify what absolutely must
-    be built vs what would be nice to have built.
-    """
-    pass
-
-
 class sdist(dst_sdist.sdist):
     """sdist command wrapper to bundle generated files for release."""
 
@@ -539,27 +528,17 @@ class build_ext(dst_build_ext.build_ext):
     """Build native extensions."""
 
     user_options = dst_build_ext.build_ext.user_options + [
-        ("build-optional=", "o", "build optional C modules"),
         ("disable-distutils-flag-fixing", None,
          "disable fixing of issue 969718 in python, adding missing -fno-strict-aliasing"),
     ]
 
-    boolean_options = dst_build.build.boolean_options + ["build-optional"]
-
     def initialize_options(self):
-        dst_build_ext.build_ext.initialize_options(self)
-        self.build_optional = None
+        super().initialize_options()
         self.disable_distutils_flag_fixing = False
         self.default_header_install_dir = None
 
     def finalize_options(self):
-        dst_build_ext.build_ext.finalize_options(self)
-        if self.build_optional is None:
-            self.build_optional = True
-        self.build_optional = bool(self.build_optional)
-        if not self.build_optional:
-            self.extensions = [ext for ext in self.extensions if not isinstance(ext, OptionalExtension)]
-
+        super().finalize_options()
         # add header install dir to the search path
         # (fixes virtualenv builds for consumer extensions)
         self.set_undefined_options(
