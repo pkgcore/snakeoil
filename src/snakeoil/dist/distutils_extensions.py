@@ -333,9 +333,6 @@ def cython_exts(build_deps=None, build_exts=None, build_opts=None, path=MODULEDI
 class sdist(dst_sdist.sdist):
     """sdist command wrapper to bundle generated files for release."""
 
-    def initialize_options(self):
-        dst_sdist.sdist.initialize_options(self)
-
     def make_release_tree(self, base_dir, files):
         """Create and populate the directory tree that is put in source tars.
 
@@ -376,7 +373,7 @@ class sdist(dst_sdist.sdist):
             from Cython.Build import cythonize
             cythonize(extensions, nthreads=cpu_count())
 
-        dst_sdist.sdist.run(self)
+        super().run()
 
 
 class build_py(dst_build_py.build_py):
@@ -388,14 +385,14 @@ class build_py(dst_build_py.build_py):
     generate_verinfo = True
 
     def initialize_options(self):
-        dst_build_py.build_py.initialize_options(self)
+        super().initialize_options()
         self.inplace = False
 
     def finalize_options(self):
         self.inplace = bool(self.inplace)
         if self.inplace:
             self.build_lib = '.'
-        dst_build_py.build_py.finalize_options(self)
+        super().finalize_options()
 
     def _run_generate_verinfo(self, rebuilds=None):
         ver_path = generate_verinfo(os.path.join(self.build_lib, MODULE_NAME))
@@ -404,8 +401,7 @@ class build_py(dst_build_py.build_py):
             rebuilds.append((ver_path, os.lstat(ver_path).st_mtime))
 
     def run(self):
-        dst_build_py.build_py.run(self)
-
+        super().run()
         if self.generate_verinfo:
             self._run_generate_verinfo()
 
@@ -600,7 +596,7 @@ class build_ext(dst_build_ext.build_ext):
             cythonize(self.extensions, nthreads=cpu_count())
 
         self.extensions = self.no_cythonize()
-        return dst_build_ext.build_ext.run(self)
+        super().run()
 
     def build_extensions(self):
         for x in ("compiler_so", "compiler", "compiler_cxx"):
@@ -619,14 +615,14 @@ class build_ext(dst_build_ext.build_ext):
                         val.append(f'-D{d}=1')
                     else:
                         val.append(f'-U{d}')
-        return dst_build_ext.build_ext.build_extensions(self)
+        super().build_extensions()
 
 
 class build_scripts(dst_build_scripts.build_scripts):
     """Create and build (copy and modify shebang lines) wrapper scripts."""
 
     def finalize_options(self):
-        dst_build_scripts.build_scripts.finalize_options(self)
+        super().finalize_options()
         script_dir = os.path.join(
             os.path.dirname(self.build_dir), '.generated_scripts')
         self.mkpath(script_dir)
@@ -662,12 +658,12 @@ class build(dst_build.build):
     sub_commands.append(('build_html', operator.attrgetter('enable_html_docs')))
 
     def initialize_options(self):
-        dst_build.build.initialize_options(self)
+        super().initialize_options()
         self.enable_man_pages = False
         self.enable_html_docs = False
 
     def finalize_options(self):
-        dst_build.build.finalize_options(self)
+        super().finalize_options()
         if self.enable_man_pages is None:
             path = os.path.dirname(os.path.abspath(__file__))
             self.enable_man_pages = not os.path.exists(os.path.join(path, 'man'))
@@ -838,7 +834,7 @@ class install(dst_install.install):
     boolean_options.extend(['enable-man-pages', 'enable-html-docs'])
 
     def initialize_options(self):
-        dst_install.install.initialize_options(self)
+        super().initialize_options()
         self.enable_man_pages = False
         self.enable_html_docs = False
         self.docdir = None
@@ -852,7 +848,7 @@ class install(dst_install.install):
         if man_pages and os.path.exists('man'):
             man_pages = False
         build_options['enable_man_pages'] = ('command_line', man_pages and 1 or 0)
-        dst_install.install.finalize_options(self)
+        super().finalize_options()
 
     sub_commands = dst_install.install.sub_commands[:]
     sub_commands.append(('install_man', operator.attrgetter('enable_man_pages')))
@@ -1065,7 +1061,7 @@ class config(dst_config.config):
     def initialize_options(self):
         self.cache_path = None
         self.build_base = None
-        dst_config.config.initialize_options(self)
+        super().initialize_options()
 
     def finalize_options(self):
         if self.cache_path is None:
@@ -1073,7 +1069,7 @@ class config(dst_config.config):
                 'build',
                 ('build_base', 'build_base'))
             self.cache_path = os.path.join(self.build_base, 'config.cache')
-        dst_config.config.finalize_options(self)
+        super().finalize_options()
 
     def _cache_env_key(self):
         return (self.cc, self.include_dirs, self.libraries, self.library_dirs)
