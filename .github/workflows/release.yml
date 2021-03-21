@@ -33,8 +33,6 @@ jobs:
     - name: Build sdist
       run: |
         git clean -fxd
-        # use release version of pyproject.toml
-        cp requirements/pyproject.toml ./pyproject.toml
         # build sdist
         python setup.py sdist
 
@@ -43,6 +41,7 @@ jobs:
       with:
         output-dir: dist
       env:
+        BUILD_WHEEL: true
         CIBW_BUILD: cp38-* cp39-*
         CIBW_ARCHS_LINUX: x86_64 i686
         CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
@@ -53,9 +52,14 @@ jobs:
 
     - name: Output dist file info
       run: |
-        ls dist/
-        tar -ztf dist/*.tar.gz | sort
         sha512sum dist/*
+        tar -ztf dist/*.tar.gz | sort
+
+    - name: Install twine and check files
+      run: |
+        pip install twine wheel-inspect
+        twine check dist/*
+        wheel2json dist/*.whl
 
     - name: Upload files for tagged releases
       env:
@@ -64,5 +68,4 @@ jobs:
       # only upload files for tagged releases
       if: startsWith(github.ref, 'refs/tags/')
       run: |
-        pip install twine
         twine upload dist/*
