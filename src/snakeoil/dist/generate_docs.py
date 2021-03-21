@@ -1,15 +1,10 @@
-#!/usr/bin/env python3
-
 """Generate man page and html rst docs for a given project."""
 
-import argparse
 import errno
 from importlib import import_module
 from io import StringIO
 import os
 import subprocess
-import sys
-import textwrap
 
 from .generate_man_rsts import ManConverter
 from ..contexts import syspath
@@ -95,32 +90,3 @@ def generate_html(repo_dir, package_dir, module):
                         os.path.join(package_dir, module, 'scripts')]):
         raise RuntimeError(
             'API doc generation failed for %s' % (module,))
-
-
-if __name__ == '__main__':
-    argparser = argparse.ArgumentParser(description='generate docs')
-    argparser.add_argument('--man', action='store_true', help='generate man files')
-    argparser.add_argument('--html', action='store_true', help='generate API files')
-    argparser.add_argument(
-        'project', nargs=3, metavar='REPO_DIR PACKAGE_DIR MODULE',
-        help='package directory and main module name')
-
-    opts = argparser.parse_args()
-    opts.repo_dir = os.path.abspath(opts.project[0])
-    opts.package_dir = opts.project[1]
-    opts.module = opts.project[2]
-
-    libdir = os.path.abspath(os.path.join(opts.repo_dir, 'build', 'lib'))
-    if os.path.exists(libdir):
-        sys.path.insert(0, libdir)
-    sys.path.insert(1, opts.repo_dir)
-
-    # if run with no args, build all docs
-    if not opts.man and not opts.html:
-        opts.man = opts.html = True
-
-    if opts.man:
-        generate_man(opts.repo_dir, opts.package_dir, opts.module)
-
-    if opts.html:
-        generate_html(opts.repo_dir, opts.package_dir, opts.module)
