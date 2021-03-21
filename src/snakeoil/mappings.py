@@ -737,95 +737,6 @@ class ProxiedAttrs(DictMixin):
         return iter(dir(self.__target__))
 
 
-def native_attr_getitem(self, key):
-    try:
-        return getattr(self, key)
-    except AttributeError:
-        raise KeyError(key)
-
-
-def native_attr_update(self, iterable):
-    for k, v in iterable:
-        setattr(self, k, v)
-
-
-def native_attr_contains(self, key):
-    return hasattr(self, key)
-
-
-# python issue 7604; depending on the python version, delattr'ing an empty slot
-# doesn't throw AttributeError; we vary our implementation for efficiency
-# dependent on a onetime runtime test of that.
-class foo:
-    __slots__ = ("slot",)
-
-# track which is required since if we can use extensions, we'll have
-# to choose which to import; cpy side exports both, leaving it to us
-# to decide which to use (via runtime check, it means we don't have to
-# be recompiled for minor bumps when the fix is in place- it just switches
-# on).
-_use_slow_delitem = True
-try:
-    del foo().slot
-except AttributeError:
-    # properly throws an exception; thus we do a single lookup.
-    _use_slow_delitem = False
-
-    def native_attr_delitem(self, key):
-        try:
-            delattr(self, key)
-        except AttributeError:
-            raise KeyError(key)
-else:
-    # doesn't throw the exception; double lookup, getattr, than delattr.
-    def native_attr_delitem(self, key):
-        # Python does not raise anything if you delattr an
-        # unset slot (works ok if __slots__ is not involved).
-        try:
-            getattr(self, key)
-        except AttributeError:
-            raise KeyError(key)
-        delattr(self, key)
-
-# cleanup the test class.
-del foo
-
-
-def native_attr_pop(self, key, *a):
-    # faster then the exception form...
-    l = len(a)
-    if l > 1:
-        raise TypeError("pop accepts 1 or 2 args only")
-    o = getattr(self, key, sentinel)
-    if o is not sentinel:
-        object.__delattr__(self, key)
-    elif l:
-        o = a[0]
-    else:
-        raise KeyError(key)
-    return o
-
-
-def native_attr_get(self, key, default=None):
-    return getattr(self, key, default)
-
-try:
-    from ._klass import (
-        attr_getitem, attr_setitem, attr_update, attr_contains, attr_pop, attr_get)
-    if _use_slow_delitem:
-        from ._klass import attr_delitem_slow as attr_delitem
-    else:
-        from ._klass import attr_delitem_fast as attr_delitem
-except ImportError:
-    attr_getitem = native_attr_getitem
-    attr_setitem = object.__setattr__
-    attr_delitem = native_attr_delitem
-    attr_update = native_attr_update
-    attr_contains = native_attr_contains
-    attr_pop = native_attr_pop
-    attr_get = native_attr_get
-
-
 class _SlottedDict(DictMixin):
     """A space efficient mapping class with a limited set of keys.
 
@@ -885,13 +796,43 @@ class _SlottedDict(DictMixin):
         if iterables:
             self.update(iterables)
 
-    __setitem__ = attr_setitem
-    __getitem__ = attr_getitem
-    __delitem__ = attr_delitem
-    __contains__ = attr_contains
-    update = attr_update
-    pop = attr_pop
-    get = attr_get
+    __setitem__ = object.__setattr__
+
+    def __getitem__(self, key):
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            raise KeyError(key)
+
+    def __delitem__(self, key):
+        try:
+            delattr(self, key)
+        except AttributeError:
+            raise KeyError(key)
+
+    def __contains__(self, key):
+        return hasattr(self, key)
+
+    def update(self, iterable):
+        for k, v in iterable:
+            setattr(self, k, v)
+
+    def pop(self, key, *a):
+        # faster then the exception form...
+        l = len(a)
+        if l > 1:
+            raise TypeError("pop accepts 1 or 2 args only")
+        o = getattr(self, key, sentinel)
+        if o is not sentinel:
+            object.__delattr__(self, key)
+        elif l:
+            o = a[0]
+        else:
+            raise KeyError(key)
+        return o
+
+    def get(self, key, default=None):
+        return getattr(self, key, default)
 
     def __iter__(self):
         for k in self.__slots__:
