@@ -178,7 +178,7 @@ def readme(topdir=REPODIR):
 def setup():
     """Parameters and commands for setuptools."""
     # pip installing from git forces development versions to be used
-    if PIP and GIT:
+    if PIP and GIT and not os.environ.get('BUILD_WHEEL', False):
         install_deps = _requires('dev.txt')
     else:
         install_deps = _requires('install.txt')
