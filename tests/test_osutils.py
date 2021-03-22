@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import errno
-import fcntl
 import grp
 import os
-import shutil
 import stat
 import sys
 from unittest import mock
@@ -299,7 +297,6 @@ class Test_Cpy_Join:
                 "for %r, expected %r, got %r" % (
                     val, osutils.native_join(*x), osutils.join(*x))
 
-
     # proper type checking was done in py3.5
     @pytest.mark.skipif(sys.hexversion < 0x03050000, reason='requires >=py3.5')
     def test_reimplementation_errors(self):
@@ -316,93 +313,6 @@ class Test_Cpy_Join:
                 osutils.native_join(*x)
             with pytest.raises(TypeError):
                 osutils.join(*x)
-
-
-# TODO: more error condition testing
-class TestFsLock(TempDir):
-
-    def test_nonexistent(self):
-        with pytest.raises(osutils.NonExistent):
-            osutils.FsLock(pjoin(self.dir, 'missing'))
-
-    def test_fslock_read_lock(self):
-        path = pjoin(self.dir, 'lockfile-read')
-        lock = osutils.FsLock(path, True)
-        # do this all non-blocking to avoid hanging tests
-        assert lock.acquire_read_lock(False)
-        # file should exist now
-        with open(path, 'r+') as f:
-            # acquire and release a read lock
-            fcntl.flock(f, fcntl.LOCK_SH | fcntl.LOCK_NB)
-            fcntl.flock(f, fcntl.LOCK_UN)
-            # we can't acquire an exclusive lock
-            with pytest.raises(IOError):
-                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-
-    def test_fslock_release_read_lock(self):
-        path = pjoin(self.dir, 'lockfile-release-read')
-        lock = osutils.FsLock(path, True)
-        # do this all non-blocking to avoid hanging tests
-        assert lock.acquire_read_lock(False)
-        lock.release_read_lock()
-        # file should exist now
-        with open(path, 'r+') as f:
-            # but now we can
-            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            fcntl.flock(f, fcntl.LOCK_UN)
-
-    def test_fslock_write_lock(self):
-        path = pjoin(self.dir, 'lockfile-write')
-        lock = osutils.FsLock(path, True)
-        # do this all non-blocking to avoid hanging tests
-        # acquire an exclusive/write lock
-        assert lock.acquire_write_lock(False)
-        # file should exist now
-        with open(path, 'r+') as f:
-            with pytest.raises(IOError):
-                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-
-    def test_fslock_release_write_lock(self):
-        path = pjoin(self.dir, 'lockfile-release-write')
-        lock = osutils.FsLock(path, True)
-        # do this all non-blocking to avoid hanging tests
-        # acquire an exclusive/write lock
-        assert lock.acquire_write_lock(False)
-        lock.release_write_lock()
-        # file should exist now
-        with open(path, 'r+') as f:
-            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            fcntl.flock(f, fcntl.LOCK_UN)
-
-    def test_fslock_downgrade_lock(self):
-        path = pjoin(self.dir, 'lockfile-downgrade')
-        lock = osutils.FsLock(path, True)
-        # do this all non-blocking to avoid hanging tests
-        # acquire an exclusive/write lock
-        assert lock.acquire_write_lock(False)
-        # downgrade to read lock
-        assert lock.acquire_read_lock()
-        # file should exist now
-        with open(path, 'r+') as f:
-            fcntl.flock(f, fcntl.LOCK_SH | fcntl.LOCK_NB)
-            fcntl.flock(f, fcntl.LOCK_UN)
-            with pytest.raises(IOError):
-                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-
-    def test_fslock_release_downgraded_lock(self):
-        path = pjoin(self.dir, 'lockfile-release-downgraded')
-        lock = osutils.FsLock(path, True)
-        # do this all non-blocking to avoid hanging tests
-        # acquire an exclusive/write lock
-        assert lock.acquire_write_lock(False)
-        # downgrade to read lock
-        assert lock.acquire_read_lock()
-        # and release
-        lock.release_read_lock()
-        # file should exist now
-        with open(path, 'r+') as f:
-            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            fcntl.flock(f, fcntl.LOCK_UN)
 
 
 @pytest.mark.skipif(os.getuid() != 0, reason="these tests must be ran as root")

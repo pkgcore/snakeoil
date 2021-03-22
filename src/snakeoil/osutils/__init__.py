@@ -36,12 +36,10 @@ pretty quickly.
 __all__ = (
     'abspath', 'abssymlink', 'ensure_dirs', 'join', 'pjoin', 'listdir_files',
     'listdir_dirs', 'listdir', 'readdir', 'normpath', 'unlink_if_exists',
-    'FsLock', 'GenericFailed', 'LockException', 'NonExistent',
     'supported_systems',
 )
 
 import errno
-import fcntl
 import os
 import stat
 import sys
@@ -281,130 +279,6 @@ except ImportError:
 pjoin = join
 
 
-class LockException(Exception):
-    """Base lock exception class"""
-    def __init__(self, path, reason):
-        Exception.__init__(self, path, reason)
-        self.path, self.reason = path, reason
-
-
-class NonExistent(LockException):
-    """Missing file/dir exception"""
-
-    def __init__(self, path, reason=None):
-        LockException.__init__(self, path, reason)
-
-    def __str__(self):
-        return (
-            "Lock action for '%s' failed due to not being a valid dir/file %s"
-            % (self.path, self.reason))
-
-
-class GenericFailed(LockException):
-    """The fallback lock exception class.
-
-    Covers perms, IOError's, and general whackyness.
-    """
-    def __str__(self):
-        return "Lock action for '%s' failed due to '%s'" % (
-            self.path, self.reason)
-
-
-# should the fd be left open indefinitely?
-# IMO, it shouldn't, but opening/closing everytime around is expensive
-
-
-class FsLock:
-    """fnctl based filesystem lock"""
-    __slots__ = ("path", "fd", "create")
-
-    def __init__(self, path, create=False):
-        """
-        :param path: fs path for the lock
-        :param create: controls whether the file will be created
-            if the file doesn't exist.
-            If true, the base dir must exist, and it will create a file.
-            If you want to lock via a dir, you have to ensure it exists
-            (create doesn't suffice).
-        :raise NonExistent: if no file/dir exists for that path,
-            and cannot be created
-        """
-        self.path = path
-        self.fd = None
-        self.create = create
-        if not create:
-            if not os.path.exists(path):
-                raise NonExistent(path)
-
-    def _acquire_fd(self):
-        # write access is needed to acquire LOCK_EX
-        # https://github.com/pkgcore/snakeoil/pull/23
-        flags = os.O_RDWR
-        if self.create:
-            flags |= os.O_CREAT
-        try:
-            self.fd = os.open(self.path, flags)
-        except OSError as e:
-            raise GenericFailed(self.path, e) from e
-
-    def _enact_change(self, flags, blocking):
-        if self.fd is None:
-            self._acquire_fd()
-        # We do it this way, due to the fact try/except is a bit of a hit.
-        # Note that LOCK_UN can never block, and combining it with LOCK_NB
-        # triggers ValueError on Solaris.
-        # https://github.com/pkgcore/snakeoil/pull/23
-        if not blocking and flags != fcntl.LOCK_UN:
-            try:
-                fcntl.flock(self.fd, flags | fcntl.LOCK_NB)
-            except IOError as e:
-                if ie.errno == errno.EAGAIN:
-                    return False
-                raise GenericFailed(self.path, e) from e
-        else:
-            fcntl.flock(self.fd, flags)
-        return True
-
-    def acquire_write_lock(self, blocking=True):
-        """
-        Acquire an exclusive lock
-
-        Note if you have a read lock, it implicitly upgrades atomically
-
-        :param blocking: if enabled, don't return until we have the lock
-        :return: True if lock is acquired, False if not.
-        """
-        return self._enact_change(fcntl.LOCK_EX, blocking)
-
-    def acquire_read_lock(self, blocking=True):
-        """
-        Acquire a shared lock
-
-        Note if you have a write lock, it implicitly downgrades atomically
-
-        :param blocking: if enabled, don't return until we have the lock
-        :return: True if lock is acquired, False if not.
-        """
-        return self._enact_change(fcntl.LOCK_SH, blocking)
-
-    def release_write_lock(self):
-        """Release an write/exclusive lock if held"""
-        self._enact_change(fcntl.LOCK_UN, False)
-
-    def release_read_lock(self):
-        """Release an shared/read lock if held"""
-        self._enact_change(fcntl.LOCK_UN, False)
-
-    def __del__(self):
-        # alright, it's 5:45am, yes this is weird code.
-        try:
-            if self.fd is not None:
-                self.release_read_lock()
-        finally:
-            if self.fd is not None:
-                os.close(self.fd)
-
-
 @steal_docs(os.access)
 def fallback_access(path, mode, root=0):
     try:
@@ -443,6 +317,7 @@ def fallback_access(path, mode, root=0):
     if st.st_gid in mygroups:
         return mode == (mode & ((st.st_mode >> 3) & 0x7))
     return mode == (mode & (st.st_mode & 0x7))
+
 
 if os.uname()[0].lower() == 'sunos':
     access = fallback_access
