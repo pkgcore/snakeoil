@@ -240,7 +240,7 @@ class bash_parser(shlex):
         :type env: must be a mapping; if None, an empty dict is used
         """
         self.__dict__['state'] = ' '
-        shlex.__init__(self, source, posix=True, infile=infile)
+        super().__init__(source, posix=True, infile=infile)
         self.wordchars += "@${}/.-+/:~^*"
         self.wordchars = frozenset(self.wordchars)
         if sourcing_command is not None:
@@ -263,14 +263,14 @@ class bash_parser(shlex):
 
     def sourcehook(self, newfile):
         try:
-            return shlex.sourcehook(self, newfile)
+            return super().sourcehook(newfile)
         except IOError as e:
             raise BashParseError(newfile, 0, str(e)) from e
 
     def read_token(self):
         self.changed_state = []
         self.__pos = 0
-        token = shlex.read_token(self)
+        token = super().read_token()
         if token is None:
             return token
         if self.state is None:
@@ -319,11 +319,11 @@ class BashParseError(Exception):
 
     def __init__(self, filename, line, errmsg=None):
         if errmsg is not None:
-            Exception.__init__(
-                self, "error parsing '%s' on or before line %i: err %s" %
+            super().__init__(
+                "error parsing '%s' on or before line %i: err %s" %
                 (filename, line, errmsg))
         else:
-            Exception.__init__(
-                self, "error parsing '%s' on or before line %i" %
+            super().__init__(
+                "error parsing '%s' on or before line %i" %
                 (filename, line))
         self.file, self.line, self.errmsg = filename, line, errmsg

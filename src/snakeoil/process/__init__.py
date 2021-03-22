@@ -89,14 +89,14 @@ def exit_as_status(status):
 class CommandNotFound(Exception):
 
     def __init__(self, command):
-        Exception.__init__(self, "Failed to find binary %r" % (command,))
+        super().__init__(f'failed to find binary: {command!r}')
         self.command = command
 
 
 class ProcessNotFound(Exception):
 
     def __init__(self, pid):
-        Exception.__init__(self, "Process doesn't exist: %s" % (pid,))
+        super().__init__(f'nonexistent process: {pid}')
 
 
 def _native_closerange(from_fd, to_fd):

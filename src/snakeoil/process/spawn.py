@@ -395,11 +395,11 @@ def process_exit_code(retval):
 
 class ExecutionFailure(Exception):
     def __init__(self, msg):
-        Exception.__init__(self, msg)
+        super().__init__(msg)
         self.msg = msg
 
     def __str__(self):
-        return "Execution Failure: %s" % self.msg
+        return f'Execution Failure: {self.msg}'
 
 
 # cached capabilities

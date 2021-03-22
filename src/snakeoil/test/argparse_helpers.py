@@ -9,7 +9,7 @@ class Exit(Exception):
     """Used to catch parser.exit."""
 
     def __init__(self, status, message):
-        Exception.__init__(self, message)
+        super().__init__(message)
         self.status = status
         self.message = message
 
@@ -18,7 +18,7 @@ class Error(Exception):
     """Used to catch parser.error."""
 
     def __init__(self, message):
-        Exception.__init__(self, message)
+        super().__init__(message)
         self.message = message
 
 
@@ -99,7 +99,7 @@ class ListStream(list):
 class FakeStreamFormatter(PlainTextFormatter):
 
     def __init__(self):
-        PlainTextFormatter.__init__(self, ListStream([]))
+        super().__init__(ListStream([]))
         self.reset = Reset()
         self.bold = Bold()
         self.first_prefix = [None]

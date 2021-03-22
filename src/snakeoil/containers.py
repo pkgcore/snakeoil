@@ -223,7 +223,7 @@ class LimitedChangeSet(SetMixin):
 class Unchangable(Exception):
 
     def __init__(self, key):
-        Exception.__init__(self, "key '%s' is unchangable" % (key,))
+        super().__init__(f'key {key!r} is unchangable')
         self.key = key
 
 
