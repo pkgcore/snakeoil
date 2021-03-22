@@ -278,9 +278,9 @@ class Namespace(SplitExec):
 class GitStash(AbstractContextManager):
     """Context manager for stashing untracked or modified/uncommitted files."""
 
-    def __init__(self, path, pathspec=None, staged=False):
+    def __init__(self, path, pathspecs=None, staged=False):
         self.path = path
-        self.pathspec = ['--'] + pathspec if pathspec else []
+        self.pathspecs = ['--'] + pathspecs if pathspecs else []
         self._staged = ['--keep-index'] if staged else []
         self._stashed = False
 
@@ -289,7 +289,7 @@ class GitStash(AbstractContextManager):
         # check for untracked or modified/uncommitted files
         try:
             p = subprocess.run(
-                ['git', 'status', '--porcelain=1', '-u'] + self.pathspec,
+                ['git', 'status', '--porcelain=1', '-u'] + self.pathspecs,
                 stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
                 cwd=self.path, encoding='utf8', check=True)
         except subprocess.CalledProcessError:
@@ -309,7 +309,7 @@ class GitStash(AbstractContextManager):
         try:
             stash_cmd = ['git', 'stash', 'push', '-u', '-m', 'pkgcheck scan --commits']
             subprocess.run(
-                stash_cmd + self._staged + self.pathspec,
+                stash_cmd + self._staged + self.pathspecs,
                 stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
                 cwd=self.path, check=True, encoding='utf8')
         except subprocess.CalledProcessError as e:
