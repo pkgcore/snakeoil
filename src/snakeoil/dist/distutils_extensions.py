@@ -200,22 +200,19 @@ def setup():
         'install': install,
         'test': pytest,
         'lint': pylint,
+        'build': build,
+        'build_docs': build_docs,
+        'install_docs': install_docs,
+        'build_html': build_html,
+        'install_html': install_html,
+        'build_man': build_man,
+        'install_man': install_man,
     }
 
     # check for scripts
     if os.path.exists(SCRIPTS_DIR):
         params['scripts'] = os.listdir(SCRIPTS_DIR)
         cmds['build_scripts'] = build_scripts
-
-    cmds['build'] = build
-    cmds['build_docs'] = build_docs
-    cmds['install_docs'] = install_docs
-
-    cmds['build_html'] = build_html
-    cmds['install_html'] = install_html
-
-    cmds['build_man'] = build_man
-    cmds['install_man'] = install_man
 
     # set default commands -- individual commands can be overridden as required
     params['cmdclass'] = cmds
