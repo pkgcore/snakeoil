@@ -23,6 +23,7 @@ import textwrap
 
 from setuptools import find_packages
 from setuptools.command import install as dst_install
+from setuptools.dist import Distribution
 
 from distutils import log
 from distutils.core import Command, Extension
@@ -173,6 +174,16 @@ def readme(topdir=REPODIR):
                 raise
 
     return None
+
+
+class BinaryDistribution(Distribution):
+    """Distribution forcing binary wheel package creation.
+
+    Set the 'distclass' setup param to this class to force binary wheel creation.
+    """
+
+    def has_ext_modules(self):
+        return True
 
 
 def setup():
