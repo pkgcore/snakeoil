@@ -105,7 +105,7 @@ PACKAGEDIR = os.path.dirname(MODULEDIR)
 MODULE_NAME = os.path.basename(MODULEDIR)
 
 # running against git/unreleased version
-GIT = not os.path.exists(os.path.join(PACKAGEDIR, '_verinfo.py'))
+GIT = not os.path.exists(os.path.join(MODULEDIR, '_verinfo.py'))
 
 
 def module_version(moduledir=MODULEDIR):
