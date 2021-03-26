@@ -2,6 +2,21 @@
 Release Notes
 =============
 
+snakeoil 0.9.6 (2021-03-26)
+---------------------------
+
+- snakeoil.dist.distutils_extensions: Add support for forcing binary wheel
+  creation.
+
+- snakeoil.osutils: Drop old FsLock related support.
+
+- snakeoil.contexts: Add optional pathspecs param for GitStash.
+
+- snakeoil.dist.distutils_extensions: Drop old OptionalExtension support.
+
+- snakeoil.process.spawn: Drop find_invoking_python() since it's not used by
+  pkgcore anymore.
+
 snakeoil 0.9.5 (2021-03-19)
 ---------------------------
 
