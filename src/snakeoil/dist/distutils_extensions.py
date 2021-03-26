@@ -399,7 +399,7 @@ class build_py(dst_build_py.build_py):
     def finalize_options(self):
         self.inplace = bool(self.inplace)
         if self.inplace:
-            self.build_lib = '.'
+            self.build_lib = PACKAGEDIR
         super().finalize_options()
 
     def _run_generate_verinfo(self, rebuilds=None):
