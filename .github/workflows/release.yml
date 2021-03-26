@@ -35,6 +35,8 @@ jobs:
         git clean -fxd
         # build sdist
         python setup.py sdist
+        # run in-place build so wheel deps use release versions
+        python setup.py build_py -i
 
     - name: Build wheels
       uses: joerick/cibuildwheel@v1.10.0
