@@ -309,35 +309,26 @@ def cython_pyx(path=MODULEDIR):
                 yield str(os.path.join(root, f))
 
 
-def cython_exts(build_deps=None, build_exts=None, build_opts=None, path=MODULEDIR):
+def cython_exts(path=MODULEDIR, build_opts=None):
     """Prepare all cython extensions under a given path to be built."""
-    build_deps = build_deps if build_deps is not None else []
-    build_exts = build_exts if build_exts is not None else []
-    build_opts = build_opts if build_opts is not None else {}
-
+    if build_opts is None:
+        build_opts = {'depends': [], 'include_dirs': []}
     exts = []
-    cython_exts = []
 
     for ext in cython_pyx(path):
         cythonized = os.path.splitext(ext)[0] + '.c'
         if os.path.exists(cythonized):
-            exts.append(cythonized)
+            ext_path = cythonized
         else:
-            cython_exts.append(ext)
+            ext_path = ext
 
-    # require cython to build exts as necessary
-    if cython_exts:
-        build_deps.append('cython')
-        exts.extend(cython_exts)
-
-    for ext in exts:
         # strip package dir
-        module = ext.rpartition(PACKAGEDIR)[-1].lstrip(os.path.sep)
+        module = ext_path.rpartition(PACKAGEDIR)[-1].lstrip(os.path.sep)
         # strip file extension and translate to module namespace
         module = os.path.splitext(module)[0].replace(os.path.sep, '.')
-        build_exts.append(Extension(module, [ext], **build_opts))
+        exts.append(Extension(module, [ext_path], **build_opts))
 
-    return build_deps, build_exts
+    return exts
 
 
 class sdist(dst_sdist.sdist):

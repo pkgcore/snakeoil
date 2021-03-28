@@ -11,15 +11,6 @@ from snakeoil.dist import distutils_extensions as pkgdist
 pkgdist_setup, pkgdist_cmds = pkgdist.setup()
 
 
-build_deps = []
-extensions = []
-ext_build_options = {
-    'depends': [],
-    'include_dirs': ['include'],
-}
-pkgdist.cython_exts(build_deps, extensions, ext_build_options)
-
-
 setup(**dict(
     pkgdist_setup,
     description='misc common functionality and useful optimizations',
@@ -27,8 +18,7 @@ setup(**dict(
     license='BSD',
     author='Tim Harder',
     author_email='radhermit@gmail.com',
-    ext_modules=extensions,
-    setup_requires=build_deps,
+    ext_modules=pkgdist.cython_exts(),
     cmdclass=dict(
         pkgdist_cmds,
         build_ext=pkgdist.build_ext,
