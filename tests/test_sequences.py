@@ -4,7 +4,7 @@ from operator import itemgetter
 
 import pytest
 from snakeoil import sequences
-from snakeoil.sequences import namedtuple, split_elements, split_negations
+from snakeoil.sequences import split_elements, split_negations
 from snakeoil.test import mk_cpy_loadable_testcase
 
 
@@ -206,46 +206,9 @@ class Test_predicate_split:
         assert false_l == [[0, x] for x in range(1, 100, 2)]
         assert true_l == [[0, x] for x in range(0, 100, 2)]
 
+
 cpy_loaded_Test = mk_cpy_loadable_testcase(
     "snakeoil._sequences", "snakeoil.sequences", "iflatten_func", "iflatten_func")
-
-
-class TestNamedTuple:
-
-    def setup_method(self, method):
-        self.point = namedtuple('Point', ('x', 'y', 'z'))
-
-    def test_namedtuple(self):
-        p = self.point(1, 2, 3)
-        assert p.x == 1
-        assert p[0] == 1
-        assert p.y == 2
-        assert p[1] == 2
-        assert p.z == 3
-        assert p[2] == 3
-        assert p == (1, 2, 3)
-        assert isinstance(p, self.point)
-        assert isinstance(p, tuple)
-
-    def test_tuple_like(self):
-        # namedtuples act like tuples
-        p = self.point(1, 2, 3)
-        q = self.point(4, 5, 6)
-        assert p + q == (1, 2, 3, 4, 5, 6)
-        assert tuple(map(sum, zip(p, q))) == (5, 7, 9)
-
-    def test_immutable(self):
-        # tuples are immutable
-        p = self.point(1, 2, 3)
-        with pytest.raises(AttributeError):
-            p.x = 10
-        with pytest.raises(TypeError):
-            p[0] = 10
-
-    def test_no_kwargs(self):
-        # our version of namedtuple doesn't support keyword args atm
-        with pytest.raises(TypeError):
-            q = self.point(x=1, y=2, z=3)
 
 
 class TestSplitNegations:

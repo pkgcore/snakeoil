@@ -3,7 +3,7 @@
 __all__ = (
     'unstable_unique', 'stable_unique', 'iter_stable_unique',
     'iflatten_instance', 'iflatten_func', 'ChainedLists', 'predicate_split',
-    'namedtuple', 'split_negations',
+    'split_negations',
 )
 
 from operator import itemgetter
@@ -265,35 +265,6 @@ def predicate_split(func, stream, key=None):
             else:
                 fappend(item)
     return false_l, true_l
-
-
-class base_namedtuple(tuple):
-
-    __slots__ = ()
-    _fields = ()
-
-    def __new__(cls, *values):
-        return super(base_namedtuple, cls).__new__(cls, values)
-
-
-def namedtuple(typename, field_names):
-    """Returns a new subclass of tuple with named fields.
-
-    While collections.namedtuple exists... it's fairly heavy and nasty in
-    innards.
-
-    We choose to use a simpler version.
-    """
-
-    class kls(base_namedtuple):
-        __slots__ = ()
-        _fields = tuple(field_names)
-
-        locals().update((k, property(itemgetter(idx)))
-                        for idx, k in enumerate(field_names))
-
-    kls.__name__ = typename
-    return kls
 
 
 def split_negations(iterable, func=str):
