@@ -11,12 +11,10 @@ import socket
 import subprocess
 import sys
 
-from . import exit_as_status
+from ..osutils.mount import (MS_NODEV, MS_NOEXEC, MS_NOSUID, MS_PRIVATE,
+                             MS_REC, MS_RELATIME, MS_SLAVE)
 from ..osutils.mount import mount as _mount
-from ..osutils.mount import (
-    MS_NODEV, MS_NOEXEC, MS_NOSUID, MS_PRIVATE,
-    MS_REC, MS_RELATIME, MS_SLAVE,
-)
+from . import exit_as_status
 
 CLONE_FS = 0x00000200
 CLONE_FILES = 0x00000400

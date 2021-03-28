@@ -3,8 +3,8 @@
 
 import errno
 import os
-from stat import (S_IFDIR, S_IFREG, S_IFCHR, S_IFBLK, S_IFIFO, S_IFLNK, S_IFSOCK,
-                  S_IFMT, S_ISDIR, S_ISREG)
+from stat import (S_IFBLK, S_IFCHR, S_IFDIR, S_IFIFO, S_IFLNK, S_IFMT, S_IFREG,
+                  S_IFSOCK, S_ISDIR, S_ISREG)
 
 from ..mappings import ProtectedDict
 

@@ -1,7 +1,6 @@
 import sre_constants
 
 import pytest
-
 from snakeoil import demandload
 
 # few notes:

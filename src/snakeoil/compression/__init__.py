@@ -1,9 +1,9 @@
-from importlib import import_module
 import shlex
+from importlib import import_module
 
 from .. import klass
 from ..cli.exceptions import UserException
-from ..process import find_binary, CommandNotFound
+from ..process import CommandNotFound, find_binary
 from ..process.spawn import spawn_get_output
 
 

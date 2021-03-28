@@ -15,11 +15,11 @@ __all__ = (
     "alias_method", "aliased", "alias", "patch", "SlotsPicklingMixin",
 )
 
+import inspect
+import itertools
 from collections import deque
 from functools import partial, wraps
 from importlib import import_module
-import inspect
-import itertools
 from operator import attrgetter
 
 from . import caching

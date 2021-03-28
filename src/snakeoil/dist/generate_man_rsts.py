@@ -1,11 +1,11 @@
 import argparse
 import errno
-from functools import partial
-from importlib import import_module
 import os
 import re
-from string import capwords
 import sys
+from functools import partial
+from importlib import import_module
+from string import capwords
 
 from ..contexts import patch
 from ..osutils import force_symlink

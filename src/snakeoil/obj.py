@@ -79,7 +79,6 @@ __all__ = ("DelayedInstantiation", "DelayedInstantiation_kls", "make_kls", "popa
 
 from . import klass
 
-
 # For our proxy, we have two sets of descriptors-
 # common, "always there" descriptors that come from
 # object itself (this is the base_kls_descriptors sequence)

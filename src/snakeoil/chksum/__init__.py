@@ -2,13 +2,12 @@
 chksum verification/generation subsystem
 """
 
-from importlib import import_module
 import os
 import sys
+from importlib import import_module
 
-from .. import osutils, klass
+from .. import klass, osutils
 from .defaults import chksum_loop_over_file
-
 
 chksum_types = {}
 __inited__ = False

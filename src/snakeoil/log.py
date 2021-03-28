@@ -1,10 +1,9 @@
 """Logging utilities."""
 
-from contextlib import contextmanager
 import logging
+from contextlib import contextmanager
 
 from . import __title__
-
 
 # The logging system will call this automagically if its module-level logging
 # functions are used. We call it explicitly to make sure something handles

@@ -4,8 +4,8 @@ Collection of functionality to make using iterators transparently easier
 
 __all__ = ("partition", "expandable_chain", "caching_iter", "iter_sort")
 
-from collections import deque
 import itertools
+from collections import deque
 
 
 def partition(iterable, predicate=bool):

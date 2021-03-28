@@ -1,6 +1,5 @@
-from functools import partial
 import os
-
+from functools import partial
 from weakref import ref
 
 from .obj import BaseDelayedObject

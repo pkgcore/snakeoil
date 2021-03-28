@@ -269,7 +269,7 @@ def native_normpath(mypath):
 native_join = os.path.join
 
 try:
-    from .._posix import normpath, join
+    from .._posix import join, normpath
 except ImportError:
     normpath = native_normpath
     join = native_join

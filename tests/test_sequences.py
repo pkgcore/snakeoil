@@ -3,9 +3,8 @@ from itertools import chain
 from operator import itemgetter
 
 import pytest
-
 from snakeoil import sequences
-from snakeoil.sequences import namedtuple, split_negations, split_elements
+from snakeoil.sequences import namedtuple, split_elements, split_negations
 from snakeoil.test import mk_cpy_loadable_testcase
 
 

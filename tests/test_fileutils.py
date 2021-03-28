@@ -6,8 +6,7 @@ import time
 pjoin = os.path.join
 
 import pytest
-
-from snakeoil import currying, fileutils, _fileutils
+from snakeoil import _fileutils, currying, fileutils
 from snakeoil.fileutils import AtomicWriteFile, write_file
 from snakeoil.test.fixtures import RandomPath, TempDir
 

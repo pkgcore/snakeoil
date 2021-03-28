@@ -2,7 +2,6 @@ import os
 import sys
 
 import pytest
-
 from snakeoil import modules
 from snakeoil.test.fixtures import TempDir
 

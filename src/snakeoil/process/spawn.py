@@ -13,9 +13,9 @@ import os
 import signal
 import sys
 
-from . import find_binary, CommandNotFound, closerange
 from ..mappings import ProtectedDict
 from ..osutils import access
+from . import CommandNotFound, closerange, find_binary
 
 BASH_BINARY = find_binary('bash', fallback='/bin/bash')
 SANDBOX_BINARY = find_binary('sandbox', fallback='/usr/bin/sandbox')

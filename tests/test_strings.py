@@ -1,6 +1,5 @@
 import pytest
-
-from snakeoil.strings import pluralism, doc_dedent
+from snakeoil.strings import doc_dedent, pluralism
 
 
 class TestPluralism:

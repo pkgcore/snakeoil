@@ -139,7 +139,7 @@ def native_iflatten_func(l, skip_func):
 try:
     # No name "readdir" in module osutils
     # pylint: disable=E0611
-    from ._sequences import iflatten_instance, iflatten_func
+    from ._sequences import iflatten_func, iflatten_instance
     cpy_builtin = True
 except ImportError:
     cpy_builtin = False

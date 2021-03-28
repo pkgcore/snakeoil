@@ -1,5 +1,4 @@
 import pytest
-
 from snakeoil import obj
 
 # sorry, but the name is good, just too long for these tests

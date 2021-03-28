@@ -15,6 +15,7 @@ instead.  It's intended to be a drop in replacement.
 """
 
 import sys
+
 t = sys.modules.pop("tarfile", None)
 tarfile = __import__("tarfile")
 if t is not None:

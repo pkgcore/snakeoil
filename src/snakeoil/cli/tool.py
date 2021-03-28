@@ -1,17 +1,17 @@
 """Generic support for running commandline tools."""
 
-import logging
 import io
+import logging
 import os
 import sys
 import traceback
 from contextlib import nullcontext
 from functools import partial
-from signal import signal, SIGPIPE, SIG_DFL, SIGINT
+from signal import SIG_DFL, SIGINT, SIGPIPE, signal
 
-from .exceptions import ExitException, find_user_exception
 from .. import formatters
 from ..log import suppress_logging
+from .exceptions import ExitException, find_user_exception
 
 
 class Tool:

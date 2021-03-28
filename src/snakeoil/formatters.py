@@ -1,14 +1,13 @@
 """Classes wrapping a file-like object to do fancy output on it."""
 
 import errno
-from functools import partial
 import io
 import locale
 import os
+from functools import partial
 
 from .klass import GetAttrProxy, steal_docs
 from .mappings import defaultdictkey
-
 
 __all__ = (
     "Formatter", "PlainTextFormatter", "get_formatter",

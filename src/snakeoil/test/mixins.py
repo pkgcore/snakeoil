@@ -7,8 +7,8 @@ import stat
 import sys
 import tempfile
 
-from . import TestCase
 from ..compatibility import IGNORED_EXCEPTIONS
+from . import TestCase
 
 
 class TempDirMixin(TestCase):

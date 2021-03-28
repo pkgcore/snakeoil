@@ -2,7 +2,6 @@
 
 __all__ = ('SkipTest', 'TestCase')
 
-from importlib import import_module
 import os
 import random
 import string
@@ -11,6 +10,7 @@ import sys
 import traceback
 import unittest
 import warnings
+from importlib import import_module
 
 # not relative imports so protect_process() works properly
 from snakeoil import fileutils, klass

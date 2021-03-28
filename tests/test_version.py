@@ -3,9 +3,7 @@ from importlib import reload
 from unittest import mock
 
 import pytest
-
-from snakeoil import __version__
-from snakeoil import version
+from snakeoil import __version__, version
 
 
 class TestVersion:

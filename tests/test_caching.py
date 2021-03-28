@@ -1,5 +1,4 @@
 import pytest
-
 from snakeoil.caching import WeakInstMeta
 
 

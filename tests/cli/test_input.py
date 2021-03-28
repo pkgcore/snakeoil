@@ -3,8 +3,7 @@ from functools import partial
 from unittest import mock
 
 import pytest
-
-from snakeoil.cli.input import userquery, NoChoice
+from snakeoil.cli.input import NoChoice, userquery
 from snakeoil.test.argparse_helpers import FakeStreamFormatter
 
 

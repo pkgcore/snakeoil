@@ -1,7 +1,6 @@
 # TODO: deprecated, remove in 0.9.0
 
 import pytest
-
 from snakeoil import stringio
 
 

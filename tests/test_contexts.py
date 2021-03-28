@@ -5,8 +5,7 @@ import socket
 import sys
 
 import pytest
-
-from snakeoil.contexts import chdir, syspath, SplitExec, Namespace
+from snakeoil.contexts import Namespace, SplitExec, chdir, syspath
 
 
 def test_chdir(tmpdir):

@@ -2,7 +2,6 @@ import os
 import signal
 
 import pytest
-
 from snakeoil import process
 from snakeoil.process import spawn
 from snakeoil.test.fixtures import TempDir

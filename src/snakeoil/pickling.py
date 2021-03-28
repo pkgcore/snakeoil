@@ -6,7 +6,7 @@ __all__ = (
     "iter_stream", "dump_stream",
 )
 
-from pickle import load, dump
+from pickle import dump, load
 
 
 def iter_stream(stream):

@@ -1,13 +1,13 @@
 """Generate man page and html rst docs for a given project."""
 
 import errno
-from importlib import import_module
-from io import StringIO
 import os
 import subprocess
+from importlib import import_module
+from io import StringIO
 
-from .generate_man_rsts import ManConverter
 from ..contexts import syspath
+from .generate_man_rsts import ManConverter
 
 
 def _generate_custom(project, docdir, gendir):

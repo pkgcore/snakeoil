@@ -4,8 +4,7 @@ import socket
 import sys
 
 import pytest
-
-from snakeoil.decorators import namespace, splitexec, coroutine
+from snakeoil.decorators import coroutine, namespace, splitexec
 
 
 class TestSplitExecDecorator:

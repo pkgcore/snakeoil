@@ -5,10 +5,9 @@ See https://bugs.python.org/issue17621 for background.
 
 import contextlib
 import importlib.machinery
-from importlib.util import LazyLoader
 import os
 import sys
-
+from importlib.util import LazyLoader
 
 # global flag controlling lazy import support
 _disabled = False

@@ -10,8 +10,8 @@ Should use this module unless its absolutely critical that bz2 module be used
 
 __all__ = ("compress_data", "decompress_data")
 
-from functools import partial
 import multiprocessing
+from functools import partial
 
 from .. import process
 from ..compression import _util
@@ -24,9 +24,9 @@ bz2_path = process.find_binary("bzip2")
 
 
 try:
-    from bz2 import (compress as _compress_data,
-                     decompress as _decompress_data,
-                     BZ2File)
+    from bz2 import BZ2File
+    from bz2 import compress as _compress_data
+    from bz2 import decompress as _decompress_data
     native = True
 except ImportError:
 

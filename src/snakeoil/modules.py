@@ -4,8 +4,8 @@ dynamic import functionality
 
 __all__ = ("FailedImport", "load_module", "load_attribute", "load_any")
 
-from importlib import import_module
 import sys
+from importlib import import_module
 
 from .compatibility import IGNORED_EXCEPTIONS
 

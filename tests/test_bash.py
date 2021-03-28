@@ -1,10 +1,9 @@
-from io import StringIO
 import os
+from io import StringIO
 
 import pytest
-
-from snakeoil.bash import (
-    iter_read_bash, read_bash, read_dict, read_bash_dict, BashParseError)
+from snakeoil.bash import (BashParseError, iter_read_bash, read_bash,
+                           read_bash_dict, read_dict)
 from snakeoil.fileutils import write_file
 from snakeoil.test.mixins import mk_named_tempfile
 

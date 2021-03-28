@@ -1,12 +1,11 @@
 import argparse
-from functools import partial
-from importlib import reload
 import os
 import tempfile
+from functools import partial
+from importlib import reload
 from unittest import mock
 
 import pytest
-
 from snakeoil.cli import arghparse
 from snakeoil.test import argparse_helpers
 

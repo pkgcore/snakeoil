@@ -1,10 +1,9 @@
-from functools import partial
 import math
 import re
+from functools import partial
 from time import time
 
 import pytest
-
 from snakeoil import klass
 
 

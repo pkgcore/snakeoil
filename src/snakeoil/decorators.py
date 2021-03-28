@@ -2,7 +2,7 @@
 
 from functools import wraps
 
-from .contexts import SplitExec, Namespace
+from .contexts import Namespace, SplitExec
 
 
 def splitexec(func):

@@ -7,9 +7,9 @@ types = [""] + list("_%s" % x for x in ("ascii", "utf8"))
 __all__ += tuple("readfile%s" % x for x in types) + tuple("readlines%s" % x for x in types)
 del types
 
-from functools import partial
 import mmap
 import os
+from functools import partial
 
 from . import _fileutils, data_source
 from .compatibility import IGNORED_EXCEPTIONS

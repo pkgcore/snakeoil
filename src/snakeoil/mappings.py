@@ -9,13 +9,13 @@ __all__ = (
     "make_SlottedDict_kls", "ProxiedAttrs",
 )
 
+import operator
 from collections import defaultdict
 from collections.abc import Mapping, MutableSet, Set
 from functools import partial
 from itertools import chain, filterfalse, islice
-import operator
 
-from .klass import get, contains, steal_docs, sentinel
+from .klass import contains, get, sentinel, steal_docs
 
 
 class DictMixin:

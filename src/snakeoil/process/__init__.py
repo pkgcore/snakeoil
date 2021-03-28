@@ -112,6 +112,7 @@ try:
         # whitelist expand this as needed.
         raise ImportError()
     from .._posix import closerange
+
     # monkey patch os.closerange with the saner version;
     # this makes subprocess.Popen calls less noisy, and slightly faster.
     # only do this if we can drop our optimized version in.

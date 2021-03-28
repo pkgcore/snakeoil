@@ -1,33 +1,31 @@
 """Various argparse actions, types, and miscellaneous extensions."""
 
 import argparse
-from argparse import (
-    ArgumentError, PARSER, REMAINDER, OPTIONAL, ZERO_OR_MORE,
-    SUPPRESS, _get_action_name, _SubParsersAction, _, _UNRECOGNIZED_ARGS_ATTR,
-)
-from collections import Counter
 import copy
-from functools import partial
 import importlib
-from itertools import chain
 import logging
-from operator import attrgetter
 import os
 import pkgutil
 import subprocess
 import sys
-from textwrap import dedent
 import traceback
+from argparse import (_UNRECOGNIZED_ARGS_ATTR, OPTIONAL, PARSER, REMAINDER,
+                      SUPPRESS, ZERO_OR_MORE, ArgumentError, _,
+                      _get_action_name, _SubParsersAction)
+from collections import Counter
+from functools import partial
+from itertools import chain
+from operator import attrgetter
+from textwrap import dedent
 
 import lazy_object_proxy
 
 from .. import klass
 from ..mappings import ImmutableDict
 from ..obj import popattr
-from ..sequences import split_negations, split_elements
+from ..sequences import split_elements, split_negations
 from ..strings import pluralism
 from ..version import get_version
-
 
 # Enable flag to pull extended docs keyword args into arguments during doc
 # generation, when disabled the keyword is silently discarded.

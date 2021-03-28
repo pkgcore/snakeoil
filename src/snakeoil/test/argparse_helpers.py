@@ -1,5 +1,5 @@
-from copy import copy
 import difflib
+from copy import copy
 
 from ..caching import WeakInstMeta
 from ..formatters import PlainTextFormatter

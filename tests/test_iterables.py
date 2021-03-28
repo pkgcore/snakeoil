@@ -1,8 +1,8 @@
 import operator
 
 import pytest
-
-from snakeoil.iterables import partition, expandable_chain, caching_iter, iter_sort
+from snakeoil.iterables import (caching_iter, expandable_chain, iter_sort,
+                                partition)
 
 
 class TestPartition:

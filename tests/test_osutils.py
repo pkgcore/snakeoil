@@ -8,13 +8,12 @@ import sys
 from unittest import mock
 
 import pytest
-
 from snakeoil import osutils
 from snakeoil.contexts import Namespace
 from snakeoil.fileutils import touch, write_file
-from snakeoil.test import mk_cpy_loadable_testcase
 from snakeoil.osutils import native_readdir, supported_systems
-from snakeoil.osutils.mount import mount, umount, MS_BIND, MNT_DETACH
+from snakeoil.osutils.mount import MNT_DETACH, MS_BIND, mount, umount
+from snakeoil.test import mk_cpy_loadable_testcase
 from snakeoil.test.fixtures import TempDir
 
 pjoin = os.path.join

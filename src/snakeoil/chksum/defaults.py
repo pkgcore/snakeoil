@@ -1,16 +1,15 @@
 """default chksum implementation- sha1, sha256, rmd160, and md5"""
 
-from functools import partial
 import hashlib
-from multiprocessing import cpu_count
 import os
 import queue
-from sys import intern
 import threading
+from functools import partial
+from multiprocessing import cpu_count
+from sys import intern
 
 from ..data_source import base as base_data_source
 from ..fileutils import mmap_or_open_for_read
-
 
 blocksize = 2 ** 17
 

@@ -1,9 +1,9 @@
 """Version information."""
 
 import errno
-from importlib import import_module
 import os
 import subprocess
+from importlib import import_module
 
 _ver = None
 

@@ -1,11 +1,10 @@
 import curses
-from io import BytesIO
 import os
 import pty
+from io import BytesIO
 from tempfile import TemporaryFile
 
 import pytest
-
 from snakeoil import formatters
 from snakeoil.test import mk_cpy_loadable_testcase, protect_process
 

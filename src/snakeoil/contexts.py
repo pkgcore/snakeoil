@@ -1,8 +1,5 @@
 """Various with-statement context utilities."""
 
-from contextlib import AbstractContextManager, contextmanager
-from importlib import import_module
-from multiprocessing.connection import Pipe
 import errno
 import inspect
 import os
@@ -12,11 +9,13 @@ import subprocess
 import sys
 import threading
 import traceback
+from contextlib import AbstractContextManager, contextmanager
+from importlib import import_module
+from multiprocessing.connection import Pipe
 
 from .cli.exceptions import UserException
 from .process import namespaces
 from .sequences import predicate_split
-
 
 # Ideas and code for SplitExec have been borrowed from withhacks
 # (https://pypi.python.org/pypi/withhacks) governed by the MIT license found

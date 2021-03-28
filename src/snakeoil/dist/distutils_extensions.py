@@ -6,12 +6,9 @@ passing in distutils.
 Specifically, this module is only meant to be imported in setup.py scripts.
 """
 
-from contextlib import contextmanager, redirect_stdout, redirect_stderr, ExitStack
 import copy
-from datetime import datetime
 import errno
 import inspect
-from multiprocessing import cpu_count
 import operator
 import os
 import re
@@ -20,22 +17,27 @@ import shutil
 import subprocess
 import sys
 import textwrap
+from contextlib import (ExitStack, contextmanager, redirect_stderr,
+                        redirect_stdout)
+from datetime import datetime
+from distutils import log
+from distutils.command import build as dst_build
+from distutils.command import build_ext as dst_build_ext
+from distutils.command import build_py as dst_build_py
+from distutils.command import build_scripts as dst_build_scripts
+from distutils.command import config as dst_config
+from distutils.command import sdist as dst_sdist
+from distutils.core import Command, Extension
+from distutils.errors import DistutilsError, DistutilsExecError
+from multiprocessing import cpu_count
 
 from setuptools import find_packages
 from setuptools.command import install as dst_install
 from setuptools.dist import Distribution
 
-from distutils import log
-from distutils.core import Command, Extension
-from distutils.errors import DistutilsExecError, DistutilsError
-from distutils.command import (
-    sdist as dst_sdist, build_ext as dst_build_ext, build_py as dst_build_py,
-    build as dst_build, build_scripts as dst_build_scripts, config as dst_config)
-
 from ..contexts import syspath
 from ..version import get_git_version
 from .generate_docs import generate_html, generate_man
-
 
 # forcibly disable lazy module loading
 os.environ['SNAKEOIL_DEMANDIMPORT'] = 'false'
@@ -457,7 +459,8 @@ class build_docs(Command):
             # time causing relative paths to fail. This just bypasses the
             # sphinx mangling and lets docutils handle include directives
             # directly which works as expected.
-            from docutils.parsers.rst.directives.misc import Include as BaseInclude
+            from docutils.parsers.rst.directives.misc import \
+                Include as BaseInclude
             from sphinx.directives.other import Include
             Include.run = BaseInclude.run
 

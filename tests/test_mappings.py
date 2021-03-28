@@ -1,8 +1,7 @@
-from itertools import chain
 import operator
+from itertools import chain
 
 import pytest
-
 from snakeoil import mappings
 
 

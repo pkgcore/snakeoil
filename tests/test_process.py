@@ -1,12 +1,11 @@
 import os
 import signal
 import sys
-import time
 import tempfile
+import time
 from unittest import mock
 
 import pytest
-
 from snakeoil import process
 from snakeoil.fileutils import touch
 from snakeoil.test.fixtures import TempDir

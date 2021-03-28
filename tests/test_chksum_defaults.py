@@ -2,7 +2,6 @@ import os
 import tempfile
 
 import pytest
-
 from snakeoil import chksum, fileutils
 from snakeoil.currying import post_curry
 from snakeoil.data_source import data_source, local_source

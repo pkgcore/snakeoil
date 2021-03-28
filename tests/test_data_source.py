@@ -1,7 +1,6 @@
 from functools import partial
 
 import pytest
-
 from snakeoil import compression, data_source
 from snakeoil.osutils import pjoin
 from snakeoil.test.fixtures import TempDir
