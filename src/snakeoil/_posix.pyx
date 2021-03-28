@@ -253,7 +253,7 @@ def closerange(int start, int end):
     cdef char path[32]
 
     # Note that the version I submitted to python upstream has this in a
-    # ALLOW_THREADS block; snakeoils doesn't since it's pointless.
+    # ALLOW_THREADS block; snakeoil doesn't since it's pointless.
     # Realistically the only time this code is ever ran is immediately post
     # fork- where no threads can be running. Thus no gain to releasing the GIL
     # then reacquiring it, thus we skip it.
