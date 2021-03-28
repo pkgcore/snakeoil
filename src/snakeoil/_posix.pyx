@@ -11,8 +11,11 @@ from posix.unistd cimport close, getpid
 cdef extern from "ctype.h" nogil:
     int isdigit(int c)
 
-cdef extern from "snakeoil/macros.h" nogil:
-    void SKIP_SLASHES(char *s)
+
+cdef inline void SKIP_SLASHES(char **s):
+    """Skip slashes in a given string."""
+    while (b'/' == s[0][0]):
+        s[0] += 1
 
 
 cdef bytes _chars(s):
@@ -46,7 +49,7 @@ def normpath(old_path):
         if b'/' == read[0]:
             write[0] = b'/'
             write += 1
-            SKIP_SLASHES(read)
+            SKIP_SLASHES(&read)
             depth += 1
         elif b'.' == read[0]:
             if b'.' == read[1] and (b'/' == read[2] or b'\0' == read[2]):
@@ -76,10 +79,10 @@ def normpath(old_path):
                         write[2] = b'/'
                         write += 3
                 read += 2
-                SKIP_SLASHES(read)
+                SKIP_SLASHES(&read)
             elif b'/' == read[1]:
                 read += 2
-                SKIP_SLASHES(read)
+                SKIP_SLASHES(&read)
             elif b'\0' == read[1]:
                 read += 1
             else:
@@ -179,7 +182,7 @@ def join(*args):
             buf += 1
             if b'/' == s[0]:
                 tmp_s = s + 1
-                SKIP_SLASHES(s)
+                SKIP_SLASHES(&s)
                 if b'\0' == s[0]:
                     if i + 1  != end:
                         buf -= 1
