@@ -39,14 +39,18 @@ class _transform_source:
 
 _transforms = {name: _transform_source(name) for name in ('bzip2',)}
 
+
 def compress_data(compressor_type, data, level=9, **kwds):
     return _transforms[compressor_type].compress_data(data, level, **kwds)
+
 
 def decompress_data(compressor_type, data, **kwds):
     return _transforms[compressor_type].decompress_data(data, **kwds)
 
+
 def compress_handle(compressor_type, handle, level=9, **kwds):
     return _transforms[compressor_type].compress_handle(handle, level, **kwds)
+
 
 def decompress_handle(compressor_type, source, **kwds):
     return _transforms[compressor_type].decompress_handle(source, **kwds)
