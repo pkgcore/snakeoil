@@ -64,33 +64,27 @@ class ArCompError(UserException):
         self.code = code
 
 
-class _RegisterCompressionFormat(type):
-    """Metaclass for registering archive formats."""
-
-    exts = {}
-
-    def __new__(cls, name, bases, class_dict):
-        new_cls = type.__new__(cls, name, bases, class_dict)
-        if not all((new_cls.binary, new_cls.default_unpack_cmd)):
-            raise ValueError(f'class missing required attrs: {new_cls!r}')
-        cls.exts[new_cls.exts] = new_cls
-        return new_cls
-
-
 class ArComp:
     """Generic archive and compressed file format support."""
 
     binary = None
     default_unpack_cmd = None
+    known_exts = {}
 
     def __new__(cls, *args, ext, **kwargs):
-        for exts, archive_cls in _RegisterCompressionFormat.exts.items():
-            if ext in exts:
-                cls = archive_cls
-                break
-        else:
+        try:
+            cls = cls.known_exts[ext]
+            return super(ArComp, cls).__new__(cls)
+        except KeyError:
             raise ArCompError(f'unknown compression file extension: {ext!r}')
-        return super(ArComp, cls).__new__(cls)
+
+    def __init_subclass__(cls, **kwargs):
+        """Initialize result subclasses and register archive extensions."""
+        super().__init_subclass__(**kwargs)
+        if not all((cls.binary, cls.default_unpack_cmd, cls.exts)):
+            raise ValueError(f'class missing required attrs: {cls!r}')
+        for ext in cls.exts:
+            cls.known_exts[ext] = cls
 
     def __init__(self, path, ext=None):
         self.path = path
@@ -117,7 +111,7 @@ class ArComp:
         raise NotImplementedError
 
 
-class _Archive(ArComp):
+class _Archive:
     """Generic archive format support."""
 
     def unpack(self, dest=None, **kwargs):
@@ -128,7 +122,7 @@ class _Archive(ArComp):
             raise ArCompError(msg, code=ret)
 
 
-class _CompressedFile(ArComp):
+class _CompressedFile:
     """Single compressed file."""
 
     def unpack(self, dest=None, **kwargs):
@@ -141,7 +135,7 @@ class _CompressedFile(ArComp):
             raise ArCompError(msg, code=ret)
 
 
-class _CompressedStdin(ArComp):
+class _CompressedStdin:
     """Compressed data from stdin."""
 
     def unpack(self, dest=None, **kwargs):
@@ -154,7 +148,7 @@ class _CompressedStdin(ArComp):
             raise ArCompError(msg, code=ret)
 
 
-class _Tar(_Archive, metaclass=_RegisterCompressionFormat):
+class _Tar(_Archive, ArComp):
 
     exts = frozenset(['.tar'])
     binary = ('tar',)
@@ -167,11 +161,11 @@ class _Tar(_Archive, metaclass=_RegisterCompressionFormat):
         if self.compress_binary is not None:
             for b in self.compress_binary:
                 try:
-                    binary = find_binary(b)
+                    find_binary(b)
                     cmd += f' --use-compress-program={b}'
                     break
                 except CommandNotFound:
-                    continue
+                    pass
             else:
                 choices = ', '.join(self.compress_binary)
                 raise ArCompError(
@@ -180,87 +174,87 @@ class _Tar(_Archive, metaclass=_RegisterCompressionFormat):
         return cmd
 
 
-class _TarGZ(_Tar, metaclass=_RegisterCompressionFormat):
+class _TarGZ(_Tar):
 
     exts = frozenset(['.tar.gz', '.tgz', '.tar.Z', '.tar.z'])
     compress_binary = ('pigz', 'gzip')
 
 
-class _TarBZ2(_Tar, metaclass=_RegisterCompressionFormat):
+class _TarBZ2(_Tar):
 
     exts = frozenset(['.tar.bz2', '.tbz2', '.tbz'])
     compress_binary = ('lbzip2', 'pbzip2', 'bzip2')
 
 
-class _TarLZMA(_Tar, metaclass=_RegisterCompressionFormat):
+class _TarLZMA(_Tar):
 
     exts = frozenset(['.tar.lzma'])
     compress_binary = ('lzma',)
 
 
-class _TarXZ(_Tar, metaclass=_RegisterCompressionFormat):
+class _TarXZ(_Tar):
 
     exts = frozenset(['.tar.xz', '.txz'])
     compress_binary = ('pixz', 'xz')
 
 
-class _Zip(_Archive, metaclass=_RegisterCompressionFormat):
+class _Zip(_Archive, ArComp):
 
     exts = frozenset(['.ZIP', '.zip', '.jar'])
     binary = ('unzip',)
     default_unpack_cmd = '{binary} -qo "{path}"'
 
 
-class _GZ(_CompressedStdin, metaclass=_RegisterCompressionFormat):
+class _GZ(_CompressedStdin, ArComp):
 
     exts = frozenset(['.gz', '.Z', '.z'])
     binary = ('pigz', 'gzip')
     default_unpack_cmd = '{binary} -d -c'
 
 
-class _BZ2(_CompressedStdin, metaclass=_RegisterCompressionFormat):
+class _BZ2(_CompressedStdin, ArComp):
 
     exts = frozenset(['.bz2', '.bz'])
     binary = ('lbzip2', 'pbzip2', 'bzip2')
     default_unpack_cmd = '{binary} -d -c'
 
 
-class _XZ(_CompressedStdin, metaclass=_RegisterCompressionFormat):
+class _XZ(_CompressedStdin, ArComp):
 
     exts = frozenset(['.xz'])
     binary = ('pixz', 'xz')
     default_unpack_cmd = '{binary} -d -c'
 
 
-class _7Z(_Archive, metaclass=_RegisterCompressionFormat):
+class _7Z(_Archive, ArComp):
 
     exts = frozenset(['.7Z', '.7z'])
     binary = ('7z',)
     default_unpack_cmd = '{binary} x -y "{path}"'
 
 
-class _Rar(_Archive, metaclass=_RegisterCompressionFormat):
+class _Rar(_Archive, ArComp):
 
     exts = frozenset(['.RAR', '.rar'])
     binary = ('unrar',)
     default_unpack_cmd = '{binary} x -idq -o+ "{path}"'
 
 
-class _LHA(_Archive, metaclass=_RegisterCompressionFormat):
+class _LHA(_Archive, ArComp):
 
     exts = frozenset(['.LHa', '.LHA', '.lha', '.lzh'])
     binary = ('lha',)
     default_unpack_cmd = '{binary} xfq "{path}"'
 
 
-class _Ar(_Archive, metaclass=_RegisterCompressionFormat):
+class _Ar(_Archive, ArComp):
 
     exts = frozenset(['.a', '.deb'])
     binary = ('ar',)
     default_unpack_cmd = '{binary} x "{path}"'
 
 
-class _LZMA(_CompressedFile, metaclass=_RegisterCompressionFormat):
+class _LZMA(_CompressedFile, ArComp):
 
     exts = frozenset(['.lzma'])
     binary = ('lzma',)
