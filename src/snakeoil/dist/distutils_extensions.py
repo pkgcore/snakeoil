@@ -251,10 +251,12 @@ def get_file_paths(path):
 
 def data_mapping(host_prefix, path, skip=None):
     """Map repo paths to host paths for installed data files."""
+    abs_path = os.path.abspath(path)
     skip = list(skip) if skip is not None else []
-    for root, dirs, files in os.walk(path):
-        host_path = os.path.join(host_prefix, root.partition(path)[2].lstrip('/'))
-        repo_path = os.path.join(path, root.partition(path)[2].lstrip('/'))
+    for root, dirs, files in os.walk(abs_path):
+        root_offset = root[len(abs_path) :].lstrip("/")
+        host_path = os.path.join(host_prefix, root_offset)
+        repo_path = os.path.join(path, root_offset)
         if repo_path not in skip:
             yield (host_path, [os.path.join(root, x) for x in files
                                if os.path.join(root, x) not in skip])
