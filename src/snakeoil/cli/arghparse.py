@@ -9,9 +9,8 @@ import pkgutil
 import subprocess
 import sys
 import traceback
-from argparse import (_UNRECOGNIZED_ARGS_ATTR, OPTIONAL, PARSER, REMAINDER,
-                      SUPPRESS, ZERO_OR_MORE, ArgumentError, _,
-                      _get_action_name, _SubParsersAction)
+from argparse import (_UNRECOGNIZED_ARGS_ATTR, OPTIONAL, PARSER, REMAINDER, SUPPRESS, ZERO_OR_MORE,
+                      ArgumentError, _, _get_action_name, _SubParsersAction)
 from collections import Counter
 from functools import partial
 from itertools import chain

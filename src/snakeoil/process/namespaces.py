@@ -11,8 +11,8 @@ import socket
 import subprocess
 import sys
 
-from ..osutils.mount import (MS_NODEV, MS_NOEXEC, MS_NOSUID, MS_PRIVATE,
-                             MS_REC, MS_RELATIME, MS_SLAVE)
+from ..osutils.mount import (MS_NODEV, MS_NOEXEC, MS_NOSUID, MS_PRIVATE, MS_REC, MS_RELATIME,
+                             MS_SLAVE)
 from ..osutils.mount import mount as _mount
 from . import exit_as_status
 

@@ -17,14 +17,11 @@ import shutil
 import subprocess
 import sys
 import textwrap
-from contextlib import (ExitStack, contextmanager, redirect_stderr,
-                        redirect_stdout)
+from contextlib import ExitStack, contextmanager, redirect_stderr, redirect_stdout
 from datetime import datetime
 from multiprocessing import cpu_count
 
 from setuptools import find_packages
-from setuptools.command import install as dst_install
-from setuptools.dist import Distribution
 from setuptools._distutils import log
 from setuptools._distutils.command import build as dst_build
 from setuptools._distutils.command import build_ext as dst_build_ext
@@ -34,6 +31,8 @@ from setuptools._distutils.command import config as dst_config
 from setuptools._distutils.command import sdist as dst_sdist
 from setuptools._distutils.core import Command, Extension
 from setuptools._distutils.errors import DistutilsError, DistutilsExecError
+from setuptools.command import install as dst_install
+from setuptools.dist import Distribution
 
 from ..contexts import syspath
 from ..version import get_git_version
@@ -450,8 +449,7 @@ class build_docs(Command):
             # time causing relative paths to fail. This just bypasses the
             # sphinx mangling and lets docutils handle include directives
             # directly which works as expected.
-            from docutils.parsers.rst.directives.misc import \
-                Include as BaseInclude
+            from docutils.parsers.rst.directives.misc import Include as BaseInclude
             from sphinx.directives.other import Include
             Include.run = BaseInclude.run
 
