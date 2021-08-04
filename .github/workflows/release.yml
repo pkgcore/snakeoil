@@ -43,7 +43,7 @@ jobs:
       with:
         output-dir: dist
       env:
-        CIBW_BUILD: cp38-* cp39-*
+        CIBW_BUILD: cp38-* cp39-* cp310-*
         CIBW_ARCHS_LINUX: x86_64 i686
         CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
         CIBW_MANYLINUX_I686_IMAGE: manylinux2014
