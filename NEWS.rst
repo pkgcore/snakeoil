@@ -2,6 +2,18 @@
 Release Notes
 =============
 
+snakeoil 0.9.7 (2021-08-04)
+---------------------------
+
+- snakeoil.dist.distutils_extensions: Migrate to using distutils bundled with
+  setuptools since distutils is now deprecated in py3.10 and will be removed in
+  py3.12.
+
+- snakeoil.compression: Simplify registering archive subclasses.
+
+- snakeoil.sequences: Drop namedtuple support -- use the various alternatives
+  available from the standard library instead.
+
 snakeoil 0.9.6 (2021-03-26)
 ---------------------------
 
