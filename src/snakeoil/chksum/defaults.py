@@ -13,15 +13,16 @@ from ..fileutils import mmap_or_open_for_read
 
 blocksize = 2 ** 17
 
-sha1_size = 40
+blake2b_size = 128
+blake2s_size = 64
 md5_size = 32
 rmd160_size = 40
+sha1_size = 40
 sha256_size = 64
 sha512_size = 128
 sha3_256_size = 64
 sha3_512_size = 128
-blake2b_size = 128
-blake2s_size = 64
+whirlpool_size = 128
 
 
 def chf_thread(queue, callback):
@@ -131,36 +132,29 @@ class Chksummer:
         return "%s chksummer" % self.chf_type
 
 
-chksum_types = {}
+chksum_types = {
+    chksumname: Chksummer(chksumname, partial(hashlib.new, hashlibname), size)
 
-# Always available according to docs.python.org:
-# md5(), sha1(), sha224(), sha256(), sha384(), and sha512().
-for hashlibname, chksumname, size in [
+    for hashlibname, chksumname, size in [
+        # conditional upon FIPS, but available in >3.8.
         ('md5', 'md5', md5_size),
-        ('sha1', 'sha1', sha1_size),
-        ('sha256', 'sha256', sha256_size),
-        ('sha512', 'sha512', sha512_size),
-    ]:
-    chksum_types[chksumname] = Chksummer(
-        chksumname, getattr(hashlib, hashlibname), size)
 
-# May or may not be available depending on openssl. List
-# determined through trial and error.
-for hashlibname, chksumname, size in [
-        ('ripemd160', 'rmd160', rmd160_size),
-        ('sha3_256', 'sha3_256', sha3_256_size),
-        ('sha3_512', 'sha3_512', sha3_512_size),
+        # Guaranteed as of python 3.8
         ('blake2b', 'blake2b', blake2b_size),
         ('blake2s', 'blake2s', blake2s_size),
-    ]:
-    try:
-        hashlib.new(hashlibname)
-    except ValueError:
-        pass
-    else:
-        chksum_types[chksumname] = Chksummer(
-            chksumname, partial(hashlib.new, hashlibname), size)
-del hashlibname, chksumname
+        ('sha1', 'sha1', sha1_size),
+        ('sha256', 'sha256', sha256_size),
+        ('sha3_256', 'sha3_256', sha3_256_size),
+        ('sha3_512', 'sha3_512', sha3_512_size),
+        ('sha512', 'sha512', sha512_size),
+
+        # not guaranteed, but may be available.
+        ('whirlpool', 'whirlpool', whirlpool_size),
+        ('ripemd160', 'rmd160', rmd160_size),
+
+    ]
+    if hashlibname in hashlib.algorithms_available
+}
 
 
 class SizeUpdater:
