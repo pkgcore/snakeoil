@@ -223,7 +223,7 @@ def setup():
 
     # check for scripts
     if os.path.exists(SCRIPTS_DIR):
-        params['scripts'] = os.listdir(SCRIPTS_DIR)
+        params['scripts'] = [os.path.join(SCRIPTS_DIR, x) for x in os.listdir(SCRIPTS_DIR)]
         cmds['build_scripts'] = build_scripts
 
     # set default commands -- individual commands can be overridden as required
@@ -623,12 +623,12 @@ class build_scripts(dst_build_scripts.build_scripts):
 
     def finalize_options(self):
         super().finalize_options()
-        script_dir = os.path.join(
+        self.script_dir = os.path.join(
             os.path.dirname(self.build_dir), '.generated_scripts')
-        self.mkpath(script_dir)
-        self.scripts = [os.path.join(script_dir, x) for x in os.listdir(SCRIPTS_DIR)]
+        self.scripts = [os.path.join(self.script_dir, os.path.basename(x)) for x in self.scripts]
 
     def run(self):
+        self.mkpath(self.script_dir)
         for script in self.scripts:
             with open(script, 'w') as f:
                 f.write(textwrap.dedent(f"""\
