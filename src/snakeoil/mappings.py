@@ -630,6 +630,9 @@ class defaultdictkey(defaultdict):
     Specifically, if instance[missing_key] is accessed, the `__missing__` method automatically
     store self[missing_key] = self.default_factory(key).
     """
+
+    __slots__ = ()
+
     def __init__(self, default_factory):
         # we have our own init to explicitly force via prototype
         # that a default_factory is required

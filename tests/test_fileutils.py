@@ -1,4 +1,5 @@
 import errno
+import gc
 import mmap
 import os
 import time
@@ -92,6 +93,7 @@ class TestAtomicWriteFile(TempDir):
         af = self.kls(fp)
         af.write("dar")
         del af
+        gc.collect()
         assert fileutils.readfile_ascii(fp) == "me"
         assert len(os.listdir(self.dir)) == 1
 
