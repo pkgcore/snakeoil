@@ -2,6 +2,15 @@
 Release Notes
 =============
 
+snakeoil 0.9.8 (2021-12-14)
+---------------------------
+
+- Fix ``setup.py develop`` support.
+
+- snakeoil.chksum: Add Whirlpool support.
+
+- Add support for running on PyPy 3.8.
+
 snakeoil 0.9.7 (2021-08-04)
 ---------------------------
 
