@@ -2,6 +2,11 @@
 Release Notes
 =============
 
+snakeoil 0.9.9 (2021-12-14)
+---------------------------
+
+- Fix missing requirement files in sdist.
+
 snakeoil 0.9.8 (2021-12-14)
 ---------------------------
 
