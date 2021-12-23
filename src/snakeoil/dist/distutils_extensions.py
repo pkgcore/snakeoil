@@ -22,12 +22,12 @@ from datetime import datetime
 from multiprocessing import cpu_count
 
 from setuptools import find_packages
+from setuptools.command import build_py as dst_build_py
 from setuptools.command import install as dst_install
 from setuptools.dist import Distribution
 from distutils import log
 from distutils.command import build as dst_build
 from distutils.command import build_ext as dst_build_ext
-from distutils.command import build_py as dst_build_py
 from distutils.command import build_scripts as dst_build_scripts
 from distutils.command import config as dst_config
 from distutils.command import sdist as dst_sdist
