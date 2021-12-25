@@ -2,6 +2,11 @@
 Release Notes
 =============
 
+snakeoil 0.9.10 (2021-12-25)
+----------------------------
+
+- Fix distutils extension compatibility with setuptools 60.
+
 snakeoil 0.9.9 (2021-12-14)
 ---------------------------
 
