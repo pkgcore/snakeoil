@@ -9,7 +9,7 @@ pjoin = os.path.join
 import pytest
 from snakeoil import _fileutils, currying, fileutils
 from snakeoil.fileutils import AtomicWriteFile, write_file
-from snakeoil.test.fixtures import RandomPath, TempDir
+from snakeoil.test.fixtures import RandomPath
 
 
 class TestTouch(RandomPath):
@@ -61,12 +61,12 @@ class TestTouch(RandomPath):
         assert ns[0] == new_stat.st_mtime_ns
 
 
-class TestAtomicWriteFile(TempDir):
+class TestAtomicWriteFile:
 
     kls = AtomicWriteFile
 
-    def test_normal_ops(self):
-        fp = pjoin(self.dir, "target")
+    def test_normal_ops(self, tmp_path):
+        fp = tmp_path / "target"
         write_file(fp, "w", "me")
         af = self.kls(fp)
         af.write("dar")
@@ -74,8 +74,8 @@ class TestAtomicWriteFile(TempDir):
         af.close()
         assert fileutils.readfile_ascii(fp) == "dar"
 
-    def test_perms(self):
-        fp = pjoin(self.dir, 'target')
+    def test_perms(self, tmp_path):
+        fp = tmp_path / "target"
         orig_um = os.umask(0o777)
         try:
             af = self.kls(fp, perms=0o644)
@@ -86,8 +86,8 @@ class TestAtomicWriteFile(TempDir):
         assert exiting_umask == 0o777
         assert os.stat(fp).st_mode & 0o4777 == 0o644
 
-    def test_del(self):
-        fp = pjoin(self.dir, "target")
+    def test_del(self, tmp_path):
+        fp = tmp_path / "target"
         write_file(fp, "w", "me")
         assert fileutils.readfile_ascii(fp) == "me"
         af = self.kls(fp)
@@ -95,16 +95,16 @@ class TestAtomicWriteFile(TempDir):
         del af
         gc.collect()
         assert fileutils.readfile_ascii(fp) == "me"
-        assert len(os.listdir(self.dir)) == 1
+        assert len(os.listdir(tmp_path)) == 1
 
-    def test_close(self):
+    def test_close(self, tmp_path):
         # verify that we handle multiple closes; no exception is good.
-        af = self.kls(pjoin(self.dir, "target"))
+        af = self.kls(tmp_path / "target")
         af.close()
         af.close()
 
-    def test_discard(self):
-        fp = pjoin(self.dir, "target")
+    def test_discard(self, tmp_path):
+        fp = tmp_path / "target"
         write_file(fp, "w", "me")
         assert fileutils.readfile_ascii(fp) == "me"
         af = self.kls(fp)
@@ -129,7 +129,7 @@ def cpy_setup_class(scope, func_name):
     else:
         scope['func'] = staticmethod(getattr(fileutils, func_name))
 
-class Test_readfile(TempDir):
+class Test_readfile:
     func = staticmethod(fileutils.readfile)
 
     test_cases = ['asdf\nfdasswer\1923', '', '987234']
@@ -145,8 +145,8 @@ class Test_readfile(TempDir):
             return data.encode(encoding)
         return data
 
-    def test_it(self):
-        fp = pjoin(self.dir, 'testfile')
+    def test_it(self, tmp_path):
+        fp = tmp_path / 'testfile'
         for expected in self.test_cases:
             raised = None
             encoding = self.default_encoding
@@ -166,17 +166,17 @@ class Test_readfile(TempDir):
     def assertFunc(self, path, expected):
         assert self.func(path) == expected
 
-    def test_none_on_missing(self):
-        fp = pjoin(self.dir, 'nonexistent')
+    def test_none_on_missing(self, tmp_path):
+        fp = tmp_path / 'nonexistent'
         with pytest.raises(FileNotFoundError):
             self.func(fp)
-        assert self.func(fp, True) == None
+        assert self.func(fp, True) is None
         write_file(fp, 'wb', self.convert_data('dar', 'ascii'))
         assert self.func(fp, True) == self.none_on_missing_ret_data
 
         # ensure it handles paths that go through files-
         # still should be suppress
-        assert self.func(pjoin(fp, 'extra'), True) == None
+        assert self.func(fp / 'extra', True) is None
 
 
 class Test_readfile_ascii(Test_readfile):
@@ -199,7 +199,7 @@ class Test_readfile_bytes(Test_readfile):
         Test_readfile.none_on_missing_ret_data, 'ascii')
 
 
-class readlines_mixin(TempDir):
+class readlines_mixin:
 
     def assertFunc(self, path, expected):
         expected = tuple(expected.split())
@@ -209,20 +209,19 @@ class readlines_mixin(TempDir):
         if 'utf8' not in self.encoding_mode:
             assert tuple(self.func(path)) == expected
             return
-        data = tuple(self.func(path))
-        assert data == expected
+        assert tuple(self.func(path)) == expected
 
-    def test_none_on_missing(self):
-        fp = pjoin(self.dir, 'nonexistent')
+    def test_none_on_missing(self, tmp_path):
+        fp = tmp_path / 'nonexistent'
         with pytest.raises(FileNotFoundError):
             self.func(fp)
-        assert tuple(self.func(fp, False, True)) == ()
+        assert not tuple(self.func(fp, False, True))
         write_file(fp, 'wb', self.convert_data('dar', 'ascii'))
         assert tuple(self.func(fp, True)) == (self.none_on_missing_ret_data,)
-        assert tuple(self.func(pjoin(fp, 'missing'), False, True)) == ()
+        assert not tuple(self.func(fp / 'missing', False, True))
 
-    def test_strip_whitespace(self):
-        fp = pjoin(self.dir, 'data')
+    def test_strip_whitespace(self, tmp_path):
+        fp = tmp_path / 'data'
 
         write_file(fp, 'wb', self.convert_data(' dar1 \ndar2 \n dar3\n',
                                                     'ascii'))
@@ -308,20 +307,20 @@ class TestBrokenStats:
         assert func_data == data
 
 
-class Test_mmap_or_open_for_read(TempDir):
+class Test_mmap_or_open_for_read:
 
     func = staticmethod(fileutils.mmap_or_open_for_read)
 
-    def test_zero_length(self):
-        path = pjoin(self.dir, 'target')
+    def test_zero_length(self, tmp_path):
+        path = tmp_path / 'target'
         write_file(path, 'w', '')
         m, f = self.func(path)
         assert m is None
         assert f.read() == b''
         f.close()
 
-    def test_mmap(self, data=b'foonani'):
-        path = pjoin(self.dir, 'target')
+    def test_mmap(self, tmp_path, data=b'foonani'):
+        path = tmp_path / 'target'
         write_file(path, 'wb', data)
         m, f = self.func(path)
         assert len(m) == len(data)
@@ -330,10 +329,10 @@ class Test_mmap_or_open_for_read(TempDir):
         assert f is None
 
 
-class Test_mmap_and_close(TempDir):
+class Test_mmap_and_close:
 
-    def test_it(self):
-        path = pjoin(self.dir, 'target')
+    def test_it(self, tmp_path):
+        path = tmp_path / 'target'
         data = b'asdfasdf'
         write_file(path, 'wb', [data])
         fd, m = None, None

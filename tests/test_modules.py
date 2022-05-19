@@ -1,30 +1,28 @@
-import os
 import sys
 
 import pytest
 from snakeoil import modules
-from snakeoil.test.fixtures import TempDir
 
 
-class TestModules(TempDir):
+class TestModules:
 
-    def setup(self):
+    @pytest.fixture(autouse=True)
+    def _setup(self, tmp_path):
         # set up some test modules for our use
-        packdir = os.path.join(self.dir, 'mod_testpack')
-        os.mkdir(packdir)
+        packdir = tmp_path / 'mod_testpack'
+        packdir.mkdir()
         # create an empty file
-        open(os.path.join(packdir, '__init__.py'), 'w').close()
-        for directory in [self.dir, packdir]:
+        (packdir / '__init__.py').touch()
+
+        for directory in (tmp_path, packdir):
             for i in range(3):
-                with open(os.path.join(directory, 'mod_test%s.py' % i), 'w') as testmod:
-                    testmod.write('def foo(): pass\n')
-            with open(os.path.join(directory, 'mod_horked.py'), 'w') as horkedmod:
-                horkedmod.write('1/0\n')
-
+                (directory / f'mod_test{i}.py').write_text('def foo(): pass\n')
+            (directory / 'mod_horked.py').write_text('1/0\n')
         # append them to path
-        sys.path.insert(0, self.dir)
+        sys.path.insert(0, str(tmp_path))
 
-    def teardown(self):
+        yield
+
         # pop the test module dir from path
         sys.path.pop(0)
         # make sure we don't keep the sys.modules entries around

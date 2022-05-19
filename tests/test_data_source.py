@@ -3,12 +3,15 @@ from functools import partial
 import pytest
 from snakeoil import compression, data_source
 from snakeoil.osutils import pjoin
-from snakeoil.test.fixtures import TempDir
 
 
-class TestDataSource(TempDir):
+class TestDataSource:
 
     supports_mutable = True
+
+    @pytest.fixture(autouse=True)
+    def _setup(self, tmp_path):
+        self.dir = str(tmp_path)
 
     def get_obj(self, data="foonani", mutable=False):
         return data_source.data_source(data, mutable=mutable)
@@ -71,13 +74,13 @@ class TestDataSource(TempDir):
 
         self.assertContents(reader, writer)
 
-    def test_transfer_to_path(self):
+    def test_transfer_to_path(self, tmp_path):
         data = self._mk_data()
         reader = self.get_obj(data=data)
         if isinstance(reader, data_source.bz2_source):
-            writer = data_source.bz2_source(pjoin(self.dir, 'transfer_to_path'), mutable=True)
+            writer = data_source.bz2_source(tmp_path / 'transfer_to_path', mutable=True)
         else:
-            writer = data_source.local_source(pjoin(self.dir, 'transfer_to_path'), mutable=True)
+            writer = data_source.local_source(tmp_path / 'transfer_to_path', mutable=True)
 
         reader.transfer_to_path(writer.path)
 
@@ -148,9 +151,8 @@ class TestBz2Source(TestDataSource):
         data = "foonani\xf2".encode("utf8")
         obj = self.get_obj(data=data)
         # this will blow up if tries to ascii decode it.
-        f = obj.bytes_fileobj()
-        assert f.read() == data
-        f.close()
+        with obj.bytes_fileobj() as f:
+            assert f.read() == data
 
 
 class Test_invokable_data_source(TestDataSource):

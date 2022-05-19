@@ -14,71 +14,70 @@ from snakeoil.fileutils import touch, write_file
 from snakeoil.osutils import native_readdir, supported_systems
 from snakeoil.osutils.mount import MNT_DETACH, MS_BIND, mount, umount
 from snakeoil.test import mk_cpy_loadable_testcase
-from snakeoil.test.fixtures import TempDir
-
-pjoin = os.path.join
 
 
-class ReaddirCommon(TempDir):
+class ReaddirCommon:
 
     module = native_readdir
 
-    def setup(self):
-        self.subdir = pjoin(self.dir, 'dir')
-        os.mkdir(self.subdir)
-        touch(pjoin(self.dir, 'file'))
-        os.mkfifo(pjoin(self.dir, 'fifo'))
+    @pytest.fixture
+    def subdir(self, tmp_path):
+        subdir = tmp_path / 'dir'
+        subdir.mkdir()
+        (tmp_path / 'file').touch()
+        os.mkfifo((tmp_path / 'fifo'))
+        return subdir
 
-    def _test_missing(self, funcs):
+    def _test_missing(self, tmp_path, funcs):
         for func in funcs:
-            pytest.raises(OSError, func, pjoin(self.dir, 'spork'))
+            pytest.raises(OSError, func, tmp_path / 'spork')
 
 
 class TestNativeListDir(ReaddirCommon):
 
-    def test_listdir(self):
-        assert sorted(self.module.listdir(self.dir)) == ['dir', 'fifo', 'file']
-        assert self.module.listdir(self.subdir) == []
+    def test_listdir(self, tmp_path, subdir):
+        assert sorted(self.module.listdir(tmp_path)) == ['dir', 'fifo', 'file']
+        assert self.module.listdir(subdir) == []
 
-    def test_listdir_dirs(self):
-        assert self.module.listdir_dirs(self.dir) == ['dir']
-        assert self.module.listdir_dirs(self.subdir) == []
+    def test_listdir_dirs(self, tmp_path, subdir):
+        assert self.module.listdir_dirs(tmp_path) == ['dir']
+        assert self.module.listdir_dirs(subdir) == []
 
-    def test_listdir_files(self):
-        assert self.module.listdir_files(self.dir) == ['file']
-        assert self.module.listdir_dirs(self.subdir) == []
+    def test_listdir_files(self, tmp_path, subdir):
+        assert self.module.listdir_files(tmp_path) == ['file']
+        assert self.module.listdir_dirs(subdir) == []
 
-    def test_missing(self):
-        return self._test_missing((
+    def test_missing(self, tmp_path, subdir):
+        return self._test_missing(tmp_path, (
             self.module.listdir,
             self.module.listdir_dirs,
             self.module.listdir_files,
         ))
 
-    def test_dangling_sym(self):
-        os.symlink("foon", pjoin(self.dir, "monkeys"))
-        assert self.module.listdir_files(self.dir) == ['file']
+    def test_dangling_sym(self, tmp_path, subdir):
+        (tmp_path / "monkeys").symlink_to("foon")
+        assert self.module.listdir_files(tmp_path) == ['file']
 
 
 class TestNativeReaddir(ReaddirCommon):
     # TODO: test char/block devices and sockets, devices might be a bit hard
     # because it seems like you need to be root to create them in linux
 
-    def test_readdir(self):
-        os.symlink("foon", pjoin(self.dir, "monkeys"))
-        os.symlink(pjoin(self.dir, "file"), pjoin(self.dir, "sym"))
-        expected = set([
+    def test_readdir(self, tmp_path, subdir):
+        (tmp_path / "monkeys").symlink_to("foon")
+        (tmp_path / "sym").symlink_to(tmp_path / "file")
+        expected = {
             ("dir", "directory"),
             ("file", "file"),
             ("fifo", "fifo"),
             ("monkeys", "symlink"),
             ("sym", "symlink"),
-        ])
-        assert set(self.module.readdir(self.dir)) == expected
-        assert self.module.readdir(self.subdir) == []
+        }
+        assert set(self.module.readdir(tmp_path)) == expected
+        assert self.module.readdir(subdir) == []
 
-    def test_missing(self):
-        return self._test_missing((self.module.readdir,))
+    def test_missing(self, tmp_path):
+        return self._test_missing(tmp_path, (self.module.readdir,))
 
 
 try:
@@ -99,63 +98,63 @@ class TestCPyReaddir(TestNativeReaddir):
     module = _readdir
 
 
-class TestEnsureDirs(TempDir):
+class TestEnsureDirs:
 
     def check_dir(self, path, uid, gid, mode):
-        assert os.path.isdir(path)
+        assert path.is_dir()
         st = os.stat(path)
         assert stat.S_IMODE(st.st_mode) == mode, \
             '0%o != 0%o' % (stat.S_IMODE(st.st_mode), mode)
         assert st.st_uid == uid
         assert st.st_gid == gid
 
-    def test_ensure_dirs(self):
+    def test_ensure_dirs(self, tmp_path):
         # default settings
-        path = pjoin(self.dir, 'foo', 'bar')
+        path = tmp_path / 'foo' / 'bar'
         assert osutils.ensure_dirs(path)
         self.check_dir(path, os.geteuid(), os.getegid(), 0o777)
 
-    def test_minimal_nonmodifying(self):
-        path = pjoin(self.dir, 'foo', 'bar')
+    def test_minimal_nonmodifying(self, tmp_path):
+        path = tmp_path / 'foo' / 'bar'
         assert osutils.ensure_dirs(path, mode=0o755)
         os.chmod(path, 0o777)
         assert osutils.ensure_dirs(path, mode=0o755, minimal=True)
         self.check_dir(path, os.geteuid(), os.getegid(), 0o777)
 
-    def test_minimal_modifying(self):
-        path = pjoin(self.dir, 'foo', 'bar')
+    def test_minimal_modifying(self, tmp_path):
+        path = tmp_path / 'foo' / 'bar'
         assert osutils.ensure_dirs(path, mode=0o750)
         assert osutils.ensure_dirs(path, mode=0o005, minimal=True)
         self.check_dir(path, os.geteuid(), os.getegid(), 0o755)
 
-    def test_create_unwritable_subdir(self):
-        path = pjoin(self.dir, 'restricted', 'restricted')
+    def test_create_unwritable_subdir(self, tmp_path):
+        path = tmp_path / 'restricted' / 'restricted'
         # create the subdirs without 020 first
-        assert osutils.ensure_dirs(os.path.dirname(path))
+        assert osutils.ensure_dirs(path.parent)
         assert osutils.ensure_dirs(path, mode=0o020)
         self.check_dir(path, os.geteuid(), os.getegid(), 0o020)
         # unrestrict it
         osutils.ensure_dirs(path)
         self.check_dir(path, os.geteuid(), os.getegid(), 0o777)
 
-    def test_path_is_a_file(self):
+    def test_path_is_a_file(self, tmp_path):
         # fail if passed a path to an existing file
-        path = pjoin(self.dir, 'file')
+        path = tmp_path / 'file'
         touch(path)
-        assert os.path.isfile(path)
+        assert path.is_file()
         assert not osutils.ensure_dirs(path, mode=0o700)
 
-    def test_non_dir_in_path(self):
+    def test_non_dir_in_path(self, tmp_path):
         # fail if one of the parts of the path isn't a dir
-        path = pjoin(self.dir, 'file', 'dir')
-        touch(pjoin(self.dir, 'file'))
+        path = tmp_path / 'file' / 'dir'
+        (tmp_path / 'file').touch()
         assert not osutils.ensure_dirs(path, mode=0o700)
 
-    def test_mkdir_failing(self):
+    def test_mkdir_failing(self, tmp_path):
         # fail if os.mkdir fails
         with mock.patch('snakeoil.osutils.os.mkdir') as mkdir:
             mkdir.side_effect = OSError(30, 'Read-only file system')
-            path = pjoin(self.dir, 'dir')
+            path = tmp_path / 'dir'
             assert not osutils.ensure_dirs(path, mode=0o700)
 
             # force temp perms
@@ -163,11 +162,11 @@ class TestEnsureDirs(TempDir):
             mkdir.side_effect = OSError(17, 'File exists')
             assert not osutils.ensure_dirs(path, mode=0o700)
 
-    def test_chmod_or_chown_failing(self):
+    def test_chmod_or_chown_failing(self, tmp_path):
         # fail if chmod or chown fails
-        path = pjoin(self.dir, 'dir')
-        os.mkdir(path)
-        os.chmod(path, 0o750)
+        path = tmp_path / 'dir'
+        path.mkdir()
+        path.chmod(0o750)
 
         with mock.patch('snakeoil.osutils.os.chmod') as chmod, \
                 mock.patch('snakeoil.osutils.os.chown') as chown:
@@ -177,37 +176,37 @@ class TestEnsureDirs(TempDir):
             # the specified mode
             assert not osutils.ensure_dirs(path, mode=0o005, minimal=True)
             assert not osutils.ensure_dirs(path, mode=0o005, minimal=False)
-            os.rmdir(path)
+            path.rmdir()
 
             # chmod failure when resetting perms on parents
             assert not osutils.ensure_dirs(path, mode=0o400)
-            os.rmdir(path)
+            path.rmdir()
 
             # chown failure when resetting perms on parents
             chmod.side_effect = None
             chown.side_effect = OSError(5, 'Input/output error')
             assert not osutils.ensure_dirs(path, uid=1000, gid=1000, mode=0o400)
 
-    def test_reset_sticky_parent_perms(self):
+    def test_reset_sticky_parent_perms(self, tmp_path):
         # make sure perms are reset after traversing over sticky parents
-        sticky_parent = pjoin(self.dir, 'dir')
-        path = pjoin(sticky_parent, 'dir')
-        os.mkdir(sticky_parent)
-        os.chmod(sticky_parent, 0o2755)
+        sticky_parent = tmp_path / 'dir'
+        path = sticky_parent / 'dir'
+        sticky_parent.mkdir()
+        sticky_parent.chmod(0o2755)
         pre_sticky_parent = os.stat(sticky_parent)
         assert osutils.ensure_dirs(path, mode=0o700)
         post_sticky_parent = os.stat(sticky_parent)
         assert pre_sticky_parent.st_mode == post_sticky_parent.st_mode
 
-    def test_mode(self):
-        path = pjoin(self.dir, 'mode', 'mode')
+    def test_mode(self, tmp_path):
+        path = tmp_path / 'mode' / 'mode'
         assert osutils.ensure_dirs(path, mode=0o700)
         self.check_dir(path, os.geteuid(), os.getegid(), 0o700)
         # unrestrict it
         osutils.ensure_dirs(path)
         self.check_dir(path, os.geteuid(), os.getegid(), 0o777)
 
-    def test_gid(self):
+    def test_gid(self, tmp_path):
         # abuse the portage group as secondary group
         try:
             portage_gid = grp.getgrnam('portage').gr_gid
@@ -215,7 +214,7 @@ class TestEnsureDirs(TempDir):
             pytest.skip('the portage group does not exist')
         if portage_gid not in os.getgroups():
             pytest.skip('you are not in the portage group')
-        path = pjoin(self.dir, 'group', 'group')
+        path = tmp_path / 'group' / 'group'
         assert osutils.ensure_dirs(path, gid=portage_gid)
         self.check_dir(path, os.geteuid(), portage_gid, 0o777)
         assert osutils.ensure_dirs(path)
@@ -224,14 +223,14 @@ class TestEnsureDirs(TempDir):
         self.check_dir(path, os.geteuid(), os.getegid(), 0o777)
 
 
-class TestAbsSymlink(TempDir):
+class TestAbsSymlink:
 
-    def test_abssymlink(self):
-        target = pjoin(self.dir, 'target')
-        linkname = pjoin(self.dir, 'link')
-        os.mkdir(target)
-        os.symlink('target', linkname)
-        assert osutils.abssymlink(linkname) == target
+    def test_abssymlink(self, tmp_path):
+        target = tmp_path / 'target'
+        linkname = tmp_path / 'link'
+        target.mkdir()
+        linkname.symlink_to('target')
+        assert osutils.abssymlink(linkname) == str(target)
 
 
 class Test_Native_NormPath:
@@ -243,7 +242,7 @@ class Test_Native_NormPath:
 
         def check(src, val):
             got = f(src)
-            assert got == val, "%r: expected %r, got %r" % (src, val, got)
+            assert got == val, f"{src!r}: expected {val!r}, got {got!r}"
 
         check('/foo/', '/foo')
         check('//foo/', '/foo')
@@ -315,15 +314,15 @@ class Test_Cpy_Join:
 
 
 @pytest.mark.skipif(os.getuid() != 0, reason="these tests must be ran as root")
-class TestAccess(TempDir):
+class TestAccess:
 
     func = staticmethod(osutils.fallback_access)
 
-    def test_fallback(self):
-        fp = pjoin(self.dir, 'file')
+    def test_fallback(self, tmp_path):
+        fp = tmp_path / 'file'
         # create the file
-        touch(fp)
-        os.chmod(fp, 000)
+        fp.touch()
+        fp.chmod(0o000)
         assert not self.func(fp, os.X_OK)
         assert self.func(fp, os.W_OK)
         assert self.func(fp, os.R_OK)
@@ -331,17 +330,17 @@ class TestAccess(TempDir):
         assert not self.func(fp, os.W_OK | os.R_OK | os.X_OK)
 
 
-class Test_unlink_if_exists(TempDir):
+class Test_unlink_if_exists:
 
     func = staticmethod(osutils.unlink_if_exists)
 
-    def test_it(self):
+    def test_it(self, tmp_path):
         f = self.func
-        path = pjoin(self.dir, 'target')
+        path = tmp_path / 'target'
         f(path)
         write_file(path, 'w', '')
         f(path)
-        assert not os.path.exists(path)
+        assert not path.exists()
         # and once more for good measure...
         f(path)
 
@@ -388,13 +387,19 @@ class TestSupportedSystems:
 
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason='supported on Linux only')
-class TestMount(TempDir):
+class TestMount:
 
-    def setup(self):
-        self.source = pjoin(self.dir, 'source')
-        os.mkdir(self.source)
-        self.target = pjoin(self.dir, 'target')
-        os.mkdir(self.target)
+    @pytest.fixture
+    def source(self, tmp_path):
+        source = tmp_path / 'source'
+        source.mkdir()
+        return source
+
+    @pytest.fixture
+    def target(self, tmp_path):
+        target = tmp_path / 'target'
+        target.mkdir()
+        return target
 
     def test_args_bytes(self):
         # The initial source, target, and fstype arguments to mount(2) must be
@@ -405,7 +410,7 @@ class TestMount(TempDir):
                                        ('source', 'target', 'fstype')):
             with mock.patch('snakeoil.osutils.mount.ctypes') as mock_ctypes:
                 with pytest.raises(OSError):
-                    mount(source, target, fstype, MS_BIND)
+                    mount(str(source), str(target), fstype, MS_BIND)
                 mount_call = next(x for x in mock_ctypes.mock_calls if x[0] == 'CDLL().mount')
                 for arg in mount_call[1][0:3]:
                     assert isinstance(arg, bytes)
@@ -416,60 +421,59 @@ class TestMount(TempDir):
         assert cm.value.errno in (errno.EPERM, errno.ENOENT)
 
     @pytest.mark.skipif(os.getuid() == 0, reason='this test must be run as non-root')
-    def test_no_perms(self):
+    def test_no_perms(self, source, target):
         with pytest.raises(OSError) as cm:
-            mount(self.source, self.target, None, MS_BIND)
+            mount(str(source), str(target), None, MS_BIND)
         assert cm.value.errno in (errno.EPERM, errno.EACCES)
         with pytest.raises(OSError) as cm:
-            umount(self.target)
+            umount(str(target))
         assert cm.value.errno in (errno.EPERM, errno.EINVAL)
 
     @pytest.mark.skipif(not (os.path.exists('/proc/self/ns/mnt') and os.path.exists('/proc/self/ns/user')),
                         reason='user and mount namespace support required')
-    def test_bind_mount(self):
-        src_file = pjoin(self.source, 'file')
-        bind_file = pjoin(self.target, 'file')
-        touch(src_file)
+    def test_bind_mount(self, source, target):
+        src_file = source / 'file'
+        bind_file = target / 'file'
+        src_file.touch()
 
         try:
             with Namespace(user=True, mount=True):
-                assert not os.path.exists(bind_file)
-                mount(self.source, self.target, None, MS_BIND)
-                assert os.path.exists(bind_file)
-                umount(self.target)
-                assert not os.path.exists(bind_file)
+                assert not bind_file.exists()
+                mount(str(source), str(target), None, MS_BIND)
+                assert bind_file.exists()
+                umount(str(target))
+                assert not bind_file.exists()
         except PermissionError:
             pytest.skip('No permission to use user and mount namespace')
 
     @pytest.mark.skipif(not (os.path.exists('/proc/self/ns/mnt') and os.path.exists('/proc/self/ns/user')),
                    reason='user and mount namespace support required')
-    def test_lazy_unmount(self):
-        src_file = pjoin(self.source, 'file')
-        bind_file = pjoin(self.target, 'file')
-        touch(src_file)
-        with open(src_file, 'w') as f:
-            f.write('foo')
+    def test_lazy_unmount(self, source, target):
+        src_file = source / 'file'
+        bind_file = target / 'file'
+        src_file.touch()
+        src_file.write_text('foo')
 
         try:
             with Namespace(user=True, mount=True):
-                mount(self.source, self.target, None, MS_BIND)
-                assert os.path.exists(bind_file)
+                mount(str(source), str(target), None, MS_BIND)
+                assert bind_file.exists()
 
-                with open(bind_file) as f:
+                with bind_file.open() as f:
                     # can't unmount the target due to the open file
                     with pytest.raises(OSError) as cm:
-                        umount(self.target)
+                        umount(str(target))
                     assert cm.value.errno == errno.EBUSY
                     # lazily unmount instead
-                    umount(self.target, MNT_DETACH)
+                    umount(str(target), MNT_DETACH)
                     # confirm the file doesn't exist in the bind mount anymore
-                    assert not os.path.exists(bind_file)
+                    assert not bind_file.exists()
                     # but the file is still accessible to the process
                     assert f.read() == 'foo'
 
                 # trying to reopen causes IOError
                 with pytest.raises(IOError) as cm:
-                    f = open(bind_file)
+                    f = bind_file.open()
                 assert cm.value.errno == errno.ENOENT
         except PermissionError:
             pytest.skip('No permission to use user and mount namespace')
