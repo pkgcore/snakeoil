@@ -9,52 +9,56 @@ pjoin = os.path.join
 import pytest
 from snakeoil import _fileutils, currying, fileutils
 from snakeoil.fileutils import AtomicWriteFile, write_file
-from snakeoil.test.fixtures import RandomPath
+from snakeoil.test import random_str
 
 
-class TestTouch(RandomPath):
+class TestTouch:
 
-    def test_file_creation(self):
+    @pytest.fixture
+    def random_path(self, tmp_path):
+        return tmp_path / random_str(10)
+
+    def test_file_creation(self, random_path):
         orig_um = os.umask(0o000)
         try:
-            fileutils.touch(self.path)
+            fileutils.touch(random_path)
         finally:
             exiting_umask = os.umask(orig_um)
         assert exiting_umask == 0o000
-        assert os.path.exists(self.path)
-        assert os.stat(self.path).st_mode & 0o4777 == 0o644
+        assert random_path.exists()
+        assert random_path.stat().st_mode & 0o4777 == 0o644
 
-    def test_set_times(self):
-        fileutils.touch(self.path)
-        orig_stat = os.stat(self.path)
+    def test_set_times(self, random_path):
+        fileutils.touch(random_path)
+        orig_stat = random_path.stat()
         time.sleep(1)
-        fileutils.touch(self.path)
-        new_stat = os.stat(self.path)
+        fileutils.touch(random_path)
+        new_stat = random_path.stat()
         assert orig_stat.st_atime != new_stat.st_atime
         assert orig_stat.st_mtime != new_stat.st_mtime
 
-    def test_set_custom_times(self):
-        fileutils.touch(self.path)
-        orig_stat = os.stat(self.path)
+    def test_set_custom_times(self, random_path):
+        fileutils.touch(random_path)
+        orig_stat = random_path.stat()
         times = (1, 1)
-        fileutils.touch(self.path, times=times)
-        new_stat = os.stat(self.path)
+        fileutils.touch(random_path, times=times)
+        new_stat = random_path.stat()
         assert orig_stat != new_stat
         assert 1 == new_stat.st_atime
         assert 1 == new_stat.st_mtime
 
-    def test_set_custom_nstimes(self):
-        fileutils.touch(self.path)
-        orig_stat = os.stat(self.path)
+    def test_set_custom_nstimes(self, random_path):
+        fileutils.touch(random_path)
+        orig_stat = random_path.stat()
         ns = (1, 1)
-        fileutils.touch(self.path, ns=ns)
-        new_stat = os.stat(self.path)
+        fileutils.touch(random_path, ns=ns)
+        new_stat = random_path.stat()
 
         # system doesn't have nanosecond precision, try microseconds
         if new_stat.st_atime == 0:
             ns = (1000, 1000)
-            fileutils.touch(self.path, ns=ns)
-            new_stat = os.stat(self.path)
+            fileutils.touch(random_path, ns=ns)
+            new_stat = random_path.stat()
 
         assert orig_stat != new_stat
         assert ns[0] == new_stat.st_atime_ns
