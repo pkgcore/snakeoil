@@ -11,7 +11,7 @@ import pytest
 from snakeoil import osutils
 from snakeoil.contexts import Namespace
 from snakeoil.fileutils import touch, write_file
-from snakeoil.osutils import native_readdir, supported_systems
+from snakeoil.osutils import native_readdir, supported_systems, sizeof_fmt
 from snakeoil.osutils.mount import MNT_DETACH, MS_BIND, mount, umount
 from snakeoil.test import mk_cpy_loadable_testcase
 
@@ -483,3 +483,26 @@ Test_cpy_readdir_loaded = mk_cpy_loadable_testcase(
     "snakeoil.osutils._readdir", "snakeoil.osutils", "listdir", "listdir")
 Test_cpy_posix_loaded = mk_cpy_loadable_testcase(
     "snakeoil._posix", "snakeoil.osutils", "normpath", "normpath")
+
+
+class TestSizeofFmt:
+    expected = {
+        0: ("0.0 B", "0.0 B"),
+        1: ("1.0 B", "1.0 B"),
+        1000: ("1.0 kB", "1000.0 B"),
+        1024: ("1.0 kB", "1.0 KiB"),
+        1000**2: ("1.0 MB", "976.6 KiB"),
+        1024**2: ("1.0 MB", "1.0 MiB"),
+        1000**3: ("1.0 GB", "953.7 MiB"),
+        1024**3: ("1.1 GB", "1.0 GiB"),
+        1000**8: ("1.0 YB", "847.0 ZiB"),
+        1024**8: ("1.2 YB", "1.0 YiB"),
+        # TODO: fix sizeof_fmt()
+        # 1000**9: ("1000.0 YB", "827.2 YiB"),
+        # 1024**9: ("1237.9 YB", "1024.0 YiB"),
+    }
+
+    @pytest.mark.parametrize("binary", (False, True))
+    @pytest.mark.parametrize("size", sorted(expected))
+    def test_sizeof_fmt(self, size, binary):
+        assert sizeof_fmt(size, binary=binary) == self.expected[size][binary]
