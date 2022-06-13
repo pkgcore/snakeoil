@@ -497,9 +497,8 @@ class TestSizeofFmt:
         1024**3: ("1.1 GB", "1.0 GiB"),
         1000**8: ("1.0 YB", "847.0 ZiB"),
         1024**8: ("1.2 YB", "1.0 YiB"),
-        # TODO: fix sizeof_fmt()
-        # 1000**9: ("1000.0 YB", "827.2 YiB"),
-        # 1024**9: ("1237.9 YB", "1024.0 YiB"),
+        1000**9: ("1000.0 YB", "827.2 YiB"),
+        1024**9: ("1237.9 YB", "1024.0 YiB"),
     }
 
     @pytest.mark.parametrize("binary", (False, True))
