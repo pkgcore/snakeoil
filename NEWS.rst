@@ -2,6 +2,21 @@
 Release Notes
 =============
 
+snakeoil 0.9.11 (2022-07-29)
+----------------------------
+
+- Remove ``TempDir`` and ``RandomPath`` test fixtures. In case you used those
+  those fixtures, migrate to ``tmp_path`` and ``tmp_path / random_str(10)``
+  (Arthur Zamarin, #66)
+
+- osutil: ``sizeof_fmt()`` improvements and tests addition (Michał Górny, #67)
+
+- Fix distutils extension compatibility with setuptools. (Sam James, Arthur
+  Zamarin)
+
+- Force newer required version of ``cython``, so a Python 3.11 compatible
+  ``.c`` is generated (Arthur Zamarin)
+
 snakeoil 0.9.10 (2021-12-25)
 ----------------------------
 
