@@ -51,7 +51,9 @@ if REPODIR is None:
             REPODIR = os.path.dirname(os.path.abspath(_filename))
             break
     else:
-        raise ImportError('this module is only meant to be imported in setup.py scripts')
+        REPODIR = os.getcwd() # try CWD
+        if not os.path.exists(os.path.join(REPODIR, 'setup.py')):
+            raise ImportError('this module is only meant to be imported in setup.py scripts')
 
 # running under pip
 PIP = os.path.basename(os.environ.get('_', '')) == 'pip' or REPODIR.split(os.sep)[2].startswith('pip-')
