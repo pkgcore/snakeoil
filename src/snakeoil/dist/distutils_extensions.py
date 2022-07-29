@@ -50,6 +50,10 @@ if REPODIR is None:
         if os.path.basename(_filename) == 'setup.py':
             REPODIR = os.path.dirname(os.path.abspath(_filename))
             break
+        _filename_dir = os.path.dirname(os.path.abspath(_filename))
+        if os.path.exists(os.path.join(_filename_dir, 'setup.py')):
+            REPODIR = _filename_dir
+            break
     else:
         REPODIR = os.getcwd() # try CWD
         if not os.path.exists(os.path.join(REPODIR, 'setup.py')):
