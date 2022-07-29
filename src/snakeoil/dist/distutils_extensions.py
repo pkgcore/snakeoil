@@ -50,10 +50,6 @@ if REPODIR is None:
         if os.path.basename(_filename) == 'setup.py':
             REPODIR = os.path.dirname(os.path.abspath(_filename))
             break
-        elif os.path.basename(_filename) == 'distutils_extensions.py':
-            # https://github.com/pkgcore/snakeoil/issues/69
-            REPODIR = os.path.dirname(os.path.abspath(_filename + '../..'))
-            break
     else:
         raise ImportError('this module is only meant to be imported in setup.py scripts')
 
