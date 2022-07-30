@@ -1,5 +1,6 @@
 import errno
 import os
+import platform
 import random
 import socket
 import sys
@@ -108,6 +109,7 @@ class TestSplitExec:
 
 
 @pytest.mark.skipif(not sys.platform.startswith('linux'), reason='supported on Linux only')
+@pytest.mark.xfail(platform.python_implementation() == "PyPy", reason='Fails on PyPy')
 class TestNamespace:
 
     @pytest.mark.skipif(not os.path.exists('/proc/self/ns/user'),
