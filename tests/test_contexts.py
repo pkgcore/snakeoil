@@ -43,6 +43,7 @@ def test_syspath(tmpdir):
             assert mangled_syspath == tuple(sys.path)
 
 
+@pytest.mark.skip(reason='this currently breaks on github ci, https://github.com/pkgcore/snakeoil/issues/68')
 class TestSplitExec:
 
     def test_context_process(self):
