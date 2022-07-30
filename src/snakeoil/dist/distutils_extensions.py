@@ -60,7 +60,7 @@ if REPODIR is None:
             raise ImportError('this module is only meant to be imported in setup.py scripts')
 
 # running under pip
-PIP = os.path.basename(os.environ.get('_', '')) == 'pip' or REPODIR.split(os.sep)[2].startswith('pip-')
+PIP = os.path.basename(os.environ.get('_', '')) == 'pip' or any(part.startswith('pip-') for part in REPODIR.split(os.sep))
 
 # executable scripts directory
 SCRIPTS_DIR = os.path.join(REPODIR, 'bin')
