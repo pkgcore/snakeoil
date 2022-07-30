@@ -45,7 +45,7 @@ Snakeoil vcs of choice is `git <http://git.scm.org/>`_, and our source can be ch
 
 All releases are available at |release_url|\., with release news available at :ref:`releases`\.
 
-As for dependencies, snakeoil basically just requires python2.7 and up.
+As for dependencies, snakeoil basically just requires python3.8 and up.
 
 Snakeoil intentions
 ===================
@@ -62,19 +62,10 @@ to that end, and via a fair amount of unit testing, snakeoil internals will cove
 the nasty details of how to do something while presenting a simple/no surprises api
 for consumers.  Good examples of this are:
 
-* :py:class:`snakeoil.weakrefs.WeakRefFinalizer`, a metaclass allowing you to write `__del__` methods
-  without the gc cycle issues inherent in the cpython implementation previous to 3.4.
 * :py:class:`snakeoil.caching.WeakInstMeta`, a metaclass allowing you to inline instance
   reuse for immutable objects.  Essentially, why write multiple factory implementations?  Why not
   push it directly into instance generation itself so that the instance sharing is transparent,
   not requiring the consumer to know that it's occuring?
-* :py:class:`snakeoil.mappings.autoconvert_py3k_methods_metaclass`; 2to3 translation
-  will not rename methods, leaving anyone implementing the mapping protocol in a tough situation-
-  since py2k ``items`` differs greatly from py3k ``items`` (py3k's is essentially py2k's ``iteritems``),
-  developers targeting both py2k/py3k are in a tough spot.  Specifically, they wind up having to
-  write nasty if/else blocks into the code.  The purpose of this metaclass is to hide all of that
-  nastiness into a single spot- you write your class targeting py2k, the metaclass will rewrite
-  the method layouts to match py3k at runtime if used in a py3k environment.
 * :py:func:`snakeoil.obj.DelayedInstantiation`; a object proxy implementation that is effectively
   fully transparent for any non-builtin target proxying it does.  While proxying implementations
   exist, the authors are aware of none that are reusable in this fashion, nor any that address the
@@ -89,8 +80,7 @@ than worry about solving an issue someone else has already addressed essentially
 Supporting multiple python versions can be a pain
 -------------------------------------------------
 
-Another facet of snakeoil functionality is python compatibility- already mentioned was
-:py:class:`snakeoil.mappings.autoconvert_py3k_methods_metaclass`, :py:mod:`snakeoil.compatibility`
+Another facet of snakeoil functionality is python compatibility- :py:mod:`snakeoil.compatibility`
 is a separate module that exists to address compatibility issues across py2.7 to py3.4- whether it
 be intern moving to sys.intern, there is a significant amount of functionality in
 there to help with these issues.  Note that compatibility functionality that goes into that module
@@ -102,13 +92,13 @@ Optimizations
 -------------
 
 Snakeoil provides a fair amount of optimized implementations.  :py:mod:`snakeoil.osutils`
-is a good spot to start for file operations/path manipulations, optimized sequence flattening (:py:class:`snakeoil.lists.iflatten_instance`),
+is a good spot to start for file operations/path manipulations, optimized sequence flattening (:py:class:`snakeoil.sequences.iflatten_instance`),
 and optimized common patterns for class implementations (for example the :py:func:`snakeoil.klass.jit_attr` decorator which converts
 secondary calls to the cached attribute into c level lookup speeds).  There is a fair bit more
 than just those examples- it's in the readers interest to peruse our module docs, there is a fair amount
 available.
 
-For importation speed issues, we provide :py:mod:`snakeoil.demandload`- for anyone who has used bzrlib.lazy_import or
+For importation speed issues, we provide :py:mod:`snakeoil.demandload` - for anyone who has used bzrlib.lazy_import or
 hg's equivalent implementation, this should be familiar.  In effect, it allows you to delay importation till
 it's actually needed.  While it's not obvious, for well written scripts the time required for importation
 can be come a large problem leaving people either the option of splitting up all functionality (which can
@@ -118,9 +108,9 @@ As such, having a lazy importer is rather useful- your code still flows the same
 done only when something actually needs to access that functionality.
 
 While we provide speed optimized implementations, we also provide functionality for reduction of memory
-usage- for codebases with a large number of small dictionaries, :py:func:`snakeoil.obj.make_SlottedDict_kls` can
+usage- for codebases with a large number of small dictionaries, :py:func:`snakeoil.mappings.make_SlottedDict_kls` can
 reduce the memory requirement in the range of 75-95%.  For codebases that make extensive use of
-__slots__ for memory reasons, it's advised that they take a look at :py:class:`snakeoil.test.test_slot_shadowing`
+``__slots__`` for memory reasons, it's advised that they take a look at :py:class:`snakeoil.test.test_slot_shadowing`
 
 Avoiding Boilerplate (functionality to help with DRY- Don't Repeat Yourself)
 ----------------------------------------------------------------------------
