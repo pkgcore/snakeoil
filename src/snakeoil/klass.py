@@ -17,12 +17,13 @@ __all__ = (
 
 import inspect
 import itertools
+import typing
 from collections import deque
 from functools import partial, wraps
 from importlib import import_module
 from operator import attrgetter
 
-from . import caching
+from .caching import WeakInstMeta
 from .currying import post_curry
 
 sentinel = object()
@@ -107,7 +108,6 @@ def reflective_hash(attr):
     def __hash__(self):
         return getattr(self, attr)
     return __hash__
-
 
 def _internal_jit_attr(
         func, attr_name, singleton=None,
@@ -208,8 +208,7 @@ def generic_equality(name, bases, scope, real_type=type,
         attrlist = scope[attrlist]
     for x in attrlist:
         if not isinstance(x, str):
-            raise TypeError("all members of attrlist must be strings- "
-                            " got %r %s" % (type(x), repr(x)))
+            raise TypeError(f"all members of attrlist must be strings- got {type(x)!r} {x!r}")
 
     scope["__attr_comparison__"] = tuple(attrlist)
     scope.setdefault("__eq__", eq)
@@ -253,7 +252,7 @@ def inject_richcmp_methods_from_cmp(scope):
     compatibility
 
     Note that this just injects generic implementations such as :py:func:`generic_lt`;
-    if a method already exists, it will not override it.  This behaviour is primarily
+    if a method already exists, it will not override it.  This behavior is primarily
     beneficial if the developer wants to optimize one specific method- __lt__ for sorting
     reasons for example, but performance is less of a concern for the other
     rich comparison methods.
@@ -292,8 +291,7 @@ def inject_richcmp_methods_from_cmp(scope):
         scope.setdefault(key, func)
 
 
-class chained_getter(metaclass=partial(generic_equality, real_type=caching.WeakInstMeta)):
-
+class chained_getter(metaclass=partial(generic_equality, real_type=WeakInstMeta)):
     """
     object that will do multi part lookup, regardless of if it's in the context
     of an instancemethod or staticmethod.
@@ -348,7 +346,7 @@ class chained_getter(metaclass=partial(generic_equality, real_type=caching.WeakI
 
     def __hash__(self):
         # XXX shouldn't this hash to self.__class__ in addition?
-        # via the __eq__, it won't invalidly be the same, but stil..
+        # via the __eq__, it won't invalidly be the same, but still..
         return hash(self.namespace)
 
     def __call__(self, obj):
@@ -360,7 +358,7 @@ instance_attrgetter = chained_getter
 
 
 # we suppress the repr since if it's unmodified, it'll expose the id;
-# this annoyingly means our docs have to be recommited every change,
+# this annoyingly means our docs have to be recommitted every change,
 # even if no real code changed (since the id() continually moves)...
 class _singleton_kls:
 
@@ -384,7 +382,7 @@ def jit_attr(func, kls=_internal_jit_attr, uncached_val=_uncached_singleton):
         that will not be in use anywhere else.
     :return: functor implementing the described behaviour
     """
-    attr_name = "_%s" % func.__name__
+    attr_name = f"_{func.__name__}"
     return kls(func, attr_name, uncached_val, False)
 
 
@@ -482,7 +480,7 @@ def cached_property_named(name, kls=_internal_jit_attr, use_cls_setattr=False):
     >>> print(obj.attr)
     1
     """
-    return post_curry(kls, name, use_singleton=False, use_cls_setattr=False)
+    return post_curry(kls, name, use_singleton=False, use_cls_setattr=use_cls_setattr)
 
 
 def alias_attr(target_attr):
@@ -512,8 +510,7 @@ def alias_attr(target_attr):
     >>> print(o.recursive == foo.seq.__hash__)
     True
     """
-    return property(instance_attrgetter(target_attr),
-                    doc="alias to %s" % (target_attr,))
+    return property(instance_attrgetter(target_attr), doc=f"alias to {target_attr}")
 
 
 def cached_hash(func):
@@ -543,8 +540,7 @@ def cached_hash(func):
     def __hash__(self):
         val = getattr(self, '_hash', None)
         if val is None:
-            val = func(self)
-            object.__setattr__(self, '_hash', val)
+            object.__setattr__(self, '_hash', val := func(self))
         return val
     return __hash__
 
@@ -629,7 +625,7 @@ def patch(target, external_decorator=None):
         try:
             module, attr = target.rsplit('.', 1)
         except (TypeError, ValueError):
-            raise TypeError("invalid target: %r" % (target,))
+            raise TypeError(f"invalid target: {target!r}")
         module = _import_module(module)
         return module, attr
 
@@ -727,7 +723,7 @@ def alias_method(attr, name=None, doc=None):
         return grab_attr(self)(*a, **kw)
 
     if doc is None:
-        doc = "Method alias to invoke :py:meth:`%s`." % (attr,)
+        doc = f"Method alias to invoke :py:meth:`{attr}`."
 
     _asecond_level_call.__doc__ = doc
     if name:
@@ -764,13 +760,12 @@ def aliased(cls):
     """Class decorator used in combination with @alias method decorator."""
     orig_methods = cls.__dict__.copy()
     seen_aliases = set()
-    for name, method in orig_methods.items():
+    for _name, method in orig_methods.items():
         if hasattr(method, '_aliases'):
             collisions = method._aliases.intersection(orig_methods.keys() | seen_aliases)
             if collisions:
                 raise ValueError(
-                    "aliases collide with existing attributes: %s" % (
-                    {', '.join(collisions)},))
+                    f"aliases collide with existing attributes: {', '.join(collisions)}")
             seen_aliases |= method._aliases
             for alias in method._aliases:
                 setattr(cls, alias, method)
