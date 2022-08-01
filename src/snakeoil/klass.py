@@ -368,8 +368,9 @@ class _singleton_kls:
 
 _uncached_singleton = _singleton_kls
 
+T = typing.TypeVar('T')
 
-def jit_attr(func, kls=_internal_jit_attr, uncached_val=_uncached_singleton):
+def jit_attr(func: typing.Callable[[typing.Any], T], kls=_internal_jit_attr, uncached_val: typing.Any=_uncached_singleton) -> T:
     """
     decorator to JIT generate, and cache the wrapped functions result in
     '_' + func.__name__ on the instance.
@@ -386,7 +387,7 @@ def jit_attr(func, kls=_internal_jit_attr, uncached_val=_uncached_singleton):
     return kls(func, attr_name, uncached_val, False)
 
 
-def jit_attr_none(func, kls=_internal_jit_attr):
+def jit_attr_none(func: typing.Callable[[typing.Any], T], kls=_internal_jit_attr) -> T:
     """
     Version of :py:func:`jit_attr` decorator that forces the uncached_val
     to None.
@@ -398,8 +399,8 @@ def jit_attr_none(func, kls=_internal_jit_attr):
     return jit_attr(func, kls=kls, uncached_val=None)
 
 
-def jit_attr_named(stored_attr_name, use_cls_setattr=False, kls=_internal_jit_attr,
-                   uncached_val=_uncached_singleton, doc=None):
+def jit_attr_named(stored_attr_name: str, use_cls_setattr=False, kls=_internal_jit_attr,
+                   uncached_val: typing.Any=_uncached_singleton, doc=None):
     """
     Version of :py:func:`jit_attr` decorator that allows for explicit control over the
     attribute name used to store the cache value.
@@ -409,9 +410,9 @@ def jit_attr_named(stored_attr_name, use_cls_setattr=False, kls=_internal_jit_at
     return post_curry(kls, stored_attr_name, uncached_val, use_cls_setattr, doc=doc)
 
 
-def jit_attr_ext_method(func_name, stored_attr_name,
+def jit_attr_ext_method(func_name: str, stored_attr_name: str,
                         use_cls_setattr=False, kls=_internal_jit_attr,
-                        uncached_val=_uncached_singleton, doc=None):
+                        uncached_val: typing.Any=_uncached_singleton, doc=None):
     """
     Decorator handing maximal control of attribute JIT'ing to the invoker.
 
@@ -424,7 +425,7 @@ def jit_attr_ext_method(func_name, stored_attr_name,
                uncached_val, use_cls_setattr, doc=doc)
 
 
-def cached_property(func, kls=_internal_jit_attr, use_cls_setattr=False):
+def cached_property(func: typing.Callable[[typing.Any], T], kls=_internal_jit_attr, use_cls_setattr=False) -> T:
     """
     like `property`, just with caching
 
@@ -457,7 +458,7 @@ def cached_property(func, kls=_internal_jit_attr, use_cls_setattr=False):
                use_cls_setattr=use_cls_setattr)
 
 
-def cached_property_named(name, kls=_internal_jit_attr, use_cls_setattr=False):
+def cached_property_named(name: str, kls=_internal_jit_attr, use_cls_setattr=False):
     """
     variation of `cached_property`, just with the ability to explicitly set the attribute name
 
