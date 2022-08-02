@@ -27,27 +27,26 @@ is usable under both py2k and py3k.
 """
 
 # TODO: deprecated, remove in 0.9.0
-__all__ = ('text_readonly', 'text_writable', 'bytes_readonly', 'bytes_writable')
+__all__ = ('text_readonly', 'bytes_readonly')
 
 import io
 
-from . import currying
+
+def _generic_immutable_method(self, *a, **kwds):
+    raise TypeError(f"{self} isn't opened for writing")
 
 
-def _generic_immutable_method(attr, self, *a, **kwds):
-    raise TypeError("%s isn't opened for writing" % (self,))
+class _make_ro_cls(type):
+    def __new__(cls, name, bases, dct):
+        x = super().__new__(cls, name, bases, dct)
+        for k in ("write", "writelines", "truncate"):
+            setattr(x, k, _generic_immutable_method)
+        return x
 
 
-def _make_ro_cls(base_cls, name):
-    class kls(base_cls):
-        __slots__ = ()
-        locals().update((k, currying.pre_curry(_generic_immutable_method, k))
-                        for k in ["write", "writelines", "truncate"])
-    kls.__name__ = name
-    return kls
+class text_readonly(io.StringIO, metaclass=_make_ro_cls):
+    ...
 
 
-text_writable = io.StringIO
-bytes_writable = io.BytesIO
-text_readonly = _make_ro_cls(io.StringIO, 'text_readonly')
-bytes_readonly = _make_ro_cls(io.BytesIO, 'bytes_readonly')
+class bytes_readonly(io.BytesIO, metaclass=_make_ro_cls):
+    ...
