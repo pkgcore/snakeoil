@@ -56,7 +56,7 @@ class Color(FormatterObject):
         self.color = color
 
     def __repr__(self):
-        return '<Color: mode - %s; color - %s>' % (self.mode, self.color)
+        return f'<Color: mode - {self.mode}; color - {self.color}>'
 
 
 class Reset(FormatterObject):
@@ -115,8 +115,8 @@ class FakeStreamFormatter(PlainTextFormatter):
 
     def get_text_stream(self):
         return b''.join(
-            [x for x in self.stream
-             if not isinstance(x, FormatterObject)]).decode('ascii')
+            (x for x in self.stream
+             if not isinstance(x, FormatterObject))).decode('ascii')
 
 
 class ArgParseMixin:

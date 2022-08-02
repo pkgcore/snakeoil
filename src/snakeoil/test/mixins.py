@@ -52,16 +52,16 @@ class PythonNamespaceWalker:
 
     ignore_all_import_failures = False
 
-    valid_inits = frozenset("__init__.%s" % x for x in ("py", "pyc", "pyo", "so"))
+    valid_inits = frozenset(f"__init__.{x}" for x in ("py", "pyc", "pyo", "so"))
 
     # This is for py3.2/PEP3149; dso's now have the interp + major/minor embedded
     # in the name.
     # TODO: update this for pypy's naming
     abi_target = 'cpython-%i%i' % tuple(sys.version_info[:2])
 
-    module_blacklist = frozenset([
+    module_blacklist = frozenset({
         'snakeoil.cli.arghparse', 'snakeoil.pickling',
-    ])
+    })
 
     def _default_module_blacklister(self, target):
         return target in self.module_blacklist or target.startswith('snakeoil.dist')
@@ -80,7 +80,7 @@ class PythonNamespaceWalker:
             mangle = lambda x: x
         else:
             orig_namespace = namespace
-            mangle = lambda x: "%s.%s" % (orig_namespace, x)
+            mangle = lambda x: f"{orig_namespace}.{x}"
         if blacklist_func is None:
             blacklist_func = self._default_module_blacklister
         for mod_name in feed:
@@ -109,7 +109,7 @@ class PythonNamespaceWalker:
         else:
             yield None
 
-        stats = []
+        stats: list[tuple[str, int]] = []
         for x in l:
             try:
                 stats.append((x, os.stat(os.path.join(location, x)).st_mode))
@@ -119,11 +119,11 @@ class PythonNamespaceWalker:
                 # file disappeared under our feet... lock file from
                 # trial can cause this.  ignore.
                 import logging
-                logging.debug("file %r disappeared under our feet, ignoring" %
-                              (os.path.join(location, x)))
+                logging.debug("file %r disappeared under our feet, ignoring",
+                              os.path.join(location, x))
 
         seen = set(['__init__'])
-        for (x, st) in stats:
+        for x, st in stats:
             if not (x.startswith(".") or x.endswith("~")) and stat.S_ISREG(st):
                 if (x.endswith(".py") or x.endswith(".pyc")
                         or x.endswith(".pyo") or x.endswith(".so")):
@@ -138,22 +138,22 @@ class PythonNamespaceWalker:
                         seen.add(y)
                         yield y
 
-        for (x, st) in stats:
+        for x, st in stats:
             if stat.S_ISDIR(st):
                 for y in self.recurse(os.path.join(location, x)):
                     if y is None:
                         yield x
                     else:
-                        yield "%s.%s" % (x, y)
+                        yield f"{x}.{y}"
 
     @staticmethod
-    def poor_mans_load(namespace, existance_check=False):
+    def poor_mans_load(namespace, existence_check=False):
         try:
             obj = __import__(namespace)
-            if existance_check:
+            if existence_check:
                 return True
         except:
-            if existance_check:
+            if existence_check:
                 return False
             raise
         for chunk in namespace.split(".")[1:]:
@@ -162,10 +162,9 @@ class PythonNamespaceWalker:
             except IGNORED_EXCEPTIONS:
                 raise
             except AttributeError:
-                raise AssertionError("failed importing target %s" % namespace)
+                raise AssertionError(f"failed importing target {namespace}")
             except Exception as e:
-                raise AssertionError("failed importing target %s; error %s"
-                                     % (namespace, e))
+                raise AssertionError(f"failed importing target {namespace}; error {e}")
         return obj
 
 

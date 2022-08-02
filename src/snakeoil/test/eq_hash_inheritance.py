@@ -17,7 +17,7 @@ class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker):
         if getattr(cls, "__hash__intentionally_disabled__", False):
             return True
 
-        namepath = "%s.%s" % (cls.__module__, cls.__name__)
+        namepath = "{cls.__module__}.{cls.__name__}"
         return not namepath.startswith(self.target_namespace)
 
     def run_check(self, cls):
@@ -37,10 +37,10 @@ class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker):
 
         # pylint: disable=undefined-loop-variable
         # 'parent' is guaranteed to be defined due to the 'else' clause above
-        assert getattr(cls, '__hash__') != None, (
-            "class '%s.%s' had its __hash__ reset, while it would've inherited "
-            "__hash__ from parent '%s.%s'; this occurs in py3k when __eq__ is "
-            "defined alone.  If this is desired behaviour, set "
+        assert getattr(cls, '__hash__') is not None, (
+            f"class '{cls.__module__}.{cls.__name__}' had its __hash__ reset, "
+            "while it would've inherited __hash__ from parent "
+            f"'{parent.__module__}.{parent.__name__}'; this occurs in py3k when "
+            "__eq__ is  defined alone.  If this is desired behaviour, set "
             "__hash__intentionally_disabled__ to True to explicitly ignore this"
-            " class" % (cls.__module__, cls.__name__, parent.__module__,
-                        parent.__name__))
+            " class")

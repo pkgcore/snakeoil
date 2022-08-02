@@ -10,9 +10,8 @@ class DemandLoadTargets(mixins.PythonNamespaceWalker):
         self._failures = []
 
     def teardown_method(self, method):
-        msg = "\n".join(sorted("%s: error %s" % (target, e)
-                               for target, e in self._failures))
-        assert not self._failures, "bad demandload targets:\n%s" % (msg,)
+        msg = "\n".join(sorted(f"{target}: error {e}" for target, e in self._failures))
+        assert not self._failures, "bad demandload targets:\n" + msg
 
     def test_demandload_targets(self):
         for x in self.walk_namespace(
@@ -28,4 +27,4 @@ class DemandLoadTargets(mixins.PythonNamespaceWalker):
                 getattr(obj, "__class__", None)
             except ImportError as ie:
                 # hit one.
-                self._failures.append(("%s: target %s" % (mod.__name__, attr), ie))
+                self._failures.append((f"{mod.__name__}: target {attr}", ie))

@@ -11,4 +11,4 @@ class ExportedModules(mixins.PythonNamespaceWalker):
             for target in getattr(module, '__all__', ()):
                 if not hasattr(module, target):
                     failures.append((module, target))
-        assert not failures, "nonexistent __all__ targets spotted: %s" % (failures,)
+        assert not failures, f"nonexistent __all__ targets spotted: {failures}"
