@@ -39,6 +39,7 @@ __all__ = (
 
 import errno
 from functools import partial
+import io
 
 from . import compression, fileutils, klass, stringio
 from .currying import post_curry
@@ -54,12 +55,12 @@ def _mk_writable_cls(base, name):
     """
 
     class kls(base):
-        __doc__ = """
-        writable %s StringIO instance suitable for usage as a data_source filehandle
+        __doc__ = f"""
+        writable {name.split("_")[0]} StringIO instance suitable for usage as a data_source filehandle
 
         This adds a callback for updating the original data source, and appropriate
         exceptions attribute
-        """ % (name.split("_")[0],)
+        """
 
 
         base_cls = base
@@ -88,8 +89,8 @@ def _mk_writable_cls(base, name):
     return kls
 
 
-text_wr_StringIO = _mk_writable_cls(stringio.text_writable, "text_wr_StringIO")
-bytes_wr_StringIO = _mk_writable_cls(stringio.bytes_writable, "bytes_wr_StringIO")
+text_wr_StringIO = _mk_writable_cls(io.StringIO, "text_wr_StringIO")
+bytes_wr_StringIO = _mk_writable_cls(io.BytesIO, "bytes_wr_StringIO")
 
 
 class text_ro_StringIO(stringio.text_readonly):
@@ -342,7 +343,7 @@ class data_source(base):
 class text_data_source(data_source):
     """Text data source.
 
-    This does autoconversionbetween bytes/text as needed.
+    This does auto-conversion between bytes/text as needed.
     """
 
     __slots__ = ()
@@ -362,7 +363,7 @@ class text_data_source(data_source):
 class bytes_data_source(data_source):
     """Bytes data source.
 
-    This does autoconversion between bytes/text as needed.
+    This does auto-conversion between bytes/text as needed.
     """
 
     __slots__ = ()
