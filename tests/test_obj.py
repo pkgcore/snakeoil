@@ -22,8 +22,8 @@ class TestDelayedInstantiation:
         def assertKls(cls, ignores=(),
                       default_ignores=("__new__", "__init__", "__init_subclass__",
                                        "__getattribute__", "__class__",
-                                       "__getnewargs__", "__doc__",
-                                       "__class_getitem__")):
+                                       "__getnewargs__", "__getstate__",
+                                       "__doc__", "__class_getitem__")):
             required = set(x for x in dir(cls)
                            if x.startswith("__") and x.endswith("__"))
             missing = required.difference(obj.kls_descriptors)
@@ -43,8 +43,8 @@ class TestDelayedInstantiation:
     def test_BaseDelayedObject(self):
         # assert that all methods/descriptors of object
         # are covered via the base.
-        o = set(dir(object)).difference("__%s__" % x for x in [
-            "class", "getattribute", "new", "init", "init_subclass", "doc"])
+        o = set(dir(object)).difference(f"__{x}__" for x in (
+            "class", "getattribute", "new", "init", "init_subclass", "getstate", "doc"))
         diff = o.difference(obj.base_kls_descriptors)
         assert not diff, ("base delayed instantiation class should cover all of object, but "
                           "%r was spotted" % (",".join(sorted(diff)),))
