@@ -218,7 +218,7 @@ class _classWalker:
 class SubclassWalker(_classWalker):
 
     def walk_derivatives(self, cls, seen=None):
-        if cls == type:
+        if len(inspect.signature(cls.__subclasses__).parameters) != 0:
             return
         if seen is None:
             seen = set()
@@ -238,7 +238,7 @@ class SubclassWalker(_classWalker):
 class KlassWalker(_classWalker):
 
     def walk_derivatives(self, cls, seen=None):
-        if cls == type:
+        if len(inspect.signature(cls.__subclasses__).parameters) != 0:
             return
 
         if seen is None:
