@@ -2,6 +2,17 @@
 Release Notes
 =============
 
+snakeoil 0.9.12 (2022-08-08)
+----------------------------
+
+- distutils_extensions: fix pip detection for editable installs (Arthur
+  Zamarin)
+
+- ci: Update cibuildwheel - should fix generation of wheels for CPython 3.10
+  and PyPy 3.9 (Arthur Zamarin)
+
+- fix and port snakeoil to Python 3.11 (Arthur Zamarin, Sam James, #73)
+
 snakeoil 0.9.11 (2022-07-29)
 ----------------------------
 
