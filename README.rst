@@ -5,7 +5,7 @@ snakeoil
 ========
 
 snakeoil is a python library that implements optimized versions of common
-python functionality. Some classes and functions have cpython equivalents,
+python functionality. Some classes and functions have cython equivalents,
 but they all have native python implementations too.
 
 Installing
