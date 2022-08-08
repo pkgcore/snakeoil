@@ -5,7 +5,7 @@ Note that the delayed instantiation/proxying that is in use here goes several st
 beyond your average proxy implementation- this functionality will take every
 step possible to make the proxy appear as if there was _no_ proxy at all.
 
-Specifically this functionality is aware of cpython VM/interpretter semantics-
+Specifically this functionality is aware of cpython VM/interpreter semantics-
 cpython doesn't use __getattribute__ to pull certain methods (`__str__` is an
 example most people are aware of of, `__call__`, `__getitem__`, etc are ones most
 aren't).  Delayed instantiation is significantly complicated when these methods
