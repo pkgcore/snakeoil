@@ -58,6 +58,11 @@ jobs:
         sha512sum dist/*
         tar -ztf dist/*.tar.gz | sort
 
+    - uses: actions/upload-artifact@v3
+      with:
+        name: results
+        path: dist/*
+
     - name: Install twine and check files
       run: |
         pip install twine wheel-inspect
