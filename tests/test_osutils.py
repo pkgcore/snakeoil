@@ -13,12 +13,9 @@ from snakeoil.contexts import Namespace
 from snakeoil.fileutils import touch, write_file
 from snakeoil.osutils import native_readdir, supported_systems, sizeof_fmt
 from snakeoil.osutils.mount import MNT_DETACH, MS_BIND, mount, umount
-from snakeoil.test import mk_cpy_loadable_testcase
 
 
 class ReaddirCommon:
-
-    module = native_readdir
 
     @pytest.fixture
     def subdir(self, tmp_path):
@@ -36,27 +33,27 @@ class ReaddirCommon:
 class TestNativeListDir(ReaddirCommon):
 
     def test_listdir(self, tmp_path, subdir):
-        assert sorted(self.module.listdir(tmp_path)) == ['dir', 'fifo', 'file']
-        assert self.module.listdir(subdir) == []
+        assert set(native_readdir.listdir(tmp_path)) == {'dir', 'fifo', 'file'}
+        assert native_readdir.listdir(subdir) == []
 
     def test_listdir_dirs(self, tmp_path, subdir):
-        assert self.module.listdir_dirs(tmp_path) == ['dir']
-        assert self.module.listdir_dirs(subdir) == []
+        assert native_readdir.listdir_dirs(tmp_path) == ['dir']
+        assert native_readdir.listdir_dirs(subdir) == []
 
     def test_listdir_files(self, tmp_path, subdir):
-        assert self.module.listdir_files(tmp_path) == ['file']
-        assert self.module.listdir_dirs(subdir) == []
+        assert native_readdir.listdir_files(tmp_path) == ['file']
+        assert native_readdir.listdir_dirs(subdir) == []
 
     def test_missing(self, tmp_path, subdir):
         return self._test_missing(tmp_path, (
-            self.module.listdir,
-            self.module.listdir_dirs,
-            self.module.listdir_files,
+            native_readdir.listdir,
+            native_readdir.listdir_dirs,
+            native_readdir.listdir_files,
         ))
 
     def test_dangling_sym(self, tmp_path, subdir):
         (tmp_path / "monkeys").symlink_to("foon")
-        assert self.module.listdir_files(tmp_path) == ['file']
+        assert native_readdir.listdir_files(tmp_path) == ['file']
 
 
 class TestNativeReaddir(ReaddirCommon):
@@ -73,29 +70,11 @@ class TestNativeReaddir(ReaddirCommon):
             ("monkeys", "symlink"),
             ("sym", "symlink"),
         }
-        assert set(self.module.readdir(tmp_path)) == expected
-        assert self.module.readdir(subdir) == []
+        assert set(native_readdir.readdir(tmp_path)) == expected
+        assert native_readdir.readdir(subdir) == []
 
     def test_missing(self, tmp_path):
-        return self._test_missing(tmp_path, (self.module.readdir,))
-
-
-try:
-    # No name "readdir" in module osutils
-    # pylint: disable=E0611
-    from snakeoil.osutils import _readdir
-except ImportError:
-    _readdir = None
-
-
-@pytest.mark.skipif(_readdir is None, reason="extension isn't compiled")
-class TestCPyListDir(TestNativeListDir):
-    module = _readdir
-
-
-@pytest.mark.skipif(_readdir is None, reason="extension isn't compiled")
-class TestCPyReaddir(TestNativeReaddir):
-    module = _readdir
+        return self._test_missing(tmp_path, (native_readdir.readdir,))
 
 
 class TestEnsureDirs:
@@ -432,10 +411,6 @@ class TestMount:
                 assert cm.value.errno == errno.ENOENT
         except PermissionError:
             pytest.skip('No permission to use user and mount namespace')
-
-
-Test_cpy_readdir_loaded = mk_cpy_loadable_testcase(
-    "snakeoil.osutils._readdir", "snakeoil.osutils", "listdir", "listdir")
 
 
 class TestSizeofFmt:

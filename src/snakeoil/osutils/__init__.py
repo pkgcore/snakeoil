@@ -44,13 +44,7 @@ import os
 import stat
 import sys
 
-# No name '_readdir' in module osutils
-# pylint: disable=E0611
-
-try:
-    from . import _readdir as module
-except ImportError:
-    from . import native_readdir as module
+from . import native_readdir as module
 
 # delay this... it's a 1ms hit, and not a lot of the consumers
 # force utf8 codepaths yet.
