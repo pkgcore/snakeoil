@@ -7,6 +7,7 @@ __all__ = (
 )
 
 from operator import itemgetter
+from typing import Any, Callable, Iterable, Type
 
 from .iterables import expandable_chain
 from .klass import steal_docs
@@ -89,7 +90,7 @@ def iter_stable_unique(iterable):
         break
 
 
-def native_iflatten_instance(l, skip_flattening=(str, bytes)):
+def iflatten_instance(l: Iterable, skip_flattening: Iterable[Type] = (str, bytes)) -> Iterable:
     """collapse [[1],2] into [1,2]
 
     :param skip_flattening: list of classes to not descend through
@@ -113,7 +114,7 @@ def native_iflatten_instance(l, skip_flattening=(str, bytes)):
         pass
 
 
-def native_iflatten_func(l, skip_func):
+def iflatten_func(l: Iterable, skip_func: Callable[[Any], bool]) -> Iterable:
     """collapse [[1],2] into [1,2]
 
     :param skip_func: a callable that returns True when iflatten_func should
@@ -134,18 +135,6 @@ def native_iflatten_func(l, skip_func):
                 yield x
     except StopIteration:
         pass
-
-
-try:
-    # No name "readdir" in module osutils
-    # pylint: disable=E0611
-    from ._sequences import iflatten_func, iflatten_instance
-    cpy_builtin = True
-except ImportError:
-    cpy_builtin = False
-    cpy_iflatten_instance = cpy_iflatten_func = None
-    iflatten_instance = native_iflatten_instance
-    iflatten_func = native_iflatten_func
 
 
 class ChainedLists:

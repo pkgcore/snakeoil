@@ -5,7 +5,6 @@ from operator import itemgetter
 import pytest
 from snakeoil import sequences
 from snakeoil.sequences import split_elements, split_negations
-from snakeoil.test import mk_cpy_loadable_testcase
 
 
 class UnhashableComplex(complex):
@@ -25,7 +24,7 @@ class TestStableUnique:
 
     def test_stable_unique(self, func=sequences.stable_unique):
         assert list(set([1, 2, 3])) == [1, 2, 3], \
-            "this test is reliant on the interpretter hasing 1,2,3 into a specific ordering- " \
+            "this test is reliant on the interpreter hasing 1,2,3 into a specific ordering- " \
             "for whatever reason, ordering differs, thus this test can't verify it"
         assert func([3, 2, 1]) == [3, 2, 1]
 
@@ -104,7 +103,7 @@ class TestChainedLists:
 
 
 class Test_iflatten_instance:
-    func = staticmethod(sequences.native_iflatten_instance)
+    func = staticmethod(sequences.iflatten_instance)
 
     def test_it(self):
         o = OrderedDict((k, None) for k in range(10))
@@ -144,7 +143,7 @@ class Test_iflatten_instance:
 
 
 class Test_iflatten_func:
-    func = staticmethod(sequences.native_iflatten_func)
+    func = staticmethod(sequences.iflatten_func)
 
     def test_it(self):
         o = OrderedDict((k, None) for k in range(10))
@@ -177,18 +176,8 @@ class Test_iflatten_func:
             next(iterator)
 
         # Regression test: this was triggered through demandload.
-        # **{} is there to explicitly force a dict to the underly cpy
+        # **{} is there to explicitly force a dict to the underlay cpy
         assert self.func((), lambda x: True, **{})
-
-
-@pytest.mark.skipif(not sequences.cpy_builtin, reason="cpython extension isn't available")
-class Test_CPY_iflatten_instance(Test_iflatten_instance):
-    func = staticmethod(sequences.iflatten_instance)
-
-
-@pytest.mark.skipif(not sequences.cpy_builtin, reason="cpython extension isn't available")
-class Test_CPY_iflatten_func(Test_iflatten_func):
-    func = staticmethod(sequences.iflatten_func)
 
 
 class Test_predicate_split:
@@ -205,10 +194,6 @@ class Test_predicate_split:
                                    key=itemgetter(1))
         assert false_l == [[0, x] for x in range(1, 100, 2)]
         assert true_l == [[0, x] for x in range(0, 100, 2)]
-
-
-cpy_loaded_Test = mk_cpy_loadable_testcase(
-    "snakeoil._sequences", "snakeoil.sequences", "iflatten_func", "iflatten_func")
 
 
 class TestSplitNegations:
