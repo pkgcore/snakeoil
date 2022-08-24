@@ -235,7 +235,7 @@ class TestAbsSymlink:
 
 class Test_Native_NormPath:
 
-    func = staticmethod(osutils.native_normpath)
+    func = staticmethod(osutils.normpath)
 
     def test_normpath(self):
         f = self.func
@@ -266,51 +266,6 @@ class Test_Native_NormPath:
         check(b'/tm\xe1\xb9\x95/f\xc3\xb6o//../d\xc3\xa1r', b'/tm\xe1\xb9\x95/d\xc3\xa1r')
         check('/föó/..', '/')
         check(b'/f\xc3\xb6\xc3\xb3/..', b'/')
-
-
-@pytest.mark.skipif(osutils.normpath is osutils.native_normpath, reason="extension isn't compiled")
-class Test_Cpy_NormPath(Test_Native_NormPath):
-    func = staticmethod(osutils.normpath)
-
-
-@pytest.mark.skipif(osutils.join is osutils.native_join, reason="extension isn't compiled")
-class Test_Cpy_Join:
-
-    def test_reimplementation(self):
-        vals = [
-            [""],
-            ["foo"],
-            ["", "foo"],
-            ["foo", "dar"],
-            ["foo", "/bar"],
-            ["/bar", "dar"],
-            ["/bar", "../dar"],
-            ["", "../dar"],
-            ["/bár", "dãr"],
-            [b"/b\xc3\xa1r", b"d\xc3\xa3r"],
-        ]
-
-        for x in vals:
-            assert osutils.native_join(*x) == osutils.join(*x), \
-                "for %r, expected %r, got %r" % (
-                    val, osutils.native_join(*x), osutils.join(*x))
-
-    # proper type checking was done in py3.5
-    @pytest.mark.skipif(sys.hexversion < 0x03050000, reason='requires >=py3.5')
-    def test_reimplementation_errors(self):
-        # various type errors
-        errors = [
-            [],
-            [1],
-            ["foo", 1],
-            ["foo", "/bar", []],
-        ]
-
-        for x in errors:
-            with pytest.raises(TypeError):
-                osutils.native_join(*x)
-            with pytest.raises(TypeError):
-                osutils.join(*x)
 
 
 @pytest.mark.skipif(os.getuid() != 0, reason="these tests must be ran as root")
@@ -481,8 +436,6 @@ class TestMount:
 
 Test_cpy_readdir_loaded = mk_cpy_loadable_testcase(
     "snakeoil.osutils._readdir", "snakeoil.osutils", "listdir", "listdir")
-Test_cpy_posix_loaded = mk_cpy_loadable_testcase(
-    "snakeoil._posix", "snakeoil.osutils", "normpath", "normpath")
 
 
 class TestSizeofFmt:

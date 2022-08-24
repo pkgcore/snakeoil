@@ -99,23 +99,4 @@ class ProcessNotFound(Exception):
         super().__init__(f'nonexistent process: {pid}')
 
 
-def _native_closerange(from_fd, to_fd):
-    for fd in range(from_fd, to_fd):
-        try:
-            os.close(fd)
-        except EnvironmentError:
-            pass
-
-try:
-    if os.uname()[0].lower() != 'linux':
-        # the optimized closerange works for sure on linux/glibc; for others
-        # whitelist expand this as needed.
-        raise ImportError()
-    from .._posix import closerange
-
-    # monkey patch os.closerange with the saner version;
-    # this makes subprocess.Popen calls less noisy, and slightly faster.
-    # only do this if we can drop our optimized version in.
-    os.closerange = closerange
-except ImportError:
-    closerange = getattr(os, 'closerange', _native_closerange)
+closerange = os.closerange

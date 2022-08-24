@@ -254,7 +254,7 @@ def abspath(path):
         return path
 
 
-def native_normpath(mypath):
+def normpath(mypath: str) -> str:
     """normalize path- //usr/bin becomes /usr/bin, /usr/../bin becomes /bin
 
     see :py:func:`os.path.normpath` for details- this function differs from
@@ -266,17 +266,9 @@ def native_normpath(mypath):
         return newpath[1:]
     return newpath
 
-native_join = os.path.join
-
-try:
-    from .._posix import join, normpath
-except ImportError:
-    normpath = native_normpath
-    join = native_join
-
 
 # convenience.  importing join into a namespace is ugly, pjoin less so
-pjoin = join
+pjoin = join = os.path.join
 
 
 @steal_docs(os.access)
