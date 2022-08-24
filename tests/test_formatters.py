@@ -6,7 +6,7 @@ from tempfile import TemporaryFile
 
 import pytest
 from snakeoil import formatters
-from snakeoil.test import mk_cpy_loadable_testcase, protect_process
+from snakeoil.test import protect_process
 
 # protect against python issue 7567 for the curses module.
 issue7567 = protect_process
@@ -250,8 +250,3 @@ class TestGetFormatter:
         stream = BytesIO()
         formatter = _with_term('xterm', formatters.get_formatter, stream)
         assert isinstance(formatter, formatters.PlainTextFormatter)
-
-
-cpy_loaded_Test = mk_cpy_loadable_testcase(
-    "snakeoil._formatters", "snakeoil.formatters", "StreamClosed",
-    "StreamClosed")

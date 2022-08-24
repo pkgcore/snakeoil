@@ -312,44 +312,6 @@ class TestCase(unittest.TestCase):
             result.stopTest(self)
 
 
-@not_a_test
-def mk_cpy_loadable_testcase(extension_namespace, trg_namespace=None,
-                             trg_attr=None, src_attr=None):
-
-    class TestCPY_Loaded(TestCase):
-        ext_namespace = extension_namespace
-
-        namespace = trg_namespace
-        trg_attribute = trg_attr
-        src_attribute = src_attr
-
-        def test_it(self):
-            dname, bname = self.ext_namespace.rsplit(".", 1)
-            dir_mod = import_module(dname)
-            fp = os.path.join(os.path.dirname(dir_mod.__file__), '%s.so' % (bname,))
-            if not os.path.exists(fp):
-                raise SkipTest("for extension %r, path %r doesn't exist" %
-                               (self.ext_namespace, fp))
-            extension = import_module(self.ext_namespace)
-            if self.trg_attribute is None:
-                return
-
-            target_scope = import_module(self.namespace)
-            ext_obj = extension
-            ext_full_name = self.ext_namespace
-            if self.src_attribute is not None:
-                ext_obj = getattr(ext_obj, self.src_attribute)
-                ext_full_name += '.%s' % (self.src_attribute,)
-
-            trg_obj = getattr(target_scope, self.trg_attribute)
-            exp_msg = ("expected to find object from %r at '%s.%s', but "
-                       "what's there isn't from the extension" %
-                       (ext_full_name, self.namespace, self.trg_attribute))
-            self.assertIdentical(ext_obj, trg_obj, exp_msg)
-
-    return TestCPY_Loaded
-
-
 _PROTECT_ENV_VAR = "SNAKEOIL_UNITTEST_PROTECT_PROCESS"
 
 
