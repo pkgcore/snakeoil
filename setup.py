@@ -18,10 +18,8 @@ setup(**dict(
     license='BSD',
     author='Tim Harder',
     author_email='radhermit@gmail.com',
-    ext_modules=pkgdist.cython_exts(),
     cmdclass=dict(
         pkgdist_cmds,
-        build_ext=pkgdist.build_ext,
     ),
     classifiers=[
         'Intended Audience :: Developers',

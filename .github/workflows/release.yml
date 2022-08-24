@@ -39,19 +39,8 @@ jobs:
         # run in-place build so wheel deps use release versions
         python setup.py build_py -i
 
-    - name: Build wheels
-      uses: joerick/cibuildwheel@v2.8.1
-      with:
-        output-dir: dist
-      env:
-        CIBW_BUILD: cp38-* cp39-* cp310-* cp311-* pp39-*
-        CIBW_ARCHS_LINUX: x86_64
-        CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_24
-        CIBW_PRERELEASE_PYTHONS: True
-        CIBW_BEFORE_BUILD: pip install -r {project}/requirements/dist.txt
-        CIBW_BEFORE_TEST: pip install -r {project}/requirements/test.txt
-        CIBW_ENVIRONMENT: PY_COLORS=1
-        CIBW_TEST_COMMAND: pytest -v {project}/tests
+    - name: Build wheel
+      run: python setup.py bdist_wheel
 
     - name: Output dist file info
       run: |
