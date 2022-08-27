@@ -7,7 +7,6 @@ import sys
 import tempfile
 
 from ..compatibility import IGNORED_EXCEPTIONS
-from . import TestCase
 
 
 def mk_named_tempfile(*args, **kwds):
@@ -80,8 +79,8 @@ class PythonNamespaceWalker:
         for x in l:
             try:
                 stats.append((x, os.stat(os.path.join(location, x)).st_mode))
-            except OSError as oe:
-                if oe.errno != errno.ENOENT:
+            except OSError as exc:
+                if exc.errno != errno.ENOENT:
                     raise
                 # file disappeared under our feet... lock file from
                 # trial can cause this.  ignore.
