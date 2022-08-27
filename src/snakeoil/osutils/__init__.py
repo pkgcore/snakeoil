@@ -63,7 +63,7 @@ def supported_systems(*systems):
 
     Supported platforms are passed as string arguments. When run on any other
     system (determined using sys.platform), the function fails immediately with
-    NotImplementedError.
+    ``NotImplementedError``.
 
     Example usage:
 
@@ -75,7 +75,8 @@ def supported_systems(*systems):
     >>> if sys.platform.startswith(('linux', 'darwin')):
     >>>     assert func() == True
 
-    NotImplementedError is raised on platforms that aren't supported.
+    ``NotImplementedError`` is raised on platforms that aren't supported.
+
     >>> @supported_systems('nonexistent')
     >>> def func2(param):
     ...     return False
@@ -202,7 +203,7 @@ def abssymlink(path):
 
     :param path: filepath to resolve
     :return: resolved path
-    :raise: EnvironmentError, errno=ENINVAL if the requested path isn't
+    :raises EnvironmentError: with errno=ENINVAL if the requested path isn't
         a symlink
     """
     mylink = os.readlink(path)
@@ -235,7 +236,7 @@ def abspath(path):
     return the target.
 
     :param path: filepath to resolve.
-    :raise: EnvironmentError some errno other than an ENOENT or EINVAL
+    :raises EnvironmentError: some errno other than an ENOENT or EINVAL
         is encountered
     :return: the absolute path calculated against the filesystem
     """

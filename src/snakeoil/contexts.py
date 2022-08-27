@@ -336,8 +336,7 @@ def chdir(path):
     On exiting the context, the current working directory is switched back to
     its original value.
 
-    Args:
-        path: The directory path to change the working directory to.
+    :param path: The directory path to change the working directory to.
     """
     orig_cwd = os.getcwd()
     os.chdir(path)
@@ -348,15 +347,14 @@ def chdir(path):
 
 
 @contextmanager
-def syspath(path, condition=True, position=0):
-    """Context manager that mangles sys.path and then reverts on exit.
+def syspath(path: str, condition: bool=True, position: int=0):
+    """Context manager that mangles ``sys.path`` and then reverts on exit.
 
-    Args:
-        path: The directory path to add to sys.path.
-        condition: Optional boolean that decides whether sys.path is mangled or
-            not, defaults to being enabled.
-        position: Optional integer that is the place where the path is inserted
-            in sys.path, defaults to prepending.
+    :param path: The directory path to add to ``sys.path``.
+    :param condition: Optional boolean that decides whether ``sys.path`` is mangled
+        or not, defaults to being enabled.
+    :param position: Optional integer that is the place where the path is inserted
+        in ``sys.path``, defaults to prepending.
     """
     syspath = sys.path[:]
     if condition:
@@ -431,9 +429,8 @@ def os_environ(*remove, **update):
 def patch(target, new):
     """Simplified module monkey patching via context manager.
 
-    Args:
-        target: Target class or object.
-        new: Object or value to replace the target with.
+    :param target: Target class or object.
+    :param new: Object or value to replace the target with.
     """
 
     def _import_module(target):

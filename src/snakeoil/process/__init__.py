@@ -11,7 +11,7 @@ import time
 from ..osutils import access
 
 
-def find_binary(binary, paths=None, fallback=None):
+def find_binary(binary: str, paths=None, fallback=None) -> str:
     """look through the PATH environment, finding the binary to execute"""
 
     if os.path.isabs(binary):
@@ -33,14 +33,12 @@ def find_binary(binary, paths=None, fallback=None):
     raise CommandNotFound(binary)
 
 
-def get_exit_status(status):
-    """Get the exit status of a child from an os.waitpid call.
+def get_exit_status(status: int):
+    """Get the exit status of a child from an :py:func:`os.waitpid` call.
 
-    Args:
-        status: The return value of os.waitpid(pid, 0)[1]
+    :param status: The return value of ``os.waitpid(pid, 0)[1]``
 
-    Returns:
-        The exit status of the process. If the process exited with a signal,
+    :return: The exit status of the process. If the process exited with a signal,
         the return value will be 128 plus the signal number.
     """
     if os.WIFSIGNALED(status):
@@ -50,16 +48,15 @@ def get_exit_status(status):
         return os.WEXITSTATUS(status)
 
 
-def exit_as_status(status):
-    """Exit the same way as |status|.
+def exit_as_status(status: int):
+    """Exit the same way as `status`.
 
     If the status field says it was killed by a signal, then we'll do that to
     ourselves.  Otherwise we'll exit with the exit code.
 
     See http://www.cons.org/cracauer/sigint.html for more details.
 
-    Args:
-        status: A status as returned by os.wait type funcs.
+    :param status: A status as returned by :py:func:`os.wait` type funcs.
     """
     exit_status = os.WEXITSTATUS(status)
 

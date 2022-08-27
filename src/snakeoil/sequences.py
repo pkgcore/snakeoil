@@ -6,7 +6,6 @@ __all__ = (
     'split_negations',
 )
 
-from operator import itemgetter
 from typing import Any, Callable, Iterable, Type
 
 from .iterables import expandable_chain
@@ -138,7 +137,8 @@ def iflatten_func(l: Iterable, skip_func: Callable[[Any], bool]) -> Iterable:
 
 
 class ChainedLists:
-    """Given a set of sequences, this will act as a proxy to them without collapsing them into a single list.
+    """Given a set of sequences, this will act as a proxy to them without
+    collapsing them into a single list.
 
     This is primarily useful when you're dealing in large sets (or custom
     sequence objects), and do not want to collapse them into one sequence- but
@@ -161,6 +161,7 @@ class ChainedLists:
     7
     >>> cl[0] = 9
     Traceback (most recent call last):
+        ...
     TypeError: not mutable
     """
     __slots__ = ("_lists", "__weakref__")
@@ -259,12 +260,10 @@ def predicate_split(func, stream, key=None):
 def split_negations(iterable, func=str):
     """"Split an iterable into negative and positive elements.
 
-    Args:
-        iterable: iterable targeted for splitting
-        func: wrapper method to modify tokens
+    :param iterable: iterable targeted for splitting
+    :param func: wrapper method to modify tokens
 
-    Returns:
-        Tuple containing negative and positive element tuples, respectively.
+    :return: Tuple containing negative and positive element tuples, respectively.
     """
     neg, pos = [], []
     for token in iterable:
@@ -284,12 +283,10 @@ def split_negations(iterable, func=str):
 def split_elements(iterable, func=str):
     """"Split an iterable into negative, neutral, and positive elements.
 
-    Args:
-        iterable: iterable targeted for splitting
-        func: wrapper method to modify tokens
+    :param iterable: iterable targeted for splitting
+    :param func: wrapper method to modify tokens
 
-    Returns:
-        Tuple containing negative, neutral, and positive element tuples, respectively.
+    :return: Tuple containing negative, neutral, and positive element tuples, respectively.
     """
     neg, neu, pos = [], [], []
     token_map = {'-': neg, '+': pos}

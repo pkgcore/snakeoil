@@ -13,11 +13,9 @@ def partition(iterable, predicate=bool):
 
     Taking care that the predicate is called only once for each element.
 
-    Args:
-        iterable: target iterable to split into two
-        predicate: filtering function used to split the iterable
-    Returns:
-        A tuple of iterators, the first containing items that don't match the
+    :param iterable: target iterable to split into two
+    :param predicate: filtering function used to split the iterable
+    :return: A tuple of iterators, the first containing items that don't match the
         filter and the second the matched items.
     """
     a, b = itertools.tee((predicate(x), x) for x in iterable)
@@ -28,7 +26,7 @@ def partition(iterable, predicate=bool):
 class expandable_chain:
     """
     chained iterables, with the ability to add new iterables to the chain
-    as long as the instance hasn't raised StopIteration already.  This is
+    as long as the instance hasn't raised ``StopIteration`` already.  This is
     fairly useful for implementing queues of things that must be processed.
 
     >>> from snakeoil.iterables import expandable_chain

@@ -29,12 +29,9 @@ CLONE_NEWNET = 0x40000000
 def setns(fd, nstype):
     """Binding to the Linux setns system call. See setns(2) for details.
 
-    Args:
-        fd: An open file descriptor or path to one.
-        nstype: Namespace to enter; one of CLONE_*.
-
-    Raises:
-        OSError: if setns failed.
+    :param fd: An open file descriptor or path to one.
+    :param nstype: Namespace to enter; one of CLONE_*.
+    :raises OSError: if setns failed.
     """
     try:
         fp = None
@@ -54,11 +51,8 @@ def setns(fd, nstype):
 def unshare(flags):
     """Binding to the Linux unshare system call. See unshare(2) for details.
 
-    Args:
-        flags: Namespaces to unshare; bitwise OR of CLONE_* flags.
-
-    Raises:
-        OSError: if unshare failed.
+    :param flags: Namespaces to unshare; bitwise OR of CLONE_* flags.
+    :raises OSError: if unshare failed.
     """
     libc = ctypes.CDLL(ctypes.util.find_library('c'), use_errno=True)
     if libc.unshare(ctypes.c_int(flags)) != 0:
@@ -69,11 +63,8 @@ def unshare(flags):
 def _reap_children(pid):
     """Reap all children that get reparented to us until we see |pid| exit.
 
-    Args:
-        pid: The main child to watch for.
-
-    Returns:
-        The wait status of the |pid| child.
+    :param pid: The main child to watch for.
+    :return: The wait status of the |pid| child.
     """
     pid_status = 0
 
@@ -116,8 +107,7 @@ def create_pidns():
 
     If functionality is not available, then it will return w/out doing anything.
 
-    Returns:
-        The last pid outside of the namespace.
+    :return: The last pid outside of the namespace.
     """
     first_pid = os.getpid()
 
@@ -267,14 +257,13 @@ def simple_unshare(mount=True, uts=True, ipc=True, net=False, pid=False,
 
     If support for any namespace type is not available, we'll silently skip it.
 
-    Args:
-        mount: Create a mount namespace.
-        uts: Create a UTS namespace.
-        ipc: Create an IPC namespace.
-        net: Create a net namespace.
-        pid: Create a pid namespace.
-        user: Create a user namespace.
-        hostname: hostname to use for the UTS namespace
+    :param mount: Create a mount namespace.
+    :param uts: Create a UTS namespace.
+    :param ipc: Create an IPC namespace.
+    :param net: Create a net namespace.
+    :param pid: Create a pid namespace.
+    :param user: Create a user namespace.
+    :param hostname: hostname to use for the UTS namespace
     """
     # user namespace must be first
     if user:

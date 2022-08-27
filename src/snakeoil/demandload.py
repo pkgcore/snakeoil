@@ -79,11 +79,11 @@ def parse_imports(imports):
                 raise ValueError(
                     "dotted imports are disallowed; see "
                     "snakeoil.demandload docstring for "
-                    "details; %r" % s)
+                    f"details; {s!r}")
             split = s.split('@', 1)
             for s in split:
                 if not s.translate(_allowed_chars).isspace():
-                    raise ValueError("bad target: %s" % s)
+                    raise ValueError(f"bad target: {s}")
             if len(split) == 2:
                 yield tuple(split)
             else:
@@ -93,12 +93,12 @@ def parse_imports(imports):
             # "from" import.
             base, targets = fromlist
             if not base.translate(_allowed_chars).isspace():
-                raise ValueError("bad target: %s" % base)
+                raise ValueError(f"bad target: {base}")
             for target in targets.split(','):
                 split = target.split('@', 1)
                 for s in split:
                     if not s.translate(_allowed_chars).isspace():
-                        raise ValueError("bad target: %s" % s)
+                        raise ValueError(f"bad target: {s}")
                 yield base + '.' + split[0], split[-1]
 
 def _protection_enabled_disabled():
@@ -138,7 +138,7 @@ class Placeholder:
         :py:func:`demandload`.
         """
         if not isinstance(target, str):
-            raise TypeError("Asked to load non string namespace: %r" % (target,))
+            raise TypeError(f"Asked to load non string namespace: {target!r}")
         return cls(scope, name, functools.partial(load_any, target))
 
     @classmethod
@@ -163,7 +163,7 @@ class Placeholder:
             object we're demandloading.
         """
         if not callable(load_func):
-            raise TypeError("load_func must be callable; got %r" % (load_func,))
+            raise TypeError(f"load_func must be callable; got {load_func!r}")
         object.__setattr__(self, '_scope', scope)
         object.__setattr__(self, '_name', name)
         object.__setattr__(self, '_replacing_tids', [])
@@ -191,7 +191,7 @@ class Placeholder:
             tids_to_complain_about = object.__getattribute__(self, '_replacing_tids')
             if threading.current_thread().ident in tids_to_complain_about:
                 if _protection_enabled():
-                    raise ValueError('Placeholder for %r was triggered twice' % (name,))
+                    raise ValueError(f'Placeholder for {name!r} was triggered twice')
                 elif _noisy_protection():
                     logging.warning('Placeholder for %r was triggered multiple times '
                                     'in file %r', name, scope.get("__file__", "unknown"))
@@ -258,12 +258,12 @@ def demandload(*imports, **kwargs):
     Other args are strings listing module names.
     names are handled like this::
 
-    foo            import foo
-    foo@bar        import foo as bar
-    foo:bar        from foo import bar
-    foo:bar,quux   from foo import bar, quux
-    foo.bar:quux   from foo.bar import quux
-    foo:baz@quux   from foo import baz as quux
+        foo            import foo
+        foo@bar        import foo as bar
+        foo:bar        from foo import bar
+        foo:bar,quux   from foo import bar, quux
+        foo.bar:quux   from foo.bar import quux
+        foo:baz@quux   from foo import baz as quux
     """
 
     # pull the caller's global namespace if undefined
