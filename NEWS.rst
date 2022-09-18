@@ -2,6 +2,41 @@
 Release Notes
 =============
 
+snakeoil 0.10.0 (2022-09-18)
+----------------------------
+
+This release has various breaking changes, with various deprecated stuff
+removed. We are planing to remove more cruft in the future, so please be aware.
+All removals will be listed in the release notes, and a better replacement will
+be provided.
+
+This is also the first release to use ``flit`` for packaging, which simplifies
+the build a lot. We include a makefile for convenience of running various build
+commands. Please speak to us if they do not suit your needs.
+
+- ``dist.distutils_extensions`` is now **deprecated**, and will be removed in
+  the future.
+
+- klass: add typing for ``jit_attr*`` funcitons (Arthur Zamarin)
+
+- stringio: remove ``text_writable`` and ``bytes_writable``. Use
+  ``io.StringIO`` and ``io.BytesIO`` instead (Arthur Zamarin)
+
+- remove ``TempDirMixin`` and ``tempdir_decorator``. Use ``tempdir`` instead
+  (Arthur Zamarin)
+
+- remove cython files, as regular Python code was fast enough and the
+  performance difference was negligible (Arthur Zamarin)
+
+- remove ``mk_cpy_loadable_testcase``. Use parameterized arguments in pytest
+  instead (Arthur Zamarin)
+
+- remove ``TestCase``. Use pytest's ``assert`` instead (Arthur Zamarin)
+
+- version: better locale protection around running git (Arthur Zamarin)
+
+- migrate to ``flit`` packaging and universal wheels (Arthur Zamarin)
+
 snakeoil 0.9.12 (2022-08-08)
 ----------------------------
 
