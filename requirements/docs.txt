@@ -1,3 +1,0 @@
--r install.txt
-
-sphinx

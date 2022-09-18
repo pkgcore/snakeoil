@@ -1,8 +1,50 @@
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["flit_core >=3.7,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "snakeoil"
+description = "misc common functionality and useful optimizations"
+readme = "README.rst"
+requires-python = "~=3.8"
+authors = [
+    {name = "Tim Harder", email = "radhermit@gmail.com"},
+    {name = "Arthur Zamarin", email = "arthurzam@gentoo.org"},
+]
+maintainers = [
+    {name = "Arthur Zamarin", email = "arthurzam@gentoo.org"},
+]
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dynamic = ["version"]
+
+dependencies = [
+    "lazy-object-proxy",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest >=6.0",
+    "pytest-cov",
+]
+doc = ["sphinx"]
+
+[project.urls]
+Homepage = "https://github.com/pkgcore/snakeoil"
+Documentation = "https://pkgcore.github.io/snakeoil/"
+Source = "https://github.com/pkgcore/snakeoil"
+
+[tool.flit.sdist]
+include = ["doc", "tox.ini", "tests", "Makefile", "NEWS.rst"]
+exclude = [".github/", ".gitignore", "doc/api/", "tests/__pycache__", "tests/cli/__pycache__"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-ra"
+addopts = "-vv -ra -l"
 testpaths = ["tests"]

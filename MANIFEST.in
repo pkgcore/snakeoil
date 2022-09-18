@@ -1,7 +1,0 @@
-include LICENSE *.py *.rst tox.ini pyproject.toml .coveragerc
-recursive-include doc *
-recursive-include include/snakeoil *.h
-recursive-include requirements *.txt
-recursive-include src/snakeoil *.pyx *.c
-recursive-include tests *
-global-exclude *.pyc *.pyo __pycache__
