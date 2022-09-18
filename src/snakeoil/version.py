@@ -56,7 +56,11 @@ def get_version(project, repo_file, api_version=None):
 
 def _run_git(path, cmd):
     env = dict(os.environ)
+    for key in env:
+        if key.startswith("LC_"):
+            del env[key]
     env["LC_CTYPE"] = "C"
+    env["LC_ALL"] = "C"
 
     r = subprocess.Popen(
         ['git'] + list(cmd), stdout=subprocess.PIPE, env=env,
@@ -84,7 +88,7 @@ def get_git_version(path):
         commits = None
         if ret == 0:
             prev_tag = stdout.decode().strip()
-            stdout, ret = _run_git(
+            stgbdout, ret = _run_git(
                 path, ['log', '--oneline', f'{prev_tag}..HEAD'])
             if ret == 0:
                 commits = len(stdout.decode().splitlines())
