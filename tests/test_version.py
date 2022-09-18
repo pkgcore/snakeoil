@@ -1,9 +1,11 @@
+from datetime import datetime
 import errno
 from importlib import reload
 from unittest import mock
 
 import pytest
 from snakeoil import __version__, version
+from snakeoil.version import GitVersion
 
 
 class TestVersion:
@@ -27,31 +29,30 @@ class TestVersion:
         with mock.patch('snakeoil.version.import_module') as import_module, \
                 mock.patch('snakeoil.version.get_git_version') as get_git_version:
             import_module.side_effect = ImportError
-            verinfo = {
-                'rev': '1ff76b021d208f7df38ac524537b6419404f1c64',
-                'date': 'Mon Sep 25 13:50:24 2017 -0400',
-                'tag': None
-            }
-            get_git_version.return_value = verinfo
+            ver_info = GitVersion(
+                revision='1ff76b021d208f7df38ac524537b6419404f1c64',
+                date=datetime.fromisoformat('2017-09-25T13:50:24-04:00'),
+            )
+            get_git_version.return_value = ver_info
 
             result = version.get_version('snakeoil', __file__, __version__)
-            assert result == f"snakeoil {__version__}-g{verinfo['rev'][:7]} -- {verinfo['date']}"
+            assert result == f"snakeoil {__version__}-g1ff76b0 -- {ver_info.date_rfc2822}"
 
     def test_get_version_git_release(self):
-        verinfo = {
-            'rev': 'ab38751890efa8be96b7f95938d6b868b769bab6',
-            'date': 'Thu Sep 21 15:57:38 2017 -0400',
-            'tag': '2.3.4',
-        }
+        ver_info = GitVersion(
+            revision='ab38751890efa8be96b7f95938d6b868b769bab6',
+            date=datetime.fromisoformat('2017-09-21T15:57:38-04:00'),
+            tag='2.3.4',
+        )
 
         # fake snakeoil._verinfo module object
         class Verinfo:
-            version_info = verinfo
+            version_info = ver_info
 
         with mock.patch('snakeoil.version.import_module') as import_module:
             import_module.return_value = Verinfo()
-            result = version.get_version('snakeoil', __file__, verinfo['tag'])
-            assert result == f"snakeoil {verinfo['tag']} -- released {verinfo['date']}"
+            result = version.get_version('snakeoil', __file__, ver_info.tag)
+            assert result == f"snakeoil {ver_info.tag} -- released {ver_info.date_rfc2822}"
 
     def test_get_version_no_git_version(self):
         with mock.patch('snakeoil.version.import_module') as import_module, \
@@ -73,6 +74,20 @@ class TestVersion:
 
 
 class TestGitVersion:
+
+    def test_date_rfc2822(self):
+        ver = GitVersion(
+            revision='1ff76b021d208f7df38ac524537b6419404f1c64',
+            date=datetime.fromisoformat('2017-09-25T13:50:24-04:00'),
+        )
+        assert ver.date_rfc2822 == 'Mon, 25 Sep 2017 13:50:24 -0400'
+
+    def test_short_revision(self):
+        ver = GitVersion(
+            revision='1ff76b021d208f7df38ac524537b6419404f1c64',
+            date=datetime.now(),
+        )
+        assert ver.short_revision == '1ff76b0'
 
     def test_get_git_version_not_available(self):
         with mock.patch('snakeoil.version._run_git') as run_git:
@@ -97,31 +112,26 @@ class TestGitVersion:
         with mock.patch('snakeoil.version._run_git') as run_git:
             # dev version
             run_git.return_value = (
-                b'1ff76b021d208f7df38ac524537b6419404f1c64\nMon Sep 25 13:50:24 2017 -0400', 0)
-            result = version.get_git_version('nonexistent')
-            expected = {
-                'rev': '1ff76b021d208f7df38ac524537b6419404f1c64',
-                'date': 'Mon Sep 25 13:50:24 2017 -0400',
-                'tag': None,
-                'commits': 2,
-            }
-            assert result == expected
+                b'1ff76b021d208f7df38ac524537b6419404f1c64\n2017-09-21T15:57:38-04:00', 0)
+            assert version.get_git_version('nonexistent') == GitVersion(
+                revision='1ff76b021d208f7df38ac524537b6419404f1c64',
+                date=datetime.fromisoformat('2017-09-21T15:57:38-04:00'),
+                commits=2,
+            )
 
     def test_get_git_version_good_tag(self):
         with mock.patch('snakeoil.version._run_git') as run_git, \
                 mock.patch('snakeoil.version._get_git_tag') as get_git_tag:
             # tagged, release version
             run_git.return_value = (
-                b'1ff76b021d208f7df38ac524537b6419404f1c64\nMon Sep 25 13:50:24 2017 -0400', 0)
+                b'1ff76b021d208f7df38ac524537b6419404f1c64\n2017-09-21T15:57:38-04:00', 0)
             get_git_tag.return_value = '1.1.1'
-            result = version.get_git_version('nonexistent')
-            expected = {
-                'rev': '1ff76b021d208f7df38ac524537b6419404f1c64',
-                'date': 'Mon Sep 25 13:50:24 2017 -0400',
-                'tag': '1.1.1',
-                'commits': 2,
-            }
-            assert result == expected
+            assert version.get_git_version('nonexistent') == GitVersion(
+                revision='1ff76b021d208f7df38ac524537b6419404f1c64',
+                date=datetime.fromisoformat('2017-09-21T15:57:38-04:00'),
+                tag='1.1.1',
+                commits=2,
+            )
 
     def test_get_git_tag_bad_output(self):
         with mock.patch('snakeoil.version._run_git') as run_git:
