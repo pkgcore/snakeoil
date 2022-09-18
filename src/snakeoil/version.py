@@ -56,7 +56,7 @@ def get_version(project, repo_file, api_version=None):
 
 def _run_git(path, cmd):
     env = dict(os.environ)
-    for key in env:
+    for key in env.copy(): # pragma: no cover
         if key.startswith("LC_"):
             del env[key]
     env["LC_CTYPE"] = "C"
