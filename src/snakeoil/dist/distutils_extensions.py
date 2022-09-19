@@ -159,7 +159,9 @@ def generate_verinfo(target_dir):
     path = os.path.join(target_dir, '_verinfo.py')
     log.info(f'generating version info: {path}')
     with open(path, 'w') as f:
-        f.write('version_info=%r' % (data._asdict(),))
+        f.write('from snakeoil.version import GitVersion\n')
+        f.write('import datetime\n')
+        f.write(f'version_info={data!r}')
     return path
 
 
