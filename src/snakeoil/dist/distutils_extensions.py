@@ -18,6 +18,7 @@ import subprocess
 import sys
 import textwrap
 from contextlib import ExitStack, contextmanager, redirect_stderr, redirect_stdout
+from datetime import datetime
 from multiprocessing import cpu_count
 
 from setuptools import find_packages
@@ -125,8 +126,8 @@ def module_version(moduledir=MODULEDIR):
             version = re.search(
                 r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
                 f.read(), re.MULTILINE).group(1)
-    except IOError as exc:
-        if exc.errno == errno.ENOENT:
+    except IOError as e:
+        if e.errno == errno.ENOENT:
             pass
         else:
             raise
@@ -136,12 +137,16 @@ def module_version(moduledir=MODULEDIR):
 
     # use versioning scheme similar to setuptools_scm for untagged versions
     git_version = get_git_version(REPODIR)
-    if git_version is not None:
-        tag = git_version.tag
+    if git_version:
+        tag = git_version['tag']
         if tag is None:
-            if (commits := git_version.commits) is not None:
+            commits = git_version['commits']
+            rev = git_version['rev'][:7]
+            date = datetime.strptime(git_version['date'], '%a, %d %b %Y %H:%M:%S %z')
+            date = datetime.strftime(date, '%Y%m%d')
+            if commits is not None:
                 version += f'.dev{commits}'
-            version += f'+g{git_version.short_revision}.d{git_version.date:%Y%m%d}'
+            version += f'+g{rev}.d{date}'
         elif tag != version:
             raise DistutilsError(
                 f'unmatched git tag {tag!r} and {MODULE_NAME} version {version!r}')
@@ -159,9 +164,7 @@ def generate_verinfo(target_dir):
     path = os.path.join(target_dir, '_verinfo.py')
     log.info(f'generating version info: {path}')
     with open(path, 'w') as f:
-        f.write('from snakeoil.version import GitVersion\n')
-        f.write('import datetime\n')
-        f.write(f'version_info={data!r}')
+        f.write('version_info=%r' % (data,))
     return path
 
 
@@ -171,8 +174,8 @@ def readme(topdir=REPODIR):
         try:
             with open(os.path.join(topdir, doc), encoding='utf-8') as f:
                 return f.read()
-        except IOError as exc:
-            if exc.errno == errno.ENOENT:
+        except IOError as e:
+            if e.errno == errno.ENOENT:
                 pass
             else:
                 raise
