@@ -2,7 +2,7 @@
 file related operations, mainly reading
 """
 
-__all__ = ("AtomicWriteFile", 'UnbufferedWriteHandle', 'touch')
+__all__ = ("AtomicWriteFile", 'touch')
 types = [""] + list("_%s" % x for x in ("ascii", "utf8"))
 __all__ += tuple("readfile%s" % x for x in types) + tuple("readlines%s" % x for x in types)
 del types
@@ -53,22 +53,6 @@ def mmap_or_open_for_read(path):
         except EnvironmentError:
             pass
         raise
-
-
-class UnbufferedWriteHandle:
-    """Class designed to work around py3k buffering issues
-
-    see http://stackoverflow.com/questions/107705/python-output-buffering
-    for background"""
-
-    def __init__(self, stream):
-        self.stream = stream
-
-    def write(self, data):
-        self.stream.write(data)
-        self.stream.flush()
-
-    __getattr__ = GetAttrProxy("stream")
 
 
 class AtomicWriteFile_mixin:
