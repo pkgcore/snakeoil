@@ -456,7 +456,5 @@ class invokable_data_source(data_source):
 
 
 def transfer_between_files(read_file, write_file, bufsize=(32 * 1024)):
-    data = read_file.read(bufsize)
-    while data:
+    while data := read_file.read(bufsize):
         write_file.write(data)
-        data = read_file.read(bufsize)

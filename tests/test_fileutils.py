@@ -8,7 +8,7 @@ pjoin = os.path.join
 
 import pytest
 from snakeoil import _fileutils, currying, fileutils
-from snakeoil.fileutils import AtomicWriteFile, write_file
+from snakeoil.fileutils import AtomicWriteFile
 from snakeoil.test import random_str
 
 
@@ -70,8 +70,7 @@ class TestAtomicWriteFile:
     kls = AtomicWriteFile
 
     def test_normal_ops(self, tmp_path):
-        fp = tmp_path / "target"
-        write_file(fp, "w", "me")
+        (fp := tmp_path / "target").write_text("me")
         af = self.kls(fp)
         af.write("dar")
         assert fileutils.readfile_ascii(fp) == "me"
@@ -91,8 +90,7 @@ class TestAtomicWriteFile:
         assert os.stat(fp).st_mode & 0o4777 == 0o644
 
     def test_del(self, tmp_path):
-        fp = tmp_path / "target"
-        write_file(fp, "w", "me")
+        (fp := tmp_path / "target").write_text("me")
         assert fileutils.readfile_ascii(fp) == "me"
         af = self.kls(fp)
         af.write("dar")
@@ -108,8 +106,7 @@ class TestAtomicWriteFile:
         af.close()
 
     def test_discard(self, tmp_path):
-        fp = tmp_path / "target"
-        write_file(fp, "w", "me")
+        (fp := tmp_path / "target").write_text("me")
         assert fileutils.readfile_ascii(fp) == "me"
         af = self.kls(fp)
         af.write("dar")
@@ -160,7 +157,7 @@ class Test_readfile:
                 if expected[1] is not None:
                     encoding = expected[1]
                 expected = expected[0]
-            write_file(fp, 'wb', self.convert_data(expected, encoding))
+            fp.write_bytes(self.convert_data(expected, encoding))
             if raised:
                 with pytest.raises(raised):
                     self.assertFunc(fp, expected)
@@ -175,7 +172,7 @@ class Test_readfile:
         with pytest.raises(FileNotFoundError):
             self.func(fp)
         assert self.func(fp, True) is None
-        write_file(fp, 'wb', self.convert_data('dar', 'ascii'))
+        fp.write_bytes(self.convert_data('dar', 'ascii'))
         assert self.func(fp, True) == self.none_on_missing_ret_data
 
         # ensure it handles paths that go through files-
@@ -220,14 +217,14 @@ class readlines_mixin:
         with pytest.raises(FileNotFoundError):
             self.func(fp)
         assert not tuple(self.func(fp, False, True))
-        write_file(fp, 'wb', self.convert_data('dar', 'ascii'))
+        fp.write_bytes(self.convert_data('dar', 'ascii'))
         assert tuple(self.func(fp, True)) == (self.none_on_missing_ret_data,)
         assert not tuple(self.func(fp / 'missing', False, True))
 
     def test_strip_whitespace(self, tmp_path):
         fp = tmp_path / 'data'
 
-        write_file(fp, 'wb', self.convert_data(' dar1 \ndar2 \n dar3\n',
+        fp.write_bytes(self.convert_data(' dar1 \ndar2 \n dar3\n',
                                                     'ascii'))
         results = tuple(self.func(fp, True))
         expected = ('dar1', 'dar2', 'dar3')
@@ -236,28 +233,28 @@ class readlines_mixin:
         assert results == expected
 
         # this time without the trailing newline...
-        write_file(fp, 'wb', self.convert_data(' dar1 \ndar2 \n dar3',
+        fp.write_bytes(self.convert_data(' dar1 \ndar2 \n dar3',
                                                     'ascii'))
         results = tuple(self.func(fp, True))
         assert results == expected
 
         # test a couple of edgecases; underly c extension has gotten these
         # wrong before.
-        write_file(fp, 'wb', self.convert_data('0', 'ascii'))
+        fp.write_bytes(self.convert_data('0', 'ascii'))
         results = tuple(self.func(fp, True))
         expected = ('0',)
         if self.encoding_mode == 'bytes':
             expected = tuple(x.encode("ascii") for x in expected)
         assert results == expected
 
-        write_file(fp, 'wb', self.convert_data('0\n', 'ascii'))
+        fp.write_bytes(self.convert_data('0\n', 'ascii'))
         results = tuple(self.func(fp, True))
         expected = ('0',)
         if self.encoding_mode == 'bytes':
             expected = tuple(x.encode("ascii") for x in expected)
         assert results == expected
 
-        write_file(fp, 'wb', self.convert_data('0 ', 'ascii'))
+        fp.write_bytes(self.convert_data('0 ', 'ascii'))
         results = tuple(self.func(fp, True))
         expected = ('0',)
         if self.encoding_mode == 'bytes':
@@ -316,16 +313,14 @@ class Test_mmap_or_open_for_read:
     func = staticmethod(fileutils.mmap_or_open_for_read)
 
     def test_zero_length(self, tmp_path):
-        path = tmp_path / 'target'
-        write_file(path, 'w', '')
+        (path := tmp_path / "target").write_text('')
         m, f = self.func(path)
         assert m is None
         assert f.read() == b''
         f.close()
 
     def test_mmap(self, tmp_path, data=b'foonani'):
-        path = tmp_path / 'target'
-        write_file(path, 'wb', data)
+        (path := tmp_path / "target").write_bytes(data)
         m, f = self.func(path)
         assert len(m) == len(data)
         assert m.read(len(data)) == data
@@ -336,9 +331,7 @@ class Test_mmap_or_open_for_read:
 class Test_mmap_and_close:
 
     def test_it(self, tmp_path):
-        path = tmp_path / 'target'
-        data = b'asdfasdf'
-        write_file(path, 'wb', [data])
+        (path := tmp_path / "target").write_bytes(data := b'asdfasdf')
         fd, m = None, None
         try:
             fd = os.open(path, os.O_RDONLY)

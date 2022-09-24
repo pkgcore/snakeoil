@@ -2,7 +2,7 @@
 file related operations, mainly reading
 """
 
-__all__ = ("AtomicWriteFile", 'write_file', 'UnbufferedWriteHandle', 'touch')
+__all__ = ("AtomicWriteFile", 'UnbufferedWriteHandle', 'touch')
 types = [""] + list("_%s" % x for x in ("ascii", "utf8"))
 __all__ += tuple("readfile%s" % x for x in types) + tuple("readlines%s" % x for x in types)
 del types
@@ -35,19 +35,6 @@ def touch(fname, mode=0o644, **kwargs):
         os.utime(
             f.fileno() if os.utime in os.supports_fd else fname,
             dir_fd=None if os.supports_fd else dir_fd, **kwargs)
-
-
-def write_file(path, mode, stream, encoding=None):
-    f = None
-    try:
-        f = open(path, mode, encoding=encoding)
-        if isinstance(stream, (str, bytes)):
-            stream = [stream]
-        for data in stream:
-            f.write(data)
-    finally:
-        if f is not None:
-            f.close()
 
 def mmap_or_open_for_read(path):
     size = os.stat(path).st_size

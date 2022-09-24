@@ -10,7 +10,7 @@ from unittest import mock
 import pytest
 from snakeoil import osutils
 from snakeoil.contexts import Namespace
-from snakeoil.fileutils import touch, write_file
+from snakeoil.fileutils import touch
 from snakeoil.osutils import native_readdir, supported_systems, sizeof_fmt
 from snakeoil.osutils.mount import MNT_DETACH, MS_BIND, mount, umount
 
@@ -272,7 +272,7 @@ class Test_unlink_if_exists:
         f = self.func
         path = tmp_path / 'target'
         f(path)
-        write_file(path, 'w', '')
+        path.write_text('')
         f(path)
         assert not path.exists()
         # and once more for good measure...
