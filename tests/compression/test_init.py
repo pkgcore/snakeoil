@@ -70,14 +70,14 @@ class TestArComp:
         assert (tmp_path / 'file2').read_text() == 'Larry the Cow'
 
     def test_fallback_tbz2(self, tmp_path, tbz2_file):
-        with hide_binary(*_TarBZ2.compress_binary[:-1]):
+        with hide_binary(*next(zip(*_TarBZ2.compress_binary[:-1]))):
             with chdir(tmp_path):
                 ArComp(tbz2_file, ext='.tbz2').unpack(dest=tmp_path)
             assert (tmp_path / 'file1').read_text() == 'Hello world'
             assert (tmp_path / 'file2').read_text() == 'Larry the Cow'
 
     def test_no_fallback_tbz2(self, tmp_path, tbz2_file):
-        with hide_binary(*_TarBZ2.compress_binary), chdir(tmp_path):
+        with hide_binary(*next(zip(*_TarBZ2.compress_binary))), chdir(tmp_path):
             with pytest.raises(ArCompError, match='no compression binary'):
                 ArComp(tbz2_file, ext='.tbz2').unpack(dest=tmp_path)
 
