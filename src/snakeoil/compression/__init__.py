@@ -1,3 +1,4 @@
+import multiprocessing
 import shlex
 from functools import cached_property
 from importlib import import_module
@@ -33,7 +34,7 @@ class _transform_source:
         return self.module.decompress_handle(handle, parallelize=parallelize)
 
 
-_transforms = {name: _transform_source(name) for name in ('bzip2',)}
+_transforms = {name: _transform_source(name) for name in ('bzip2', 'xz')}
 
 
 def compress_data(compressor_type, data, level=9, **kwds):
@@ -154,13 +155,13 @@ class _Tar(_Archive, ArComp):
         if self.compress_binary is not None:
             for b in self.compress_binary:
                 try:
-                    process.find_binary(b)
-                    cmd += f' --use-compress-program={b}'
+                    process.find_binary(b[0])
+                    cmd += f' --use-compress-program="{" ".join(b)}"'
                     break
                 except process.CommandNotFound:
                     pass
             else:
-                choices = ', '.join(self.compress_binary)
+                choices = ', '.join(next(zip(*self.compress_binary)))
                 raise ArCompError(
                     'no compression binary found from the '
                     f'following choices: {choices}')
@@ -170,25 +171,25 @@ class _Tar(_Archive, ArComp):
 class _TarGZ(_Tar):
 
     exts = frozenset(['.tar.gz', '.tgz', '.tar.Z', '.tar.z'])
-    compress_binary = ('pigz', 'gzip')
+    compress_binary = (('pigz',), ('gzip',))
 
 
 class _TarBZ2(_Tar):
 
     exts = frozenset(['.tar.bz2', '.tbz2', '.tbz'])
-    compress_binary = ('lbzip2', 'pbzip2', 'bzip2')
+    compress_binary = (('lbzip2',), ('pbzip2',), ('bzip2',))
 
 
 class _TarLZMA(_Tar):
 
     exts = frozenset(['.tar.lzma'])
-    compress_binary = ('lzma',)
+    compress_binary = (('lzma',))
 
 
 class _TarXZ(_Tar):
 
     exts = frozenset(['.tar.xz', '.txz'])
-    compress_binary = ('pixz', 'xz')
+    compress_binary = (('pixz',), ('xz', f'-T{multiprocessing.cpu_count()}'))
 
 
 class _Zip(_Archive, ArComp):
