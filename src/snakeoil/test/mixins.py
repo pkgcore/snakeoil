@@ -1,17 +1,10 @@
 import errno
 import inspect
-import io
 import os
 import stat
 import sys
-import tempfile
 
 from ..compatibility import IGNORED_EXCEPTIONS
-
-
-def mk_named_tempfile(*args, **kwds):
-    tmp_f = tempfile.NamedTemporaryFile(*args, **kwds)
-    return io.TextIOWrapper(tmp_f)
 
 
 class PythonNamespaceWalker:
@@ -91,8 +84,7 @@ class PythonNamespaceWalker:
         seen = set(['__init__'])
         for x, st in stats:
             if not (x.startswith(".") or x.endswith("~")) and stat.S_ISREG(st):
-                if (x.endswith(".py") or x.endswith(".pyc")
-                        or x.endswith(".pyo") or x.endswith(".so")):
+                if x.endswith((".py", ".pyc", ".pyo", ".so")):
                     y = x.rsplit(".", 1)[0]
                     # Ensure we're not looking at a >=py3k .so which injects
                     # the version name in...
