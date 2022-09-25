@@ -1,11 +1,11 @@
 """
 bzip2 decompression/compression
 
-where possible, this module defers to cpython bz2 module- if it's not available,
-it results to executing bzip2 with tempfile arguments to do decompression
+Where possible, this module defers to cpython's bz2 module - if it's not available,
+it defers to executing bzip2 with tempfile arguments to do decompression
 and compression.
 
-Should use this module unless its absolutely critical that bz2 module be used
+Use this module unless it's absolutely critical that the bz2 module is used.
 """
 
 __all__ = ("compress_data", "decompress_data")
