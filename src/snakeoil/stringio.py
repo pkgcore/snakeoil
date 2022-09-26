@@ -10,7 +10,7 @@ if at all possible for performance reasons.  Thus we have readonly and writable
 classes; the separation has clear performance benefits.
 
 Note that while this functionality is based on StringIO and friends, there is some
-differences in behaviour from stdlib- stdlib's ``cStringIO.StringIO`` is
+differences in behavior from stdlib- stdlib's ``cStringIO.StringIO`` is
 pseudo-writable; it has a truncate method (which works).  This is suboptimal since
 the majority of consumers treat it as write only, thus in these classes we specifically
 raise a TypeError if you try to truncate a readonly instance.  Further, instead of

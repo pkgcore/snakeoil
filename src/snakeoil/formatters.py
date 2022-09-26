@@ -379,8 +379,7 @@ else:
             formatter.stream.write(res)
 
         def __setattr__(self, key, val):
-            raise AttributeError("%s instances are immutable" %
-                                 (self.__class__.__name__,))
+            raise AttributeError(f"{self.__class__.__name__} instances are immutable")
 
     class TerminfoCode:
         """Encapsulates specific terminfo entry commands, reset for example.
@@ -397,8 +396,7 @@ else:
             object.__setattr__(self, 'value', value)
 
         def __setattr__(self, key, value):
-            raise AttributeError("%s instances are immutable" %
-                                 (self.__class__.__name__,))
+            raise AttributeError(f"{self.__class__.__name__} instances are immutable")
 
     class TerminfoMode(TerminfoCode):
 

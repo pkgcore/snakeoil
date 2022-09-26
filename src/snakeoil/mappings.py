@@ -747,7 +747,7 @@ class _SlottedDict(DictMixin):
     this eliminates the allocation of a dict for the instance thus avoiding the
     wasted memory common to dictionary overallocation- for small mappings that
     waste is roughly 75%, for 100 item mappings it's roughly 95%, and for 1000
-    items it's roughly 84%.  Point is, it's sizable, consistantly so.
+    items it's roughly 84%.  Point is, it's sizable, consistently so.
 
     The constraint of this is that the resultant mapping has a locked set of
     keys- you cannot add a key that wasn't allowed up front.

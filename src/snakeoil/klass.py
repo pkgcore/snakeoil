@@ -618,7 +618,7 @@ def patch(target, external_decorator=None):
             try:
                 module = getattr(module, comp)
             except AttributeError:
-                import_path += ".%s" % comp
+                import_path += f".{comp}"
                 module = import_module(import_path)
         return module
 

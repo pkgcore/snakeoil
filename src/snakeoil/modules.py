@@ -15,8 +15,7 @@ class FailedImport(ImportError):
     Raised when a requested target cannot be imported
     """
     def __init__(self, trg, e):
-        ImportError.__init__(
-            self, "Failed importing target '%s': '%s'" % (trg, e))
+        super().__init__(self, f"Failed importing target '{trg}': '{e}'")
         self.trg, self.e = trg, e
 
 
@@ -35,8 +34,8 @@ def load_module(name):
         return import_module(name)
     except IGNORED_EXCEPTIONS:
         raise
-    except Exception as e:
-        raise FailedImport(name, e) from e
+    except Exception as exc:
+        raise FailedImport(name, exc) from exc
 
 
 def load_attribute(name):
@@ -54,13 +53,13 @@ def load_attribute(name):
         raise FailedImport(name, "it isn't an attribute, it's a module")
     try:
         return getattr(import_module(chunks[0]), chunks[1])
-    except (AttributeError, ImportError) as e:
+    except (AttributeError, ImportError) as exc:
         # try to show actual import error if it exists
         try:
             import_module(name)
-        except ImportError as e:
-            raise FailedImport(name, e) from e
-        raise FailedImport(name, e) from e
+        except ImportError as exc:
+            raise FailedImport(name, exc) from exc
+        raise FailedImport(name, exc) from exc
 
 
 def load_any(name):
@@ -78,5 +77,5 @@ def load_any(name):
         return import_module(name)
     except ImportError:
         return load_attribute(name)
-    except Exception as e:
-        raise FailedImport(name, e) from e
+    except Exception as exc:
+        raise FailedImport(name, exc) from exc

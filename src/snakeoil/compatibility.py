@@ -4,8 +4,6 @@ Compatibility functionality stubs
 
 __all__ = ("cmp", "sorted_cmp", "sort_cmp")
 
-import sys
-
 
 def sorted_key_from_cmp(cmp_func, key_func=None):
     class _key_proxy:

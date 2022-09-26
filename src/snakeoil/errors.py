@@ -34,10 +34,10 @@ def dump_error(raw_exc, msg=None, handle=sys.stderr, tb=None):
     if raw_exc is not None:
         for exc in walk_exception_chain(raw_exc):
             exc_strings.extend(
-                '%s%s' % (prefix, x.strip())
+                prefix + x.strip()
                 for x in (x for x in str(exc).split("\n") if x))
     if exc_strings:
         if msg and tb:
-            handle.write("\n%s:\n" % raw_exc.__class__.__name__)
+            handle.write(f"\n{raw_exc.__class__.__name__}:\n")
         handle.write("\n".join(exc_strings))
         handle.write("\n")

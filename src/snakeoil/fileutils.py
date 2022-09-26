@@ -2,11 +2,6 @@
 file related operations, mainly reading
 """
 
-__all__ = ("AtomicWriteFile", 'touch')
-types = [""] + list("_%s" % x for x in ("ascii", "utf8"))
-__all__ += tuple("readfile%s" % x for x in types) + tuple("readlines%s" % x for x in types)
-del types
-
 import mmap
 import os
 from functools import partial
@@ -62,7 +57,7 @@ class AtomicWriteFile_mixin:
     Upon invocation of the close method, this class will use
     :py:func:`os.rename` to atomically replace the destination.
 
-    Similar to file protocol behaviour, except that close *must*
+    Similar to file protocol behavior, except that close *must*
     be called for the changes to be made live,
 
     If along the way it's decided that these changes should be discarded,
@@ -90,7 +85,7 @@ class AtomicWriteFile_mixin:
         fp = os.path.realpath(fp)
         self._original_fp = fp
         self._temp_fp = os.path.join(
-            os.path.dirname(fp), ".update.%s" % os.path.basename(fp))
+            os.path.dirname(fp), ".update." + os.path.basename(fp))
         old_umask = None
         if perms:
             # give it just write perms
