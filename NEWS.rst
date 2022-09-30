@@ -2,6 +2,20 @@
 Release Notes
 =============
 
+snakeoil 0.10.1 (2022-09-30)
+----------------------------
+
+- test/mixins: remove ``mk_named_tempfile``. Use ``tmp_path / [filename]``
+  instead (Arthur Zamarin)
+
+- fileutils: remove deprecated ``write_file``. Use ``Path().write_text``
+  instead (Arthur Zamarin)
+
+- fileutils: remove deprecated ``UnbufferedWriteHandle``. Use
+  ``io.TextIOWrapper`` with ``write_through=True`` instead (Arthur Zamarin)
+
+- descriptors: remove unused ``classproperty`` (Arthur Zamarin)
+
 snakeoil 0.10.0 (2022-09-18)
 ----------------------------
 
