@@ -40,6 +40,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install .[test]
 
+    - name: Install non-python deps
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: |
+        sudo apt install lbzip2
+
     - name: Test with pytest
       env:
         PY_COLORS: 1 # forcibly enable pytest colors

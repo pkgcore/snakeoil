@@ -12,9 +12,9 @@ def _drive_process(args, mode, data):
     try:
         stdout, stderr = p.communicate(data)
         if p.returncode != 0:
+            args = ' '.join(args)
             raise ValueError(
-                "%s returned %i exitcode from '%s', stderr=%r" %
-                (mode, p.returncode, ' '.join(args), stderr))
+                f"{mode} returned {p.returncode} exitcode from '{args}', stderr={stderr.decode()}")
         return stdout
     finally:
         if p is not None and p.returncode is None:

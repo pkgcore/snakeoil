@@ -5,6 +5,7 @@ import random
 import string
 import subprocess
 import sys
+from unittest.mock import patch
 
 # not relative imports so protect_process() works properly
 from snakeoil import klass
@@ -67,8 +68,20 @@ def protect_process(functor, name=None):
             if wipe:
                 os.environ.pop(_PROTECT_ENV_VAR, None)
 
-    for x in "__doc__ __name__".split():
+    for x in ("__doc__", "__name__"):
         if hasattr(functor, x):
             setattr(_inner_run, x, getattr(functor, x))
     method_name = getattr(functor, '__name__', None)
     return _inner_run
+
+
+def hide_imports(*import_names: str):
+    """Hide imports from the specified modules."""
+    orig_import = __import__
+
+    def mock_import(name, *args, **kwargs):
+        if name in import_names:
+            raise ImportError()
+        return orig_import(name, *args, **kwargs)
+
+    return patch('builtins.__import__', side_effect=mock_import)

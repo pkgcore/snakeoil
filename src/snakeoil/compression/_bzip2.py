@@ -24,9 +24,7 @@ bz2_path = process.find_binary("bzip2")
 
 
 try:
-    from bz2 import BZ2File
-    from bz2 import compress as _compress_data
-    from bz2 import decompress as _decompress_data
+    from bz2 import BZ2File, compress as _compress_data, decompress as _decompress_data
     native = True
 except ImportError:
 
@@ -40,16 +38,15 @@ except ImportError:
 _compress_handle = partial(_util.compress_handle, bz2_path)
 _decompress_handle = partial(_util.decompress_handle, bz2_path)
 
-lbzip2_path = None
-parallelizable = False
-lbzip2_compress_args = lbzip2_decompress_args = ()
 try:
     lbzip2_path = process.find_binary("lbzip2")
-    lbzip2_compress_args = ('-n%i' % multiprocessing.cpu_count(),)
+    lbzip2_compress_args = (f'-n{multiprocessing.cpu_count()}', )
     lbzip2_decompress_args = lbzip2_compress_args
     parallelizable = True
 except process.CommandNotFound:
-    pass
+    lbzip2_path = None
+    parallelizable = False
+    lbzip2_compress_args = lbzip2_decompress_args = ()
 
 
 def compress_data(data, level=9, parallelize=False):
@@ -76,6 +73,6 @@ def decompress_handle(handle, parallelize=False):
     if parallelize and parallelizable:
         return _util.decompress_handle(lbzip2_path, handle,
                                        extra_args=lbzip2_decompress_args)
-    elif (native and isinstance(handle, str)):
+    elif native and isinstance(handle, str):
         return BZ2File(handle, mode='r')
     return _decompress_handle(handle)
