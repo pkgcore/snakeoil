@@ -22,7 +22,7 @@ def _drive_process(args, mode, data):
 
 
 def compress_data(binary, data, compresslevel=9, extra_args=()):
-    args = [binary, '-%ic' % compresslevel]
+    args = [binary, f'-{compresslevel}c']
     args.extend(extra_args)
     return _drive_process(args, 'compression', data)
 
@@ -36,9 +36,7 @@ def decompress_data(binary, data, extra_args=()):
 class _process_handle:
 
     def __init__(self, handle, args, is_read=False):
-        self.mode = 'wb'
-        if is_read:
-            self.mode = 'rb'
+        self.mode = 'rb' if is_read else 'wb'
 
         self.args = tuple(args)
         self.is_read = is_read
@@ -55,8 +53,7 @@ class _process_handle:
         elif not isinstance(handle, int):
             if not hasattr(handle, 'fileno'):
                 raise TypeError(
-                    "handle %r isn't a string, integer, and lacks a fileno "
-                    "method" % (handle,))
+                    f"handle {handle!r} isn't a string, integer, and lacks a fileno method")
             handle = handle.fileno()
 
         try:
@@ -108,8 +105,8 @@ class _process_handle:
         if fwd_seek < 0:
             if self._allow_reopen is None:
                 raise TypeError(
-                    "instance %s can't do negative seeks: asked for %i, "
-                    "was at %i" % (self, position, self.position))
+                    f"instance {self} can't do negative seeks: "
+                    f"asked for {position}, was at {self.position}")
             self._terminate()
             self._open_handle(self._allow_reopen)
             return self.seek(position)
@@ -142,16 +139,17 @@ class _process_handle:
     def _terminate(self):
         try:
             self._process.terminate()
-        except EnvironmentError as e:
+        except EnvironmentError as exc:
             # allow no such process only.
-            if e.errno != errno.ESRCH:
+            if exc.errno != errno.ESRCH:
                 raise
 
     def close(self):
+        if not hasattr(self, '_process'):
+            return
         if self._process.returncode is not None:
             if self._process.returncode != 0:
-                raise Exception("%s invocation had non zero exit: %i" %
-                                (self.args, self._process.returncode))
+                raise Exception(f"{self.args} invocation had non zero exit: {self._process.returncode}")
             return
 
         self.handle.close()
@@ -165,7 +163,7 @@ class _process_handle:
 
 
 def compress_handle(binary_path, handle, compresslevel=9, extra_args=()):
-    args = [binary_path, '-%ic' % compresslevel]
+    args = [binary_path, f'-{compresslevel}c']
     args.extend(extra_args)
     return _process_handle(handle, args, False)
 

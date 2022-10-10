@@ -1,21 +1,13 @@
 import importlib
 from bz2 import decompress
 from pathlib import Path
-from unittest import mock
 
 import pytest
 from snakeoil.compression import _bzip2
 from snakeoil.process import CommandNotFound, find_binary
 from snakeoil.test import hide_imports
 
-
-def hide_binary(*binaries: str):
-    def mock_find_binary(name):
-        if name in binaries:
-            raise CommandNotFound(name)
-        return find_binary(name)
-
-    return mock.patch('snakeoil.process.find_binary', side_effect=mock_find_binary)
+from . import hide_binary
 
 
 def test_no_native():

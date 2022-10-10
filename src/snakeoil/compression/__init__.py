@@ -1,9 +1,9 @@
 import shlex
+from functools import cached_property
 from importlib import import_module
 
-from .. import klass
+from .. import process
 from ..cli.exceptions import UserException
-from ..process import CommandNotFound, find_binary
 from ..process.spawn import spawn_get_output
 
 
@@ -12,13 +12,9 @@ class _transform_source:
     def __init__(self, name):
         self.name = name
 
-    @klass.jit_attr
+    @cached_property
     def module(self):
         return import_module(f'snakeoil.compression._{self.name}')
-
-    @klass.jit_attr
-    def parallelizable(self):
-        return bool(getattr(self.module, 'parallelizable', False))
 
     def compress_data(self, data, level, parallelize=False):
         parallelize = parallelize and self.module.parallelizable
@@ -81,7 +77,7 @@ class ArComp:
     def __init_subclass__(cls, **kwargs):
         """Initialize result subclasses and register archive extensions."""
         super().__init_subclass__(**kwargs)
-        if not all((cls.binary, cls.default_unpack_cmd, cls.exts)):
+        if not all((cls.binary, cls.default_unpack_cmd, cls.exts)): # pragma: no cover
             raise ValueError(f'class missing required attrs: {cls!r}')
         for ext in cls.exts:
             cls.known_exts[ext] = cls
@@ -89,13 +85,13 @@ class ArComp:
     def __init__(self, path, ext=None):
         self.path = path
 
-    @klass.jit_attr
+    @cached_property
     def _unpack_cmd(self):
         for b in self.binary:
             try:
-                binary = find_binary(b)
+                binary = process.find_binary(b)
                 break
-            except CommandNotFound:
+            except process.CommandNotFound:
                 continue
         else:
             choices = ', '.join(self.binary)
@@ -105,9 +101,6 @@ class ArComp:
         return cmd
 
     def unpack(self, dest=None, **kwargs):
-        raise NotImplementedError
-
-    def create(self, dest):
         raise NotImplementedError
 
 
@@ -155,16 +148,16 @@ class _Tar(_Archive, ArComp):
     compress_binary = None
     default_unpack_cmd = '{binary} xf "{path}"'
 
-    @klass.jit_attr
+    @cached_property
     def _unpack_cmd(self):
         cmd = super()._unpack_cmd
         if self.compress_binary is not None:
             for b in self.compress_binary:
                 try:
-                    find_binary(b)
+                    process.find_binary(b)
                     cmd += f' --use-compress-program={b}'
                     break
-                except CommandNotFound:
+                except process.CommandNotFound:
                     pass
             else:
                 choices = ', '.join(self.compress_binary)
