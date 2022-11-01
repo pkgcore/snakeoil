@@ -17,7 +17,7 @@ class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker):
         if getattr(cls, "__hash__intentionally_disabled__", False):
             return True
 
-        namepath = "{cls.__module__}.{cls.__name__}"
+        namepath = f"{cls.__module__}.{cls.__name__}"
         return not namepath.startswith(self.target_namespace)
 
     def run_check(self, cls):

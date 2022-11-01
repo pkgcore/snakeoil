@@ -56,7 +56,7 @@ class SlotShadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker):
         if isinstance(slots, str):
             if self.err_if_slots_is_str:
                 pytest.fail(
-                    "cls {kls!r}; slots is {slots!r} (should be a tuple or list)")
+                    f"cls {kls!r}; slots is {slots!r} (should be a tuple or list)")
             slots = (slots,)
 
         if slots is None:
@@ -65,7 +65,7 @@ class SlotShadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker):
         if not isinstance(slots, tuple):
             if self.err_if_slots_is_mutable:
                 pytest.fail(
-                    "cls {kls!r}; slots is {slots!r}- - should be a tuple")
+                    f"cls {kls!r}; slots is {slots!r}- - should be a tuple")
             slots = tuple(slots)
 
         if slots is None or (slots and slots in raw_slottings):
@@ -73,10 +73,10 @@ class SlotShadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker):
             # this means that the child either didn't define __slots__, or
             # daftly copied the parents... thus defeating the purpose.
             pytest.fail(
-                "cls {kls!r}; slots is {slots!r}, seemingly inherited from "
-                "{raw_slottings[slots]!r}; the derivative class should be __slots__ = ()")
+                f"cls {kls!r}; slots is {slots!r}, seemingly inherited from "
+                f"{raw_slottings[slots]!r}; the derivative class should be __slots__ = ()")
 
         for slot in slots:
             if slot in slotting:
                 pytest.fail(
-                    "cls {kls!r}; slot {slot!r} was already defined at {slotting[slot]!r}")
+                    f"cls {kls!r}; slot {slot!r} was already defined at {slotting[slot]!r}")
