@@ -7,7 +7,7 @@ class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker):
 
     singleton = object()
 
-    def setup(self):
+    def setup_method(self):
         self._ignore_set = frozenset(self.iter_builtin_targets())
 
     def _should_ignore(self, cls):
