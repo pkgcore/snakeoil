@@ -6,7 +6,7 @@ build-backend = "flit_core.buildapi"
 name = "snakeoil"
 description = "misc common functionality and useful optimizations"
 readme = "README.rst"
-requires-python = "~=3.8"
+requires-python = ">=3.8"
 authors = [
     {name = "Tim Harder", email = "radhermit@gmail.com"},
     {name = "Arthur Zamarin", email = "arthurzam@gentoo.org"},
