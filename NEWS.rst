@@ -2,6 +2,15 @@
 Release Notes
 =============
 
+snakeoil 0.10.2 (2022-11-08)
+----------------------------
+
+- compression: add parallel xz support (#83, Sam James, Arthur Zamarin)
+
+- various improvements for the build system (Arthur Zamarin)
+
+- drop support for python 3.8 (Arthur Zamarin)
+
 snakeoil 0.10.1 (2022-09-30)
 ----------------------------
 
