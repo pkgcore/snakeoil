@@ -1,12 +1,12 @@
 [build-system]
-requires = ["flit_core >=3.7,<4"]
+requires = ["flit_core >=3.8,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
 name = "snakeoil"
 description = "misc common functionality and useful optimizations"
 readme = "README.rst"
-requires-python = ">=3.8"
+requires-python = "~=3.8"
 authors = [
     {name = "Tim Harder", email = "radhermit@gmail.com"},
     {name = "Arthur Zamarin", email = "arthurzam@gentoo.org"},
@@ -42,7 +42,7 @@ Source = "https://github.com/pkgcore/snakeoil"
 
 [tool.flit.sdist]
 include = ["doc", "tox.ini", "tests", "Makefile", "NEWS.rst"]
-exclude = [".github/", ".gitignore", "doc/api/", "tests/__pycache__", "tests/cli/__pycache__"]
+exclude = [".github/", ".gitignore", "doc/api/"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
