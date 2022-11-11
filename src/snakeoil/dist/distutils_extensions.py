@@ -18,7 +18,6 @@ import subprocess
 import sys
 import textwrap
 from contextlib import ExitStack, contextmanager, redirect_stderr, redirect_stdout
-from datetime import datetime
 from multiprocessing import cpu_count
 
 from setuptools import find_packages
@@ -120,38 +119,8 @@ def module_version(moduledir=MODULEDIR):
 
     Based on the assumption that a module defines __version__.
     """
-    version = None
-    try:
-        with open(os.path.join(moduledir, '__init__.py'), encoding='utf-8') as f:
-            version = re.search(
-                r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
-                f.read(), re.MULTILINE).group(1)
-    except IOError as e:
-        if e.errno == errno.ENOENT:
-            pass
-        else:
-            raise
-
-    if version is None:
-        raise RuntimeError(f'Cannot find version for module: {MODULE_NAME}')
-
-    # use versioning scheme similar to setuptools_scm for untagged versions
-    git_version = get_git_version(REPODIR)
-    if git_version:
-        tag = git_version['tag']
-        if tag is None:
-            commits = git_version['commits']
-            rev = git_version['rev'][:7]
-            date = datetime.strptime(git_version['date'], '%a, %d %b %Y %H:%M:%S %z')
-            date = datetime.strftime(date, '%Y%m%d')
-            if commits is not None:
-                version += f'.dev{commits}'
-            version += f'+g{rev}.d{date}'
-        elif tag != version:
-            raise DistutilsError(
-                f'unmatched git tag {tag!r} and {MODULE_NAME} version {version!r}')
-
-    return version
+    from .utilities import module_version
+    return module_version(REPODIR, moduledir)
 
 
 def generate_verinfo(target_dir):
@@ -264,76 +233,6 @@ def data_mapping(host_prefix, path, skip=None):
         if repo_path not in skip:
             yield (host_path, [os.path.join(root, x) for x in files
                                if os.path.join(root, x) not in skip])
-
-
-def pkg_config(*packages, **kw):
-    """Translate pkg-config data to compatible Extension parameters.
-
-    Example usage:
-
-    >>> from distutils.extension import Extension
-    >>> from pkgdist import pkg_config
-    >>>
-    >>> ext_kwargs = dict(
-    ...     include_dirs=['include'],
-    ...     extra_compile_args=['-std=c++11'],
-    ... )
-    >>> extensions = [
-    ...     Extension('foo', ['foo.c']),
-    ...     Extension('bar', ['bar.c'], **pkg_config('lcms2')),
-    ...     Extension('ext', ['ext.cpp'], **pkg_config(('nss', 'libusb-1.0'), **ext_kwargs)),
-    ... ]
-    """
-    flag_map = {
-        '-I': 'include_dirs',
-        '-L': 'library_dirs',
-        '-l': 'libraries',
-    }
-
-    try:
-        tokens = subprocess.check_output(
-            ['pkg-config', '--libs', '--cflags'] + list(packages)).split()
-    except OSError as e:
-        sys.stderr.write(f'running pkg-config failed: {e.strerror}\n')
-        sys.exit(1)
-
-    for token in tokens:
-        token = token.decode()
-        if token[:2] in flag_map:
-            kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
-        else:
-            kw.setdefault('extra_compile_args', []).append(token)
-    return kw
-
-
-def cython_pyx(path=MODULEDIR):
-    """Return all available cython extensions under a given path."""
-    for root, _dirs, files in os.walk(path):
-        for f in files:
-            if f.endswith('.pyx'):
-                yield str(os.path.join(root, f))
-
-
-def cython_exts(path=MODULEDIR, build_opts=None):
-    """Prepare all cython extensions under a given path to be built."""
-    if build_opts is None:
-        build_opts = {'depends': [], 'include_dirs': []}
-    exts = []
-
-    for ext in cython_pyx(path):
-        cythonized = os.path.splitext(ext)[0] + '.c'
-        if os.path.exists(cythonized):
-            ext_path = cythonized
-        else:
-            ext_path = ext
-
-        # strip package dir
-        module = ext_path.rpartition(PACKAGEDIR)[-1].lstrip(os.path.sep)
-        # strip file extension and translate to module namespace
-        module = os.path.splitext(module)[0].replace(os.path.sep, '.')
-        exts.append(Extension(module, [ext_path], **build_opts))
-
-    return exts
 
 
 class sdist(dst_sdist.sdist):

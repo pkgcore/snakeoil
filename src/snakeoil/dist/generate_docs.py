@@ -24,13 +24,13 @@ def _generate_custom(project, docdir, gendir):
     custom_dir = os.path.join(docdir, 'generate')
     print(f"Generating custom docs for {project} in {gendir!r}")
 
-    for root, dirs, files in os.walk(custom_dir):
+    for root, _dirs, files in os.walk(custom_dir):
         subdir = root.split(custom_dir, 1)[1].strip('/')
         if subdir:
             try:
                 os.mkdir(os.path.join(gendir, subdir))
-            except OSError as e:
-                if e.errno != errno.EEXIST:
+            except OSError as exc:
+                if exc.errno != errno.EEXIST:
                     raise
 
         for script in sorted(x for x in files if not x.startswith(('.', '_'))):
@@ -44,8 +44,7 @@ def _generate_custom(project, docdir, gendir):
                 module.main(fake_file, docdir=docdir, gendir=gendir)
 
             fake_file.seek(0)
-            data = fake_file.read()
-            if data:
+            if data := fake_file.read():
                 rst = os.path.join(gendir, subdir, os.path.splitext(script)[0] + '.rst')
                 print(f"generating {rst}")
                 with open(rst, 'w') as f:
@@ -66,7 +65,7 @@ def generate_man(repo_dir, package_dir, module):
 
     # Replace '-' with '_' due to python namespace contraints.
     generated_man_pages = [
-        ('%s.scripts.' % (module) + s.replace('-', '_'), s) for s in scripts
+        (f"{module}.scripts.{s.replace('-', '_')}", s) for s in scripts
     ]
 
     # generate specified man pages for scripts
@@ -88,5 +87,4 @@ def generate_html(repo_dir, package_dir, module):
                         os.path.join(package_dir, module),
                         os.path.join(package_dir, module, 'test'),
                         os.path.join(package_dir, module, 'scripts')]):
-        raise RuntimeError(
-            'API doc generation failed for %s' % (module,))
+        raise RuntimeError(f'API doc generation failed for {module}')
