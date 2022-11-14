@@ -2,6 +2,12 @@
 Release Notes
 =============
 
+snakeoil 0.10.3 (2022-11-15)
+----------------------------
+
+- dist.sphinxext: new *internal* sphinx extension, used by pkgcore stack. This
+  is considered internal and unstable API. (#89, Arthur Zamarin)
+
 snakeoil 0.10.2 (2022-11-08)
 ----------------------------
 
