@@ -34,6 +34,10 @@ class RawTextFormatter(argparse.RawTextHelpFormatter):
             action.help = '\n' + action.help.strip()
         return super()._format_action(action)
 
+    def _format_action_invocation(self, action):
+        text = super()._format_action_invocation(action)
+        return f':option:`{text}`'
+
 
 class ManConverter:
     """Convert argparse help docs into rST man pages."""
