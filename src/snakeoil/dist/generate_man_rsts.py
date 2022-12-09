@@ -80,8 +80,8 @@ class ManConverter:
         cur_time = max([cur_time, script_time])
         try:
             trg_time = int(os.stat(out_path).st_mtime)
-        except EnvironmentError as e:
-            if e.errno != errno.ENOENT:
+        except EnvironmentError as exc:
+            if exc.errno != errno.ENOENT:
                 raise
             trg_time = None
 
@@ -103,7 +103,7 @@ class ManConverter:
         self.mtime = mtime
         self.replace_cmd = replace_cmd
 
-        header_chars = headers if headers else ('=', '-', '~', '#', '*', '^')
+        header_chars = headers or ('=', '-', '~', '#', '*', '^')
         self.header_char = header_chars[len(name.split(' ')) - 1]
 
     def run(self):
@@ -208,8 +208,8 @@ class ManConverter:
         path = os.path.join(self.base_path, cmd_path)
         try:
             os.makedirs(path)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
+        except OSError as exc:
+            if exc.errno != errno.EEXIST:
                 raise
 
         # strip the main command from the outputted name
@@ -223,7 +223,7 @@ class ManConverter:
         desc = getattr(parser, '_description', parser.description)
         desc = ' - ' + desc if desc else ''
         rst = _rst_header(self.header_char, f'{name}{desc}',
-                          leading=main_command, capitalize=False)
+                          leading=True, capitalize=False)
 
         cmd = cmd_parts[-1]
         for filename in ('synopsis', 'description', 'options', 'subcommands'):
