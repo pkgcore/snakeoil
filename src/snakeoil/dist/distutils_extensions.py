@@ -17,6 +17,7 @@ import shutil
 import subprocess
 import sys
 import textwrap
+import warnings
 from contextlib import ExitStack, contextmanager, redirect_stderr, redirect_stdout
 from multiprocessing import cpu_count
 
@@ -36,6 +37,8 @@ from distutils.errors import DistutilsError, DistutilsExecError
 from ..contexts import syspath
 from ..version import get_git_version
 from .generate_docs import generate_html, generate_man
+
+warnings.warn("the distutils_extensions module is deprecated", DeprecationWarning, stacklevel=2)
 
 # forcibly disable lazy module loading
 os.environ['SNAKEOIL_DEMANDIMPORT'] = 'false'
