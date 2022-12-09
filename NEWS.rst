@@ -2,6 +2,19 @@
 Release Notes
 =============
 
+snakeoil 0.10.4 (2022-12-09)
+----------------------------
+
+- Add constraint satisfaction problem solver (#91, Arthur Zamarin)
+
+- dist.sphinxext: mark ``distutils_extensions`` as deprecated. This module will
+  be removed in the near releases (Arthur Zamarin)
+
+- generate_man_rsts: improve sub-sectioning for sub-commands (Arthur Zamarin)
+
+- generate_man_rsts: better formatting for command line options (Arthur
+  Zamarin)
+
 snakeoil 0.10.3 (2022-11-15)
 ----------------------------
 
