@@ -40,7 +40,7 @@ Documentation = "https://pkgcore.github.io/snakeoil/"
 Source = "https://github.com/pkgcore/snakeoil"
 
 [tool.flit.sdist]
-include = ["doc", "tox.ini", "tests", "Makefile", "NEWS.rst"]
+include = ["doc", "tox.ini", "tests", "LICENSE", "Makefile", "NEWS.rst"]
 exclude = [".github/", ".gitignore", "doc/api/"]
 
 [tool.pytest.ini_options]
