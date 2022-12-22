@@ -145,7 +145,7 @@ class _CompressedStdin:
 class _Tar(_Archive, ArComp):
 
     exts = frozenset(['.tar'])
-    binary = ('tar',)
+    binary = ('gtar', 'tar',)
     compress_binary = None
     default_unpack_cmd = '{binary} xf "{path}"'
 
@@ -156,6 +156,7 @@ class _Tar(_Archive, ArComp):
             for b in self.compress_binary:
                 try:
                     process.find_binary(b[0])
+                    # FIXME: This is a gnuism, needs gnu tar.
                     cmd += f' --use-compress-program="{" ".join(b)}"'
                     break
                 except process.CommandNotFound:
