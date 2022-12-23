@@ -59,7 +59,7 @@ from . import native_readdir as module
 # force utf8 codepaths yet.
 from ..klass import steal_docs
 
-listdir = module.listdir
+listdir = os.listdir
 listdir_dirs = module.listdir_dirs
 listdir_files = module.listdir_files
 readdir = module.readdir

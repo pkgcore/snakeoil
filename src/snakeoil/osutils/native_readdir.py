@@ -18,8 +18,6 @@ from stat import (
 
 from ..mappings import ProtectedDict
 
-listdir = os.listdir
-
 # we can still use the cpy pjoin here, just need to do something about the
 # import cycle.
 pjoin = os.path.join

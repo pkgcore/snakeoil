@@ -18,8 +18,7 @@ from snakeoil.osutils.mount import MNT_DETACH, MS_BIND, mount, umount
 class ReaddirCommon:
     @pytest.fixture
     def subdir(self, tmp_path):
-        subdir = tmp_path / "dir"
-        subdir.mkdir()
+        (subdir := tmp_path / "dir").mkdir()
         (tmp_path / "file").touch()
         os.mkfifo((tmp_path / "fifo"))
         return subdir
@@ -30,10 +29,6 @@ class ReaddirCommon:
 
 
 class TestNativeListDir(ReaddirCommon):
-    def test_listdir(self, tmp_path, subdir):
-        assert set(native_readdir.listdir(tmp_path)) == {"dir", "fifo", "file"}
-        assert native_readdir.listdir(subdir) == []
-
     def test_listdir_dirs(self, tmp_path, subdir):
         assert native_readdir.listdir_dirs(tmp_path) == ["dir"]
         assert native_readdir.listdir_dirs(subdir) == []
@@ -46,7 +41,6 @@ class TestNativeListDir(ReaddirCommon):
         return self._test_missing(
             tmp_path,
             (
-                native_readdir.listdir,
                 native_readdir.listdir_dirs,
                 native_readdir.listdir_files,
             ),
