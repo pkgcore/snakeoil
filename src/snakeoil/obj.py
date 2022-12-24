@@ -74,7 +74,6 @@ try to proxy builtin objects like tuples, lists, dicts, sets, etc.
 """
 
 
-
 __all__ = ("DelayedInstantiation", "DelayedInstantiation_kls", "make_kls", "popattr")
 
 from . import klass
@@ -87,14 +86,25 @@ from . import klass
 # pointless class creation- thus having two separate lists.
 
 base_kls_descriptors = [
-    '__delattr__', '__hash__', '__reduce__',
-    '__reduce_ex__', '__repr__', '__setattr__', '__str__',
-    '__format__', '__subclasshook__',  # >=py2.6
-    '__le__', '__lt__', '__ge__', '__gt__', '__eq__', '__ne__',  # py3
-    '__dir__',  # >=py3.3
+    "__delattr__",
+    "__hash__",
+    "__reduce__",
+    "__reduce_ex__",
+    "__repr__",
+    "__setattr__",
+    "__str__",
+    "__format__",
+    "__subclasshook__",  # >=py2.6
+    "__le__",
+    "__lt__",
+    "__ge__",
+    "__gt__",
+    "__eq__",
+    "__ne__",  # py3
+    "__dir__",  # >=py3.3
 ]
-if hasattr(object, '__sizeof__'):
-    base_kls_descriptors.append('__sizeof__')
+if hasattr(object, "__sizeof__"):
+    base_kls_descriptors.append("__sizeof__")
 base_kls_descriptors = frozenset(base_kls_descriptors)
 
 
@@ -134,13 +144,13 @@ class BaseDelayedObject:
     def __getattribute__(self, attr):
         obj = object.__getattribute__(self, "__obj__")
         if obj is None:
-            if attr == '__class__':
+            if attr == "__class__":
                 return object.__getattribute__(self, "__delayed__")[0]
-            elif attr == '__doc__':
+            elif attr == "__doc__":
                 kls = object.__getattribute__(self, "__delayed__")[0]
-                return getattr(kls, '__doc__', None)
+                return getattr(kls, "__doc__", None)
 
-            obj = object.__getattribute__(self, '__instantiate_proxy_instance__')()
+            obj = object.__getattribute__(self, "__instantiate_proxy_instance__")()
 
         if attr == "__obj__":
             # special casing for klass.alias_method
@@ -157,61 +167,122 @@ class BaseDelayedObject:
     # special case the normal descriptors
     for x in base_kls_descriptors:
         locals()[x] = klass.alias_method(
-            "__obj__.%s" % (x,),
-            doc=getattr(getattr(object, x), '__doc__', None))
+            "__obj__.%s" % (x,), doc=getattr(getattr(object, x), "__doc__", None)
+        )
     # pylint: disable=undefined-loop-variable
     del x
 
 
 # note that we ignore __getattribute__; we already handle it.
-kls_descriptors = frozenset([
-    # rich comparison protocol...
-    '__le__', '__lt__', '__eq__', '__ne__', '__gt__', '__ge__',
-    # unicode conversion
-    '__unicode__',
-    # truth...
-    '__bool__',
-    # container protocol...
-    '__len__', '__getitem__', '__setitem__', '__delitem__',
-    '__iter__', '__contains__', '__index__', '__reversed__',
-    # deprecated sequence protocol bits...
-    '__getslice__', '__setslice__', '__delslice__',
-    # numeric...
-    '__add__', '__sub__', '__mul__', '__floordiv__', '__mod__',
-    '__divmod__', '__pow__', '__lshift__', '__rshift__',
-    '__and__', '__xor__', '__or__', '__div__', '__truediv__',
-    '__rad__', '__rsub__', '__rmul__', '__rdiv__', '__rtruediv__',
-    '__rfloordiv__', '__rmod__', '__rdivmod__', '__rpow__',
-    '__rlshift__', '__rrshift__', '__rand__', '__rxor__', '__ror__',
-    '__iadd__', '__isub__', '__imul__', '__idiv__', '__itruediv__',
-    '__ifloordiv__', '__imod__', '__ipow__', '__ilshift__',
-    '__irshift__', '__iand__', '__ixor__', '__ior__',
-    '__neg__', '__pos__', '__abs__', '__invert__', '__complex__',
-    '__int__', '__long__', '__float__', '__oct__', '__hex__',
-    '__coerce__', '__trunc__', '__radd__', '__floor__', '__ceil__',
-    '__round__',
-    # remaining...
-    '__call__', '__sizeof__',
-])
+kls_descriptors = frozenset(
+    [
+        # rich comparison protocol...
+        "__le__",
+        "__lt__",
+        "__eq__",
+        "__ne__",
+        "__gt__",
+        "__ge__",
+        # unicode conversion
+        "__unicode__",
+        # truth...
+        "__bool__",
+        # container protocol...
+        "__len__",
+        "__getitem__",
+        "__setitem__",
+        "__delitem__",
+        "__iter__",
+        "__contains__",
+        "__index__",
+        "__reversed__",
+        # deprecated sequence protocol bits...
+        "__getslice__",
+        "__setslice__",
+        "__delslice__",
+        # numeric...
+        "__add__",
+        "__sub__",
+        "__mul__",
+        "__floordiv__",
+        "__mod__",
+        "__divmod__",
+        "__pow__",
+        "__lshift__",
+        "__rshift__",
+        "__and__",
+        "__xor__",
+        "__or__",
+        "__div__",
+        "__truediv__",
+        "__rad__",
+        "__rsub__",
+        "__rmul__",
+        "__rdiv__",
+        "__rtruediv__",
+        "__rfloordiv__",
+        "__rmod__",
+        "__rdivmod__",
+        "__rpow__",
+        "__rlshift__",
+        "__rrshift__",
+        "__rand__",
+        "__rxor__",
+        "__ror__",
+        "__iadd__",
+        "__isub__",
+        "__imul__",
+        "__idiv__",
+        "__itruediv__",
+        "__ifloordiv__",
+        "__imod__",
+        "__ipow__",
+        "__ilshift__",
+        "__irshift__",
+        "__iand__",
+        "__ixor__",
+        "__ior__",
+        "__neg__",
+        "__pos__",
+        "__abs__",
+        "__invert__",
+        "__complex__",
+        "__int__",
+        "__long__",
+        "__float__",
+        "__oct__",
+        "__hex__",
+        "__coerce__",
+        "__trunc__",
+        "__radd__",
+        "__floor__",
+        "__ceil__",
+        "__round__",
+        # remaining...
+        "__call__",
+        "__sizeof__",
+    ]
+)
 
 
 kls_descriptors = kls_descriptors.difference(base_kls_descriptors)
-descriptor_overrides = {k: klass.alias_method(f"__obj__.{k}")
-                        for k in kls_descriptors}
+descriptor_overrides = {k: klass.alias_method(f"__obj__.{k}") for k in kls_descriptors}
 
 
 _method_cache = {}
+
+
 def make_kls(kls, proxy_base=BaseDelayedObject):
     special_descriptors = kls_descriptors.intersection(dir(kls))
-    doc = getattr(kls, '__doc__', None)
+    doc = getattr(kls, "__doc__", None)
     if not special_descriptors and doc is None:
         return proxy_base
     key = (tuple(sorted(special_descriptors)), doc)
     o = _method_cache.get(key, None)
     if o is None:
+
         class CustomDelayedObject(proxy_base):
-            locals().update((k, descriptor_overrides[k])
-                            for k in special_descriptors)
+            locals().update((k, descriptor_overrides[k]) for k in special_descriptors)
             __doc__ = doc
 
         o = CustomDelayedObject
@@ -230,6 +301,8 @@ def DelayedInstantiation_kls(kls, *a, **kwd):
 
 
 _class_cache = {}
+
+
 def DelayedInstantiation(resultant_kls, func, *a, **kwd):
     """Generate an objects that does not get initialized before it is used.
 

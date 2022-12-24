@@ -14,14 +14,15 @@ def require_chf(func):
     def subfunc(self):
         if self.chf is None:
             pytest.skip(
-                'no handler for %s, do you need to install PyCrypto or mhash?'
-                % (self.chf_type,))
+                "no handler for %s, do you need to install PyCrypto or mhash?"
+                % (self.chf_type,)
+            )
         func(self)
+
     return subfunc
 
 
 class base:
-
     def get_chf(self):
         try:
             self.chf = chksum.get_handler(self.chf_type)
@@ -53,14 +54,17 @@ class base:
     @require_chf
     def test_data_source_check(self):
         assert self.chf(local_source(self.fn)) == self.expected_long
-        assert self.chf(data_source(fileutils.readfile_ascii(self.fn))) == self.expected_long
+        assert (
+            self.chf(data_source(fileutils.readfile_ascii(self.fn)))
+            == self.expected_long
+        )
+
 
 class ChksumTest(base):
-
     @require_chf
     def test_str2long(self):
         assert self.chf.str2long(self.expected_str) == self.expected_long
-        if self.chf_type == 'size':
+        if self.chf_type == "size":
             return
         for x in extra_chksums.get(self.chf_type, ()):
             assert self.chf.str2long(x) == int(x, 16)
@@ -68,10 +72,11 @@ class ChksumTest(base):
     @require_chf
     def test_long2str(self):
         assert self.chf.long2str(self.expected_long) == self.expected_str
-        if self.chf_type == 'size':
+        if self.chf_type == "size":
             return
         for x in extra_chksums.get(self.chf_type, ()):
             assert self.chf.long2str(int(x == 16)), x
+
 
 checksums = {
     "rmd160": "b83ad488d624e7911f886420ab230f78f6368b9f",
@@ -87,22 +92,22 @@ checksums = {
 checksums.update((k, (int(v, 16), v)) for k, v in checksums.items())
 checksums["size"] = (int(len(data) * multi), str(int(len(data) * multi)))
 
-extra_chksums = {
-    "md5":
-        ["2dfd84279314a178d0fa842af3a40e25577e1bc"]
-}
+extra_chksums = {"md5": ["2dfd84279314a178d0fa842af3a40e25577e1bc"]}
 
 for k, v in checksums.items():
-    extra_chksums.setdefault(k, []).extend((''.rjust(len(v[1]), '0'), '01'.rjust(len(v[1]), '0')))
+    extra_chksums.setdefault(k, []).extend(
+        ("".rjust(len(v[1]), "0"), "01".rjust(len(v[1]), "0"))
+    )
 
 # trick: create subclasses for each checksum with a useful class name.
 for chf_type, expected in checksums.items():
     expectedsum = expected[0]
     expectedstr = expected[1]
-    globals()['TestChksum' + chf_type.capitalize()] = type(
-        'TestChksum' + chf_type.capitalize(),
+    globals()["TestChksum" + chf_type.capitalize()] = type(
+        "TestChksum" + chf_type.capitalize(),
         (ChksumTest,),
-        dict(chf_type=chf_type, expected_long=expectedsum, expected_str=expectedstr))
+        dict(chf_type=chf_type, expected_long=expectedsum, expected_str=expectedstr),
+    )
 
 # pylint: disable=undefined-loop-variable
 del chf_type, expected
@@ -110,7 +115,7 @@ del chf_type, expected
 
 class TestGetChksums(base):
 
-    chfs = [k for k in sorted(checksums) if k in ('md5', 'sha1')]
+    chfs = [k for k in sorted(checksums) if k in ("md5", "sha1")]
     expected_long = [checksums[k][0] for k in chfs]
 
     def get_chf(self):

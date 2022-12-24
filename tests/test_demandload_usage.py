@@ -4,7 +4,7 @@ from snakeoil.test import mixins
 
 class TestDemandLoadTargets(mixins.PythonNamespaceWalker):
 
-    target_namespace = 'snakeoil'
+    target_namespace = "snakeoil"
     ignore_all_import_failures = False
 
     @pytest.fixture(autouse=True)
@@ -16,8 +16,8 @@ class TestDemandLoadTargets(mixins.PythonNamespaceWalker):
 
     def test_demandload_targets(self):
         for x in self.walk_namespace(
-                self.target_namespace,
-                ignore_failed_imports=self.ignore_all_import_failures):
+            self.target_namespace, ignore_failed_imports=self.ignore_all_import_failures
+        ):
             self.check_space(x)
 
     def check_space(self, mod):

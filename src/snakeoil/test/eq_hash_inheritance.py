@@ -3,7 +3,7 @@ from . import mixins
 
 class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker):
 
-    target_namespace = 'snakeoil'
+    target_namespace = "snakeoil"
 
     singleton = object()
 
@@ -26,8 +26,8 @@ class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker):
                 # object sets __hash__/__eq__, which isn't usually
                 # intended to be inherited/reused
                 continue
-            eq = getattr(parent, '__eq__', self.singleton)
-            h = getattr(parent, '__hash__', self.singleton)
+            eq = getattr(parent, "__eq__", self.singleton)
+            h = getattr(parent, "__hash__", self.singleton)
             if eq == object.__eq__ and h == object.__hash__:
                 continue
             if eq and h:
@@ -37,10 +37,11 @@ class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker):
 
         # pylint: disable=undefined-loop-variable
         # 'parent' is guaranteed to be defined due to the 'else' clause above
-        assert getattr(cls, '__hash__') is not None, (
+        assert getattr(cls, "__hash__") is not None, (
             f"class '{cls.__module__}.{cls.__name__}' had its __hash__ reset, "
             "while it would've inherited __hash__ from parent "
             f"'{parent.__module__}.{parent.__name__}'; this occurs in py3k when "
             "__eq__ is  defined alone.  If this is desired behaviour, set "
             "__hash__intentionally_disabled__ to True to explicitly ignore this"
-            " class")
+            " class"
+        )

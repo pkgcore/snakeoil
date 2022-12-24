@@ -12,20 +12,20 @@ def walk_exception_chain(exc, ignore_first=False, reverse=False):
 def _inner_walk_exception_chain(exc, ignore_first):
     if not ignore_first:
         yield exc
-    exc = getattr(exc, '__cause__', None)
+    exc = getattr(exc, "__cause__", None)
     while exc is not None:
         yield exc
-        exc = getattr(exc, '__cause__', None)
+        exc = getattr(exc, "__cause__", None)
 
 
 def dump_error(raw_exc, msg=None, handle=sys.stderr, tb=None):
     # force default output for exceptions
-    if getattr(handle, 'reset', False):
+    if getattr(handle, "reset", False):
         handle.write(handle.reset)
 
-    prefix = ''
+    prefix = ""
     if msg:
-        prefix = ' '
+        prefix = " "
         handle.write(msg.rstrip("\n") + ":\n")
         if tb:
             handle.write("Traceback follows:\n")
@@ -34,8 +34,8 @@ def dump_error(raw_exc, msg=None, handle=sys.stderr, tb=None):
     if raw_exc is not None:
         for exc in walk_exception_chain(raw_exc):
             exc_strings.extend(
-                prefix + x.strip()
-                for x in (x for x in str(exc).split("\n") if x))
+                prefix + x.strip() for x in (x for x in str(exc).split("\n") if x)
+            )
     if exc_strings:
         if msg and tb:
             handle.write(f"\n{raw_exc.__class__.__name__}:\n")

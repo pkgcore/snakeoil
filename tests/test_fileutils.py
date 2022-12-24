@@ -13,7 +13,6 @@ from snakeoil.test import random_str
 
 
 class TestTouch:
-
     @pytest.fixture
     def random_path(self, tmp_path):
         return tmp_path / random_str(10)
@@ -124,19 +123,19 @@ class TestAtomicWriteFile:
 
 
 def cpy_setup_class(scope, func_name):
-    if getattr(fileutils, 'native_%s' % func_name) \
-        is getattr(fileutils, func_name):
-        scope['skip'] = 'extensions disabled'
+    if getattr(fileutils, "native_%s" % func_name) is getattr(fileutils, func_name):
+        scope["skip"] = "extensions disabled"
     else:
-        scope['func'] = staticmethod(getattr(fileutils, func_name))
+        scope["func"] = staticmethod(getattr(fileutils, func_name))
+
 
 class Test_readfile:
     func = staticmethod(fileutils.readfile)
 
-    test_cases = ['asdf\nfdasswer\1923', '', '987234']
+    test_cases = ["asdf\nfdasswer\1923", "", "987234"]
 
-    default_encoding = 'ascii'
-    none_on_missing_ret_data = 'dar'
+    default_encoding = "ascii"
+    none_on_missing_ret_data = "dar"
 
     @staticmethod
     def convert_data(data, encoding):
@@ -147,7 +146,7 @@ class Test_readfile:
         return data
 
     def test_it(self, tmp_path):
-        fp = tmp_path / 'testfile'
+        fp = tmp_path / "testfile"
         for expected in self.test_cases:
             raised = None
             encoding = self.default_encoding
@@ -168,16 +167,16 @@ class Test_readfile:
         assert self.func(path) == expected
 
     def test_none_on_missing(self, tmp_path):
-        fp = tmp_path / 'nonexistent'
+        fp = tmp_path / "nonexistent"
         with pytest.raises(FileNotFoundError):
             self.func(fp)
         assert self.func(fp, True) is None
-        fp.write_bytes(self.convert_data('dar', 'ascii'))
+        fp.write_bytes(self.convert_data("dar", "ascii"))
         assert self.func(fp, True) == self.none_on_missing_ret_data
 
         # ensure it handles paths that go through files-
         # still should be suppress
-        assert self.func(fp / 'extra', True) is None
+        assert self.func(fp / "extra", True) is None
 
 
 class Test_readfile_ascii(Test_readfile):
@@ -186,85 +185,86 @@ class Test_readfile_ascii(Test_readfile):
 
 class Test_readfile_utf8(Test_readfile):
     func = staticmethod(fileutils.readfile_utf8)
-    default_encoding = 'utf8'
+    default_encoding = "utf8"
 
 
 class Test_readfile_bytes(Test_readfile):
     func = staticmethod(fileutils.readfile_bytes)
     default_encoding = None
-    test_cases = list(map(
-        currying.post_curry(Test_readfile.convert_data, 'ascii'),
-        Test_readfile.test_cases))
-    test_cases.append('\ua000fa'.encode("utf8"))
+    test_cases = list(
+        map(
+            currying.post_curry(Test_readfile.convert_data, "ascii"),
+            Test_readfile.test_cases,
+        )
+    )
+    test_cases.append("\ua000fa".encode("utf8"))
     none_on_missing_ret_data = Test_readfile.convert_data(
-        Test_readfile.none_on_missing_ret_data, 'ascii')
+        Test_readfile.none_on_missing_ret_data, "ascii"
+    )
 
 
 class readlines_mixin:
-
     def assertFunc(self, path, expected):
         expected = tuple(expected.split())
-        if expected == ('',):
+        if expected == ("",):
             expected = ()
 
-        if 'utf8' not in self.encoding_mode:
+        if "utf8" not in self.encoding_mode:
             assert tuple(self.func(path)) == expected
             return
         assert tuple(self.func(path)) == expected
 
     def test_none_on_missing(self, tmp_path):
-        fp = tmp_path / 'nonexistent'
+        fp = tmp_path / "nonexistent"
         with pytest.raises(FileNotFoundError):
             self.func(fp)
         assert not tuple(self.func(fp, False, True))
-        fp.write_bytes(self.convert_data('dar', 'ascii'))
+        fp.write_bytes(self.convert_data("dar", "ascii"))
         assert tuple(self.func(fp, True)) == (self.none_on_missing_ret_data,)
-        assert not tuple(self.func(fp / 'missing', False, True))
+        assert not tuple(self.func(fp / "missing", False, True))
 
     def test_strip_whitespace(self, tmp_path):
-        fp = tmp_path / 'data'
+        fp = tmp_path / "data"
 
-        fp.write_bytes(self.convert_data(' dar1 \ndar2 \n dar3\n',
-                                                    'ascii'))
+        fp.write_bytes(self.convert_data(" dar1 \ndar2 \n dar3\n", "ascii"))
         results = tuple(self.func(fp, True))
-        expected = ('dar1', 'dar2', 'dar3')
-        if self.encoding_mode == 'bytes':
+        expected = ("dar1", "dar2", "dar3")
+        if self.encoding_mode == "bytes":
             expected = tuple(x.encode("ascii") for x in expected)
         assert results == expected
 
         # this time without the trailing newline...
-        fp.write_bytes(self.convert_data(' dar1 \ndar2 \n dar3',
-                                                    'ascii'))
+        fp.write_bytes(self.convert_data(" dar1 \ndar2 \n dar3", "ascii"))
         results = tuple(self.func(fp, True))
         assert results == expected
 
         # test a couple of edgecases; underly c extension has gotten these
         # wrong before.
-        fp.write_bytes(self.convert_data('0', 'ascii'))
+        fp.write_bytes(self.convert_data("0", "ascii"))
         results = tuple(self.func(fp, True))
-        expected = ('0',)
-        if self.encoding_mode == 'bytes':
+        expected = ("0",)
+        if self.encoding_mode == "bytes":
             expected = tuple(x.encode("ascii") for x in expected)
         assert results == expected
 
-        fp.write_bytes(self.convert_data('0\n', 'ascii'))
+        fp.write_bytes(self.convert_data("0\n", "ascii"))
         results = tuple(self.func(fp, True))
-        expected = ('0',)
-        if self.encoding_mode == 'bytes':
+        expected = ("0",)
+        if self.encoding_mode == "bytes":
             expected = tuple(x.encode("ascii") for x in expected)
         assert results == expected
 
-        fp.write_bytes(self.convert_data('0 ', 'ascii'))
+        fp.write_bytes(self.convert_data("0 ", "ascii"))
         results = tuple(self.func(fp, True))
-        expected = ('0',)
-        if self.encoding_mode == 'bytes':
+        expected = ("0",)
+        if self.encoding_mode == "bytes":
             expected = tuple(x.encode("ascii") for x in expected)
         assert results == expected
 
 
 def mk_readlines_test(scope, mode):
-    func_name = 'readlines_%s' % mode
-    base = globals()['Test_readfile_%s' % mode]
+    func_name = "readlines_%s" % mode
+    base = globals()["Test_readfile_%s" % mode]
 
     class kls(readlines_mixin, base):
         func = staticmethod(getattr(fileutils, func_name))
@@ -273,14 +273,15 @@ def mk_readlines_test(scope, mode):
     kls.__name__ = "Test_%s" % func_name
     scope["Test_%s" % func_name] = kls
 
+
 for case in ("ascii", "bytes", "utf8"):
-    name = 'readlines_%s' % case
+    name = "readlines_%s" % case
     mk_readlines_test(locals(), case)
 
 
 class TestBrokenStats:
 
-    test_cases = ['/proc/crypto', '/sys/devices/system/cpu/present']
+    test_cases = ["/proc/crypto", "/sys/devices/system/cpu/present"]
 
     def test_readfile(self):
         for path in self.test_cases:
@@ -292,7 +293,7 @@ class TestBrokenStats:
 
     def _check_path(self, path, func, split_it=False):
         try:
-            with open(path, 'r') as handle:
+            with open(path, "r") as handle:
                 data = handle.read()
         except EnvironmentError as e:
             if e.errno not in (errno.ENOENT, errno.EPERM):
@@ -302,7 +303,7 @@ class TestBrokenStats:
         func_data = func(path)
         if split_it:
             func_data = list(func_data)
-            data = [x for x in data.split('\n') if x]
+            data = [x for x in data.split("\n") if x]
             func_data = [x for x in func_data if x]
 
         assert func_data == data
@@ -313,13 +314,13 @@ class Test_mmap_or_open_for_read:
     func = staticmethod(fileutils.mmap_or_open_for_read)
 
     def test_zero_length(self, tmp_path):
-        (path := tmp_path / "target").write_text('')
+        (path := tmp_path / "target").write_text("")
         m, f = self.func(path)
         assert m is None
-        assert f.read() == b''
+        assert f.read() == b""
         f.close()
 
-    def test_mmap(self, tmp_path, data=b'foonani'):
+    def test_mmap(self, tmp_path, data=b"foonani"):
         (path := tmp_path / "target").write_bytes(data)
         m, f = self.func(path)
         assert len(m) == len(data)
@@ -329,14 +330,14 @@ class Test_mmap_or_open_for_read:
 
 
 class Test_mmap_and_close:
-
     def test_it(self, tmp_path):
-        (path := tmp_path / "target").write_bytes(data := b'asdfasdf')
+        (path := tmp_path / "target").write_bytes(data := b"asdfasdf")
         fd, m = None, None
         try:
             fd = os.open(path, os.O_RDONLY)
             m = _fileutils.mmap_and_close(
-                fd, len(data), mmap.MAP_PRIVATE, mmap.PROT_READ)
+                fd, len(data), mmap.MAP_PRIVATE, mmap.PROT_READ
+            )
             # and ensure it closed the fd...
             with pytest.raises(EnvironmentError):
                 os.read(fd, 1)

@@ -5,7 +5,9 @@ Access this functionality from :py:module:`snakeoil.osutils` instead
 """
 
 __all__ = (
-    "mmap_and_close", "readlines_iter", "native_readlines",
+    "mmap_and_close",
+    "readlines_iter",
+    "native_readlines",
     "native_readfile",
 )
 
@@ -31,6 +33,7 @@ def mmap_and_close(fd, *args, **kwargs):
 
 class readlines_iter:
     __slots__ = ("iterable", "mtime", "source")
+
     def __init__(self, iterable, mtime, close=True, source=None):
         if source is None:
             source = iterable
@@ -54,17 +57,25 @@ class readlines_iter:
         source.close()
 
     def close(self):
-        if hasattr(self.source, 'close'):
+        if hasattr(self.source, "close"):
             self.source.close()
 
     def __iter__(self):
         return self.iterable
 
-def _native_readlines_shim(*args, **kwds):
-    return native_readlines('r', *args, **kwds)
 
-def native_readlines(mode, mypath, strip_whitespace=True, swallow_missing=False,
-                     none_on_missing=False, encoding=None):
+def _native_readlines_shim(*args, **kwds):
+    return native_readlines("r", *args, **kwds)
+
+
+def native_readlines(
+    mode,
+    mypath,
+    strip_whitespace=True,
+    swallow_missing=False,
+    none_on_missing=False,
+    encoding=None,
+):
     """Read a file, yielding each line.
 
     :param mypath: fs path for the file to read
@@ -102,8 +113,10 @@ def _py2k_ascii_strict_filter(source):
             raise ValueError("character ordinal over 127")
         yield line
 
+
 def _native_readfile_shim(*args, **kwds):
-    return native_readfile('r', *args, **kwds)
+    return native_readfile("r", *args, **kwds)
+
 
 def native_readfile(mode, mypath, none_on_missing=False, encoding=None):
     """Read a file, returning the contents.

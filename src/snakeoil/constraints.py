@@ -31,8 +31,9 @@ class Constraint(Protocol):
             domain.
         :return: ``True`` if the assignment is satisfied.
     """
+
     def __call__(self, **kwargs: Any) -> bool:
-        raise NotImplementedError('Constraint', '__call__')
+        raise NotImplementedError("Constraint", "__call__")
 
 
 class _Domain(list):
@@ -75,10 +76,13 @@ class Problem:
         of a :py:class:`dict` assigning to each variable in the problem a
         single value from it's domain.
     """
+
     def __init__(self):
         self.variables: dict[str, _Domain] = {}
         self.constraints: list[tuple[Constraint, frozenset[str]]] = []
-        self.vconstraints: dict[str, list[tuple[Constraint, frozenset[str]]]] = defaultdict(list)
+        self.vconstraints: dict[
+            str, list[tuple[Constraint, frozenset[str]]]
+        ] = defaultdict(list)
 
     def add_variable(self, domain: Iterable[Any], *variables: str):
         """Add variables to the problem, which use the specified domain.
@@ -94,7 +98,9 @@ class Problem:
             from each domain.
         """
         for variable in variables:
-            assert variable not in self.variables, f'variable {variable!r} was already added'
+            assert (
+                variable not in self.variables
+            ), f"variable {variable!r} was already added"
             self.variables[variable] = _Domain(domain)
 
     def add_constraint(self, constraint: Constraint, variables: frozenset[str]):
@@ -110,10 +116,15 @@ class Problem:
         """
         self.constraints.append((constraint, variables))
         for variable in variables:
-            assert variable in self.variables, f'unknown variable {variable!r}'
+            assert variable in self.variables, f"unknown variable {variable!r}"
             self.vconstraints[variable].append((constraint, variables))
 
-    def __check(self, constraint: Constraint, variables: frozenset[str], assignments: dict[str, Any]) -> bool:
+    def __check(
+        self,
+        constraint: Constraint,
+        variables: frozenset[str],
+        assignments: dict[str, Any],
+    ) -> bool:
         assignments = {k: v for k, v in assignments.items() if k in variables}
         unassigned = variables - assignments.keys()
         if not unassigned:
@@ -147,14 +158,17 @@ class Problem:
             # mix the Degree and Minimum Remaining Values (MRV) heuristics
             lst = sorted(
                 (-len(self.vconstraints[name]), len(domain), name)
-                for name, domain in self.variables.items())
+                for name, domain in self.variables.items()
+            )
             for _, _, variable in lst:
                 if variable not in assignments:
                     values = self.variables[variable][:]
 
                     push_domains = tuple(
-                        domain for name, domain in self.variables.items()
-                        if name != variable and name not in assignments)
+                        domain
+                        for name, domain in self.variables.items()
+                        if name != variable and name not in assignments
+                    )
                     break
             else:
                 # no unassigned variables, we've got a solution.

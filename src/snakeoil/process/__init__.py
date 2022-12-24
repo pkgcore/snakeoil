@@ -44,7 +44,7 @@ def get_exit_status(status: int):
     if os.WIFSIGNALED(status):
         return 128 + os.WTERMSIG(status)
     else:
-        assert os.WIFEXITED(status), 'Unexpected exit status %r' % status
+        assert os.WIFEXITED(status), "Unexpected exit status %r" % status
         return os.WEXITSTATUS(status)
 
 
@@ -84,16 +84,14 @@ def exit_as_status(status: int):
 
 
 class CommandNotFound(Exception):
-
     def __init__(self, command):
-        super().__init__(f'failed to find binary: {command!r}')
+        super().__init__(f"failed to find binary: {command!r}")
         self.command = command
 
 
 class ProcessNotFound(Exception):
-
     def __init__(self, pid):
-        super().__init__(f'nonexistent process: {pid}')
+        super().__init__(f"nonexistent process: {pid}")
 
 
 closerange = os.closerange

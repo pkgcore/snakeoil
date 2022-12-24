@@ -3,8 +3,12 @@ subprocess related functionality
 """
 
 __all__ = [
-    "cleanup_pids", "spawn", "spawn_sandbox", "spawn_bash",
-    "spawn_get_output", "bash_version",
+    "cleanup_pids",
+    "spawn",
+    "spawn_sandbox",
+    "spawn_bash",
+    "spawn_get_output",
+    "bash_version",
 ]
 
 import atexit
@@ -17,11 +21,12 @@ from ..mappings import ProtectedDict
 from ..osutils import access
 from . import CommandNotFound, closerange, find_binary
 
-BASH_BINARY = find_binary('bash', fallback='/bin/bash')
-SANDBOX_BINARY = find_binary('sandbox', fallback='/usr/bin/sandbox')
+BASH_BINARY = find_binary("bash", fallback="/bin/bash")
+SANDBOX_BINARY = find_binary("sandbox", fallback="/usr/bin/sandbox")
 
 try:
     import resource
+
     max_fd_limit = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
 except ImportError:
     max_fd_limit = 256
@@ -36,8 +41,14 @@ def bash_version(force=False):
             pass
     try:
         ret, ver = spawn_get_output(
-            [BASH_BINARY, '--norc', '--noprofile', '-c',
-             'printf ${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]}.${BASH_VERSINFO[2]}'])
+            [
+                BASH_BINARY,
+                "--norc",
+                "--noprofile",
+                "-c",
+                "printf ${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]}.${BASH_VERSINFO[2]}",
+            ]
+        )
         if ret == 0:
             try:
                 ver = ver[0]
@@ -54,7 +65,7 @@ def bash_version(force=False):
 def spawn_bash(mycommand, debug=False, name=None, **kwds):
     """spawn the command via bash -c"""
 
-    args = [BASH_BINARY, '--norc', '--noprofile']
+    args = [BASH_BINARY, "--norc", "--noprofile"]
     if debug:
         # Print commands and their arguments as they are executed.
         args.append("-x")
@@ -84,6 +95,8 @@ def spawn_sandbox(mycommand, name=None, **kwds):
 
 
 _exithandlers = []
+
+
 def atexit_register(func, *args, **kargs):
     """Wrapper around atexit.register that is needed in order to track
     what is registered.  For example, when portage restarts itself via
@@ -119,6 +132,8 @@ atexit.register(run_exitfuncs)
 # we exit. spawn() takes care of adding and removing pids to this list
 # as it creates and cleans up processes.
 spawned_pids = []
+
+
 def cleanup_pids(pids=None):
     """reap list of pids if specified, else all children"""
 
@@ -146,8 +161,19 @@ def cleanup_pids(pids=None):
                 pass
 
 
-def spawn(mycommand, env=None, name=None, fd_pipes=None, returnpid=False,
-          uid=None, gid=None, groups=None, umask=None, cwd=None, pgid=None):
+def spawn(
+    mycommand,
+    env=None,
+    name=None,
+    fd_pipes=None,
+    returnpid=False,
+    uid=None,
+    gid=None,
+    groups=None,
+    umask=None,
+    cwd=None,
+    pgid=None,
+):
 
     """wrapper around execve
 
@@ -177,8 +203,19 @@ def spawn(mycommand, env=None, name=None, fd_pipes=None, returnpid=False,
         # 'Catch "Exception"'
         # pylint: disable-msg=W0703
         try:
-            _exec(binary, mycommand, name, fd_pipes, env, gid, groups,
-                  uid, umask, cwd, pgid)
+            _exec(
+                binary,
+                mycommand,
+                name,
+                fd_pipes,
+                env,
+                gid,
+                groups,
+                uid,
+                umask,
+                cwd,
+                pgid,
+            )
         except Exception as e:
             # We need to catch _any_ exception so that it doesn't
             # propogate out of this function and cause exiting
@@ -228,8 +265,19 @@ def spawn(mycommand, env=None, name=None, fd_pipes=None, returnpid=False,
     return 0
 
 
-def _exec(binary, mycommand, name=None, fd_pipes=None, env=None, gid=None,
-          groups=None, uid=None, umask=None, cwd=None, pgid=None):
+def _exec(
+    binary,
+    mycommand,
+    name=None,
+    fd_pipes=None,
+    env=None,
+    gid=None,
+    groups=None,
+    uid=None,
+    umask=None,
+    cwd=None,
+    pgid=None,
+):
     """internal function to handle exec'ing the child process.
 
     If it succeeds this function does not return. It might raise an
@@ -321,8 +369,15 @@ def _exec(binary, mycommand, name=None, fd_pipes=None, env=None, gid=None,
     os.execve(binary, myargs, env)
 
 
-def spawn_get_output(mycommand, spawn_type=None, raw_exit_code=False, collect_fds=(1,),
-                     fd_pipes=None, split_lines=True, **kwds):
+def spawn_get_output(
+    mycommand,
+    spawn_type=None,
+    raw_exit_code=False,
+    collect_fds=(1,),
+    fd_pipes=None,
+    split_lines=True,
+    **kwds,
+):
 
     """Call spawn, collecting the output to fd's specified in collect_fds list.
 
@@ -386,8 +441,8 @@ def process_exit_code(retval):
     :return: The exit code if it exit'd, the signal if it died from signalling.
     """
     # If it got a signal, return the signal that was sent.
-    if retval & 0xff:
-        return (retval & 0xff) << 8
+    if retval & 0xFF:
+        return (retval & 0xFF) << 8
 
     # Otherwise, return its exit code.
     return retval >> 8
@@ -399,7 +454,7 @@ class ExecutionFailure(Exception):
         self.msg = msg
 
     def __str__(self):
-        return f'Execution Failure: {self.msg}'
+        return f"Execution Failure: {self.msg}"
 
 
 # cached capabilities
@@ -411,7 +466,7 @@ def is_sandbox_capable(force=False):
             return is_sandbox_capable.cached_result
         except AttributeError:
             pass
-    if 'SANDBOX_ACTIVE' in os.environ:
+    if "SANDBOX_ACTIVE" in os.environ:
         # we can not spawn a sandbox inside another one
         res = False
     elif not (os.path.isfile(SANDBOX_BINARY) and access(SANDBOX_BINARY, os.X_OK)):
@@ -432,5 +487,5 @@ def is_userpriv_capable(force=False):
             return is_userpriv_capable.cached_result
         except AttributeError:
             pass
-    res = is_userpriv_capable.cached_result = (os.getuid() == 0)
+    res = is_userpriv_capable.cached_result = os.getuid() == 0
     return res

@@ -16,23 +16,27 @@ class PythonNamespaceWalker:
     # This is for py3.2/PEP3149; dso's now have the interp + major/minor embedded
     # in the name.
     # TODO: update this for pypy's naming
-    abi_target = 'cpython-%i%i' % tuple(sys.version_info[:2])
+    abi_target = "cpython-%i%i" % tuple(sys.version_info[:2])
 
-    module_blacklist = frozenset({
-        'snakeoil.cli.arghparse', 'snakeoil.pickling',
-    })
+    module_blacklist = frozenset(
+        {
+            "snakeoil.cli.arghparse",
+            "snakeoil.pickling",
+        }
+    )
 
     def _default_module_blacklister(self, target):
-        return target in self.module_blacklist or target.startswith('snakeoil.dist')
+        return target in self.module_blacklist or target.startswith("snakeoil.dist")
 
     def walk_namespace(self, namespace, **kwds):
-        location = os.path.abspath(os.path.dirname(
-            self.poor_mans_load(namespace).__file__))
-        return self.get_modules(self.recurse(location), namespace=namespace,
-                                **kwds)
+        location = os.path.abspath(
+            os.path.dirname(self.poor_mans_load(namespace).__file__)
+        )
+        return self.get_modules(self.recurse(location), namespace=namespace, **kwds)
 
-    def get_modules(self, feed, namespace=None, blacklist_func=None,
-                    ignore_failed_imports=None):
+    def get_modules(
+        self, feed, namespace=None, blacklist_func=None, ignore_failed_imports=None
+    ):
         if ignore_failed_imports is None:
             ignore_failed_imports = self.ignore_all_import_failures
         if namespace is None:
@@ -57,7 +61,7 @@ class PythonNamespaceWalker:
                     raise
 
     def recurse(self, location, valid_namespace=True):
-        if os.path.dirname(location) == '__pycache__':
+        if os.path.dirname(location) == "__pycache__":
             # Shouldn't be possible, but make sure we avoid this if it manages
             # to occur.
             return
@@ -78,10 +82,13 @@ class PythonNamespaceWalker:
                 # file disappeared under our feet... lock file from
                 # trial can cause this.  ignore.
                 import logging
-                logging.debug("file %r disappeared under our feet, ignoring",
-                              os.path.join(location, x))
 
-        seen = set(['__init__'])
+                logging.debug(
+                    "file %r disappeared under our feet, ignoring",
+                    os.path.join(location, x),
+                )
+
+        seen = set(["__init__"])
         for x, st in stats:
             if not (x.startswith(".") or x.endswith("~")) and stat.S_ISREG(st):
                 if x.endswith((".py", ".pyc", ".pyo", ".so")):
@@ -89,8 +96,8 @@ class PythonNamespaceWalker:
                     # Ensure we're not looking at a >=py3k .so which injects
                     # the version name in...
                     if y not in seen:
-                        if '.' in y and x.endswith('.so'):
-                            y, abi = x.rsplit('.', 1)
+                        if "." in y and x.endswith(".so"):
+                            y, abi = x.rsplit(".", 1)
                             if abi != self.abi_target:
                                 continue
                         seen.add(y)
@@ -135,6 +142,7 @@ class TargetedNamespaceWalker(PythonNamespaceWalker):
         for _mod in self.walk_namespace(namespace):
             pass
 
+
 class _classWalker:
 
     cls_blacklist = frozenset()
@@ -173,7 +181,6 @@ class _classWalker:
 
 
 class SubclassWalker(_classWalker):
-
     def walk_derivatives(self, cls, seen=None):
         if len(inspect.signature(cls.__subclasses__).parameters) != 0:
             return
@@ -193,7 +200,6 @@ class SubclassWalker(_classWalker):
 
 
 class KlassWalker(_classWalker):
-
     def walk_derivatives(self, cls, seen=None):
         if len(inspect.signature(cls.__subclasses__).parameters) != 0:
             return

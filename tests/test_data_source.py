@@ -53,15 +53,15 @@ class TestDataSource:
         assert reader_data == writer_data
 
     def _mk_data(self, size=(100000)):
-        return ''.join(str(x % 10) for x in range(size))
+        return "".join(str(x % 10) for x in range(size))
 
     def test_transfer_to_data_source(self):
         data = self._mk_data()
         reader = self.get_obj(data=data)
         if self.supports_mutable:
-            writer = self.get_obj(data='', mutable=True)
+            writer = self.get_obj(data="", mutable=True)
         else:
-            writer = data_source.data_source('', mutable=True)
+            writer = data_source.data_source("", mutable=True)
         reader.transfer_to_data_source(writer)
 
         self.assertContents(reader, writer)
@@ -70,9 +70,11 @@ class TestDataSource:
         data = self._mk_data()
         reader = self.get_obj(data=data)
         if isinstance(reader, data_source.bz2_source):
-            writer = data_source.bz2_source(tmp_path / 'transfer_to_path', mutable=True)
+            writer = data_source.bz2_source(tmp_path / "transfer_to_path", mutable=True)
         else:
-            writer = data_source.local_source(tmp_path / 'transfer_to_path', mutable=True)
+            writer = data_source.local_source(
+                tmp_path / "transfer_to_path", mutable=True
+            )
 
         reader.transfer_to_path(writer.path)
 
@@ -82,9 +84,9 @@ class TestDataSource:
         data = self._mk_data()
         reader = self.get_obj(data=data)
         if self.supports_mutable:
-            writer = self.get_obj(data='', mutable=True)
+            writer = self.get_obj(data="", mutable=True)
         else:
-            writer = data_source.data_source('', mutable=True)
+            writer = data_source.data_source("", mutable=True)
 
         with reader.bytes_fileobj() as reader_f, writer.bytes_fileobj(True) as writer_f:
             data_source.transfer_between_files(reader_f, writer_f)
@@ -93,15 +95,14 @@ class TestDataSource:
 
 
 class TestLocalSource(TestDataSource):
-
     def get_obj(self, data="foonani", mutable=False, test_creation=False):
         self.fp = self.dir / "localsource.test"
         if not test_creation:
             mode = None
             if isinstance(data, bytes):
-                mode = 'wb'
+                mode = "wb"
             elif mode is None:
-                mode = 'w'
+                mode = "w"
             with open(self.fp, mode) as f:
                 f.write(data)
         return data_source.local_source(self.fp, mutable=mutable)
@@ -118,21 +119,20 @@ class TestLocalSource(TestDataSource):
         obj = self.get_obj(test_creation=True, mutable=True)
         # this will blow up if tries to ascii decode it.
         with obj.bytes_fileobj(True) as f:
-            assert f.read() == b''
+            assert f.read() == b""
             f.write(data)
         with obj.bytes_fileobj() as f:
             assert f.read() == data
 
 
 class TestBz2Source(TestDataSource):
-
     def get_obj(self, data="foonani", mutable=False, test_creation=False):
         self.fp = self.dir / "bz2source.test.bz2"
         if not test_creation:
             if isinstance(data, str):
                 data = data.encode()
-            with open(self.fp, 'wb') as f:
-                f.write(compression.compress_data('bzip2', data))
+            with open(self.fp, "wb") as f:
+                f.write(compression.compress_data("bzip2", data))
         return data_source.bz2_source(self.fp, mutable=mutable)
 
     def test_bytes_fileobj(self):
@@ -150,8 +150,7 @@ class Test_invokable_data_source(TestDataSource):
     def get_obj(self, data="foonani", mutable=False):
         if isinstance(data, str):
             data = data.encode("utf8")
-        return data_source.invokable_data_source(
-            partial(self._get_data, data))
+        return data_source.invokable_data_source(partial(self._get_data, data))
 
     @staticmethod
     def _get_data(data, is_text=False):
@@ -168,10 +167,10 @@ class Test_invokable_data_source_wrapper_text(Test_invokable_data_source):
 
     def get_obj(self, mutable=False, data="foonani"):
         return data_source.invokable_data_source.wrap_function(
-            partial(self._get_data, data),
-            self.text_mode)
+            partial(self._get_data, data), self.text_mode
+        )
 
-    def _get_data(self, data='foonani'):
+    def _get_data(self, data="foonani"):
         if isinstance(data, str):
             if not self.text_mode:
                 return data.encode("utf8")

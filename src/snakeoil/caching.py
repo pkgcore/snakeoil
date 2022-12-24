@@ -79,21 +79,22 @@ class WeakInstMeta(type):
     Examples of usage is the restrictions subsystem for
     U{pkgcore project<http://pkgcore.org>}
     """
+
     def __new__(cls, name, bases, d):
         if d.get("__inst_caching__", False):
             d["__inst_caching__"] = True
             d["__inst_dict__"] = WeakValueDictionary()
         else:
             d["__inst_caching__"] = False
-        slots = d.get('__slots__')
+        slots = d.get("__slots__")
         # get ourselves a singleton to be safe...
         o = object()
         if slots is not None:
             for base in bases:
-                if getattr(base, '__weakref__', o) is not o:
+                if getattr(base, "__weakref__", o) is not o:
                     break
             else:
-                d['__slots__'] = tuple(slots) + ('__weakref__',)
+                d["__slots__"] = tuple(slots) + ("__weakref__",)
         return type.__new__(cls, name, bases, d)
 
     def __call__(cls, *a, **kw):
@@ -105,8 +106,7 @@ class WeakInstMeta(type):
             try:
                 instance = cls.__inst_dict__.get(key)
             except (NotImplementedError, TypeError) as t:
-                warnings.warn(
-                    f"caching keys for {cls}, got {t} for a={a}, kw={kw}")
+                warnings.warn(f"caching keys for {cls}, got {t} for a={a}, kw={kw}")
                 del t
                 key = instance = None
 

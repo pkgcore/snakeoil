@@ -4,8 +4,12 @@ Container classes and functionality for implementing them
 """
 
 __all__ = (
-    "InvertedContains", "SetMixin", "LimitedChangeSet", "Unchangable",
-    "ProtectedSet", "RefCountingSet"
+    "InvertedContains",
+    "SetMixin",
+    "LimitedChangeSet",
+    "Unchangable",
+    "ProtectedSet",
+    "RefCountingSet",
 )
 
 from itertools import chain, filterfalse
@@ -70,9 +74,11 @@ class SetMixin:
 
     @steal_docs(set)
     def __xor__(self, other, kls=None):
-        return (kls or self.__class__)(chain(
-            (x for x in self if x not in other),
-            (x for x in other if x not in self)))
+        return (kls or self.__class__)(
+            chain(
+                (x for x in self if x not in other), (x for x in other if x not in self)
+            )
+        )
 
     @steal_docs(set)
     def __rxor__(self, other):
@@ -120,8 +126,7 @@ class LimitedChangeSet(SetMixin):
     def _default_key_validator(val):
         return val
 
-    def __init__(self, initial_keys, unchangable_keys=None,
-                 key_validator=None):
+    def __init__(self, initial_keys, unchangable_keys=None, key_validator=None):
         """
         :param initial_keys: iterable holding the initial values to set
         :param unchangable_keys: container holding keys that cannot be changed
@@ -185,8 +190,7 @@ class LimitedChangeSet(SetMixin):
     def rollback(self, point=0):
         l = self.changes_count()
         if point < 0 or point > l:
-            raise TypeError(
-                "%s point must be >=0 and <= changes_count()" % point)
+            raise TypeError("%s point must be >=0 and <= changes_count()" % point)
         while l > point:
             change, key = self._change_order.pop(-1)
             self._changed.remove(key)
@@ -221,9 +225,8 @@ class LimitedChangeSet(SetMixin):
 
 
 class Unchangable(Exception):
-
     def __init__(self, key):
-        super().__init__(f'key {key!r} is unchangable')
+        super().__init__(f"key {key!r} is unchangable")
         self.key = key
 
 
@@ -240,6 +243,7 @@ class ProtectedSet(SetMixin):
     >>> myset.remove(2)
     >>> assert 2 not in protected
     """
+
     def __init__(self, orig_set):
         self._orig = orig_set
         self._new = set()

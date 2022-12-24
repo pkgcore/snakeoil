@@ -33,8 +33,13 @@ we caught the exception.
 """
 
 __all__ = (
-    "base", "bz2_source", "data_source", "local_source", "text_data_source",
-    "bytes_data_source", "invokable_data_source",
+    "base",
+    "bz2_source",
+    "data_source",
+    "local_source",
+    "text_data_source",
+    "bytes_data_source",
+    "invokable_data_source",
 )
 
 import errno
@@ -62,10 +67,9 @@ def _mk_writable_cls(base, name):
         exceptions attribute
         """
 
-
         base_cls = base
         exceptions = (MemoryError,)
-        __slots__ = ('_callback',)
+        __slots__ = ("_callback",)
 
         def __init__(self, callback, data):
             """
@@ -85,6 +89,7 @@ def _mk_writable_cls(base, name):
                 self._callback(self.read())
                 self._callback = None
             self.base_cls.close(self)
+
     kls.__name__ = name
     return kls
 
@@ -100,6 +105,7 @@ class text_ro_StringIO(stringio.text_readonly):
     Specifically this adds the necessary `exceptions` attribute; see
     :py:class:`snakeoil.stringio.text_readonly` for methods details.
     """
+
     __slots__ = ()
     exceptions = (MemoryError, TypeError)
 
@@ -111,6 +117,7 @@ class bytes_ro_StringIO(stringio.bytes_readonly):
     Specifically this adds the necessary `exceptions` attribute; see
     :py:class:`snakeoil.stringio.bytes_readonly` for methods details.
     """
+
     __slots__ = ()
     exceptions = (MemoryError, TypeError)
 
@@ -131,6 +138,7 @@ class base:
     :ivar path: If None, no local path is available- else it's the ondisk path to
       the data
     """
+
     __slots__ = ("weakref",)
 
     path = None
@@ -155,7 +163,8 @@ class base:
 
     def transfer_to_path(self, path):
         return self.transfer_to_data_source(
-            local_source(path, mutable=True, encoding=None))
+            local_source(path, mutable=True, encoding=None)
+        )
 
     def transfer_to_data_source(self, write_source):
         read_f, m, write_f = None, None, None
@@ -208,31 +217,32 @@ class local_source(base):
             raise TypeError("data source %s is immutable" % (self,))
         if self.encoding:
             opener = open_file
-            opener = post_curry(opener, buffering=self.buffering_window,
-                                encoding=self.encoding)
+            opener = post_curry(
+                opener, buffering=self.buffering_window, encoding=self.encoding
+            )
         else:
             opener = post_curry(open_file, self.buffering_window)
         if not writable:
-            return opener(self.path, 'r')
+            return opener(self.path, "r")
         try:
             return opener(self.path, "r+")
         except IOError as ie:
             if ie.errno != errno.ENOENT:
                 raise
-            return opener(self.path, 'w+')
+            return opener(self.path, "w+")
 
     @klass.steal_docs(base)
     def bytes_fileobj(self, writable=False):
         if not writable:
-            return open_file(self.path, 'rb', self.buffering_window)
+            return open_file(self.path, "rb", self.buffering_window)
         if not self.mutable:
             raise TypeError("data source %s is immutable" % (self,))
         try:
-            return open_file(self.path, 'rb+', self.buffering_window)
+            return open_file(self.path, "rb+", self.buffering_window)
         except IOError as ie:
             if ie.errno != errno.ENOENT:
                 raise
-            return open_file(self.path, 'wb+', self.buffering_window)
+            return open_file(self.path, "wb+", self.buffering_window)
 
 
 class bz2_source(base):
@@ -255,7 +265,8 @@ class bz2_source(base):
 
     def text_fileobj(self, writable=False):
         data = compression.decompress_data(
-            'bzip2', fileutils.readfile_bytes(self.path)).decode()
+            "bzip2", fileutils.readfile_bytes(self.path)
+        ).decode()
         if writable:
             if not self.mutable:
                 raise TypeError(f"data source {self} is not mutable")
@@ -263,8 +274,7 @@ class bz2_source(base):
         return text_ro_StringIO(data)
 
     def bytes_fileobj(self, writable=False):
-        data = compression.decompress_data(
-            'bzip2', fileutils.readfile_bytes(self.path))
+        data = compression.decompress_data("bzip2", fileutils.readfile_bytes(self.path))
         if writable:
             if not self.mutable:
                 raise TypeError(f"data source {self} is not mutable")
@@ -275,7 +285,7 @@ class bz2_source(base):
         if isinstance(data, str):
             data = data.encode()
         with open(self.path, "wb") as f:
-            f.write(compression.compress_data('bzip2', data))
+            f.write(compression.compress_data("bzip2", data))
 
 
 class data_source(base):
@@ -293,7 +303,7 @@ class data_source(base):
     :ivar path: note that path is None for this class- no on disk location available.
     """
 
-    __slots__ = ('data', 'mutable')
+    __slots__ = ("data", "mutable")
 
     def __init__(self, data, mutable=False):
         """
@@ -305,7 +315,7 @@ class data_source(base):
         self.mutable = mutable
 
     def _convert_data(self, mode):
-        if mode == 'bytes':
+        if mode == "bytes":
             if isinstance(self.data, bytes):
                 return self.data
             return self.data.encode()
@@ -318,9 +328,8 @@ class data_source(base):
         if writable:
             if not self.mutable:
                 raise TypeError(f"data source {self} is not mutable")
-            return text_wr_StringIO(self._reset_data,
-                                    self._convert_data('text'))
-        return text_ro_StringIO(self._convert_data('text'))
+            return text_wr_StringIO(self._reset_data, self._convert_data("text"))
+        return text_ro_StringIO(self._convert_data("text"))
 
     def _reset_data(self, data):
         if isinstance(self.data, bytes):
@@ -335,9 +344,8 @@ class data_source(base):
         if writable:
             if not self.mutable:
                 raise TypeError(f"data source {self} is not mutable")
-            return bytes_wr_StringIO(self._reset_data,
-                                     self._convert_data('bytes'))
-        return bytes_ro_StringIO(self._convert_data('bytes'))
+            return bytes_wr_StringIO(self._reset_data, self._convert_data("bytes"))
+        return bytes_ro_StringIO(self._convert_data("bytes"))
 
 
 class text_data_source(data_source):
@@ -355,7 +363,7 @@ class text_data_source(data_source):
         data_source.__init__(self, data, mutable=mutable)
 
     def _convert_data(self, mode):
-        if mode != 'bytes':
+        if mode != "bytes":
             return self.data
         return self.data.encode()
 
@@ -375,7 +383,7 @@ class bytes_data_source(data_source):
         data_source.__init__(self, data, mutable=mutable)
 
     def _convert_data(self, mode):
-        if mode == 'bytes':
+        if mode == "bytes":
             return self.data
         return self.data.decode()
 
@@ -390,6 +398,7 @@ class invokable_data_source(data_source):
 
     Note that this instance is explicitly readonly.
     """
+
     __slots__ = ()
 
     def __init__(self, data):
@@ -412,7 +421,9 @@ class invokable_data_source(data_source):
         return self.data(False)
 
     @classmethod
-    def wrap_function(cls, invokable, returns_text=True, returns_handle=False, encoding_hint=None):
+    def wrap_function(
+        cls, invokable, returns_text=True, returns_handle=False, encoding_hint=None
+    ):
         """
         Helper function to automatically convert a function that returns text or bytes into appropriate
         callable
@@ -425,10 +436,20 @@ class invokable_data_source(data_source):
         :param encoding_hint: the preferred encoding to use for encoding
         :return: invokable_data_source instance
         """
-        return cls(partial(cls._simple_wrapper, invokable, encoding_hint, returns_text, returns_handle))
+        return cls(
+            partial(
+                cls._simple_wrapper,
+                invokable,
+                encoding_hint,
+                returns_text,
+                returns_handle,
+            )
+        )
 
     @staticmethod
-    def _simple_wrapper(invokable, encoding_hint, returns_text, returns_handle, text_wanted):
+    def _simple_wrapper(
+        invokable, encoding_hint, returns_text, returns_handle, text_wanted
+    ):
         data = invokable()
         if returns_text != text_wanted:
             if text_wanted:
@@ -446,7 +467,7 @@ class invokable_data_source(data_source):
                     data = data.read()
                 if encoding_hint is None:
                     # fallback to utf8
-                    encoding_hint = 'utf8'
+                    encoding_hint = "utf8"
                 data = data.encode(encoding_hint)
         elif returns_handle:
             return data

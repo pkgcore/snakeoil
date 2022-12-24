@@ -5,7 +5,6 @@ from snakeoil import containers
 
 
 class TestInvertedContains:
-
     def setup_method(self, method):
         self.set = containers.InvertedContains(range(12))
 
@@ -17,7 +16,7 @@ class TestInvertedContains:
 
 
 class BasicSet(containers.SetMixin):
-    __slots__ = ('_data',)
+    __slots__ = ("_data",)
 
     def __init__(self, data):
         self._data = set(data)
@@ -28,7 +27,7 @@ class BasicSet(containers.SetMixin):
     def __contains__(self, other):
         return other in self._data
 
-    #def __str__(self):
+    # def __str__(self):
     #    return 'BasicSet([%s])' % ', '.join((str(x) for x in self._data))
 
     def __eq__(self, other):
@@ -43,7 +42,6 @@ class BasicSet(containers.SetMixin):
 
 
 class TestSetMethods:
-
     def test_and(self):
         c = BasicSet(range(100))
         s = set(range(25, 75))
@@ -80,8 +78,8 @@ class TestSetMethods:
         assert c - s == r1
         assert s - c == r2
 
-class TestLimitedChangeSet:
 
+class TestLimitedChangeSet:
     def setup_method(self, method):
         self.set = containers.LimitedChangeSet(range(12))
 
@@ -89,17 +87,18 @@ class TestLimitedChangeSet:
         def f(val):
             assert isinstance(val, int)
             return val
+
         self.set = containers.LimitedChangeSet(range(12), key_validator=f)
         self.set.add(13)
         self.set.add(14)
         self.set.remove(11)
         assert 5 in self.set
         with pytest.raises(AssertionError):
-            self.set.add('2')
+            self.set.add("2")
         with pytest.raises(AssertionError):
-            self.set.remove('2')
+            self.set.remove("2")
         with pytest.raises(AssertionError):
-            self.set.__contains__('2')
+            self.set.__contains__("2")
 
     def test_basic(self, changes=0):
         # this should be a no-op
@@ -188,7 +187,7 @@ class TestLimitedChangeSet:
         assert sorted(list(self.set)) == list(range(-1, 13))
 
     def test_str(self):
-        assert str(containers.LimitedChangeSet([7])) == 'LimitedChangeSet([7])'
+        assert str(containers.LimitedChangeSet([7])) == "LimitedChangeSet([7])"
 
     def test__eq__(self):
         c = containers.LimitedChangeSet(range(99))
@@ -199,7 +198,6 @@ class TestLimitedChangeSet:
 
 
 class TestLimitedChangeSetWithBlacklist:
-
     def setup_method(self, method):
         self.set = containers.LimitedChangeSet(range(12), [3, 13])
 
@@ -222,7 +220,6 @@ class TestLimitedChangeSetWithBlacklist:
 
 
 class TestProtectedSet:
-
     def setup_method(self, method):
         self.set = containers.ProtectedSet(set(range(12)))
 

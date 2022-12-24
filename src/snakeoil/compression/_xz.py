@@ -21,7 +21,7 @@ from ..compression import _util
 
 # if xz can't be found, throw an error.
 xz_path = process.find_binary("xz")
-xz_compress_args = (f'-T{multiprocessing.cpu_count()}',)
+xz_compress_args = (f"-T{multiprocessing.cpu_count()}",)
 xz_decompress_args = xz_compress_args
 parallelizable = True
 
@@ -29,6 +29,7 @@ try:
     from lzma import LZMAFile
     from lzma import compress as _compress_data
     from lzma import decompress as _decompress_data
+
     native = True
 except ImportError:
 
@@ -45,30 +46,33 @@ _decompress_handle = partial(_util.decompress_handle, xz_path)
 
 def compress_data(data, level=9, parallelize=False):
     if parallelize and parallelizable:
-        return _util.compress_data(xz_path, data, compresslevel=level,
-                                   extra_args=xz_compress_args)
+        return _util.compress_data(
+            xz_path, data, compresslevel=level, extra_args=xz_compress_args
+        )
     if native:
         return _compress_data(data, preset=level)
     return _compress_data(data, compresslevel=level)
 
+
 def decompress_data(data, parallelize=False):
     if parallelize and parallelizable:
-        return _util.decompress_data(xz_path, data,
-                                     extra_args=xz_decompress_args)
+        return _util.decompress_data(xz_path, data, extra_args=xz_decompress_args)
     return _decompress_data(data)
+
 
 def compress_handle(handle, level=9, parallelize=False):
     if parallelize and parallelizable:
-        return _util.compress_handle(xz_path, handle, compresslevel=level,
-                                     extra_args=xz_compress_args)
+        return _util.compress_handle(
+            xz_path, handle, compresslevel=level, extra_args=xz_compress_args
+        )
     elif native and isinstance(handle, str):
-        return LZMAFile(handle, mode='w', preset=level)
+        return LZMAFile(handle, mode="w", preset=level)
     return _compress_handle(handle, compresslevel=level)
+
 
 def decompress_handle(handle, parallelize=False):
     if parallelize and parallelizable:
-        return _util.decompress_handle(xz_path, handle,
-                                       extra_args=xz_decompress_args)
-    elif (native and isinstance(handle, str)):
-        return LZMAFile(handle, mode='r')
+        return _util.decompress_handle(xz_path, handle, extra_args=xz_decompress_args)
+    elif native and isinstance(handle, str):
+        return LZMAFile(handle, mode="r")
     return _decompress_handle(handle)

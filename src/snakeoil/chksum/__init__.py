@@ -64,10 +64,9 @@ def init(additional_handlers=None):
     :param additional_handlers: None, or pass in a dict of type:func
     """
 
-    global __inited__ # pylint: disable=global-statement
+    global __inited__  # pylint: disable=global-statement
 
-    if additional_handlers is not None and not isinstance(
-            additional_handlers, dict):
+    if additional_handlers is not None and not isinstance(additional_handlers, dict):
         raise TypeError("additional handlers must be a dict!")
 
     chksum_types.clear()
@@ -119,15 +118,19 @@ def get_chksums(location, *chksums, **kwds):
     # try to hand off to the per file handler, may be faster.
     if len(chksums) == 1:
         return [handlers[chksums[0]](location)]
-    if len(chksums) == 2 and 'size' in chksums:
+    if len(chksums) == 2 and "size" in chksums:
         parallelize = False
     else:
         parallelize = kwds.get("parallelize", True)
     can_mmap = True
     for k in chksums:
         can_mmap &= handlers[k].can_mmap
-    return chksum_loop_over_file(location, [handlers[k].new() for k in chksums],
-                                 parallelize=parallelize, can_mmap=can_mmap)
+    return chksum_loop_over_file(
+        location,
+        [handlers[k].new() for k in chksums],
+        parallelize=parallelize,
+        can_mmap=can_mmap,
+    )
 
 
 class LazilyHashedPath(metaclass=klass.immutable_instance):
@@ -135,7 +138,7 @@ class LazilyHashedPath(metaclass=klass.immutable_instance):
 
     def __init__(self, path, **initial_values):
         f = object.__setattr__
-        f(self, 'path', path)
+        f(self, "path", path)
         for attr, val in initial_values.items():
             f(self, attr, val)
 
@@ -143,7 +146,7 @@ class LazilyHashedPath(metaclass=klass.immutable_instance):
         if not attr.islower():
             # Disallow sHa1.
             raise AttributeError(attr)
-        elif attr == 'mtime':
+        elif attr == "mtime":
             val = osutils.stat_mtime_long(self.path)
         else:
             try:

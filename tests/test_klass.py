@@ -14,7 +14,8 @@ class Test_GetAttrProxy:
         class foo1:
             def __init__(self, obj):
                 self.obj = obj
-            __getattr__ = self.kls('obj')
+
+            __getattr__ = self.kls("obj")
 
         class foo2:
             pass
@@ -27,18 +28,18 @@ class Test_GetAttrProxy:
         o2.foon = "dar"
         assert o.foon == "dar"
         o.foon = "foo"
-        assert o.foon == 'foo'
+        assert o.foon == "foo"
 
     def test_attrlist(self):
         def make_class(attr_list=None):
             class foo(metaclass=self.kls):
                 if attr_list is not None:
-                    locals()['__attr_comparison__'] = attr_list
+                    locals()["__attr_comparison__"] = attr_list
 
         with pytest.raises(TypeError):
             make_class()
         with pytest.raises(TypeError):
-            make_class(['foon'])
+            make_class(["foon"])
         with pytest.raises(TypeError):
             make_class([None])
 
@@ -47,38 +48,39 @@ class Test_GetAttrProxy:
             bar = "baz"
 
         class Test:
-            method = self.kls('test')
+            method = self.kls("test")
             test = foo()
 
         test = Test()
-        assert test.method('bar') == foo.bar
+        assert test.method("bar") == foo.bar
 
 
 class TestDirProxy:
-
     @staticmethod
     def noninternal_attrs(obj):
-        return sorted(x for x in dir(obj) if not re.match(r'__\w+__', x))
+        return sorted(x for x in dir(obj) if not re.match(r"__\w+__", x))
 
     def test_combined(self):
         class foo1:
             def __init__(self, obj):
                 self.obj = obj
-            __dir__ = klass.DirProxy('obj')
+
+            __dir__ = klass.DirProxy("obj")
 
         class foo2:
             def __init__(self):
-                self.attr = 'foo'
+                self.attr = "foo"
 
         o2 = foo2()
         o = foo1(o2)
-        assert self.noninternal_attrs(o) == ['attr', 'obj']
+        assert self.noninternal_attrs(o) == ["attr", "obj"]
 
     def test_empty(self):
         class foo1:
             def __init__(self, obj):
                 self.obj = obj
-            __dir__ = klass.DirProxy('obj')
+
+            __dir__ = klass.DirProxy("obj")
 
         class foo2:
             pass
@@ -86,23 +88,26 @@ class TestDirProxy:
         o2 = foo2()
         o = foo1(o2)
         assert self.noninternal_attrs(o2) == []
-        assert self.noninternal_attrs(o) == ['obj']
+        assert self.noninternal_attrs(o) == ["obj"]
 
     def test_slots(self):
         class foo1:
-            __slots__ = ('obj',)
+            __slots__ = ("obj",)
+
             def __init__(self, obj):
                 self.obj = obj
-            __dir__ = klass.DirProxy('obj')
+
+            __dir__ = klass.DirProxy("obj")
 
         class foo2:
-            __slots__ = ('attr',)
+            __slots__ = ("attr",)
+
             def __init__(self):
-                self.attr = 'foo'
+                self.attr = "foo"
 
         o2 = foo2()
         o = foo1(o2)
-        assert self.noninternal_attrs(o) == ['attr', 'obj']
+        assert self.noninternal_attrs(o) == ["attr", "obj"]
 
 
 class Test_contains:
@@ -111,6 +116,7 @@ class Test_contains:
     def test_it(self):
         class c(dict):
             __contains__ = self.func
+
         d = c({"1": 2})
         assert "1" in d
         assert 1 not in d
@@ -122,6 +128,7 @@ class Test_get:
     def test_it(self):
         class c(dict):
             get = self.func
+
         d = c({"1": 2})
         assert d.get("1") == 2
         assert d.get("1", 3) == 2
@@ -142,11 +149,13 @@ class Test_chained_getter:
         assert id(self.kls("fa2341fa")) == l[0]
 
     def test_eq(self):
-        assert self.kls("asdf", disable_inst_caching=True) == \
-            self.kls("asdf", disable_inst_caching=True)
+        assert self.kls("asdf", disable_inst_caching=True) == self.kls(
+            "asdf", disable_inst_caching=True
+        )
 
-        assert self.kls("asdf2", disable_inst_caching=True) != \
-            self.kls("asdf", disable_inst_caching=True)
+        assert self.kls("asdf2", disable_inst_caching=True) != self.kls(
+            "asdf", disable_inst_caching=True
+        )
 
     def test_it(self):
         class maze:
@@ -159,13 +168,13 @@ class Test_chained_getter:
         d = {}
         m = maze(d)
         f = self.kls
-        assert f('foon')(m) == m
+        assert f("foon")(m) == m
         d["foon"] = 1
-        assert f('foon')(m) == 1
-        assert f('dar.foon')(m) == 1
-        assert f('.'.join(['blah']*10))(m) == m
+        assert f("foon")(m) == 1
+        assert f("dar.foon")(m) == 1
+        assert f(".".join(["blah"] * 10))(m) == m
         with pytest.raises(AttributeError):
-            f('foon.dar')(m)
+            f("foon.dar")(m)
 
 
 class Test_jit_attr:
@@ -184,23 +193,28 @@ class Test_jit_attr:
     def jit_attr_ext_method(self):
         return partial(klass.jit_attr_ext_method, kls=self.kls)
 
-    def mk_inst(self, attrname='_attr', method_lookup=False,
-                use_cls_setattr=False, func=None,
-                singleton=klass._uncached_singleton):
+    def mk_inst(
+        self,
+        attrname="_attr",
+        method_lookup=False,
+        use_cls_setattr=False,
+        func=None,
+        singleton=klass._uncached_singleton,
+    ):
 
         f = func
         if not func:
+
             def f(self):
                 self._invokes.append(self)
                 return 54321
 
         class cls:
-
             def __init__(self):
                 sf = partial(object.__setattr__, self)
-                sf('_sets', [])
-                sf('_reflects', [])
-                sf('_invokes', [])
+                sf("_sets", [])
+                sf("_reflects", [])
+                sf("_invokes", [])
 
             attr = self.kls(f, attrname, singleton, use_cls_setattr)
 
@@ -219,13 +233,22 @@ class Test_jit_attr:
         sets = [instance] * sets
         reflects = [instance] * reflects
         invokes = [instance] * invokes
-        msg = ("checking %s: got(%r), expected(%r); state was sets=%r, "
-               "reflects=%r, invokes=%r" % (
-                   "%s", "%s", "%s", instance._sets, instance._reflects,
-                   instance._invokes))
+        msg = (
+            "checking %s: got(%r), expected(%r); state was sets=%r, "
+            "reflects=%r, invokes=%r"
+            % ("%s", "%s", "%s", instance._sets, instance._reflects, instance._invokes)
+        )
         assert instance._sets == sets, msg % ("sets", instance._sets, sets)
-        assert instance._reflects == reflects, msg % ("reflects", instance._reflects, reflects)
-        assert instance._invokes == invokes, msg % ("invokes", instance._invokes, invokes)
+        assert instance._reflects == reflects, msg % (
+            "reflects",
+            instance._reflects,
+            reflects,
+        )
+        assert instance._invokes == invokes, msg % (
+            "invokes",
+            instance._invokes,
+            invokes,
+        )
 
     def test_implementation(self):
         obj = self.mk_inst()
@@ -298,7 +321,7 @@ class Test_jit_attr:
                 object.__setattr__(self, attr, value)
 
         o = cls()
-        assert not hasattr(o, 'invoked')
+        assert not hasattr(o, "invoked")
         assert o.my_attr == now
         assert o._blah2 == now
         assert o.invoked
@@ -315,34 +338,34 @@ class Test_jit_attr:
                 return now2
 
             def __setattr__(self, attr, value):
-                if not getattr(self, '_setattr_allowed', False):
+                if not getattr(self, "_setattr_allowed", False):
                     raise TypeError("setattr isn't allowed for %s" % attr)
                 object.__setattr__(self, attr, value)
 
-        base.attr = self.jit_attr_ext_method('f1', '_attr')
+        base.attr = self.jit_attr_ext_method("f1", "_attr")
         o = base()
         assert o.attr == now
         assert o._attr == now
         assert o.attr == now
 
-        base.attr = self.jit_attr_ext_method('f1', '_attr', use_cls_setattr=True)
+        base.attr = self.jit_attr_ext_method("f1", "_attr", use_cls_setattr=True)
         o = base()
         with pytest.raises(TypeError):
-            getattr(o, 'attr')
+            getattr(o, "attr")
         base._setattr_allowed = True
         assert o.attr == now
 
-        base.attr = self.jit_attr_ext_method('f2', '_attr2')
+        base.attr = self.jit_attr_ext_method("f2", "_attr2")
         o = base()
         assert o.attr == now2
         assert o._attr2 == now2
 
         # finally, check that it's doing lookups rather then storing the func.
-        base.attr = self.jit_attr_ext_method('func', '_attr2')
+        base.attr = self.jit_attr_ext_method("func", "_attr2")
         o = base()
         # no func...
         with pytest.raises(AttributeError):
-            getattr(o, 'attr')
+            getattr(o, "attr")
         base.func = base.f1
         assert o.attr == now
         assert o._attr2 == now
@@ -354,7 +377,13 @@ class Test_jit_attr:
 
     def test_check_singleton_is_compare(self):
         def throw_assert(*args, **kwds):
-            raise AssertionError("I shouldn't be invoked: %s, %s" % (args, kwds,))
+            raise AssertionError(
+                "I shouldn't be invoked: %s, %s"
+                % (
+                    args,
+                    kwds,
+                )
+            )
 
         class puker:
             __eq__ = throw_assert
@@ -369,11 +398,13 @@ class Test_jit_attr:
 
     def test_cached_property(self):
         l = []
+
         class foo:
             @klass.cached_property
             def blah(self, l=l, i=iter(range(5))):
                 l.append(None)
                 return next(i)
+
         f = foo()
         assert f.blah == 0
         assert len(l) == 1
@@ -413,15 +444,15 @@ class Test_aliased_attr:
 
         o = cls()
         with pytest.raises(AttributeError):
-            getattr(o, 'attr')
+            getattr(o, "attr")
         o.dar = "foon"
 
         with pytest.raises(AttributeError):
-            getattr(o, 'attr')
+            getattr(o, "attr")
         o.dar = o
         o.blah = "monkey"
 
-        assert o.attr == 'monkey'
+        assert o.attr == "monkey"
 
         # verify it'll cross properties...
         class blah:
@@ -431,6 +462,7 @@ class Test_aliased_attr:
             @property
             def foon(self):
                 return blah()
+
             alias = self.func("foon.target")
 
         o = cls()
@@ -442,12 +474,15 @@ class Test_cached_hash:
 
     def test_it(self):
         now = int(time())
+
         class cls:
             invoked = []
+
             @self.func
             def __hash__(self):
                 self.invoked.append(self)
                 return now
+
         o = cls()
         assert hash(o) == now
         assert o.invoked == [o]
@@ -462,7 +497,7 @@ class Test_reflective_hash:
 
     def test_it(self):
         class cls:
-            __hash__ = self.func('_hash')
+            __hash__ = self.func("_hash")
 
         obj = cls()
         with pytest.raises(AttributeError):
@@ -477,7 +512,8 @@ class Test_reflective_hash:
             hash(obj)
 
         class cls2:
-            __hash__ = self.func('_dar')
+            __hash__ = self.func("_dar")
+
         obj = cls2()
         with pytest.raises(AttributeError):
             hash(obj)
@@ -486,7 +522,6 @@ class Test_reflective_hash:
 
 
 class TestImmutableInstance:
-
     def test_metaclass(self):
         self.common_test(lambda x: x, metaclass=klass.immutable_instance)
 
@@ -506,7 +541,7 @@ class TestImmutableInstance:
         with pytest.raises(AttributeError):
             delattr(o, "dar")
 
-        object.__setattr__(o, 'dar', 'foon')
+        object.__setattr__(o, "dar", "foon")
         with pytest.raises(AttributeError):
             delattr(o, "dar")
 
@@ -541,7 +576,6 @@ class TestAliasMethod:
 
 
 class TestPatch:
-
     def setup_method(self, method):
         # cache original methods
         self._math_ceil = math.ceil
@@ -556,7 +590,7 @@ class TestPatch:
         n = 0.1
         assert math.ceil(n) == 1
 
-        @klass.patch('math.ceil')
+        @klass.patch("math.ceil")
         def ceil(orig_ceil, n):
             return math.floor(n)
 
@@ -567,8 +601,8 @@ class TestPatch:
         assert math.ceil(n) == 2
         assert math.floor(n) == 1
 
-        @klass.patch('math.ceil')
-        @klass.patch('math.floor')
+        @klass.patch("math.ceil")
+        @klass.patch("math.floor")
         def zero(orig_func, n):
             return 0
 

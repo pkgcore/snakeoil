@@ -5,7 +5,7 @@ from . import mixins
 
 class SlotShadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker):
 
-    target_namespace = 'snakeoil'
+    target_namespace = "snakeoil"
     err_if_slots_is_str = True
     err_if_slots_is_mutable = True
 
@@ -22,20 +22,20 @@ class SlotShadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker):
 
     @staticmethod
     def mk_name(kls):
-        return f'{kls.__module__}.{kls.__name__}'
+        return f"{kls.__module__}.{kls.__name__}"
 
     def _should_ignore(self, kls):
         return self.mk_name(kls).split(".")[0] != self.target_namespace
 
     def run_check(self, kls):
-        if getattr(kls, '__slotting_intentionally_disabled__', False):
+        if getattr(kls, "__slotting_intentionally_disabled__", False):
             return
 
         slotting = {}
         raw_slottings = {}
 
         for parent in self.recurse_parents(kls):
-            slots = getattr(parent, '__slots__', None)
+            slots = getattr(parent, "__slots__", None)
 
             if slots is None:
                 continue
@@ -49,14 +49,15 @@ class SlotShadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker):
             for slot in slots:
                 slotting.setdefault(slot, parent)
 
-        slots = getattr(kls, '__slots__', None)
+        slots = getattr(kls, "__slots__", None)
         if slots is None and not slotting:
             return
 
         if isinstance(slots, str):
             if self.err_if_slots_is_str:
                 pytest.fail(
-                    f"cls {kls!r}; slots is {slots!r} (should be a tuple or list)")
+                    f"cls {kls!r}; slots is {slots!r} (should be a tuple or list)"
+                )
             slots = (slots,)
 
         if slots is None:
@@ -64,8 +65,7 @@ class SlotShadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker):
 
         if not isinstance(slots, tuple):
             if self.err_if_slots_is_mutable:
-                pytest.fail(
-                    f"cls {kls!r}; slots is {slots!r}- - should be a tuple")
+                pytest.fail(f"cls {kls!r}; slots is {slots!r}- - should be a tuple")
             slots = tuple(slots)
 
         if slots is None or (slots and slots in raw_slottings):
@@ -74,9 +74,11 @@ class SlotShadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker):
             # daftly copied the parents... thus defeating the purpose.
             pytest.fail(
                 f"cls {kls!r}; slots is {slots!r}, seemingly inherited from "
-                f"{raw_slottings[slots]!r}; the derivative class should be __slots__ = ()")
+                f"{raw_slottings[slots]!r}; the derivative class should be __slots__ = ()"
+            )
 
         for slot in slots:
             if slot in slotting:
                 pytest.fail(
-                    f"cls {kls!r}; slot {slot!r} was already defined at {slotting[slot]!r}")
+                    f"cls {kls!r}; slot {slot!r} was already defined at {slotting[slot]!r}"
+                )

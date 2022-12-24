@@ -3,15 +3,16 @@ from snakeoil import chksum
 
 
 class Test_funcs:
-
     def setup_method(self, method):
         chksum.__inited__ = False
         chksum.chksum_types.clear()
         self._saved_init = chksum.init
         self._inited_count = 0
+
         def f():
             self._inited_count += 1
             chksum.__inited__ = True
+
         chksum.init = f
 
     # ensure we aren't mangling chksum state for other tests.
@@ -41,4 +42,3 @@ class Test_funcs:
         assert chksum.get_handler("x") == 1
         assert chksum.get_handler("y") == 2
         assert self._inited_count == 1
-

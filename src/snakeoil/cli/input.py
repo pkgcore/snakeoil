@@ -41,9 +41,9 @@ def userquery(prompt, out, err, responses=None, default_answer=None, limit=3):
     """
     if responses is None:
         responses = {
-            'yes': (True, out.fg('green'), 'Yes'),
-            'no': (False, out.fg('red'), 'No'),
-            }
+            "yes": (True, out.fg("green"), "Yes"),
+            "no": (False, out.fg("red"), "No"),
+        }
         if default_answer is None:
             default_answer = True
     if default_answer is not None:
@@ -52,25 +52,25 @@ def userquery(prompt, out, err, responses=None, default_answer=None, limit=3):
                 default_answer_name = val[1:]
                 break
         else:
-            raise ValueError('default answer matches no responses')
+            raise ValueError("default answer matches no responses")
     for i in range(limit):
         # XXX see docstring about crummyness
         if isinstance(prompt, tuple):
             out.write(autoline=False, *prompt)
         else:
             out.write(prompt, autoline=False)
-        out.write(' [', autoline=False)
+        out.write(" [", autoline=False)
         prompts = list(responses.values())
         for choice in prompts[:-1]:
             out.write(autoline=False, *choice[1:])
-            out.write(out.reset, '/', autoline=False)
+            out.write(out.reset, "/", autoline=False)
         out.write(autoline=False, *prompts[-1][1:])
-        out.write(out.reset, ']', autoline=False)
+        out.write(out.reset, "]", autoline=False)
         if default_answer is not None:
-            out.write(' (default: ', autoline=False)
+            out.write(" (default: ", autoline=False)
             out.write(autoline=False, *default_answer_name)
-            out.write(')', autoline=False)
-        out.write(': ', autoline=False)
+            out.write(")", autoline=False)
+        out.write(": ", autoline=False)
         try:
             response = input()
         except EOFError as e:
@@ -83,15 +83,20 @@ def userquery(prompt, out, err, responses=None, default_answer=None, limit=3):
             raise
         if not response:
             return default_answer
-        results = sorted(set(
-            (key, value) for key, value in responses.items()
-            if key[:len(response)].lower() == response.lower()))
+        results = sorted(
+            set(
+                (key, value)
+                for key, value in responses.items()
+                if key[: len(response)].lower() == response.lower()
+            )
+        )
         if not results:
-            err.write('Sorry, response %r not understood.' % (response,))
+            err.write("Sorry, response %r not understood." % (response,))
         elif len(results) > 1:
             err.write(
-                'Response %r is ambiguous (%s)' %
-                (response, ', '.join(key for key, val in results)))
+                "Response %r is ambiguous (%s)"
+                % (response, ", ".join(key for key, val in results))
+            )
         else:
             return list(results)[0][1][0]
 

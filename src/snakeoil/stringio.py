@@ -27,7 +27,7 @@ is usable under both py2k and py3k.
 """
 
 # TODO: deprecated, remove in 0.9.0
-__all__ = ('text_readonly', 'bytes_readonly')
+__all__ = ("text_readonly", "bytes_readonly")
 
 import io
 

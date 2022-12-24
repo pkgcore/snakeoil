@@ -6,15 +6,20 @@ import subprocess
 
 
 def _drive_process(args, mode, data):
-    p = subprocess.Popen(args,
-                         stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, close_fds=True)
+    p = subprocess.Popen(
+        args,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        close_fds=True,
+    )
     try:
         stdout, stderr = p.communicate(data)
         if p.returncode != 0:
-            args = ' '.join(args)
+            args = " ".join(args)
             raise ValueError(
-                f"{mode} returned {p.returncode} exitcode from '{args}', stderr={stderr.decode()}")
+                f"{mode} returned {p.returncode} exitcode from '{args}', stderr={stderr.decode()}"
+            )
         return stdout
     finally:
         if p is not None and p.returncode is None:
@@ -22,21 +27,20 @@ def _drive_process(args, mode, data):
 
 
 def compress_data(binary, data, compresslevel=9, extra_args=()):
-    args = [binary, f'-{compresslevel}c']
+    args = [binary, f"-{compresslevel}c"]
     args.extend(extra_args)
-    return _drive_process(args, 'compression', data)
+    return _drive_process(args, "compression", data)
 
 
 def decompress_data(binary, data, extra_args=()):
-    args = [binary, '-dc']
+    args = [binary, "-dc"]
     args.extend(extra_args)
-    return _drive_process(args, 'decompression', data)
+    return _drive_process(args, "decompression", data)
 
 
 class _process_handle:
-
     def __init__(self, handle, args, is_read=False):
-        self.mode = 'rb' if is_read else 'wb'
+        self.mode = "rb" if is_read else "wb"
 
         self.args = tuple(args)
         self.is_read = is_read
@@ -51,9 +55,10 @@ class _process_handle:
             handle = open(handle, mode=self.mode)
             close = True
         elif not isinstance(handle, int):
-            if not hasattr(handle, 'fileno'):
+            if not hasattr(handle, "fileno"):
                 raise TypeError(
-                    f"handle {handle!r} isn't a string, integer, and lacks a fileno method")
+                    f"handle {handle!r} isn't a string, integer, and lacks a fileno method"
+                )
             handle = handle.fileno()
 
         try:
@@ -64,18 +69,17 @@ class _process_handle:
 
     def _setup_process(self, handle):
         self.position = 0
-        stderr = open(os.devnull, 'wb')
+        stderr = open(os.devnull, "wb")
         kwds = dict(stderr=stderr)
         if self.is_read:
-            kwds['stdin'] = handle
-            kwds['stdout'] = subprocess.PIPE
+            kwds["stdin"] = handle
+            kwds["stdout"] = subprocess.PIPE
         else:
-            kwds['stdout'] = handle
-            kwds['stdin'] = subprocess.PIPE
+            kwds["stdout"] = handle
+            kwds["stdin"] = subprocess.PIPE
 
         try:
-            self._process = subprocess.Popen(
-                self.args, close_fds=True, **kwds)
+            self._process = subprocess.Popen(self.args, close_fds=True, **kwds)
         finally:
             stderr.close()
 
@@ -106,7 +110,8 @@ class _process_handle:
             if self._allow_reopen is None:
                 raise TypeError(
                     f"instance {self} can't do negative seeks: "
-                    f"asked for {position}, was at {self.position}")
+                    f"asked for {position}, was at {self.position}"
+                )
             self._terminate()
             self._open_handle(self._allow_reopen)
             return self.seek(position)
@@ -130,7 +135,7 @@ class _process_handle:
         # reallocating it continually; via this usage, we
         # only slice once the val is less than seek_size;
         # iow, two allocations worst case.
-        null_block = '\0' * seek_size
+        null_block = "\0" * seek_size
         while val:
             self.write(null_block[:val])
             offset -= val
@@ -145,11 +150,13 @@ class _process_handle:
                 raise
 
     def close(self):
-        if not hasattr(self, '_process'):
+        if not hasattr(self, "_process"):
             return
         if self._process.returncode is not None:
             if self._process.returncode != 0:
-                raise Exception(f"{self.args} invocation had non zero exit: {self._process.returncode}")
+                raise Exception(
+                    f"{self.args} invocation had non zero exit: {self._process.returncode}"
+                )
             return
 
         self.handle.close()
@@ -163,12 +170,12 @@ class _process_handle:
 
 
 def compress_handle(binary_path, handle, compresslevel=9, extra_args=()):
-    args = [binary_path, f'-{compresslevel}c']
+    args = [binary_path, f"-{compresslevel}c"]
     args.extend(extra_args)
     return _process_handle(handle, args, False)
 
 
 def decompress_handle(binary_path, handle, extra_args=()):
-    args = [binary_path, '-dc']
+    args = [binary_path, "-dc"]
     args.extend(extra_args)
     return _process_handle(handle, args, True)

@@ -7,12 +7,27 @@ involved in writing classes.
 """
 
 __all__ = (
-    "generic_equality", "reflective_hash", "inject_richcmp_methods_from_cmp",
-    "static_attrgetter", "instance_attrgetter", "jit_attr", "jit_attr_none",
-    "jit_attr_named", "jit_attr_ext_method", "alias_attr", "cached_hash",
-    "cached_property", "cached_property_named",
-    "steal_docs", "immutable_instance", "inject_immutable_instance",
-    "alias_method", "aliased", "alias", "patch", "SlotsPicklingMixin",
+    "generic_equality",
+    "reflective_hash",
+    "inject_richcmp_methods_from_cmp",
+    "static_attrgetter",
+    "instance_attrgetter",
+    "jit_attr",
+    "jit_attr_none",
+    "jit_attr_named",
+    "jit_attr_ext_method",
+    "alias_attr",
+    "cached_hash",
+    "cached_property",
+    "cached_property_named",
+    "steal_docs",
+    "immutable_instance",
+    "inject_immutable_instance",
+    "alias_method",
+    "aliased",
+    "alias",
+    "patch",
+    "SlotsPicklingMixin",
 )
 
 import inspect
@@ -32,6 +47,7 @@ sentinel = object()
 def GetAttrProxy(target):
     def reflected_getattr(self, attr):
         return getattr(object.__getattribute__(self, target), attr)
+
     return reflected_getattr
 
 
@@ -43,6 +59,7 @@ def DirProxy(target):
         except AttributeError:
             attrs.extend(obj.__slots__)
         return sorted(set(attrs))
+
     return combined_dir
 
 
@@ -69,6 +86,8 @@ def get(self, key, default=None):
 
 
 _attrlist_getter = attrgetter("__attr_comparison__")
+
+
 def generic_attr_eq(inst1, inst2):
     """
     compare inst1 to inst2, returning True if equal, False if not.
@@ -78,8 +97,7 @@ def generic_attr_eq(inst1, inst2):
     if inst1 is inst2:
         return True
     for attr in _attrlist_getter(inst1):
-        if getattr(inst1, attr, sentinel) != \
-            getattr(inst2, attr, sentinel):
+        if getattr(inst1, attr, sentinel) != getattr(inst2, attr, sentinel):
             return False
     return True
 
@@ -105,28 +123,36 @@ def reflective_hash(attr):
     :param attr: attribute name to pull the hash from on the instance
     :return: hash value for instance this func is used in.
     """
+
     def __hash__(self):
         return getattr(self, attr)
+
     return __hash__
 
+
 def _internal_jit_attr(
-        func, attr_name, singleton=None,
-        use_cls_setattr=False, use_singleton=True, doc=None):
+    func, attr_name, singleton=None, use_cls_setattr=False, use_singleton=True, doc=None
+):
     """Object implementing the descriptor protocol for use in Just In Time access to attributes.
 
     Consumers should likely be using the :py:func:`jit_func` line of helper functions
     instead of directly consuming this.
     """
-    doc = getattr(func, '__doc__', None) if doc is None else doc
+    doc = getattr(func, "__doc__", None) if doc is None else doc
 
     class _internal_jit_attr(_raw_internal_jit_attr):
         __doc__ = doc
         __slots__ = ()
+
     kls = _internal_jit_attr
 
     return kls(
-        func, attr_name, singleton=singleton, use_cls_setattr=use_cls_setattr,
-        use_singleton=use_singleton)
+        func,
+        attr_name,
+        singleton=singleton,
+        use_cls_setattr=use_cls_setattr,
+        use_singleton=use_singleton,
+    )
 
 
 class _raw_internal_jit_attr:
@@ -134,8 +160,9 @@ class _raw_internal_jit_attr:
 
     __slots__ = ("storage_attr", "function", "_setter", "singleton", "use_singleton")
 
-    def __init__(self, func, attr_name, singleton=None,
-                 use_cls_setattr=False, use_singleton=True):
+    def __init__(
+        self, func, attr_name, singleton=None, use_cls_setattr=False, use_singleton=True
+    ):
         """
         :param func: function to invoke upon first request for this content
         :param attr_name: attribute name to store the generated value in
@@ -178,8 +205,9 @@ class _raw_internal_jit_attr:
         return obj
 
 
-def generic_equality(name, bases, scope, real_type=type,
-                     eq=generic_attr_eq, ne=generic_attr_ne):
+def generic_equality(
+    name, bases, scope, real_type=type, eq=generic_attr_eq, ne=generic_attr_ne
+):
     """
     metaclass generating __eq__/__ne__ methods from an attribute list
 
@@ -208,7 +236,9 @@ def generic_equality(name, bases, scope, real_type=type,
         attrlist = scope[attrlist]
     for x in attrlist:
         if not isinstance(x, str):
-            raise TypeError(f"all members of attrlist must be strings- got {type(x)!r} {x!r}")
+            raise TypeError(
+                f"all members of attrlist must be strings- got {type(x)!r} {x!r}"
+            )
 
     scope["__attr_comparison__"] = tuple(attrlist)
     scope.setdefault("__eq__", eq)
@@ -285,9 +315,14 @@ def inject_richcmp_methods_from_cmp(scope):
     :param scope: the modifiable scope of a class namespace to work on
     """
 
-    for key, func in (("__lt__", generic_lt), ("__le__", generic_le),
-                      ("__eq__", generic_eq), ("__ne__", generic_ne),
-                      ("__ge__", generic_ge), ("__gt__", generic_gt)):
+    for key, func in (
+        ("__lt__", generic_lt),
+        ("__le__", generic_le),
+        ("__eq__", generic_eq),
+        ("__ne__", generic_ne),
+        ("__ge__", generic_ge),
+        ("__gt__", generic_gt),
+    ):
         scope.setdefault(key, func)
 
 
@@ -329,7 +364,8 @@ class chained_getter(metaclass=partial(generic_equality, real_type=WeakInstMeta)
     >>> print(o.recursive == foo.seq.__hash__)
     True
     """
-    __slots__ = ('namespace', 'getter')
+
+    __slots__ = ("namespace", "getter")
     __fifo_cache__ = deque()
     __inst_caching__ = True
     __attr_comparison__ = ("namespace",)
@@ -361,16 +397,20 @@ instance_attrgetter = chained_getter
 # this annoyingly means our docs have to be recommitted every change,
 # even if no real code changed (since the id() continually moves)...
 class _singleton_kls:
-
     def __str__(self):
         return "uncached singleton instance"
 
 
 _uncached_singleton = _singleton_kls
 
-T = typing.TypeVar('T')
+T = typing.TypeVar("T")
 
-def jit_attr(func: typing.Callable[[typing.Any], T], kls=_internal_jit_attr, uncached_val: typing.Any=_uncached_singleton) -> T:
+
+def jit_attr(
+    func: typing.Callable[[typing.Any], T],
+    kls=_internal_jit_attr,
+    uncached_val: typing.Any = _uncached_singleton,
+) -> T:
     """
     decorator to JIT generate, and cache the wrapped functions result in
     '_' + func.__name__ on the instance.
@@ -399,8 +439,13 @@ def jit_attr_none(func: typing.Callable[[typing.Any], T], kls=_internal_jit_attr
     return jit_attr(func, kls=kls, uncached_val=None)
 
 
-def jit_attr_named(stored_attr_name: str, use_cls_setattr=False, kls=_internal_jit_attr,
-                   uncached_val: typing.Any=_uncached_singleton, doc=None):
+def jit_attr_named(
+    stored_attr_name: str,
+    use_cls_setattr=False,
+    kls=_internal_jit_attr,
+    uncached_val: typing.Any = _uncached_singleton,
+    doc=None,
+):
     """
     Version of :py:func:`jit_attr` decorator that allows for explicit control over the
     attribute name used to store the cache value.
@@ -410,9 +455,14 @@ def jit_attr_named(stored_attr_name: str, use_cls_setattr=False, kls=_internal_j
     return post_curry(kls, stored_attr_name, uncached_val, use_cls_setattr, doc=doc)
 
 
-def jit_attr_ext_method(func_name: str, stored_attr_name: str,
-                        use_cls_setattr=False, kls=_internal_jit_attr,
-                        uncached_val: typing.Any=_uncached_singleton, doc=None):
+def jit_attr_ext_method(
+    func_name: str,
+    stored_attr_name: str,
+    use_cls_setattr=False,
+    kls=_internal_jit_attr,
+    uncached_val: typing.Any = _uncached_singleton,
+    doc=None,
+):
     """
     Decorator handing maximal control of attribute JIT'ing to the invoker.
 
@@ -421,11 +471,20 @@ def jit_attr_ext_method(func_name: str, stored_attr_name: str,
     Generally speaking, you only need this when you are doing something rather *special*.
     """
 
-    return kls(alias_method(func_name), stored_attr_name,
-               uncached_val, use_cls_setattr, doc=doc)
+    return kls(
+        alias_method(func_name),
+        stored_attr_name,
+        uncached_val,
+        use_cls_setattr,
+        doc=doc,
+    )
 
 
-def cached_property(func: typing.Callable[[typing.Any], T], kls=_internal_jit_attr, use_cls_setattr=False) -> T:
+def cached_property(
+    func: typing.Callable[[typing.Any], T],
+    kls=_internal_jit_attr,
+    use_cls_setattr=False,
+) -> T:
     """
     like `property`, just with caching
 
@@ -454,8 +513,9 @@ def cached_property(func: typing.Callable[[typing.Any], T], kls=_internal_jit_at
     >>> print(obj.attr)
     1
     """
-    return kls(func, func.__name__, None, use_singleton=False,
-               use_cls_setattr=use_cls_setattr)
+    return kls(
+        func, func.__name__, None, use_singleton=False, use_cls_setattr=use_cls_setattr
+    )
 
 
 def cached_property_named(name: str, kls=_internal_jit_attr, use_cls_setattr=False):
@@ -538,11 +598,13 @@ def cached_hash(func):
     >>> assert hash(f) == 12345        # note we still get the same value
     >>> assert f.hash_invocations == 1 # and that the function was invoked only once.
     """
+
     def __hash__(self):
-        val = getattr(self, '_hash', None)
+        val = getattr(self, "_hash", None)
         if val is None:
-            object.__setattr__(self, '_hash', val := func(self))
+            object.__setattr__(self, "_hash", val := func(self))
         return val
+
     return __hash__
 
 
@@ -574,6 +636,7 @@ def steal_docs(target, ignore_missing=False, name=None):
     >>> f = foo([1,2,3])
     >>> assert f.extend.__doc__ == list.extend.__doc__
     """
+
     def inner(functor):
         if inspect.isclass(target):
             if name is not None:
@@ -590,6 +653,7 @@ def steal_docs(target, ignore_missing=False, name=None):
             obj = target
         functor.__doc__ = obj.__doc__
         return functor
+
     return inner
 
 
@@ -611,7 +675,7 @@ def patch(target, external_decorator=None):
     """
 
     def _import_module(target):
-        components = target.split('.')
+        components = target.split(".")
         import_path = components.pop(0)
         module = import_module(import_path)
         for comp in components:
@@ -624,7 +688,7 @@ def patch(target, external_decorator=None):
 
     def _get_target(target):
         try:
-            module, attr = target.rsplit('.', 1)
+            module, attr = target.rsplit(".", 1)
         except (TypeError, ValueError):
             raise TypeError(f"invalid target: {target!r}")
         module = _import_module(module)
@@ -632,7 +696,7 @@ def patch(target, external_decorator=None):
 
     def decorator(func):
         # use the original function wrapper
-        func = getattr(func, '_func', func)
+        func = getattr(func, "_func", func)
 
         module, attr = _get_target(target)
         orig_func = getattr(module, attr)
@@ -749,6 +813,7 @@ class alias:
     >>> speak = Speak()
     >>> assert speak.shout('foo') == speak.yell('foo') == speak.scream('foo')
     """
+
     def __init__(self, *aliases):
         self.aliases = set(aliases)
 
@@ -762,11 +827,14 @@ def aliased(cls):
     orig_methods = cls.__dict__.copy()
     seen_aliases = set()
     for _name, method in orig_methods.items():
-        if hasattr(method, '_aliases'):
-            collisions = method._aliases.intersection(orig_methods.keys() | seen_aliases)
+        if hasattr(method, "_aliases"):
+            collisions = method._aliases.intersection(
+                orig_methods.keys() | seen_aliases
+            )
             if collisions:
                 raise ValueError(
-                    f"aliases collide with existing attributes: {', '.join(collisions)}")
+                    f"aliases collide with existing attributes: {', '.join(collisions)}"
+                )
             seen_aliases |= method._aliases
             for alias in method._aliases:
                 setattr(cls, alias, method)
@@ -780,9 +848,13 @@ class SlotsPicklingMixin:
 
     def __getstate__(self):
         all_slots = itertools.chain.from_iterable(
-            getattr(t, '__slots__', ()) for t in type(self).__mro__)
-        state = {attr: getattr(self, attr) for attr in all_slots
-                 if hasattr(self, attr) and attr != '__weakref__'}
+            getattr(t, "__slots__", ()) for t in type(self).__mro__
+        )
+        state = {
+            attr: getattr(self, attr)
+            for attr in all_slots
+            if hasattr(self, attr) and attr != "__weakref__"
+        }
         return state
 
     def __setstate__(self, state):
