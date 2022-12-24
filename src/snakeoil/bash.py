@@ -15,19 +15,25 @@ from .fileutils import readlines
 from .log import logger
 from .mappings import ProtectedDict
 
-demand_compile_regexp('line_cont_regexp', r'^(.*[^\\]|)\\$')
-demand_compile_regexp('inline_comment_regexp', r'^.*\s#.*$')
-demand_compile_regexp('var_find', r'\\?(\${\w+}|\$\w+)')
-demand_compile_regexp('backslash_find', r'\\.')
-demand_compile_regexp('ansi_escape_re', r'(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]')
+demand_compile_regexp("line_cont_regexp", r"^(.*[^\\]|)\\$")
+demand_compile_regexp("inline_comment_regexp", r"^.*\s#.*$")
+demand_compile_regexp("var_find", r"\\?(\${\w+}|\$\w+)")
+demand_compile_regexp("backslash_find", r"\\.")
+demand_compile_regexp("ansi_escape_re", r"(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]")
 
 __all__ = (
-    "iter_read_bash", "read_bash", "read_dict", "read_bash_dict",
-    "bash_parser", "BashParseError")
+    "iter_read_bash",
+    "read_bash",
+    "read_dict",
+    "read_bash_dict",
+    "bash_parser",
+    "BashParseError",
+)
 
 
-def iter_read_bash(bash_source, allow_inline_comments=True,
-                   allow_line_cont=False, enum_line=False):
+def iter_read_bash(
+    bash_source, allow_inline_comments=True, allow_line_cont=False, enum_line=False
+):
     """Iterate over a file honoring bash commenting rules and line continuations.
 
     Note that it's considered good behaviour to close filehandles, as
@@ -45,7 +51,7 @@ def iter_read_bash(bash_source, allow_inline_comments=True,
     """
     if isinstance(bash_source, str):
         bash_source = readlines(bash_source, True)
-    s = ''
+    s = ""
     for lineno, line in enumerate(bash_source, 1):
         if allow_line_cont and s:
             s += line
@@ -53,19 +59,20 @@ def iter_read_bash(bash_source, allow_inline_comments=True,
             s = line.lstrip()
 
         if s:
-            if s[0] != '#':
+            if s[0] != "#":
                 if allow_inline_comments:
-                    if (not allow_line_cont or
-                            (allow_line_cont and inline_comment_regexp.match(line))):
+                    if not allow_line_cont or (
+                        allow_line_cont and inline_comment_regexp.match(line)
+                    ):
                         s = s.split("#", 1)[0].rstrip()
                 if allow_line_cont and line_cont_regexp.match(line):
-                    s = s.rstrip('\\\n')
+                    s = s.rstrip("\\\n")
                     continue
                 if enum_line:
                     yield lineno, s.rstrip()
                 else:
                     yield s.rstrip()
-            s = ''
+            s = ""
     if s:
         if enum_line:
             yield lineno, s
@@ -122,7 +129,7 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
         try:
             while tok is not None:
                 key = s.get_token()
-                if key == 'export':
+                if key == "export":
                     # discard 'export' token from "export VAR=VALUE" lines
                     key = s.get_token()
                 if key is None:
@@ -133,23 +140,23 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
                     # detect empty assigns
                     continue
                 eq = s.get_token()
-                if eq != '=':
+                if eq != "=":
                     raise BashParseError(
-                        bash_source, s.lineno,
-                        "got token %r, was expecting '='" % eq)
+                        bash_source, s.lineno, "got token %r, was expecting '='" % eq
+                    )
                 val = s.get_token()
                 if val is None:
-                    val = ''
-                elif val == 'export':
+                    val = ""
+                elif val == "export":
                     val = s.get_token()
                 # look ahead to see if we just got an empty assign.
                 next_tok = s.get_token()
-                if next_tok == '=':
+                if next_tok == "=":
                     # ... we did.
                     # leftmost insertions, thus reversed ordering
                     s.push_token(next_tok)
                     s.push_token(val)
-                    val = ''
+                    val = ""
                 else:
                     s.push_token(next_tok)
                 d[key] = val
@@ -163,9 +170,15 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
     return d
 
 
-def read_dict(bash_source, splitter="=", source_isiter=False,
-              allow_inline_comments=True, strip=False, filename=None,
-              ignore_errors=False):
+def read_dict(
+    bash_source,
+    splitter="=",
+    source_isiter=False,
+    allow_inline_comments=True,
+    strip=False,
+    filename=None,
+    ignore_errors=False,
+):
     """Read key value pairs from a file, ignoring bash-style comments.
 
     :param splitter: the string to split on.  Can be None to
@@ -180,12 +193,11 @@ def read_dict(bash_source, splitter="=", source_isiter=False,
     d = {}
     if not source_isiter:
         filename = bash_source
-        i = iter_read_bash(
-            bash_source, allow_inline_comments=allow_inline_comments)
+        i = iter_read_bash(bash_source, allow_inline_comments=allow_inline_comments)
     else:
         if filename is None:
             # XXX what to do?
-            filename = '<unknown>'
+            filename = "<unknown>"
         i = bash_source
     line_count = 0
     try:
@@ -195,10 +207,11 @@ def read_dict(bash_source, splitter="=", source_isiter=False,
                 k, v = k.split(splitter, 1)
             except ValueError as e:
                 if filename == "<unknown>":
-                    filename = getattr(bash_source, 'name', bash_source)
+                    filename = getattr(bash_source, "name", bash_source)
                 if ignore_errors:
                     logger.error(
-                        'bash parse error in %r, line %s', filename, line_count)
+                        "bash parse error in %r, line %s", filename, line_count
+                    )
                     continue
                 else:
                     raise BashParseError(filename, line_count) from e
@@ -239,7 +252,7 @@ class bash_parser(shlex):
         :param env: initial environment to use for variable interpolation
         :type env: must be a mapping; if None, an empty dict is used
         """
-        self.__dict__['state'] = ' '
+        self.__dict__["state"] = " "
         super().__init__(source, posix=True, infile=infile)
         self.wordchars += "@${}/.-+/:~^*"
         self.wordchars = frozenset(self.wordchars)
@@ -252,12 +265,10 @@ class bash_parser(shlex):
 
     def __setattr__(self, attr, val):
         if attr == "state":
-            if (self.state, val) in (
-                    ('"', 'a'), ('a', '"'), ('a', ' '), ("'", 'a')):
+            if (self.state, val) in (('"', "a"), ("a", '"'), ("a", " "), ("'", "a")):
                 strl = len(self.token)
                 if self.__pos != strl:
-                    self.changed_state.append(
-                        (self.state, self.token[self.__pos:]))
+                    self.changed_state.append((self.state, self.token[self.__pos :]))
                 self.__pos = strl
         self.__dict__[attr] = val
 
@@ -275,13 +286,13 @@ class bash_parser(shlex):
             return token
         if self.state is None:
             # eof reached.
-            self.changed_state.append((self.state, token[self.__pos:]))
+            self.changed_state.append((self.state, token[self.__pos :]))
         else:
-            self.changed_state.append((self.state, self.token[self.__pos:]))
-        tok = ''
+            self.changed_state.append((self.state, self.token[self.__pos :]))
+        tok = ""
         for s, t in self.changed_state:
             if s in ('"', "a"):
-                tok += self.var_expand(t).replace("\\\n", '')
+                tok += self.var_expand(t).replace("\\\n", "")
             else:
                 tok += t
         return tok
@@ -291,26 +302,27 @@ class bash_parser(shlex):
         l = []
         while match := var_find.search(val, pos):
             pos = match.start()
-            if val[pos] == '\\':
+            if val[pos] == "\\":
                 # it's escaped. either it's \\$ or \\${ , either way,
                 # skipping two ahead handles it.
                 pos += 2
             else:
-                var = val[match.start():match.end()].strip("${}")
+                var = val[match.start() : match.end()].strip("${}")
                 if prev != pos:
                     l.append(val[prev:pos])
                 if var in self.env:
                     if not isinstance(self.env[var], str):
                         raise ValueError(
-                            "env key %r must be a string, not %s: %r" % (
-                                var, type(self.env[var]), self.env[var]))
+                            "env key %r must be a string, not %s: %r"
+                            % (var, type(self.env[var]), self.env[var])
+                        )
                     l.append(self.env[var])
                 else:
                     l.append("")
                 prev = pos = match.end()
 
         # do \\ cleansing, collapsing val down also.
-        val = backslash_find.sub(_nuke_backslash, ''.join(l) + val[prev:])
+        val = backslash_find.sub(_nuke_backslash, "".join(l) + val[prev:])
         return val
 
 
@@ -320,10 +332,11 @@ class BashParseError(Exception):
     def __init__(self, filename, line, errmsg=None):
         if errmsg is not None:
             super().__init__(
-                "error parsing '%s' on or before line %i: err %s" %
-                (filename, line, errmsg))
+                "error parsing '%s' on or before line %i: err %s"
+                % (filename, line, errmsg)
+            )
         else:
             super().__init__(
-                "error parsing '%s' on or before line %i" %
-                (filename, line))
+                "error parsing '%s' on or before line %i" % (filename, line)
+            )
         self.file, self.line, self.errmsg = filename, line, errmsg

@@ -34,9 +34,18 @@ pretty quickly.
 """
 
 __all__ = (
-    'abspath', 'abssymlink', 'ensure_dirs', 'join', 'pjoin', 'listdir_files',
-    'listdir_dirs', 'listdir', 'readdir', 'normpath', 'unlink_if_exists',
-    'supported_systems',
+    "abspath",
+    "abssymlink",
+    "ensure_dirs",
+    "join",
+    "pjoin",
+    "listdir_files",
+    "listdir_dirs",
+    "listdir",
+    "readdir",
+    "normpath",
+    "unlink_if_exists",
+    "supported_systems",
 )
 
 import errno
@@ -86,14 +95,18 @@ def supported_systems(*systems):
         ...
     NotImplementedError: func2 not supported on nonexistent
     """
+
     def _decorator(f):
         def _wrapper(*args, **kwargs):
             if sys.platform.startswith(systems):
                 return f(*args, **kwargs)
             else:
-                raise NotImplementedError('%s not supported on %s'
-                                          % (f.__name__, sys.platform))
+                raise NotImplementedError(
+                    "%s not supported on %s" % (f.__name__, sys.platform)
+                )
+
         return _wrapper
+
     return _decorator
 
 
@@ -134,7 +147,7 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
         try:
             um = os.umask(0)
             # if the dir perms would lack +wx, we have to force it
-            force_temp_perms = ((mode & 0o300) != 0o300)
+            force_temp_perms = (mode & 0o300) != 0o300
             resets = []
             apath = normpath(os.path.abspath(path))
             sticky_parent = False
@@ -149,7 +162,7 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
 
                     # if it's a subdir, we need +wx at least
                     if apath != base:
-                        sticky_parent = (st.st_mode & stat.S_ISGID)
+                        sticky_parent = st.st_mode & stat.S_ISGID
 
                 except OSError:
                     # nothing exists.
@@ -185,8 +198,7 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
             return False
 
         try:
-            if ((gid != -1 and gid != st.st_gid) or
-                    (uid != -1 and uid != st.st_uid)):
+            if (gid != -1 and gid != st.st_gid) or (uid != -1 and uid != st.st_uid):
                 os.chown(path, uid, gid)
             if minimal:
                 if mode != (st.st_mode & mode):
@@ -207,9 +219,9 @@ def abssymlink(path):
         a symlink
     """
     mylink = os.readlink(path)
-    if mylink[0] != '/':
+    if mylink[0] != "/":
         mydir = os.path.dirname(path)
-        mylink = mydir + '/' + mylink
+        mylink = mydir + "/" + mylink
     return normpath(mylink)
 
 
@@ -256,7 +268,7 @@ def normpath(mypath: str) -> str:
     `os.path.normpath` only in that it'll convert leading '//' into '/'
     """
     newpath = os.path.normpath(mypath)
-    double_sep = b'//' if isinstance(newpath, bytes) else '//'
+    double_sep = b"//" if isinstance(newpath, bytes) else "//"
     if newpath.startswith(double_sep):
         return newpath[1:]
     return newpath
@@ -306,9 +318,9 @@ def fallback_access(path, mode, root=0):
     return mode == (mode & (st.st_mode & 0x7))
 
 
-if os.uname()[0].lower() == 'sunos':
+if os.uname()[0].lower() == "sunos":
     access = fallback_access
-    access.__name__ = 'access'
+    access.__name__ = "access"
 else:
     access = os.access
 

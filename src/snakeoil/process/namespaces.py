@@ -11,8 +11,15 @@ import socket
 import subprocess
 import sys
 
-from ..osutils.mount import (MS_NODEV, MS_NOEXEC, MS_NOSUID, MS_PRIVATE, MS_REC, MS_RELATIME,
-                             MS_SLAVE)
+from ..osutils.mount import (
+    MS_NODEV,
+    MS_NOEXEC,
+    MS_NOSUID,
+    MS_PRIVATE,
+    MS_REC,
+    MS_RELATIME,
+    MS_SLAVE,
+)
 from ..osutils.mount import mount as _mount
 from . import exit_as_status
 
@@ -39,7 +46,7 @@ def setns(fd, nstype):
             fp = open(fd)
             fd = fp.fileno()
 
-        libc = ctypes.CDLL(ctypes.util.find_library('c'), use_errno=True)
+        libc = ctypes.CDLL(ctypes.util.find_library("c"), use_errno=True)
         if libc.setns(ctypes.c_int(fd), ctypes.c_int(nstype)) != 0:
             e = ctypes.get_errno()
             raise OSError(e, os.strerror(e))
@@ -54,7 +61,7 @@ def unshare(flags):
     :param flags: Namespaces to unshare; bitwise OR of CLONE_* flags.
     :raises OSError: if unshare failed.
     """
-    libc = ctypes.CDLL(ctypes.util.find_library('c'), use_errno=True)
+    libc = ctypes.CDLL(ctypes.util.find_library("c"), use_errno=True)
     if libc.unshare(ctypes.c_int(flags)) != 0:
         e = ctypes.get_errno()
         raise OSError(e, os.strerror(e))
@@ -140,15 +147,13 @@ def create_pidns():
         # Make sure to unshare the existing mount point if needed.  Some distros
         # create shared mount points everywhere by default.
         try:
-            _mount(None, '/proc', 'proc', MS_PRIVATE | MS_REC)
+            _mount(None, "/proc", "proc", MS_PRIVATE | MS_REC)
         except OSError as e:
             if e.errno != errno.EINVAL:
                 raise
 
         # The child needs its own proc mount as it'll be different.
-        _mount(
-            'proc', '/proc', 'proc',
-            MS_NOSUID | MS_NODEV | MS_NOEXEC | MS_RELATIME)
+        _mount("proc", "/proc", "proc", MS_NOSUID | MS_NODEV | MS_NOEXEC | MS_RELATIME)
 
         if pid := os.fork():
             # Mask SIGINT with the assumption that the child will catch & process it.
@@ -195,12 +200,13 @@ def create_netns():
     # Since we've unshared the net namespace, we need to bring up loopback.
     # The kernel automatically adds the various ip addresses, so skip that.
     try:
-        subprocess.call(['ip', 'link', 'set', 'up', 'lo'])
+        subprocess.call(["ip", "link", "set", "up", "lo"])
     except OSError as e:
         if e.errno == errno.ENOENT:
             sys.stderr.write(
-                'warning: could not bring up loopback for network; '
-                'install the iproute2 package\n')
+                "warning: could not bring up loopback for network; "
+                "install the iproute2 package\n"
+            )
         else:
             raise
 
@@ -243,16 +249,17 @@ def create_userns():
             # For all other errors, abort.  They shouldn't happen.
             raise
 
-    with open('/proc/self/setgroups', 'w') as f:
-        f.write('deny')
-    with open('/proc/self/uid_map', 'w') as f:
-        f.write('0 %s 1\n' % uid)
-    with open('/proc/self/gid_map', 'w') as f:
-        f.write('0 %s 1\n' % gid)
+    with open("/proc/self/setgroups", "w") as f:
+        f.write("deny")
+    with open("/proc/self/uid_map", "w") as f:
+        f.write("0 %s 1\n" % uid)
+    with open("/proc/self/gid_map", "w") as f:
+        f.write("0 %s 1\n" % gid)
 
 
-def simple_unshare(mount=True, uts=True, ipc=True, net=False, pid=False,
-                   user=False, hostname=None):
+def simple_unshare(
+    mount=True, uts=True, ipc=True, net=False, pid=False, user=False, hostname=None
+):
     """Simpler helper for setting up namespaces quickly.
 
     If support for any namespace type is not available, we'll silently skip it.
@@ -278,7 +285,7 @@ def simple_unshare(mount=True, uts=True, ipc=True, net=False, pid=False,
         # on systems that share the rootfs by default, but allow events in the
         # parent to propagate down.
         try:
-            _mount(None, '/', None, MS_REC | MS_SLAVE)
+            _mount(None, "/", None, MS_REC | MS_SLAVE)
         except OSError as e:
             if e.errno != errno.EINVAL:
                 raise

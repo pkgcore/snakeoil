@@ -13,7 +13,6 @@ def finalize_instance(obj, weakref_inst):
 
 
 class WeakRefProxy(BaseDelayedObject):
-
     def __instantiate_proxy_instance__(self):
         obj = BaseDelayedObject.__instantiate_proxy_instance__(self)
         weakref = ref(self, partial(finalize_instance, obj))

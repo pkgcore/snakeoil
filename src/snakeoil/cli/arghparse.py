@@ -9,8 +9,18 @@ import pkgutil
 import subprocess
 import sys
 import traceback
-from argparse import (_UNRECOGNIZED_ARGS_ATTR, OPTIONAL, PARSER, REMAINDER, SUPPRESS, ZERO_OR_MORE,
-                      ArgumentError, _, _get_action_name, _SubParsersAction)
+from argparse import (
+    _UNRECOGNIZED_ARGS_ATTR,
+    OPTIONAL,
+    PARSER,
+    REMAINDER,
+    SUPPRESS,
+    ZERO_OR_MORE,
+    ArgumentError,
+    _,
+    _get_action_name,
+    _SubParsersAction,
+)
 from collections import Counter
 from functools import partial
 from itertools import chain
@@ -31,11 +41,11 @@ from ..version import get_version
 _generate_docs = False
 
 
-@klass.patch('argparse.ArgumentParser.add_subparsers')
-@klass.patch('argparse._SubParsersAction.add_parser')
-@klass.patch('argparse._ActionsContainer.add_mutually_exclusive_group')
-@klass.patch('argparse._ActionsContainer.add_argument_group')
-@klass.patch('argparse._ActionsContainer.add_argument')
+@klass.patch("argparse.ArgumentParser.add_subparsers")
+@klass.patch("argparse._SubParsersAction.add_parser")
+@klass.patch("argparse._ActionsContainer.add_mutually_exclusive_group")
+@klass.patch("argparse._ActionsContainer.add_argument_group")
+@klass.patch("argparse._ActionsContainer.add_argument")
 def _add_argument_docs(orig_func, self, *args, **kwargs):
     """Enable docs keyword argument support for argparse arguments.
 
@@ -48,16 +58,16 @@ def _add_argument_docs(orig_func, self, *args, **kwargs):
     enable the global _generate_docs variable in order to replace the
     summarized help strings with the extended doc strings.
     """
-    docs = kwargs.pop('docs', None)
+    docs = kwargs.pop("docs", None)
     obj = orig_func(self, *args, **kwargs)
     if _generate_docs and docs is not None:
         if isinstance(docs, (list, tuple)):
             # list args are often used if originator wanted to strip
             # off first description summary line
-            docs = '\n'.join(docs)
-        docs = '\n'.join(dedent(docs).strip().split('\n'))
+            docs = "\n".join(docs)
+        docs = "\n".join(dedent(docs).strip().split("\n"))
 
-        if orig_func.__name__ == 'add_subparsers':
+        if orig_func.__name__ == "add_subparsers":
             # store original description before overriding it with extended
             # docs for general subparsers argument groups
             self._subparsers._description = self._subparsers.description
@@ -93,7 +103,7 @@ class ParseNonblockingStdin(argparse.Action):
     """Accept arguments from standard input in a non-blocking fashion."""
 
     def __init__(self, *args, **kwargs):
-        self.filter_func = kwargs.pop('filter_func', lambda x: x.strip())
+        self.filter_func = kwargs.pop("filter_func", lambda x: x.strip())
         super().__init__(*args, **kwargs)
 
     def _stdin(self):
@@ -106,9 +116,11 @@ class ParseNonblockingStdin(argparse.Action):
                 break
 
     def __call__(self, parser, namespace, values, option_string=None):
-        if values is not None and len(values) == 1 and values[0] == '-':
+        if values is not None and len(values) == 1 and values[0] == "-":
             if sys.stdin.isatty():
-                raise argparse.ArgumentError(self, "'-' is only valid when piping data in")
+                raise argparse.ArgumentError(
+                    self, "'-' is only valid when piping data in"
+                )
             values = self._stdin()
         setattr(namespace, self.dest, values)
 
@@ -117,16 +129,18 @@ class ParseStdin(ExtendAction):
     """Accept arguments from standard input in a blocking fashion."""
 
     def __init__(self, *args, **kwargs):
-        self.filter_func = kwargs.pop('filter_func', lambda x: x.strip())
+        self.filter_func = kwargs.pop("filter_func", lambda x: x.strip())
         super().__init__(*args, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
-        if values is not None and len(values) == 1 and values[0] == '-':
+        if values is not None and len(values) == 1 and values[0] == "-":
             if sys.stdin.isatty():
-                raise argparse.ArgumentError(self, "'-' is only valid when piping data in")
+                raise argparse.ArgumentError(
+                    self, "'-' is only valid when piping data in"
+                )
             values = [x.rstrip() for x in sys.stdin.readlines() if self.filter_func(x)]
             # reassign stdin to allow interactivity (currently only works for unix)
-            sys.stdin = open('/dev/tty')
+            sys.stdin = open("/dev/tty")
         super().__call__(parser, namespace, values, option_string)
 
 
@@ -136,10 +150,10 @@ class CommaSeparatedValues(argparse._AppendAction):
     def parse_values(self, values):
         items = []
         if isinstance(values, str):
-            items.extend(x for x in values.split(',') if x)
+            items.extend(x for x in values.split(",") if x)
         else:
             for value in values:
-                items.extend(x for x in value.split(',') if x)
+                items.extend(x for x in value.split(",") if x)
         return items
 
     def __call__(self, parser, namespace, values, option_string=None):
@@ -174,16 +188,16 @@ class CommaSeparatedNegations(argparse._AppendAction):
             values = [values]
         for value in values:
             try:
-                neg, pos = split_negations(x for x in value.split(',') if x)
+                neg, pos = split_negations(x for x in value.split(",") if x)
             except ValueError as e:
                 raise argparse.ArgumentTypeError(e)
             disabled.extend(neg)
             enabled.extend(pos)
 
         if colliding := set(disabled).intersection(enabled):
-            collisions = ', '.join(map(repr, sorted(colliding)))
+            collisions = ", ".join(map(repr, sorted(colliding)))
             s = pluralism(colliding)
-            msg = f'colliding value{s}: {collisions}'
+            msg = f"colliding value{s}: {collisions}"
             raise argparse.ArgumentError(self, msg)
 
         return disabled, enabled
@@ -222,7 +236,7 @@ class CommaSeparatedElements(argparse._AppendAction):
             values = [values]
         for value in values:
             try:
-                neg, neu, pos = split_elements(x for x in value.split(',') if x)
+                neg, neu, pos = split_elements(x for x in value.split(",") if x)
             except ValueError as e:
                 raise argparse.ArgumentTypeError(e)
             disabled.extend(neg)
@@ -231,9 +245,9 @@ class CommaSeparatedElements(argparse._AppendAction):
 
         elements = [set(x) for x in (disabled, neutral, enabled) if x]
         if len(elements) > 1 and (colliding := set.intersection(*elements)):
-            collisions = ', '.join(map(repr, sorted(colliding)))
+            collisions = ", ".join(map(repr, sorted(colliding)))
             s = pluralism(colliding)
-            msg = f'colliding value{s}: {collisions}'
+            msg = f"colliding value{s}: {collisions}"
             raise argparse.ArgumentError(self, msg)
 
         return disabled, neutral, enabled
@@ -260,14 +274,14 @@ class ManHelpAction(argparse._HelpAction):
     """Display man pages for long --help option and abbreviated output for -h."""
 
     def __call__(self, parser, namespace, values, option_string=None):
-        if option_string == '--help':
+        if option_string == "--help":
             # Try spawning man page -- assumes one level deep for subcommand
             # specific man pages with commands separated by hyphen. For example
             # running `pinspect profile --help` tries to open pinspect-profile
             # man page, but `pinspect profile masks --help` also tries to open
             # pinspect-profile.
-            man_page = '-'.join(parser.prog.split()[:2])
-            p = subprocess.Popen(['man', man_page], stderr=subprocess.DEVNULL)
+            man_page = "-".join(parser.prog.split()[:2])
+            p = subprocess.Popen(["man", man_page], stderr=subprocess.DEVNULL)
             p.communicate()
             if p.returncode == 0:
                 parser.exit()
@@ -279,16 +293,17 @@ class ManHelpAction(argparse._HelpAction):
 
 
 class StoreBool(argparse._StoreAction):
-
-    def __init__(self,
-                 option_strings,
-                 dest,
-                 nargs=None,
-                 const=None,
-                 default=None,
-                 required=False,
-                 help=None,
-                 metavar='BOOLEAN'):
+    def __init__(
+        self,
+        option_strings,
+        dest,
+        nargs=None,
+        const=None,
+        default=None,
+        required=False,
+        help=None,
+        metavar="BOOLEAN",
+    ):
         super().__init__(
             option_strings=option_strings,
             dest=dest,
@@ -298,38 +313,42 @@ class StoreBool(argparse._StoreAction):
             type=self.boolean,
             required=required,
             help=help,
-            metavar=metavar)
+            metavar=metavar,
+        )
 
     @staticmethod
     def boolean(value):
         value = value.lower()
-        if value in ('y', 'yes', 'true', '1'):
+        if value in ("y", "yes", "true", "1"):
             return True
-        elif value in ('n', 'no', 'false', '0'):
+        elif value in ("n", "no", "false", "0"):
             return False
         raise ValueError("value %r must be [y|yes|true|1|n|no|false|0]" % (value,))
 
 
 class EnableDebug(argparse._StoreTrueAction):
-
     def __call__(self, parser, namespace, values, option_string=None):
         super().__call__(parser, namespace, values, option_string=option_string)
         logging.root.setLevel(logging.DEBUG)
 
 
 class Verbosity(argparse.Action):
-
     def __init__(self, option_strings, dest, default=None, required=False, help=None):
         super().__init__(
-            option_strings=option_strings, dest=dest, nargs=0,
-            default=default, required=required, help=help)
+            option_strings=option_strings,
+            dest=dest,
+            nargs=0,
+            default=default,
+            required=required,
+            help=help,
+        )
 
         # map verbose/quiet args to increment/decrement the underlying verbosity value
         self.value_map = {
-            '-q': -1,
-            '--quiet': -1,
-            '-v': 1,
-            '--verbose': 1,
+            "-q": -1,
+            "--quiet": -1,
+            "-v": 1,
+            "--verbose": 1,
         }
 
     def __call__(self, parser, namespace, values, option_string=None):
@@ -343,7 +362,6 @@ class Verbosity(argparse.Action):
 
 
 class DelayedValue:
-
     def __init__(self, invokable, priority=0):
         self.priority = priority
         if not callable(invokable):
@@ -355,7 +373,6 @@ class DelayedValue:
 
 
 class DelayedDefault(DelayedValue):
-
     @classmethod
     def wipe(cls, attrs, priority):
         if isinstance(attrs, str):
@@ -376,20 +393,17 @@ class DelayedDefault(DelayedValue):
 
 
 class DelayedParse(DelayedValue):
-
     def __call__(self, namespace, attr):
         self.invokable()
 
 
 class OrderedParse(DelayedValue):
-
     def __call__(self, namespace, attr):
         self.invokable(namespace)
         delattr(namespace, attr)
 
 
 class Delayed(argparse.Action):
-
     def __init__(self, option_strings, dest, target=None, priority=0, **kwargs):
         if target is None:
             raise ValueError("target must be non None for Delayed")
@@ -397,21 +411,30 @@ class Delayed(argparse.Action):
         self.priority = int(priority)
         self.target = target(option_strings=option_strings, dest=dest, **kwargs.copy())
         super().__init__(
-            option_strings=option_strings[:], dest=dest,
-            nargs=kwargs.get("nargs", None), required=kwargs.get("required", None),
-            help=kwargs.get("help", None), metavar=kwargs.get("metavar", None),
-            default=kwargs.get("default", None))
+            option_strings=option_strings[:],
+            dest=dest,
+            nargs=kwargs.get("nargs", None),
+            required=kwargs.get("required", None),
+            help=kwargs.get("help", None),
+            metavar=kwargs.get("metavar", None),
+            default=kwargs.get("default", None),
+        )
 
     def __call__(self, parser, namespace, values, option_string=None):
-        setattr(namespace, self.dest, DelayedParse(
-            partial(self.target, parser, namespace, values, option_string),
-            self.priority))
+        setattr(
+            namespace,
+            self.dest,
+            DelayedParse(
+                partial(self.target, parser, namespace, values, option_string),
+                self.priority,
+            ),
+        )
 
 
 class Expansion(argparse.Action):
-
-    def __init__(self, option_strings, dest, nargs=None, help=None,
-                 required=None, subst=None):
+    def __init__(
+        self, option_strings, dest, nargs=None, help=None, required=None, subst=None
+    ):
         if subst is None:
             raise TypeError("substitution string must be set")
         # simple aliases with no required arguments shouldn't need to specify nargs
@@ -424,7 +447,8 @@ class Expansion(argparse.Action):
             help=help,
             required=required,
             default=False,
-            nargs=nargs)
+            nargs=nargs,
+        )
         self.subst = tuple(subst)
 
     def __call__(self, parser, namespace, values, option_string=None):
@@ -434,7 +458,7 @@ class Expansion(argparse.Action):
         if isinstance(values, str):
             vals = [vals]
         dvals = {str(idx): val for idx, val in enumerate(vals)}
-        dvals['*'] = ' '.join(vals)
+        dvals["*"] = " ".join(vals)
 
         for action in actions:
             action_map.update((option, action) for option in action.option_strings)
@@ -445,8 +469,8 @@ class Expansion(argparse.Action):
             args = [x % dvals for x in args]
             if not action:
                 raise ValueError(
-                    "unable to find option %r for %r" %
-                    (option, self.option_strings))
+                    "unable to find option %r for %r" % (option, self.option_strings)
+                )
             if action.type is not None:
                 args = list(map(action.type, args))
             if action.nargs in (1, None):
@@ -456,7 +480,6 @@ class Expansion(argparse.Action):
 
 
 class _SubParser(argparse._SubParsersAction):
-
     def add_parser(self, name, cls=None, **kwargs):
         """Subparser that links description/help if one is specified."""
         description = kwargs.get("description")
@@ -465,7 +488,7 @@ class _SubParser(argparse._SubParsersAction):
             if help_txt is not None:
                 kwargs["description"] = help_txt
         elif help_txt is None:
-            kwargs["help"] = description.split('\n', 1)[0]
+            kwargs["help"] = description.split("\n", 1)[0]
 
         # support using a custom parser class for the subparser
         orig_class = self._parser_class
@@ -486,7 +509,7 @@ class _SubParser(argparse._SubParsersAction):
         Note that this assumes a specific module naming and layout scheme for commands.
         """
         prog = self._prog_prefix
-        module = f'{prog}.scripts.{prog}_{subcmd}'
+        module = f"{prog}.scripts.{prog}_{subcmd}"
         func = partial(self._lazy_parser, module, subcmd)
         self._name_parser_map[subcmd] = lazy_object_proxy.Proxy(func)
 
@@ -507,8 +530,8 @@ class _SubParser(argparse._SubParsersAction):
         try:
             parser = self._name_parser_map[parser_name]
         except KeyError:
-            tup = parser_name, ', '.join(self._name_parser_map)
-            msg = _('unknown parser %r (choices: %s)') % tup
+            tup = parser_name, ", ".join(self._name_parser_map)
+            msg = _("unknown parser %r (choices: %s)") % tup
             raise argparse.ArgumentError(self, msg)
 
         # parse all the remaining options into the namespace
@@ -526,11 +549,13 @@ class CsvHelpFormatter(argparse.HelpFormatter):
     def _format_args(self, action, default_metavar):
         get_metavar = self._metavar_formatter(action, default_metavar)
         if isinstance(action, (CommaSeparatedValues, CommaSeparatedValuesAppend)):
-            result = '%s[,%s,...]' % get_metavar(2)
-        elif isinstance(action, (CommaSeparatedNegations, CommaSeparatedNegationsAppend)):
-            result = '%s[,-%s,...]' % get_metavar(2)
+            result = "%s[,%s,...]" % get_metavar(2)
+        elif isinstance(
+            action, (CommaSeparatedNegations, CommaSeparatedNegationsAppend)
+        ):
+            result = "%s[,-%s,...]" % get_metavar(2)
         elif isinstance(action, (CommaSeparatedElements, CommaSeparatedElementsAppend)):
-            result = '%s[,-%s,+%s...]' % get_metavar(3)
+            result = "%s[,-%s,+%s...]" % get_metavar(3)
         else:
             result = super()._format_args(action, default_metavar)
         return result
@@ -540,7 +565,7 @@ class SortedHelpFormatter(CsvHelpFormatter):
     """Help formatter that sorts arguments by option strings."""
 
     def add_arguments(self, actions):
-        actions = sorted(actions, key=attrgetter('option_strings'))
+        actions = sorted(actions, key=attrgetter("option_strings"))
         super().add_arguments(actions)
 
 
@@ -576,7 +601,7 @@ class SubcmdAbbrevArgumentParser(argparse.ArgumentParser):
         # for everything but PARSER, REMAINDER args, strip out first '--'
         if action.nargs not in [PARSER, REMAINDER]:
             try:
-                arg_strings.remove('--')
+                arg_strings.remove("--")
             except ValueError:
                 pass
 
@@ -592,8 +617,11 @@ class SubcmdAbbrevArgumentParser(argparse.ArgumentParser):
 
         # when nargs='*' on a positional, if there were no command-line
         # args, use the default if it is anything other than None
-        elif (not arg_strings and action.nargs == ZERO_OR_MORE and
-              not action.option_strings):
+        elif (
+            not arg_strings
+            and action.nargs == ZERO_OR_MORE
+            and not action.option_strings
+        ):
             if action.default is not None:
                 value = action.default
             else:
@@ -602,7 +630,7 @@ class SubcmdAbbrevArgumentParser(argparse.ArgumentParser):
 
         # single argument or optional argument produces a single value
         elif len(arg_strings) == 1 and action.nargs in [None, OPTIONAL]:
-            arg_string, = arg_strings
+            (arg_string,) = arg_strings
             value = self._get_value(action, arg_string)
             self._check_value(action, value)
 
@@ -688,7 +716,7 @@ class OptionalsParser(argparse.ArgumentParser):
             for i, mutex_action in enumerate(mutex_group._group_actions):
                 conflicts = action_conflicts.setdefault(mutex_action, [])
                 conflicts.extend(group_actions[:i])
-                conflicts.extend(group_actions[i + 1:])
+                conflicts.extend(group_actions[i + 1 :])
 
         # find all option indices, and determine the arg_string_pattern
         # which has an 'O' if there is an option at an index,
@@ -699,24 +727,24 @@ class OptionalsParser(argparse.ArgumentParser):
         for i, arg_string in enumerate(arg_strings_iter):
 
             # all args after -- are non-options
-            if arg_string == '--':
-                arg_string_pattern_parts.append('-')
+            if arg_string == "--":
+                arg_string_pattern_parts.append("-")
                 for arg_string in arg_strings_iter:
-                    arg_string_pattern_parts.append('A')
+                    arg_string_pattern_parts.append("A")
 
             # otherwise, add the arg to the arg strings
             # and note the index if it was an option
             else:
                 option_tuple = self._parse_optional(arg_string)
                 if option_tuple is None:
-                    pattern = 'A'
+                    pattern = "A"
                 else:
                     option_string_indices[i] = option_tuple
-                    pattern = 'O'
+                    pattern = "O"
                 arg_string_pattern_parts.append(pattern)
 
         # join the pieces together to form the pattern
-        arg_strings_pattern = ''.join(arg_string_pattern_parts)
+        arg_strings_pattern = "".join(arg_string_pattern_parts)
 
         # converts arg strings to the appropriate and then takes the action
         seen_actions = set()
@@ -733,7 +761,7 @@ class OptionalsParser(argparse.ArgumentParser):
                 seen_non_default_actions.add(action)
                 for conflict_action in action_conflicts.get(action, []):
                     if conflict_action in seen_non_default_actions:
-                        msg = _('not allowed with argument %s')
+                        msg = _("not allowed with argument %s")
                         action_name = _get_action_name(conflict_action)
                         raise ArgumentError(action, msg % action_name)
 
@@ -762,14 +790,14 @@ class OptionalsParser(argparse.ArgumentParser):
 
                 # if we match help options, skip them for now so subparsers
                 # show up in the help output
-                if arg_strings[start_index] in ('-h', '--help'):
+                if arg_strings[start_index] in ("-h", "--help"):
                     extras.append(arg_strings[start_index])
                     return start_index + 1
 
                 # if there is an explicit argument, try to match the
                 # optional's string arguments to only this
                 if explicit_arg is not None:
-                    arg_count = match_argument(action, 'A')
+                    arg_count = match_argument(action, "A")
 
                     # if the action is a single-dash option and takes no
                     # arguments, try to parse more single-dash options out
@@ -785,7 +813,7 @@ class OptionalsParser(argparse.ArgumentParser):
                             action = optionals_map[option_string]
                             explicit_arg = new_explicit_arg
                         else:
-                            msg = _('ignored explicit argument %r')
+                            msg = _("ignored explicit argument %r")
                             raise ArgumentError(action, msg % explicit_arg)
 
                     # if the action expect exactly one argument, we've
@@ -799,7 +827,7 @@ class OptionalsParser(argparse.ArgumentParser):
                     # error if a double-dash option did not use the
                     # explicit argument
                     else:
-                        msg = _('ignored explicit argument %r')
+                        msg = _("ignored explicit argument %r")
                         raise ArgumentError(action, msg % explicit_arg)
 
                 # if there is no explicit argument, try to match the
@@ -835,13 +863,13 @@ class OptionalsParser(argparse.ArgumentParser):
             # slice off the appropriate arg strings for each Positional
             # and add the Positional and its args to the list
             for action, arg_count in zip(positionals, arg_counts):
-                args = arg_strings[start_index: start_index + arg_count]
+                args = arg_strings[start_index : start_index + arg_count]
                 start_index += arg_count
                 take_action(action, args)
 
             # slice off the Positionals that we just parsed and return the
             # index at which the Positionals' string args stopped
-            positionals[:] = positionals[len(arg_counts):]
+            positionals[:] = positionals[len(arg_counts) :]
             return start_index
 
         # consume Positionals and Optionals alternately, until we have
@@ -855,10 +883,9 @@ class OptionalsParser(argparse.ArgumentParser):
         while start_index <= max_option_string_index:
 
             # consume any Positionals preceding the next option
-            next_option_string_index = min([
-                index
-                for index in option_string_indices
-                if index >= start_index])
+            next_option_string_index = min(
+                [index for index in option_string_indices if index >= start_index]
+            )
             if start_index != next_option_string_index:
                 # positionals_end_index = consume_positionals(start_index)
                 positionals_end_index = start_index
@@ -894,7 +921,9 @@ class OptionalsParser(argparse.ArgumentParser):
         for action in self._actions:
             if action not in seen_actions:
                 # ignore required subcommands and positionals as they'll be handled later
-                skip = not action.option_strings or isinstance(action, _SubParsersAction)
+                skip = not action.option_strings or isinstance(
+                    action, _SubParsersAction
+                )
                 if action.required and not skip:
                     required_actions.append(_get_action_name(action))
                 else:
@@ -902,16 +931,23 @@ class OptionalsParser(argparse.ArgumentParser):
                     # parsing arguments to avoid calling convert functions
                     # twice (which may fail) if the argument was given, but
                     # only if it was defined already in the namespace
-                    if (action.default is not None and
-                        isinstance(action.default, str) and
-                        hasattr(namespace, action.dest) and
-                        action.default is getattr(namespace, action.dest)):
-                        setattr(namespace, action.dest,
-                                self._get_value(action, action.default))
+                    if (
+                        action.default is not None
+                        and isinstance(action.default, str)
+                        and hasattr(namespace, action.dest)
+                        and action.default is getattr(namespace, action.dest)
+                    ):
+                        setattr(
+                            namespace,
+                            action.dest,
+                            self._get_value(action, action.default),
+                        )
 
         if required_actions:
-            self.error(_('the following arguments are required: %s') %
-                       ', '.join(required_actions))
+            self.error(
+                _("the following arguments are required: %s")
+                % ", ".join(required_actions)
+            )
 
         # make sure all required groups had one option present
         for group in self._mutually_exclusive_groups:
@@ -922,11 +958,13 @@ class OptionalsParser(argparse.ArgumentParser):
 
                 # if no actions were used, report the error
                 else:
-                    names = [_get_action_name(action)
-                             for action in group._group_actions
-                             if action.help is not SUPPRESS]
-                    msg = _('one of the arguments %s is required')
-                    self.error(msg % ' '.join(names))
+                    names = [
+                        _get_action_name(action)
+                        for action in group._group_actions
+                        if action.help is not SUPPRESS
+                    ]
+                    msg = _("one of the arguments %s is required")
+                    self.error(msg % " ".join(names))
 
         # return the updated namespace and the extra arguments
         return namespace, extras
@@ -937,31 +975,49 @@ class CsvActionsParser(argparse.ArgumentParser):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.register('action', 'csv', CommaSeparatedValues)
-        self.register('action', 'csv_append', CommaSeparatedValuesAppend)
-        self.register('action', 'csv_negations', CommaSeparatedNegations)
-        self.register('action', 'csv_negations_append', CommaSeparatedNegationsAppend)
-        self.register('action', 'csv_elements', CommaSeparatedElements)
-        self.register('action', 'csv_elements_append', CommaSeparatedElementsAppend)
+        self.register("action", "csv", CommaSeparatedValues)
+        self.register("action", "csv_append", CommaSeparatedValuesAppend)
+        self.register("action", "csv_negations", CommaSeparatedNegations)
+        self.register("action", "csv_negations_append", CommaSeparatedNegationsAppend)
+        self.register("action", "csv_elements", CommaSeparatedElements)
+        self.register("action", "csv_elements_append", CommaSeparatedElementsAppend)
 
 
 class ArgumentParser(OptionalsParser, CsvActionsParser):
     """Extended, argparse-compatible argument parser."""
 
-    def __init__(self, suppress=False, subcmds=False, color=True, debug=True, quiet=True,
-                 verbose=True, version=True, add_help=True, sorted_help=False,
-                 description=None, docs=None, script=None, prog=None, **kwargs):
-        self.debug = debug and '--debug' in sys.argv[1:]
+    def __init__(
+        self,
+        suppress=False,
+        subcmds=False,
+        color=True,
+        debug=True,
+        quiet=True,
+        verbose=True,
+        version=True,
+        add_help=True,
+        sorted_help=False,
+        description=None,
+        docs=None,
+        script=None,
+        prog=None,
+        **kwargs,
+    ):
+        self.debug = debug and "--debug" in sys.argv[1:]
         self.verbosity = int(verbose)
         if self.verbosity:
             argv = Counter(sys.argv[1:])
             # Only supports single, short opts (i.e. -vv isn't recognized),
             # post argparsing the proper value supporting those kind of args is
             # in the options namespace.
-            self.verbosity = sum(chain.from_iterable((
-                (-1 for x in range(argv['-q'] + argv['--quiet'])),
-                (1 for x in range(argv['-v'] + argv['--verbose'])),
-            )))
+            self.verbosity = sum(
+                chain.from_iterable(
+                    (
+                        (-1 for x in range(argv["-q"] + argv["--quiet"])),
+                        (1 for x in range(argv["-v"] + argv["--verbose"])),
+                    )
+                )
+            )
 
         # subparsers action object from calling add_subparsers()
         self.__subparsers = None
@@ -979,7 +1035,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
         # usage such as adding conflicting options to both the root command and
         # subcommands without causing issues in addition to helping support
         # default subparsers.
-        self._parents = tuple(kwargs.get('parents', ()))
+        self._parents = tuple(kwargs.get("parents", ()))
 
         # extract the description to use and set docs for doc generation
         description = self._update_desc(description, docs)
@@ -993,11 +1049,12 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
                     raise TypeError
             except TypeError:
                 raise ValueError(
-                    "invalid script parameter, should be (__file__, __name__)")
+                    "invalid script parameter, should be (__file__, __name__)"
+                )
 
-            project = script_module.split('.')[0]
+            project = script_module.split(".")[0]
             if prog is None:
-                prog = script_module.split('.')[-1]
+                prog = script_module.split(".")[-1]
 
         if sorted_help:
             formatter = SortedHelpFormatter
@@ -1005,27 +1062,36 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
             formatter = CsvHelpFormatter
 
         super().__init__(
-            description=description, formatter_class=formatter,
-            prog=prog, add_help=False, **kwargs)
+            description=description,
+            formatter_class=formatter,
+            prog=prog,
+            add_help=False,
+            **kwargs,
+        )
 
         # register custom actions
-        self.register('action', 'parsers', _SubParser)
+        self.register("action", "parsers", _SubParser)
 
         if not suppress:
-            base_opts = self.add_argument_group('base options')
+            base_opts = self.add_argument_group("base options")
             if add_help:
                 base_opts.add_argument(
-                    '-h', '--help', action=ManHelpAction, default=argparse.SUPPRESS,
-                    help='show this help message and exit',
+                    "-h",
+                    "--help",
+                    action=ManHelpAction,
+                    default=argparse.SUPPRESS,
+                    help="show this help message and exit",
                     docs="""
                         Show this help message and exit. To get more
                         information see the related man page.
-                    """)
+                    """,
+                )
             if version and script is not None:
                 # Note that this option will currently only be available on the
                 # base command, not on subcommands.
                 base_opts.add_argument(
-                    '--version', action='version',
+                    "--version",
+                    action="version",
                     version=get_version(project, script_path),
                     help="show this program's version info and exit",
                     docs="""
@@ -1034,39 +1100,58 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
                         When running from within a git repo or a version
                         installed from git the latest commit hash and date will
                         be shown.
-                    """)
+                    """,
+                )
             if debug:
                 base_opts.add_argument(
-                    '--debug', action=EnableDebug, help='enable debugging checks',
-                    docs='Enable debug checks and show verbose debug output.')
+                    "--debug",
+                    action=EnableDebug,
+                    help="enable debugging checks",
+                    docs="Enable debug checks and show verbose debug output.",
+                )
             if quiet:
                 base_opts.add_argument(
-                    '-q', '--quiet', action=Verbosity, dest='verbosity', default=0,
-                    help='suppress non-error messages',
-                    docs="Suppress non-error, informational messages.")
+                    "-q",
+                    "--quiet",
+                    action=Verbosity,
+                    dest="verbosity",
+                    default=0,
+                    help="suppress non-error messages",
+                    docs="Suppress non-error, informational messages.",
+                )
             if verbose:
                 base_opts.add_argument(
-                    '-v', '--verbose', action=Verbosity, dest='verbosity', default=0,
-                    help='show verbose output',
-                    docs="Increase the verbosity of various output.")
+                    "-v",
+                    "--verbose",
+                    action=Verbosity,
+                    dest="verbosity",
+                    default=0,
+                    help="show verbose output",
+                    docs="Increase the verbosity of various output.",
+                )
             if color:
                 base_opts.add_argument(
-                    '--color', action=StoreBool,
+                    "--color",
+                    action=StoreBool,
                     default=sys.stdout.isatty(),
-                    help='enable/disable color support',
+                    help="enable/disable color support",
                     docs="""
                         Toggle colored output support. This can be used to forcibly
                         enable color support when piping output or other sitations
                         where stdout is not a tty.
-                    """)
+                    """,
+                )
 
         # register existing subcommands
         if subcmds:
-            prefix = f'{prog}.scripts.{prog}_'
+            prefix = f"{prog}.scripts.{prog}_"
             if subcmd_modules := [
-                    name[len(prefix):] for _, name, _ in
-                    pkgutil.walk_packages([os.path.dirname(script_path)], f'{prog}.scripts.')
-                    if name.startswith(prefix)]:
+                name[len(prefix) :]
+                for _, name, _ in pkgutil.walk_packages(
+                    [os.path.dirname(script_path)], f"{prog}.scripts."
+                )
+                if name.startswith(prefix)
+            ]:
                 subparsers = self.add_subparsers()
                 for subcmd in subcmd_modules:
                     subparsers.add_command(subcmd)
@@ -1080,7 +1165,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
         """
         description_lines = []
         if description is not None:
-            description_lines = description.strip().split('\n', 1)
+            description_lines = description.strip().split("\n", 1)
             description = description_lines[0]
         if _generate_docs:
             if docs is None and len(description_lines) == 2:
@@ -1156,7 +1241,9 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
 
         try:
             # run registered early parse functions from all parsers
-            for functor, parser in chain.from_iterable(x.__early_parse for x in self.parsers):
+            for functor, parser in chain.from_iterable(
+                x.__early_parse for x in self.parsers
+            ):
                 namespace, args = functor(parser, namespace, args)
 
             # parse the arguments and exit if there are any errors
@@ -1176,7 +1263,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
         args, unknown_args = self.parse_known_args(args, namespace)
 
         # make sure the correct function and prog are set if running a subcommand
-        subcmd_parser = self.subparsers.get(getattr(args, 'subcommand', None), None)
+        subcmd_parser = self.subparsers.get(getattr(args, "subcommand", None), None)
         if subcmd_parser is not None:
             # override the running program with full subcommand
             self.prog = subcmd_parser.prog
@@ -1186,7 +1273,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
                 namespace.main_func = subcmd_parser.__main_func
 
         if unknown_args:
-            self.error('unrecognized arguments: %s' % ' '.join(unknown_args))
+            self.error("unrecognized arguments: %s" % " ".join(unknown_args))
 
         # Two runs are required; first, handle any suppression defaults
         # introduced. Subparsers defaults cannot override the parent parser, as
@@ -1198,14 +1285,20 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
         # intentionally no protection of suppression code; this should
         # just work.
 
-        i = ((attr, val) for attr, val in args.__dict__.items()
-             if isinstance(val, DelayedDefault))
+        i = (
+            (attr, val)
+            for attr, val in args.__dict__.items()
+            if isinstance(val, DelayedDefault)
+        )
         for attr, functor in sorted(i, key=lambda val: val[1].priority):
             functor(args, attr)
 
         # now run the delays
-        i = ((attr, val) for attr, val in args.__dict__.items()
-             if isinstance(val, DelayedValue))
+        i = (
+            (attr, val)
+            for attr, val in args.__dict__.items()
+            if isinstance(val, DelayedValue)
+        )
         try:
             for attr, delayed in sorted(i, key=lambda val: val[1].priority):
                 delayed(args, attr)
@@ -1216,7 +1309,9 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
             self.error(str(e))
 
         # run final arg validation
-        final_checks = [k for k in args.__dict__.keys() if k.startswith('__final_check__')]
+        final_checks = [
+            k for k in args.__dict__.keys() if k.startswith("__final_check__")
+        ]
         for check in final_checks:
             functor = args.pop(check)
             functor(self, args)
@@ -1232,7 +1327,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
         if self.debug and sys.exc_info() != (None, None, None):
             # output traceback if any exception is on the stack
             traceback.print_exc()
-        self.exit(status, '%s: error: %s\n' % (self.prog, message))
+        self.exit(status, "%s: error: %s\n" % (self.prog, message))
 
     def bind_main_func(self, functor):
         """Decorator to set a main function for the parser."""
@@ -1245,8 +1340,8 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
     def bind_class(self, obj):
         if not isinstance(obj, ArgparseCommand):
             raise ValueError(
-                "expected obj to be an instance of "
-                "ArgparseCommand; got %r" % (obj,))
+                "expected obj to be an instance of " "ArgparseCommand; got %r" % (obj,)
+            )
         obj.bind_to_parser(self)
         return self
 
@@ -1261,10 +1356,12 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
                 """Only run delayed default functor if the attribute isn't set."""
                 if isinstance(object.__getattribute__(namespace, attr), DelayedValue):
                     functor(namespace, attr)
+
             if name is None:
                 name = functor.__name__
             self.set_defaults(**{name: DelayedValue(default, priority)})
             return functor
+
         return f
 
     def bind_parse_priority(self, priority):
@@ -1272,6 +1369,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
             name = functor.__name__
             self.set_defaults(**{name: OrderedParse(functor, priority)})
             return functor
+
         return f
 
     def add_subparsers(self, **kwargs):
@@ -1280,9 +1378,9 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
         if self.__subparsers is not None:
             return self.__subparsers
 
-        kwargs.setdefault('title', 'subcommands')
-        kwargs.setdefault('dest', 'subcommand')
-        kwargs.setdefault('prog', self.prog)
+        kwargs.setdefault("title", "subcommands")
+        kwargs.setdefault("dest", "subcommand")
+        kwargs.setdefault("prog", self.prog)
         subparsers = argparse.ArgumentParser.add_subparsers(self, **kwargs)
         subparsers.required = True
         self.__subparsers = subparsers
@@ -1300,18 +1398,17 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
 
     def bind_final_check(self, functor):
         """Decorator to bind a function for argument validation."""
-        name = f'__final_check__{functor.__name__}'
+        name = f"__final_check__{functor.__name__}"
         self.set_defaults(**{name: functor})
         return functor
 
 
 class ArgparseCommand:
-
     def bind_to_parser(self, parser):
         parser.bind_main_func(self)
 
     def __call__(self, namespace, out, err):
-        raise NotImplementedError(self, '__call__')
+        raise NotImplementedError(self, "__call__")
 
 
 class FileType(argparse.FileType):
@@ -1322,11 +1419,11 @@ class FileType(argparse.FileType):
 
     def __call__(self, string):
         # the special argument "-" means sys.std{in,out}
-        if string == '-':
-            if 'r' in self._mode:
-                return sys.stdin.buffer if 'b' in self._mode else sys.stdin
-            elif any(c in self._mode for c in 'wax'):
-                return sys.stdout.buffer if 'b' in self._mode else sys.stdout
+        if string == "-":
+            if "r" in self._mode:
+                return sys.stdin.buffer if "b" in self._mode else sys.stdin
+            elif any(c in self._mode for c in "wax"):
+                return sys.stdout.buffer if "b" in self._mode else sys.stdout
             else:
                 msg = _('argument "-" with mode %r') % self._mode
                 raise ValueError(msg)
@@ -1342,23 +1439,27 @@ class FileType(argparse.FileType):
 def existent_path(value):
     """Check if file argument path exists."""
     if not os.path.exists(value):
-        raise argparse.ArgumentTypeError(f'nonexistent path: {value!r}')
+        raise argparse.ArgumentTypeError(f"nonexistent path: {value!r}")
     try:
         return os.path.realpath(value)
     except EnvironmentError as e:
-        raise ValueError(f'while resolving path {value!r}, encountered error: {e}') from e
+        raise ValueError(
+            f"while resolving path {value!r}, encountered error: {e}"
+        ) from e
 
 
 def existent_dir(value):
     """Check if argument path exists and is a directory."""
     if not os.path.exists(value):
-        raise argparse.ArgumentTypeError(f'nonexistent dir: {value!r}')
+        raise argparse.ArgumentTypeError(f"nonexistent dir: {value!r}")
     elif not os.path.isdir(value):
-        raise argparse.ArgumentTypeError(f'file already exists: {value!r}')
+        raise argparse.ArgumentTypeError(f"file already exists: {value!r}")
     try:
         return os.path.realpath(value)
     except EnvironmentError as e:
-        raise ValueError(f'while resolving path {value!r}, encountered error: {e}') from e
+        raise ValueError(
+            f"while resolving path {value!r}, encountered error: {e}"
+        ) from e
 
 
 def create_dir(value):
@@ -1367,9 +1468,9 @@ def create_dir(value):
     try:
         os.makedirs(path, exist_ok=True)
     except FileExistsError:
-        raise argparse.ArgumentTypeError(f'file already exists: {value!r}')
+        raise argparse.ArgumentTypeError(f"file already exists: {value!r}")
     except IOError as e:
-        raise argparse.ArgumentTypeError(f'failed creating dir: {e}')
+        raise argparse.ArgumentTypeError(f"failed creating dir: {e}")
     return path
 
 
@@ -1378,12 +1479,12 @@ def bounded_int(func, desc, x):
     try:
         n = int(x)
     except ValueError:
-        raise argparse.ArgumentTypeError('invalid integer value')
+        raise argparse.ArgumentTypeError("invalid integer value")
     if not func(n):
-        raise argparse.ArgumentTypeError(f'must be {desc}')
+        raise argparse.ArgumentTypeError(f"must be {desc}")
     return n
 
 
 def positive_int(x):
     """Check if argument is a positive integer."""
-    return bounded_int(lambda n: n >= 1, '>= 1', x)
+    return bounded_int(lambda n: n >= 1, ">= 1", x)

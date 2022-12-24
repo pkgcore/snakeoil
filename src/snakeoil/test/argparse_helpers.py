@@ -56,25 +56,24 @@ class Color(FormatterObject):
         self.color = color
 
     def __repr__(self):
-        return f'<Color: mode - {self.mode}; color - {self.color}>'
+        return f"<Color: mode - {self.mode}; color - {self.color}>"
 
 
 class Reset(FormatterObject):
     __inst_caching__ = True
 
     def __repr__(self):
-        return '<Reset>'
+        return "<Reset>"
 
 
 class Bold(FormatterObject):
     __inst_caching__ = True
 
     def __repr__(self):
-        return '<Bold>'
+        return "<Bold>"
 
 
 class ListStream(list):
-
     def write(self, *args):
         stringlist = []
         objectlist = []
@@ -82,13 +81,16 @@ class ListStream(list):
             if isinstance(arg, bytes):
                 stringlist.append(arg)
             else:
-                objectlist.append(b''.join(stringlist))
+                objectlist.append(b"".join(stringlist))
                 stringlist = []
                 objectlist.append(arg)
-        objectlist.append(b''.join(stringlist))
+        objectlist.append(b"".join(stringlist))
         # We use len because boolean ops shortcircuit
-        if (len(self) and isinstance(self[-1], bytes) and
-                isinstance(objectlist[0], bytes)):
+        if (
+            len(self)
+            and isinstance(self[-1], bytes)
+            and isinstance(objectlist[0], bytes)
+        ):
             self[-1] = self[-1] + objectlist.pop(0)
         self.extend(objectlist)
 
@@ -97,7 +99,6 @@ class ListStream(list):
 
 
 class FakeStreamFormatter(PlainTextFormatter):
-
     def __init__(self):
         super().__init__(ListStream([]))
         self.reset = Reset()
@@ -108,15 +109,15 @@ class FakeStreamFormatter(PlainTextFormatter):
         self.stream = ListStream([])
 
     def fg(self, color=None):
-        return Color('fg', color)
+        return Color("fg", color)
 
     def bg(self, color=None):
-        return Color('bg', color)
+        return Color("bg", color)
 
     def get_text_stream(self):
-        return b''.join(
-            (x for x in self.stream
-             if not isinstance(x, FormatterObject))).decode('ascii')
+        return b"".join(
+            (x for x in self.stream if not isinstance(x, FormatterObject))
+        ).decode("ascii")
 
 
 class ArgParseMixin:
@@ -148,7 +149,7 @@ class ArgParseMixin:
         except Error as e:
             assert message == e.message
         else:
-            raise AssertionError('no error triggered')
+            raise AssertionError("no error triggered")
 
     def assertExit(self, status, message, *args, **kwargs):
         """Pass args, assert they trigger the right exit condition."""
@@ -158,7 +159,7 @@ class ArgParseMixin:
             assert message == e.message.strip()
             assert status == e.status
         else:
-            raise AssertionError('no exit triggered')
+            raise AssertionError("no exit triggered")
 
     def assertOut(self, out, *args, **kwargs):
         """Like :obj:`assertOutAndErr` but without err."""
@@ -182,17 +183,25 @@ class ArgParseMixin:
         main = self.get_main(options)
         main(options, outformatter, errformatter)
         diffs = []
-        for name, strings, formatter in [('out', out, outformatter),
-                                         ('err', err, errformatter)]:
+        for name, strings, formatter in [
+            ("out", out, outformatter),
+            ("err", err, errformatter),
+        ]:
             actual = formatter.get_text_stream()
             if strings:
-                expected = '\n'.join(strings)
+                expected = "\n".join(strings)
             else:
-                expected = ''
+                expected = ""
             if expected != actual:
-                diffs.extend(difflib.unified_diff(
-                    strings, actual.split('\n')[:-1],
-                    'expected %s' % (name,), 'actual', lineterm=''))
+                diffs.extend(
+                    difflib.unified_diff(
+                        strings,
+                        actual.split("\n")[:-1],
+                        "expected %s" % (name,),
+                        "actual",
+                        lineterm="",
+                    )
+                )
         if diffs:
-            raise AssertionError('\n' + '\n'.join(diffs))
+            raise AssertionError("\n" + "\n".join(diffs))
         return options

@@ -9,13 +9,12 @@ from ..process.spawn import spawn_get_output
 
 
 class _transform_source:
-
     def __init__(self, name):
         self.name = name
 
     @cached_property
     def module(self):
-        return import_module(f'snakeoil.compression._{self.name}')
+        return import_module(f"snakeoil.compression._{self.name}")
 
     def compress_data(self, data, level, parallelize=False):
         parallelize = parallelize and self.module.parallelizable
@@ -34,7 +33,7 @@ class _transform_source:
         return self.module.decompress_handle(handle, parallelize=parallelize)
 
 
-_transforms = {name: _transform_source(name) for name in ('bzip2', 'xz')}
+_transforms = {name: _transform_source(name) for name in ("bzip2", "xz")}
 
 
 def compress_data(compressor_type, data, level=9, **kwds):
@@ -73,13 +72,13 @@ class ArComp:
             cls = cls.known_exts[ext]
             return super(ArComp, cls).__new__(cls)
         except KeyError:
-            raise ArCompError(f'unknown compression file extension: {ext!r}')
+            raise ArCompError(f"unknown compression file extension: {ext!r}")
 
     def __init_subclass__(cls, **kwargs):
         """Initialize result subclasses and register archive extensions."""
         super().__init_subclass__(**kwargs)
-        if not all((cls.binary, cls.default_unpack_cmd, cls.exts)): # pragma: no cover
-            raise ValueError(f'class missing required attrs: {cls!r}')
+        if not all((cls.binary, cls.default_unpack_cmd, cls.exts)):  # pragma: no cover
+            raise ValueError(f"class missing required attrs: {cls!r}")
         for ext in cls.exts:
             cls.known_exts[ext] = cls
 
@@ -95,9 +94,10 @@ class ArComp:
             except process.CommandNotFound:
                 continue
         else:
-            choices = ', '.join(self.binary)
+            choices = ", ".join(self.binary)
             raise ArCompError(
-                f'required binary not found from the following choices: {choices}')
+                f"required binary not found from the following choices: {choices}"
+            )
         cmd = self.default_unpack_cmd.format(binary=binary, path=self.path)
         return cmd
 
@@ -112,7 +112,7 @@ class _Archive:
         cmd = shlex.split(self._unpack_cmd.format(path=self.path))
         ret, output = spawn_get_output(cmd, collect_fds=(2,), **kwargs)
         if ret:
-            msg = '\n'.join(output) if output else f'unpacking failed: {self.path!r}'
+            msg = "\n".join(output) if output else f"unpacking failed: {self.path!r}"
             raise ArCompError(msg, code=ret)
 
 
@@ -121,11 +121,12 @@ class _CompressedFile:
 
     def unpack(self, dest=None, **kwargs):
         cmd = shlex.split(self._unpack_cmd.format(path=self.path))
-        with open(dest, 'wb') as f:
+        with open(dest, "wb") as f:
             ret, output = spawn_get_output(
-                cmd, collect_fds=(2,), fd_pipes={1: f.fileno()}, **kwargs)
+                cmd, collect_fds=(2,), fd_pipes={1: f.fileno()}, **kwargs
+            )
         if ret:
-            msg = '\n'.join(output) if output else f'unpacking failed: {self.path!r}'
+            msg = "\n".join(output) if output else f"unpacking failed: {self.path!r}"
             raise ArCompError(msg, code=ret)
 
 
@@ -134,18 +135,25 @@ class _CompressedStdin:
 
     def unpack(self, dest=None, **kwargs):
         cmd = shlex.split(self._unpack_cmd)
-        with open(self.path, 'rb') as src, open(dest, 'wb') as f:
+        with open(self.path, "rb") as src, open(dest, "wb") as f:
             ret, output = spawn_get_output(
-                cmd, collect_fds=(2,), fd_pipes={0: src.fileno(), 1: f.fileno()}, **kwargs)
+                cmd,
+                collect_fds=(2,),
+                fd_pipes={0: src.fileno(), 1: f.fileno()},
+                **kwargs,
+            )
         if ret:
-            msg = '\n'.join(output) if output else f'unpacking failed: {self.path!r}'
+            msg = "\n".join(output) if output else f"unpacking failed: {self.path!r}"
             raise ArCompError(msg, code=ret)
 
 
 class _Tar(_Archive, ArComp):
 
-    exts = frozenset(['.tar'])
-    binary = ('gtar', 'tar',)
+    exts = frozenset([".tar"])
+    binary = (
+        "gtar",
+        "tar",
+    )
     compress_binary = None
     default_unpack_cmd = '{binary} xf "{path}"'
 
@@ -162,95 +170,96 @@ class _Tar(_Archive, ArComp):
                 except process.CommandNotFound:
                     pass
             else:
-                choices = ', '.join(next(zip(*self.compress_binary)))
+                choices = ", ".join(next(zip(*self.compress_binary)))
                 raise ArCompError(
-                    'no compression binary found from the '
-                    f'following choices: {choices}')
+                    "no compression binary found from the "
+                    f"following choices: {choices}"
+                )
         return cmd
 
 
 class _TarGZ(_Tar):
 
-    exts = frozenset(['.tar.gz', '.tgz', '.tar.Z', '.tar.z'])
-    compress_binary = (('pigz',), ('gzip',))
+    exts = frozenset([".tar.gz", ".tgz", ".tar.Z", ".tar.z"])
+    compress_binary = (("pigz",), ("gzip",))
 
 
 class _TarBZ2(_Tar):
 
-    exts = frozenset(['.tar.bz2', '.tbz2', '.tbz'])
-    compress_binary = (('lbzip2',), ('pbzip2',), ('bzip2',))
+    exts = frozenset([".tar.bz2", ".tbz2", ".tbz"])
+    compress_binary = (("lbzip2",), ("pbzip2",), ("bzip2",))
 
 
 class _TarLZMA(_Tar):
 
-    exts = frozenset(['.tar.lzma'])
-    compress_binary = (('lzma',))
+    exts = frozenset([".tar.lzma"])
+    compress_binary = ("lzma",)
 
 
 class _TarXZ(_Tar):
 
-    exts = frozenset(['.tar.xz', '.txz'])
-    compress_binary = (('pixz',), ('xz', f'-T{multiprocessing.cpu_count()}'))
+    exts = frozenset([".tar.xz", ".txz"])
+    compress_binary = (("pixz",), ("xz", f"-T{multiprocessing.cpu_count()}"))
 
 
 class _Zip(_Archive, ArComp):
 
-    exts = frozenset(['.ZIP', '.zip', '.jar'])
-    binary = ('unzip',)
+    exts = frozenset([".ZIP", ".zip", ".jar"])
+    binary = ("unzip",)
     default_unpack_cmd = '{binary} -qo "{path}"'
 
 
 class _GZ(_CompressedStdin, ArComp):
 
-    exts = frozenset(['.gz', '.Z', '.z'])
-    binary = ('pigz', 'gzip')
-    default_unpack_cmd = '{binary} -d -c'
+    exts = frozenset([".gz", ".Z", ".z"])
+    binary = ("pigz", "gzip")
+    default_unpack_cmd = "{binary} -d -c"
 
 
 class _BZ2(_CompressedStdin, ArComp):
 
-    exts = frozenset(['.bz2', '.bz'])
-    binary = ('lbzip2', 'pbzip2', 'bzip2')
-    default_unpack_cmd = '{binary} -d -c'
+    exts = frozenset([".bz2", ".bz"])
+    binary = ("lbzip2", "pbzip2", "bzip2")
+    default_unpack_cmd = "{binary} -d -c"
 
 
 class _XZ(_CompressedStdin, ArComp):
 
-    exts = frozenset(['.xz'])
-    binary = ('pixz', 'xz')
-    default_unpack_cmd = '{binary} -d -c'
+    exts = frozenset([".xz"])
+    binary = ("pixz", "xz")
+    default_unpack_cmd = "{binary} -d -c"
 
 
 class _7Z(_Archive, ArComp):
 
-    exts = frozenset(['.7Z', '.7z'])
-    binary = ('7z',)
+    exts = frozenset([".7Z", ".7z"])
+    binary = ("7z",)
     default_unpack_cmd = '{binary} x -y "{path}"'
 
 
 class _Rar(_Archive, ArComp):
 
-    exts = frozenset(['.RAR', '.rar'])
-    binary = ('unrar',)
+    exts = frozenset([".RAR", ".rar"])
+    binary = ("unrar",)
     default_unpack_cmd = '{binary} x -idq -o+ "{path}"'
 
 
 class _LHA(_Archive, ArComp):
 
-    exts = frozenset(['.LHa', '.LHA', '.lha', '.lzh'])
-    binary = ('lha',)
+    exts = frozenset([".LHa", ".LHA", ".lha", ".lzh"])
+    binary = ("lha",)
     default_unpack_cmd = '{binary} xfq "{path}"'
 
 
 class _Ar(_Archive, ArComp):
 
-    exts = frozenset(['.a', '.deb'])
-    binary = ('ar',)
+    exts = frozenset([".a", ".deb"])
+    binary = ("ar",)
     default_unpack_cmd = '{binary} x "{path}"'
 
 
 class _LZMA(_CompressedFile, ArComp):
 
-    exts = frozenset(['.lzma'])
-    binary = ('lzma',)
+    exts = frozenset([".lzma"])
+    binary = ("lzma",)
     default_unpack_cmd = '{binary} -dc "{path}"'

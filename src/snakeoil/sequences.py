@@ -1,9 +1,14 @@
 """sequence related operations and classes"""
 
 __all__ = (
-    'unstable_unique', 'stable_unique', 'iter_stable_unique',
-    'iflatten_instance', 'iflatten_func', 'ChainedLists', 'predicate_split',
-    'split_negations',
+    "unstable_unique",
+    "stable_unique",
+    "iter_stable_unique",
+    "iflatten_instance",
+    "iflatten_func",
+    "ChainedLists",
+    "predicate_split",
+    "split_negations",
 )
 
 from typing import Any, Callable, Iterable, Type
@@ -89,7 +94,9 @@ def iter_stable_unique(iterable):
         break
 
 
-def iflatten_instance(l: Iterable, skip_flattening: Iterable[Type] = (str, bytes)) -> Iterable:
+def iflatten_instance(
+    l: Iterable, skip_flattening: Iterable[Type] = (str, bytes)
+) -> Iterable:
     """collapse [[1],2] into [1,2]
 
     :param skip_flattening: list of classes to not descend through
@@ -103,9 +110,10 @@ def iflatten_instance(l: Iterable, skip_flattening: Iterable[Type] = (str, bytes
     try:
         while True:
             x = next(iters)
-            if (hasattr(x, '__iter__') and not (
-                    isinstance(x, skip_flattening) or (
-                        isinstance(x, (str, bytes)) and len(x) == 1))):
+            if hasattr(x, "__iter__") and not (
+                isinstance(x, skip_flattening)
+                or (isinstance(x, (str, bytes)) and len(x) == 1)
+            ):
                 iters.appendleft(x)
             else:
                 yield x
@@ -128,7 +136,7 @@ def iflatten_func(l: Iterable, skip_func: Callable[[Any], bool]) -> Iterable:
     try:
         while True:
             x = next(iters)
-            if hasattr(x, '__iter__') and not skip_func(x):
+            if hasattr(x, "__iter__") and not skip_func(x):
                 iters.appendleft(x)
             else:
                 yield x
@@ -164,6 +172,7 @@ class ChainedLists:
         ...
     TypeError: not mutable
     """
+
     __slots__ = ("_lists", "__weakref__")
 
     def __init__(self, *lists):
@@ -258,7 +267,7 @@ def predicate_split(func, stream, key=None):
 
 
 def split_negations(iterable, func=str):
-    """"Split an iterable into negative and positive elements.
+    """ "Split an iterable into negative and positive elements.
 
     :param iterable: iterable targeted for splitting
     :param func: wrapper method to modify tokens
@@ -267,7 +276,7 @@ def split_negations(iterable, func=str):
     """
     neg, pos = [], []
     for token in iterable:
-        if token[0] == '-':
+        if token[0] == "-":
             if len(token) == 1:
                 raise ValueError("'-' negation without a token")
             token = token[1:]
@@ -281,7 +290,7 @@ def split_negations(iterable, func=str):
 
 
 def split_elements(iterable, func=str):
-    """"Split an iterable into negative, neutral, and positive elements.
+    """ "Split an iterable into negative, neutral, and positive elements.
 
     :param iterable: iterable targeted for splitting
     :param func: wrapper method to modify tokens
@@ -289,11 +298,11 @@ def split_elements(iterable, func=str):
     :return: Tuple containing negative, neutral, and positive element tuples, respectively.
     """
     neg, neu, pos = [], [], []
-    token_map = {'-': neg, '+': pos}
+    token_map = {"-": neg, "+": pos}
     for token in iterable:
         if token[0] in token_map:
             if len(token) == 1:
-                raise ValueError('%r without a token' % (token[0],))
+                raise ValueError("%r without a token" % (token[0],))
             l = token_map[token[0]]
             token = token[1:]
         else:

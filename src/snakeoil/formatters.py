@@ -10,7 +10,9 @@ from .klass import GetAttrProxy, steal_docs
 from .mappings import defaultdictkey
 
 __all__ = (
-    "Formatter", "PlainTextFormatter", "get_formatter",
+    "Formatter",
+    "PlainTextFormatter",
+    "get_formatter",
     "decorate_forced_wrapping",
 )
 
@@ -98,13 +100,11 @@ class Formatter:
 
     def error(self, message):
         """Format a string as an error message."""
-        self.write(message, prefixes=(
-            self.fg('red'), self.bold, '!!! ', self.reset))
+        self.write(message, prefixes=(self.fg("red"), self.bold, "!!! ", self.reset))
 
     def warn(self, message):
         """Format a string as a warning message."""
-        self.write(message, prefixes=(
-            self.fg('yellow'), self.bold, '*** ', self.reset))
+        self.write(message, prefixes=(self.fg("yellow"), self.bold, "*** ", self.reset))
 
     def title(self, string):
         """Set the title to string"""
@@ -123,7 +123,7 @@ class PlainTextFormatter(Formatter):
         every write.
     """
 
-    bold = underline = reset = ''
+    bold = underline = reset = ""
 
     def __init__(self, stream, width=79, encoding=None):
         """Initialize.
@@ -144,12 +144,12 @@ class PlainTextFormatter(Formatter):
         else:
             self.stream = stream
         if encoding is None:
-            encoding = getattr(self.stream, 'encoding', None)
+            encoding = getattr(self.stream, "encoding", None)
         if encoding is None:
             try:
                 encoding = locale.getpreferredencoding()
             except locale.Error:
-                encoding = 'ascii'
+                encoding = "ascii"
         self.encoding = encoding
         self.width = width
         self._pos = 0
@@ -162,7 +162,7 @@ class PlainTextFormatter(Formatter):
         return True
 
     def _force_encoding(self, val):
-        return val.encode(self.encoding, 'replace')
+        return val.encode(self.encoding, "replace")
 
     def _write_prefix(self, wrap):
         if self._in_first_line:
@@ -190,34 +190,32 @@ class PlainTextFormatter(Formatter):
 
     @steal_docs(Formatter)
     def write(self, *args, **kwargs):
-        wrap = kwargs.get('wrap', self.wrap)
-        autoline = kwargs.get('autoline', self.autoline)
-        prefixes = kwargs.get('prefixes')
-        first_prefixes = kwargs.get('first_prefixes')
-        later_prefixes = kwargs.get('later_prefixes')
+        wrap = kwargs.get("wrap", self.wrap)
+        autoline = kwargs.get("autoline", self.autoline)
+        prefixes = kwargs.get("prefixes")
+        first_prefixes = kwargs.get("first_prefixes")
+        later_prefixes = kwargs.get("later_prefixes")
         if prefixes is not None:
             if first_prefixes is not None or later_prefixes is not None:
                 raise TypeError(
-                    'do not pass first_prefixes or later_prefixes '
-                    'if prefixes is passed')
+                    "do not pass first_prefixes or later_prefixes "
+                    "if prefixes is passed"
+                )
             first_prefixes = later_prefixes = prefixes
-        prefix = kwargs.get('prefix')
-        first_prefix = kwargs.get('first_prefix')
-        later_prefix = kwargs.get('later_prefix')
+        prefix = kwargs.get("prefix")
+        first_prefix = kwargs.get("first_prefix")
+        later_prefix = kwargs.get("later_prefix")
         if prefix is not None:
             if first_prefix is not None or later_prefix is not None:
-                raise TypeError(
-                    'do not pass first_prefix or later_prefix with prefix')
+                raise TypeError("do not pass first_prefix or later_prefix with prefix")
             first_prefix = later_prefix = prefix
         if first_prefix is not None:
             if first_prefixes is not None:
-                raise TypeError(
-                    'do not pass both first_prefix and first_prefixes')
+                raise TypeError("do not pass both first_prefix and first_prefixes")
             first_prefixes = (first_prefix,)
         if later_prefix is not None:
             if later_prefixes is not None:
-                raise TypeError(
-                    'do not pass both later_prefix and later_prefixes')
+                raise TypeError("do not pass both later_prefix and later_prefixes")
             later_prefixes = (later_prefix,)
         if first_prefixes is not None:
             self.first_prefix.extend(first_prefixes)
@@ -242,7 +240,7 @@ class PlainTextFormatter(Formatter):
                 while wrap and self._pos + len(arg) > self.width:
                     # We have to split.
                     maxlen = self.width - self._pos
-                    space = arg.rfind(' ', 0, maxlen)
+                    space = arg.rfind(" ", 0, maxlen)
                     if space == -1:
                         # No space to split on.
 
@@ -254,7 +252,7 @@ class PlainTextFormatter(Formatter):
                         # written something we can also go to the next
                         # line.
                         if self._in_first_line or self._wrote_something:
-                            bit = ''
+                            bit = ""
                         else:
                             # Forcibly split this as far to the right as
                             # possible.
@@ -263,11 +261,11 @@ class PlainTextFormatter(Formatter):
                     else:
                         bit = arg[:space]
                         # Omit the space we split on.
-                        arg = arg[space + 1:]
+                        arg = arg[space + 1 :]
                     if conversion_needed:
                         bit = self._force_encoding(bit)
                     self.stream.write(bit)
-                    self.stream.write(self._force_encoding('\n'))
+                    self.stream.write(self._force_encoding("\n"))
                     self._pos = 0
                     self._in_first_line = False
                     self._wrote_something = False
@@ -280,7 +278,7 @@ class PlainTextFormatter(Formatter):
                     arg = self._force_encoding(arg)
                 self.stream.write(arg)
             if autoline:
-                self.stream.write(self._force_encoding('\n'))
+                self.stream.write(self._force_encoding("\n"))
                 self._wrote_something = False
                 self._pos = 0
                 self._in_first_line = True
@@ -290,30 +288,26 @@ class PlainTextFormatter(Formatter):
             raise
         finally:
             if first_prefixes is not None:
-                self.first_prefix = self.first_prefix[:-len(first_prefixes)]
+                self.first_prefix = self.first_prefix[: -len(first_prefixes)]
             if later_prefixes is not None:
-                self.later_prefix = self.later_prefix[:-len(later_prefixes)]
+                self.later_prefix = self.later_prefix[: -len(later_prefixes)]
 
     def fg(self, color=None):
         """change fg color
 
         Compatibility method- no coloring escapes are returned from it.
         """
-        return ''
+        return ""
 
     def bg(self, color=None):
         """change bg color
 
         Compatibility method- no coloring escapes are returned from it.
         """
-        return ''
+        return ""
 
     def flush(self):
         self.stream.flush()
-
-
-
-
 
 
 class TerminfoDisabled(Exception):
@@ -331,7 +325,7 @@ class TerminfoUnsupported(Exception):
         self.term = term
 
     def __str__(self):
-        return f'unsupported terminal type: {self.term!r}'
+        return f"unsupported terminal type: {self.term!r}"
 
 
 # This is necessary because the curses module is optional (and we
@@ -341,6 +335,7 @@ try:
 except ImportError:
     TerminfoColor = None
 else:
+
     class TerminfoColor:
         """Class encapsulating a specific terminfo entry for a color.
 
@@ -351,8 +346,8 @@ else:
         __slots__ = ("mode", "color", "__weakref__")
 
         def __init__(self, mode, color):
-            object.__setattr__(self, 'mode', mode)
-            object.__setattr__(self, 'color', color)
+            object.__setattr__(self, "mode", mode)
+            object.__setattr__(self, "color", color)
 
         def __call__(self, formatter):
             if self.color is None:
@@ -374,7 +369,7 @@ else:
                 if template:
                     res = curses.tparm(template, color)
                 else:
-                    res = b''
+                    res = b""
                 formatter._current_colors[self.mode] = res
             formatter.stream.write(res)
 
@@ -393,7 +388,7 @@ else:
         def __init__(self, value):
             if value is None:
                 raise _BogusTerminfo()
-            object.__setattr__(self, 'value', value)
+            object.__setattr__(self, "value", value)
 
         def __setattr__(self, key, value):
             raise AttributeError(f"{self.__class__.__name__} instances are immutable")
@@ -441,33 +436,32 @@ else:
             super().__init__(stream, encoding=encoding)
             fd = stream.fileno()
             if term is None:
-                if term := os.environ.get('TERM'):
+                if term := os.environ.get("TERM"):
                     try:
                         curses.setupterm(fd=fd, term=term)
                     except curses.error:
                         pass
                 else:
-                    raise TerminfoDisabled('no terminfo entries')
+                    raise TerminfoDisabled("no terminfo entries")
             else:
                 # TODO maybe do something more useful than raising curses.error
                 # if term is not in the terminfo db here?
                 curses.setupterm(fd=fd, term=term)
             self._term = term
-            self.width = curses.tigetnum('cols')
+            self.width = curses.tigetnum("cols")
             try:
-                self.reset = TerminfoReset(curses.tigetstr('sgr0'))
-                self.bold = TerminfoMode(curses.tigetstr('bold'))
-                self.underline = TerminfoMode(curses.tigetstr('smul'))
-                self._color_reset = curses.tigetstr('op')
-                self._set_color = (
-                    curses.tigetstr('setaf'),
-                    curses.tigetstr('setab'))
+                self.reset = TerminfoReset(curses.tigetstr("sgr0"))
+                self.bold = TerminfoMode(curses.tigetstr("bold"))
+                self.underline = TerminfoMode(curses.tigetstr("smul"))
+                self._color_reset = curses.tigetstr("op")
+                self._set_color = (curses.tigetstr("setaf"), curses.tigetstr("setab"))
             except (_BogusTerminfo, curses.error) as e:
                 raise TerminfoUnsupported(self._term) from e
 
             if not all(self._set_color):
                 raise TerminfoDisabled(
-                    'setting background/foreground colors is not supported')
+                    "setting background/foreground colors is not supported"
+                )
 
             curses.tparm(self._set_color[0], curses.COLOR_WHITE)
 
@@ -507,16 +501,14 @@ else:
             # not set the hs flag. So just check for the ability to
             # jump to and out of the status line, without checking if
             # the status line we're using exists.
-            tsl = curses.tigetstr('tsl')
-            fsl = curses.tigetstr('fsl')
+            tsl = curses.tigetstr("tsl")
+            fsl = curses.tigetstr("fsl")
             if tsl and fsl:
-                self.stream.write(
-                    tsl + string.encode(self.encoding, 'replace') + fsl)
+                self.stream.write(tsl + string.encode(self.encoding, "replace") + fsl)
                 self.stream.flush()
 
 
 class ObserverFormatter:
-
     def __init__(self, real_formatter):
         self._formatter = real_formatter
 
@@ -542,7 +534,7 @@ def get_formatter(stream, force_color=False):
         # needs an fd to pass to curses, not just a filelike talking to a tty.
         if os.isatty(fd) or force_color:
             try:
-                term = 'ansi' if force_color else None
+                term = "ansi" if force_color else None
                 return TerminfoFormatter(stream, term=term)
             except (curses.error, TerminfoDisabled, TerminfoUnsupported):
                 # This happens if TERM is unset and possibly in more cases.
@@ -553,6 +545,7 @@ def get_formatter(stream, force_color=False):
 
 def decorate_forced_wrapping(setting=True):
     """Decorator to force a specific line wrapping state for the duration of invocation."""
+
     def wrapped_func(func):
         def f(out, *args, **kwds):
             oldwrap = out.wrap
@@ -561,5 +554,7 @@ def decorate_forced_wrapping(setting=True):
                 return func(out, *args, **kwds)
             finally:
                 out.wrap = oldwrap
+
         return f
+
     return wrapped_func

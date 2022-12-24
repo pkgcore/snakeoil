@@ -11,7 +11,7 @@ class UserException(Exception):
         self._verbosity = verbosity
 
     def msg(self, verbosity=0):
-        return ''
+        return ""
 
 
 class ExitException(Exception):
@@ -30,6 +30,8 @@ class ExitException(Exception):
 def find_user_exception(exc):
     """Find the UserException related to a given exception if one exists."""
     try:
-        return next(e for e in walk_exception_chain(exc) if isinstance(e, UserException))
+        return next(
+            e for e in walk_exception_chain(exc) if isinstance(e, UserException)
+        )
     except StopIteration:
         return None

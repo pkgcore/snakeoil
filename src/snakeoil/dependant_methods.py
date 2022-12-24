@@ -63,7 +63,7 @@ def _ensure_deps(cls_id, name, func, self, *a, **kw):
         s = _yield_deps(self, self.stage_depends, name)
 
     r = True
-    if not hasattr(self, '_stage_state'):
+    if not hasattr(self, "_stage_state"):
         self._stage_state = set()
     for dep in s:
         if dep not in self._stage_state:
@@ -108,8 +108,8 @@ def __wrap_stage_dependencies__(cls):
             f = getattr(cls, x)
         except AttributeError:
             raise TypeError(
-                "class %r stage_depends specifies %r, which doesn't exist" %
-                (cls, x))
+                "class %r stage_depends specifies %r, which doesn't exist" % (cls, x)
+            )
         f2 = pre_curry(_ensure_deps, cls_id, x, f)
         f2.sd_raw_func = f
         setattr(cls, x, f2)
@@ -122,9 +122,9 @@ def __unwrap_stage_dependencies__(cls):
             f = getattr(cls, x)
         except AttributeError:
             raise TypeError(
-                "class %r stage_depends specifies %r, which doesn't exist" %
-                (cls, x))
-        setattr(cls, x, getattr(f, 'sd_raw_func', f))
+                "class %r stage_depends specifies %r, which doesn't exist" % (cls, x)
+            )
+        setattr(cls, x, getattr(f, "sd_raw_func", f))
 
 
 def __set_stage_state__(self, state):
@@ -165,17 +165,17 @@ class ForcedDepends(type):
 
     def __new__(cls, name, bases, d):
         obj = super(ForcedDepends, cls).__new__(cls, name, bases, d)
-        if not hasattr(obj, 'stage_depends'):
+        if not hasattr(obj, "stage_depends"):
             obj.stage_depends = {}
         for x in ("wrap", "unwrap"):
-            s = '__%s_stage_dependencies__' % x
+            s = "__%s_stage_dependencies__" % x
             if not hasattr(obj, s):
                 setattr(obj, s, classmethod(globals()[s]))
 
         obj.__unwrap_stage_dependencies__()
         obj.__wrap_stage_dependencies__()
-        if not hasattr(obj, '__force_stage_state__'):
+        if not hasattr(obj, "__force_stage_state__"):
             obj.__set_stage_state__ = __set_stage_state__
-        if not hasattr(obj, '__stage_step_callback__'):
+        if not hasattr(obj, "__stage_step_callback__"):
             obj.__stage_step_callback__ = __stage_step_callback__
         return obj

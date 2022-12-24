@@ -11,7 +11,7 @@ from sys import intern
 from ..data_source import base as base_data_source
 from ..fileutils import mmap_or_open_for_read
 
-blocksize = 2 ** 17
+blocksize = 2**17
 
 blake2b_size = 128
 blake2s_size = 64
@@ -36,8 +36,11 @@ def chf_thread(queue, callback):
 def chksum_loop_over_file(filename, chfs, parallelize=True, can_mmap=True):
     chfs = [chf() for chf in chfs]
     loop_over_file(
-        filename, [chf.update for chf in chfs],
-        parallelize=parallelize, can_mmap=can_mmap)
+        filename,
+        [chf.update for chf in chfs],
+        parallelize=parallelize,
+        can_mmap=can_mmap,
+    )
     return [int(chf.hexdigest(), 16) for chf in chfs]
 
 
@@ -54,7 +57,7 @@ def loop_over_file(handle, callbacks, parallelize=True, can_mmap=True):
     else:
         f = handle
         close_f = False
-        if getattr(handle, 'encoding', None):
+        if getattr(handle, "encoding", None):
             # wanker.  bypass the encoding, go straight to the raw source.
             f = f.buffer
         # reset; we do it for compat, but it also avoids unpleasant issues from
@@ -68,8 +71,10 @@ def loop_over_file(handle, callbacks, parallelize=True, can_mmap=True):
         if parallelize:
             queues = [queue.Queue(8) for _ in callbacks]
 
-            threads = [threading.Thread(target=chf_thread, args=(queue, functor))
-                       for queue, functor in zip(queues, callbacks)]
+            threads = [
+                threading.Thread(target=chf_thread, args=(queue, functor))
+                for queue, functor in zip(queues, callbacks)
+            ]
 
             for thread in threads:
                 thread.start()
@@ -79,7 +84,7 @@ def loop_over_file(handle, callbacks, parallelize=True, can_mmap=True):
         if m is not None:
             for callback in callbacks:
                 callback(m)
-        elif hasattr(f, 'getvalue'):
+        elif hasattr(f, "getvalue"):
             data = f.getvalue()
             if not isinstance(data, bytes):
                 data = data.encode()
@@ -107,7 +112,6 @@ def loop_over_file(handle, callbacks, parallelize=True, can_mmap=True):
 
 
 class Chksummer:
-
     def __init__(self, chf_type, obj, str_size, can_mmap=True):
         self.obj = obj
         self.chf_type = chf_type
@@ -118,15 +122,14 @@ class Chksummer:
         return self.obj
 
     def long2str(self, val):
-        return ("%x" % val).rjust(self.str_size, '0')
+        return ("%x" % val).rjust(self.str_size, "0")
 
     @staticmethod
     def str2long(val):
         return int(val, 16)
 
     def __call__(self, filename):
-        return chksum_loop_over_file(
-            filename, [self.obj], can_mmap=self.can_mmap)[0]
+        return chksum_loop_over_file(filename, [self.obj], can_mmap=self.can_mmap)[0]
 
     def __str__(self):
         return "%s chksummer" % self.chf_type
@@ -134,31 +137,26 @@ class Chksummer:
 
 chksum_types = {
     chksumname: Chksummer(chksumname, partial(hashlib.new, hashlibname), size)
-
     for hashlibname, chksumname, size in [
         # conditional upon FIPS, but available in >3.8.
-        ('md5', 'md5', md5_size),
-
+        ("md5", "md5", md5_size),
         # Guaranteed as of python 3.8
-        ('blake2b', 'blake2b', blake2b_size),
-        ('blake2s', 'blake2s', blake2s_size),
-        ('sha1', 'sha1', sha1_size),
-        ('sha256', 'sha256', sha256_size),
-        ('sha3_256', 'sha3_256', sha3_256_size),
-        ('sha3_512', 'sha3_512', sha3_512_size),
-        ('sha512', 'sha512', sha512_size),
-
+        ("blake2b", "blake2b", blake2b_size),
+        ("blake2s", "blake2s", blake2s_size),
+        ("sha1", "sha1", sha1_size),
+        ("sha256", "sha256", sha256_size),
+        ("sha3_256", "sha3_256", sha3_256_size),
+        ("sha3_512", "sha3_512", sha3_512_size),
+        ("sha512", "sha512", sha512_size),
         # not guaranteed, but may be available.
-        ('whirlpool', 'whirlpool', whirlpool_size),
-        ('ripemd160', 'rmd160', rmd160_size),
-
+        ("whirlpool", "whirlpool", whirlpool_size),
+        ("ripemd160", "rmd160", rmd160_size),
     ]
     if hashlibname in hashlib.algorithms_available
 }
 
 
 class SizeUpdater:
-
     def __init__(self):
         self.count = 0
 
@@ -176,8 +174,7 @@ class SizeChksummer(Chksummer):
     """
 
     def __init__(self):
-        super().__init__(
-            chf_type='size', obj=SizeUpdater, str_size=1000000000)
+        super().__init__(chf_type="size", obj=SizeUpdater, str_size=1000000000)
 
     @staticmethod
     def long2str(val):

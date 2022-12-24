@@ -46,14 +46,19 @@ def pre_curry(func, *args, **kwargs):
     """
 
     if not kwargs:
+
         def callit(*moreargs, **morekwargs):
             return func(*(args + moreargs), **morekwargs)
+
     elif not args:
+
         def callit(*moreargs, **morekwargs):
             kw = kwargs.copy()
             kw.update(morekwargs)
             return func(*moreargs, **kw)
+
     else:
+
         def callit(*moreargs, **morekwargs):
             kw = kwargs.copy()
             kw.update(morekwargs)
@@ -67,14 +72,19 @@ def post_curry(func, *args, **kwargs):
     """passed in args are appended to any further args supplied"""
 
     if not kwargs:
+
         def callit(*moreargs, **morekwargs):
             return func(*(moreargs + args), **morekwargs)
+
     elif not args:
+
         def callit(*moreargs, **morekwargs):
             kw = morekwargs.copy()
             kw.update(kwargs)
             return func(*moreargs, **kw)
+
     else:
+
         def callit(*moreargs, **morekwargs):
             kw = morekwargs.copy()
             kw.update(kwargs)
@@ -112,18 +122,32 @@ def wrap_exception(recast_exception, *args, **kwds):
     # set this here so that 2to3 will rewrite it.
     try:
         if not issubclass(recast_exception, Exception):
-            raise ValueError("recast_exception must be an %s derivative: got %r" %
-                             (Exception, recast_exception))
+            raise ValueError(
+                "recast_exception must be an %s derivative: got %r"
+                % (Exception, recast_exception)
+            )
     except TypeError as e:
-        raise TypeError("recast_exception must be an %s derivative; got %r, failed %r",
-                        (Exception.__name__, recast_exception, e))
+        raise TypeError(
+            "recast_exception must be an %s derivative; got %r, failed %r",
+            (Exception.__name__, recast_exception, e),
+        )
     ignores = kwds.pop("ignores", (recast_exception,))
     pass_error = kwds.pop("pass_error", None)
-    return wrap_exception_complex(partial(_simple_throw, recast_exception, args, kwds, pass_error), ignores)
+    return wrap_exception_complex(
+        partial(_simple_throw, recast_exception, args, kwds, pass_error), ignores
+    )
 
 
-def _simple_throw(recast_exception, recast_args, recast_kwds, pass_error,
-                  exception, functor, args, kwds):
+def _simple_throw(
+    recast_exception,
+    recast_args,
+    recast_kwds,
+    pass_error,
+    exception,
+    functor,
+    args,
+    kwds,
+):
     if pass_error:
         recast_kwds[pass_error] = exception
     return recast_exception(*recast_args, **recast_kwds)
@@ -131,15 +155,22 @@ def _simple_throw(recast_exception, recast_args, recast_kwds, pass_error,
 
 def wrap_exception_complex(creation_func, ignores):
     try:
-        if not hasattr(ignores, '__iter__') and issubclass(ignores, Exception) or ignores is Exception:
+        if (
+            not hasattr(ignores, "__iter__")
+            and issubclass(ignores, Exception)
+            or ignores is Exception
+        ):
             ignores = (ignores,)
         ignores = tuple(ignores)
     except TypeError as e:
-        raise TypeError("ignores must be either a tuple of %s, or a %s: got %r, error %r"
-                        % (Exception.__name__, Exception.__name__, ignores, e))
+        raise TypeError(
+            "ignores must be either a tuple of %s, or a %s: got %r, error %r"
+            % (Exception.__name__, Exception.__name__, ignores, e)
+        )
     if not all(issubclass(x, Exception) for x in ignores):
-        raise TypeError("ignores has a non %s derivative in it: %r" %
-                        (Exception.__name__, ignores))
+        raise TypeError(
+            "ignores has a non %s derivative in it: %r" % (Exception.__name__, ignores)
+        )
     return partial(_inner_wrap_exception, creation_func, ignores)
 
 
@@ -153,5 +184,6 @@ def _inner_wrap_exception(exception_maker, ignores, functor):
             raise
         except Exception as e:
             raise exception_maker(e, functor, args, kwargs) from e
+
     _wrap_exception.func = functor
     return pretty_docs(_wrap_exception, name=functor.__name__)

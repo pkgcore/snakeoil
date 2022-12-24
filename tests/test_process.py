@@ -30,8 +30,10 @@ class TestFindBinary:
             process.find_binary(self.script)
 
     def test_fallback(self):
-        fallback = process.find_binary(self.script, fallback=os.path.join('bin', self.script))
-        assert fallback == os.path.join('bin', self.script)
+        fallback = process.find_binary(
+            self.script, fallback=os.path.join("bin", self.script)
+        )
+        assert fallback == os.path.join("bin", self.script)
 
     def test_not_executable(self, tmp_path):
         fp = tmp_path / self.script

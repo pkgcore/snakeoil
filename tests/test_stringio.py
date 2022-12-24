@@ -34,6 +34,7 @@ class readonly_mixin:
 class Test_text_readonly(readonly_mixin):
     kls = stringio.text_readonly
 
-class Test_bytes_readonly(readonly_mixin ):
+
+class Test_bytes_readonly(readonly_mixin):
     kls = stringio.bytes_readonly
-    encoding = 'utf8'
+    encoding = "utf8"

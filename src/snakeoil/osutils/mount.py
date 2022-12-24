@@ -1,4 +1,4 @@
-__all__ = ('mount', 'umount')
+__all__ = ("mount", "umount")
 
 import ctypes
 import os
@@ -40,10 +40,10 @@ MNT_EXPIRE = 4
 UMOUNT_NOFOLLOW = 8
 
 
-@supported_systems('linux')
+@supported_systems("linux")
 def mount(source, target, fstype, flags, data=None):
     """Call mount(2); see the man page for details."""
-    libc = ctypes.CDLL(find_library('c'), use_errno=True)
+    libc = ctypes.CDLL(find_library("c"), use_errno=True)
     source = source.encode() if isinstance(source, str) else source
     target = target.encode() if isinstance(target, str) else target
     fstype = fstype.encode() if isinstance(fstype, str) else fstype
@@ -52,10 +52,10 @@ def mount(source, target, fstype, flags, data=None):
         raise OSError(e, os.strerror(e))
 
 
-@supported_systems('linux')
+@supported_systems("linux")
 def umount(target, flags=None):
     """Call umount or umount2; see the umount(2) man page for details."""
-    libc = ctypes.CDLL(find_library('c'), use_errno=True)
+    libc = ctypes.CDLL(find_library("c"), use_errno=True)
     target = target.encode() if isinstance(target, str) else target
     args = []
     func = libc.umount

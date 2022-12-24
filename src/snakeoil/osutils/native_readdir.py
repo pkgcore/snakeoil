@@ -3,8 +3,18 @@
 
 import errno
 import os
-from stat import (S_IFBLK, S_IFCHR, S_IFDIR, S_IFIFO, S_IFLNK, S_IFMT, S_IFREG, S_IFSOCK, S_ISDIR,
-                  S_ISREG)
+from stat import (
+    S_IFBLK,
+    S_IFCHR,
+    S_IFDIR,
+    S_IFIFO,
+    S_IFLNK,
+    S_IFMT,
+    S_IFREG,
+    S_IFSOCK,
+    S_ISDIR,
+    S_ISREG,
+)
 
 from ..mappings import ProtectedDict
 
@@ -14,6 +24,7 @@ listdir = os.listdir
 # import cycle.
 pjoin = os.path.join
 
+
 def stat_swallow_enoent(path, check, default=False, stat=os.stat):
     try:
         return check(stat(path).st_mode)
@@ -21,6 +32,7 @@ def stat_swallow_enoent(path, check, default=False, stat=os.stat):
         if oe.errno == errno.ENOENT:
             return default
         raise
+
 
 def listdir_dirs(path, followSymlinks=True):
     """
@@ -36,11 +48,12 @@ def listdir_dirs(path, followSymlinks=True):
     pjf = pjoin
     lstat = os.lstat
     if followSymlinks:
-        return [x for x in os.listdir(path) if
-                stat_swallow_enoent(pjf(path, x), scheck)]
+        return [
+            x for x in os.listdir(path) if stat_swallow_enoent(pjf(path, x), scheck)
+        ]
     lstat = os.lstat
-    return [x for x in os.listdir(path) if
-            scheck(lstat(pjf(path, x)).st_mode)]
+    return [x for x in os.listdir(path) if scheck(lstat(pjf(path, x)).st_mode)]
+
 
 def listdir_files(path, followSymlinks=True):
     """
@@ -56,24 +69,28 @@ def listdir_files(path, followSymlinks=True):
     scheck = S_ISREG
     pjf = pjoin
     if followSymlinks:
-        return [x for x in os.listdir(path) if
-                stat_swallow_enoent(pjf(path, x), scheck)]
+        return [
+            x for x in os.listdir(path) if stat_swallow_enoent(pjf(path, x), scheck)
+        ]
     lstat = os.lstat
-    return [x for x in os.listdir(path) if
-            scheck(lstat(pjf(path, x)).st_mode)]
+    return [x for x in os.listdir(path) if scheck(lstat(pjf(path, x)).st_mode)]
+
 
 # we store this outside the function to ensure that
 # the strings used are reused, thus avoiding unneeded
 # allocations
-d_type_mapping = ProtectedDict({
-    S_IFREG: "file",
-    S_IFDIR: "directory",
-    S_IFLNK: "symlink",
-    S_IFCHR: "chardev",
-    S_IFBLK: "block",
-    S_IFSOCK: "socket",
-    S_IFIFO: "fifo",
-})
+d_type_mapping = ProtectedDict(
+    {
+        S_IFREG: "file",
+        S_IFDIR: "directory",
+        S_IFLNK: "symlink",
+        S_IFCHR: "chardev",
+        S_IFBLK: "block",
+        S_IFSOCK: "socket",
+        S_IFIFO: "fifo",
+    }
+)
+
 
 def readdir(path):
     """

@@ -19,8 +19,7 @@ def partition(iterable, predicate=bool):
         filter and the second the matched items.
     """
     a, b = itertools.tee((predicate(x), x) for x in iterable)
-    return ((x for pred, x in a if not pred),
-            (x for pred, x in b if pred))
+    return ((x for pred, x in a if not pred), (x for pred, x in b if pred))
 
 
 class expandable_chain:
@@ -107,6 +106,7 @@ class caching_iter:
     3
 
     """
+
     __slots__ = ("iterable", "__weakref__", "cached_list", "sorter")
 
     def __init__(self, iterable, sorter=None):
@@ -139,7 +139,7 @@ class caching_iter:
             if self.iterable is not None:
                 i = itertools.islice(self.iterable, 0, index - (existing_len - 1))
                 self.cached_list.extend(i)
-                if len(self.cached_list) -1 != index:
+                if len(self.cached_list) - 1 != index:
                     # consumed, baby.
                     self.iterable = None
                     self.cached_list = tuple(self.cached_list)
@@ -209,8 +209,7 @@ class caching_iter:
         return len(self.cached_list)
 
     def __iter__(self):
-        if (self.sorter is not None and
-                self.iterable is not None):
+        if self.sorter is not None and self.iterable is not None:
             if self.cached_list:
                 self.cached_list.extend(self.iterable)
                 self.cached_list = tuple(self.sorter(self.cached_list))
@@ -237,8 +236,7 @@ class caching_iter:
         return hash(self.cached_list)
 
     def __str__(self):
-        return "iterable(%s), cached: %s" % (
-            self.iterable, str(self.cached_list))
+        return "iterable(%s), cached: %s" % (self.iterable, str(self.cached_list))
 
 
 def iter_sort(sorter, *iterables):

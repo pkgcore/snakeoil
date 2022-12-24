@@ -14,6 +14,7 @@ class FailedImport(ImportError):
     """
     Raised when a requested target cannot be imported
     """
+
     def __init__(self, trg, e):
         super().__init__(self, f"Failed importing target '{trg}': '{e}'")
         self.trg, self.e = trg, e

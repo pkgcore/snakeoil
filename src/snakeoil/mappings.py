@@ -3,10 +3,17 @@ Miscellaneous mapping related classes and functionality
 """
 
 __all__ = (
-    "DictMixin", "LazyValDict", "LazyFullValLoadDict",
-    "ProtectedDict", "ImmutableDict", "IndeterminantDict",
-    "defaultdictkey", "AttrAccessible", "StackedDict",
-    "make_SlottedDict_kls", "ProxiedAttrs",
+    "DictMixin",
+    "LazyValDict",
+    "LazyFullValLoadDict",
+    "ProtectedDict",
+    "ImmutableDict",
+    "IndeterminantDict",
+    "defaultdictkey",
+    "AttrAccessible",
+    "StackedDict",
+    "make_SlottedDict_kls",
+    "ProxiedAttrs",
 )
 
 import operator
@@ -168,6 +175,7 @@ class LazyValDict(DictMixin):
     given a function to get keys, and to look up the val for those keys, it'll
     lazily load key definitions and values as requested
     """
+
     __slots__ = ("_keys", "_keys_func", "_vals", "_val_func")
     __externally_mutable__ = False
 
@@ -184,8 +192,7 @@ class LazyValDict(DictMixin):
             self._keys_func = None
         else:
             if not callable(get_keys_func):
-                raise TypeError(
-                    "get_keys_func isn't iterable or callable")
+                raise TypeError("get_keys_func isn't iterable or callable")
             self._keys_func = get_keys_func
         self._val_func = get_val_func
         self._vals = {}
@@ -234,6 +241,7 @@ class LazyFullValLoadDict(LazyValDict):
 
     The val function must still return values one by one per key.
     """
+
     __slots__ = ()
 
     def __getitem__(self, key):
@@ -297,8 +305,7 @@ class ProtectedDict(DictMixin):
                 yield k
 
     def __contains__(self, key):
-        return key in self.new or (key not in self.blacklist and
-                                   key in self.orig)
+        return key in self.new or (key not in self.blacklist and key in self.orig)
 
 
 class ImmutableDict(Mapping):
@@ -320,14 +327,14 @@ class ImmutableDict(Mapping):
             try:
                 mapping = {k: v for k, v in data}
             except TypeError as e:
-                raise TypeError(f'unsupported data format: {e}')
-        object.__setattr__(self, '_dict', mapping)
+                raise TypeError(f"unsupported data format: {e}")
+        object.__setattr__(self, "_dict", mapping)
 
     def __getitem__(self, key):
         # hack to avoid recursion exceptions for subclasses that use
         # inject_getitem_as_getattr()
-        if key == '_dict':
-            return object.__getattribute__(self, '_dict')
+        if key == "_dict":
+            return object.__getattribute__(self, "_dict")
         return self._dict[key]
 
     def __iter__(self):
@@ -356,7 +363,7 @@ class OrderedFrozenSet(Set):
         try:
             self._dict = ImmutableDict({x: None for x in iterable})
         except TypeError as e:
-            raise TypeError('not iterable') from e
+            raise TypeError("not iterable") from e
 
     def __contains__(self, key):
         return key in self._dict
@@ -369,7 +376,7 @@ class OrderedFrozenSet(Set):
             try:
                 return next(islice(self._dict, key, None))
             except StopIteration:
-                raise IndexError('index out of range')
+                raise IndexError("index out of range")
 
         # handle keys using slice notation
         return self.__class__(list(self._dict)[key])
@@ -384,8 +391,8 @@ class OrderedFrozenSet(Set):
         return set(self._dict) == other
 
     def __str__(self):
-        elements_str = ', '.join(map(repr, self._dict))
-        return f'{{{elements_str}}}'
+        elements_str = ", ".join(map(repr, self._dict))
+        return f"{{{elements_str}}}"
 
     def __repr__(self):
         return self.__str__()
@@ -413,7 +420,7 @@ class OrderedSet(OrderedFrozenSet, MutableSet):
         try:
             self._dict = {x: None for x in iterable}
         except TypeError as e:
-            raise TypeError('not iterable') from e
+            raise TypeError("not iterable") from e
 
     def add(self, value):
         self._dict[value] = None
@@ -434,7 +441,7 @@ class OrderedSet(OrderedFrozenSet, MutableSet):
         self._dict.update((x, None) for x in iterable)
 
     def __hash__(self):
-        raise TypeError(f'unhashable type: {self.__class__.__name__!r}')
+        raise TypeError(f"unhashable type: {self.__class__.__name__!r}")
 
 
 class IndeterminantDict:
@@ -473,12 +480,21 @@ class IndeterminantDict:
 
     def __unmodifiable(func, *args):
         raise TypeError(f"indeterminate dict: '{func}()' can't modify {args!r}")
-    for func in ('__delitem__', '__setitem__', 'setdefault', 'popitem', 'update', 'clear'):
+
+    for func in (
+        "__delitem__",
+        "__setitem__",
+        "setdefault",
+        "popitem",
+        "update",
+        "clear",
+    ):
         locals()[func] = partial(__unmodifiable, func)
 
     def __indeterminate(func, *args):
         raise TypeError(f"indeterminate dict: '{func}()' is inaccessible")
-    for func in ('__iter__', '__len__', 'keys', 'values', 'items'):
+
+    for func in ("__iter__", "__len__", "keys", "values", "items"):
         locals()[func] = partial(__indeterminate, func)
 
 
@@ -650,6 +666,7 @@ def _KeyError_to_Attr(functor):
             return functor(self, *args)
         except KeyError:
             raise AttributeError(args[0])
+
     inner.__name__ = functor.__name__
     inner.__doc__ = functor.__doc__
     return inner
@@ -681,9 +698,9 @@ def inject_getitem_as_getattr(scope):
     :param scope: the scope of a class to modify, adding methods as needed
     """
 
-    scope.setdefault('__getattr__', _KeyError_to_Attr(operator.__getitem__))
-    scope.setdefault('__delattr__', _KeyError_to_Attr(operator.__delitem__))
-    scope.setdefault('__setattr__', _KeyError_to_Attr(operator.__setitem__))
+    scope.setdefault("__getattr__", _KeyError_to_Attr(operator.__getitem__))
+    scope.setdefault("__delattr__", _KeyError_to_Attr(operator.__delitem__))
+    scope.setdefault("__setattr__", _KeyError_to_Attr(operator.__setitem__))
 
 
 class AttrAccessible(dict):
@@ -713,7 +730,7 @@ class ProxiedAttrs(DictMixin):
     :param target: The object to wrap.
     """
 
-    __slots__ = ('__target__',)
+    __slots__ = ("__target__",)
 
     def __init__(self, target):
         self.__target__ = target
@@ -860,7 +877,7 @@ class _SlottedDict(DictMixin):
 def make_SlottedDict_kls(keys):
     """Create a space efficient mapping class with a limited set of keys."""
     new_keys = tuple(sorted(keys))
-    cls_name = f'SlottedDict_{hash(new_keys)}'
+    cls_name = f"SlottedDict_{hash(new_keys)}"
     o = globals().get(cls_name, None)
     if o is None:
         o = type(cls_name, (_SlottedDict,), {})

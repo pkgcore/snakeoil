@@ -5,17 +5,20 @@ from snakeoil.caching import WeakInstMeta
 
 class weak_slotted(metaclass=WeakInstMeta):
     __inst_caching__ = True
-    __slots__ = ('one',)
+    __slots__ = ("one",)
 
 
 class weak_inst(metaclass=WeakInstMeta):
     __inst_caching__ = True
     counter = 0
+
     def __new__(cls, *args, **kwargs):
         cls.counter += 1
         return object.__new__(cls)
+
     def __init__(self, *args, **kwargs):
         pass
+
     @classmethod
     def reset(cls):
         cls.counter = 0
@@ -34,7 +37,6 @@ class reenabled_weak_inst(automatic_disabled_weak_inst):
 
 
 class TestWeakInstMeta:
-
     def test_reuse(self, kls=weak_inst):
         kls.reset()
         o = kls()
@@ -99,8 +101,8 @@ class TestWeakInstMeta:
     # (RaisingHashFor...).
 
     # UserWarning is ignored and everything other warning is an error.
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('error')
+    @pytest.mark.filterwarnings("ignore::UserWarning")
+    @pytest.mark.filterwarnings("error")
     def test_uncachable(self):
         weak_inst.reset()
 
@@ -108,21 +110,24 @@ class TestWeakInstMeta:
         class RaisingHashForTestUncachable:
             def __init__(self, error):
                 self.error = error
+
             def __hash__(self):
                 raise self.error
 
         assert weak_inst([]) is not weak_inst([])
         assert weak_inst.counter == 2
         for x in (TypeError, NotImplementedError):
-            assert weak_inst(RaisingHashForTestUncachable(x)) is not \
-                weak_inst(RaisingHashForTestUncachable(x))
+            assert weak_inst(RaisingHashForTestUncachable(x)) is not weak_inst(
+                RaisingHashForTestUncachable(x)
+            )
 
-    @pytest.mark.filterwarnings('error::UserWarning')
+    @pytest.mark.filterwarnings("error::UserWarning")
     def test_uncachable_warning_msg(self):
         # This name is *important*, see above.
         class RaisingHashForTestUncachableWarnings:
             def __init__(self, error):
                 self.error = error
+
             def __hash__(self):
                 raise self.error
 
@@ -134,6 +139,7 @@ class TestWeakInstMeta:
         class BrokenHash:
             def __hash__(self):
                 return 1
+
         assert weak_inst(BrokenHash()) is not weak_inst(BrokenHash())
 
     def test_weak_slot(self):
@@ -148,7 +154,7 @@ class TestWeakInstMeta:
         # The actual test is that the class definition works.
         class ExistingWeakrefSlot:
             __inst_caching__ = True
-            __slots__ = ('one', '__weakref__')
+            __slots__ = ("one", "__weakref__")
 
         assert ExistingWeakrefSlot()
 

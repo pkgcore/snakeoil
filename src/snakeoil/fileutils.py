@@ -23,23 +23,28 @@ def touch(fname, mode=0o644, **kwargs):
     See os.utime for other supported arguments.
     """
     flags = os.O_CREAT | os.O_APPEND
-    dir_fd = kwargs.get('dir_fd', None)
+    dir_fd = kwargs.get("dir_fd", None)
     os_open = partial(os.open, dir_fd=dir_fd)
 
     with os.fdopen(os_open(fname, flags, mode)) as f:
         os.utime(
             f.fileno() if os.utime in os.supports_fd else fname,
-            dir_fd=None if os.supports_fd else dir_fd, **kwargs)
+            dir_fd=None if os.supports_fd else dir_fd,
+            **kwargs
+        )
+
 
 def mmap_or_open_for_read(path):
     size = os.stat(path).st_size
     if size == 0:
-        return (None, data_source.bytes_ro_StringIO(b''))
+        return (None, data_source.bytes_ro_StringIO(b""))
     fd = None
     try:
         fd = os.open(path, os.O_RDONLY)
-        return (_fileutils.mmap_and_close(
-            fd, size, mmap.MAP_SHARED, mmap.PROT_READ), None)
+        return (
+            _fileutils.mmap_and_close(fd, size, mmap.MAP_SHARED, mmap.PROT_READ),
+            None,
+        )
     except IGNORED_EXCEPTIONS:
         raise
     except:
@@ -85,7 +90,8 @@ class AtomicWriteFile_mixin:
         fp = os.path.realpath(fp)
         self._original_fp = fp
         self._temp_fp = os.path.join(
-            os.path.dirname(fp), ".update." + os.path.basename(fp))
+            os.path.dirname(fp), ".update." + os.path.basename(fp)
+        )
         old_umask = None
         if perms:
             # give it just write perms
@@ -140,7 +146,7 @@ class AtomicWriteFile(AtomicWriteFile_mixin):
         self.raw = open(self._temp_fp, mode=self._computed_mode)
 
     def _real_close(self):
-        if hasattr(self, 'raw'):
+        if hasattr(self, "raw"):
             return self.raw.close()
         return None
 
@@ -149,24 +155,23 @@ class AtomicWriteFile(AtomicWriteFile_mixin):
 
 def _mk_pretty_derived_func(func, name_base, name, *args, **kwds):
     if name:
-        name = '_' + name
-    return pretty_docs(partial(func, *args, **kwds),
-                       name='%s%s' % (name_base, name))
+        name = "_" + name
+    return pretty_docs(partial(func, *args, **kwds), name="%s%s" % (name_base, name))
 
 
-_mk_readfile = partial(
-    _mk_pretty_derived_func, _fileutils.native_readfile, 'readfile')
+_mk_readfile = partial(_mk_pretty_derived_func, _fileutils.native_readfile, "readfile")
 
-readfile_ascii = _mk_readfile('ascii', 'rt')
-readfile_bytes = _mk_readfile('bytes', 'rb')
-readfile_utf8 = _mk_readfile('utf8', 'r', encoding='utf8')
+readfile_ascii = _mk_readfile("ascii", "rt")
+readfile_bytes = _mk_readfile("bytes", "rb")
+readfile_utf8 = _mk_readfile("utf8", "r", encoding="utf8")
 readfile = readfile_utf8
 
 
 _mk_readlines = partial(
-    _mk_pretty_derived_func, _fileutils.native_readlines, 'readlines')
+    _mk_pretty_derived_func, _fileutils.native_readlines, "readlines"
+)
 
-readlines_ascii = _mk_readlines('ascii', 'r', encoding='ascii')
-readlines_bytes = _mk_readlines('bytes', 'rb')
-readlines_utf8 = _mk_readlines('utf8', 'r', encoding='utf8')
+readlines_ascii = _mk_readlines("ascii", "r", encoding="ascii")
+readlines_bytes = _mk_readlines("bytes", "rb")
+readlines_utf8 = _mk_readlines("utf8", "r", encoding="utf8")
 readlines = readlines_utf8

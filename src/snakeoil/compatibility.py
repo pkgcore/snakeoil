@@ -8,12 +8,15 @@ __all__ = ("cmp", "sorted_cmp", "sort_cmp")
 def sorted_key_from_cmp(cmp_func, key_func=None):
     class _key_proxy:
 
-        __slots__ = ('_obj',)
+        __slots__ = ("_obj",)
 
-        if key_func: # done this way for speed reasons.
+        if key_func:  # done this way for speed reasons.
+
             def __init__(self, obj, key_convert=key_func):
                 self._obj = key_convert(obj)
+
         else:
+
             def __init__(self, obj):
                 self._obj = obj
 
@@ -40,13 +43,13 @@ def cmp(obj1, obj2, raw_cmp=_raw_cmp):
 
 
 def sorted_cmp(sequence, func, key=None, reverse=False):
-    return sorted(sequence, reverse=reverse,
-                  key=sorted_key_from_cmp(func, key_func=key))
+    return sorted(
+        sequence, reverse=reverse, key=sorted_key_from_cmp(func, key_func=key)
+    )
 
 
 def sort_cmp(list_inst, func, key=None, reverse=False):
-    list_inst.sort(reverse=reverse,
-                   key=sorted_key_from_cmp(func, key_func=key))
+    list_inst.sort(reverse=reverse, key=sorted_key_from_cmp(func, key_func=key))
 
 
 IGNORED_EXCEPTIONS = (RuntimeError, MemoryError, SystemExit, KeyboardInterrupt)

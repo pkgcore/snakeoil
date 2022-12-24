@@ -44,9 +44,10 @@ def test_syspath(tmpdir):
             assert mangled_syspath == tuple(sys.path)
 
 
-@pytest.mark.skip(reason='this currently breaks on github ci, https://github.com/pkgcore/snakeoil/issues/68')
+@pytest.mark.skip(
+    reason="this currently breaks on github ci, https://github.com/pkgcore/snakeoil/issues/68"
+)
 class TestSplitExec:
-
     def test_context_process(self):
         # code inside the with statement is run in a separate process
         pid = os.getpid()
@@ -77,9 +78,9 @@ class TestSplitExec:
             b = 3
         # changes to locals aren't propagated back
         assert a == 1
-        assert 'b' not in locals()
+        assert "b" not in locals()
         # but they're accessible via the 'locals' attr
-        expected = {'a': 2, 'b': 3}
+        expected = {"a": 2, "b": 3}
         for k, v in expected.items():
             assert c.locals[k] == v
 
@@ -87,20 +88,21 @@ class TestSplitExec:
         with SplitExec() as c:
             func = lambda x: x
             from sys import implementation
+
             a = 4
-        assert c.locals == {'a': 4}
+        assert c.locals == {"a": 4}
 
     def test_context_exceptions(self):
         # exceptions in the child process are sent back to the parent and re-raised
         with pytest.raises(IOError) as e:
             with SplitExec() as c:
-                raise IOError(errno.EBUSY, 'random error')
+                raise IOError(errno.EBUSY, "random error")
         assert e.value.errno == errno.EBUSY
 
     def test_child_setup_raises_exception(self):
         class ChildSetupException(SplitExec):
             def _child_setup(self):
-                raise IOError(errno.EBUSY, 'random error')
+                raise IOError(errno.EBUSY, "random error")
 
         with pytest.raises(IOError) as e:
             with ChildSetupException() as c:
@@ -108,26 +110,33 @@ class TestSplitExec:
         assert e.value.errno == errno.EBUSY
 
 
-@pytest.mark.skipif(not sys.platform.startswith('linux'), reason='supported on Linux only')
-@pytest.mark.xfail(platform.python_implementation() == "PyPy", reason='Fails on PyPy')
+@pytest.mark.skipif(
+    not sys.platform.startswith("linux"), reason="supported on Linux only"
+)
+@pytest.mark.xfail(platform.python_implementation() == "PyPy", reason="Fails on PyPy")
 class TestNamespace:
-
-    @pytest.mark.skipif(not os.path.exists('/proc/self/ns/user'),
-                        reason='user namespace support required')
+    @pytest.mark.skipif(
+        not os.path.exists("/proc/self/ns/user"),
+        reason="user namespace support required",
+    )
     def test_user_namespace(self):
         try:
             with Namespace(user=True) as ns:
                 assert os.getuid() == 0
         except PermissionError:
-            pytest.skip('No permission to use user namespace')
+            pytest.skip("No permission to use user namespace")
 
-    @pytest.mark.skipif(not (os.path.exists('/proc/self/ns/user') and os.path.exists('/proc/self/ns/uts')),
-                        reason='user and uts namespace support required')
+    @pytest.mark.skipif(
+        not (
+            os.path.exists("/proc/self/ns/user") and os.path.exists("/proc/self/ns/uts")
+        ),
+        reason="user and uts namespace support required",
+    )
     def test_uts_namespace(self):
         try:
-            with Namespace(user=True, uts=True, hostname='host') as ns:
-                ns_hostname, _, ns_domainname = socket.getfqdn().partition('.')
-                assert ns_hostname == 'host'
-                assert ns_domainname == ''
+            with Namespace(user=True, uts=True, hostname="host") as ns:
+                ns_hostname, _, ns_domainname = socket.getfqdn().partition(".")
+                assert ns_hostname == "host"
+                assert ns_domainname == ""
         except PermissionError:
-            pytest.skip('No permission to use user and uts namespace')
+            pytest.skip("No permission to use user and uts namespace")

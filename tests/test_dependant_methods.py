@@ -8,7 +8,6 @@ def func(self, seq, data, val=True):
 
 
 class TestDependantMethods:
-
     @staticmethod
     def generate_instance(methods, dependencies):
         class Class(metaclass=dm.ForcedDepends):
@@ -25,13 +24,15 @@ class TestDependantMethods:
         results = []
         o = self.generate_instance(
             {str(x): currying.post_curry(func, results, x) for x in range(10)},
-            {str(x): str(x - 1) for x in range(1, 10)})
+            {str(x): str(x - 1) for x in range(1, 10)},
+        )
         getattr(o, "9")()
         assert results == list(range(10))
         results = []
         o = self.generate_instance(
             {str(x): currying.post_curry(func, results, x, False) for x in range(10)},
-            {str(x): str(x - 1) for x in range(1, 10)})
+            {str(x): str(x - 1) for x in range(1, 10)},
+        )
         getattr(o, "9")()
         assert results == [0]
         getattr(o, "9")()
@@ -41,7 +42,8 @@ class TestDependantMethods:
         results = []
         o = self.generate_instance(
             {str(x): currying.post_curry(func, results, x) for x in range(10)},
-            {str(x): str(x - 1) for x in range(1, 10)})
+            {str(x): str(x - 1) for x in range(1, 10)},
+        )
         getattr(o, "1")()
         assert results == [0, 1]
         getattr(o, "2")()
@@ -71,14 +73,15 @@ class TestDependantMethods:
         results = []
         o = self.generate_instance(
             {str(x): currying.post_curry(func, results, x) for x in range(10)},
-            {str(x): str(x - 1) for x in range(1, 10)})
-        getattr(o, '2')(ignore_deps=True)
+            {str(x): str(x - 1) for x in range(1, 10)},
+        )
+        getattr(o, "2")(ignore_deps=True)
         assert [2] == results
 
     def test_no_deps(self):
         results = []
         o = self.generate_instance(
-            {str(x): currying.post_curry(func, results, x) for x in range(10)},
-            {})
-        getattr(o, '2')()
+            {str(x): currying.post_curry(func, results, x) for x in range(10)}, {}
+        )
+        getattr(o, "2")()
         assert [2] == results

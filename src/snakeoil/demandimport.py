@@ -13,14 +13,16 @@ from importlib.util import LazyLoader
 _disabled = False
 
 # modules that have issues when lazily imported
-_skip = frozenset([
-    '__builtin__',
-    '__future__',
-    'builtins',
-    'grp',
-    'pwd',
-    'OpenSSL.SSL', # pyopenssl
-])
+_skip = frozenset(
+    [
+        "__builtin__",
+        "__future__",
+        "builtins",
+        "grp",
+        "pwd",
+        "OpenSSL.SSL",  # pyopenssl
+    ]
+)
 
 
 class _LazyLoader(LazyLoader):
@@ -35,10 +37,8 @@ class _LazyLoader(LazyLoader):
 
 
 # custom loaders using our extended LazyLoader
-_extensions_loader = _LazyLoader.factory(
-    importlib.machinery.ExtensionFileLoader)
-_bytecode_loader = _LazyLoader.factory(
-    importlib.machinery.SourcelessFileLoader)
+_extensions_loader = _LazyLoader.factory(importlib.machinery.ExtensionFileLoader)
+_bytecode_loader = _LazyLoader.factory(importlib.machinery.SourcelessFileLoader)
 _source_loader = _LazyLoader.factory(importlib.machinery.SourceFileLoader)
 
 
@@ -54,7 +54,11 @@ def _filefinder(path):
 
 def enable():
     """Enable lazy loading for all future module imports."""
-    if os.environ.get('SNAKEOIL_DEMANDIMPORT', 'y').lower() not in ('n', 'no' '0', 'false'):
+    if os.environ.get("SNAKEOIL_DEMANDIMPORT", "y").lower() not in (
+        "n",
+        "no" "0",
+        "false",
+    ):
         sys.path_hooks.insert(0, _filefinder)
 
 

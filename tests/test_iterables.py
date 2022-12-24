@@ -1,12 +1,10 @@
 import operator
 
 import pytest
-from snakeoil.iterables import (caching_iter, expandable_chain, iter_sort,
-                                partition)
+from snakeoil.iterables import caching_iter, expandable_chain, iter_sort, partition
 
 
 class TestPartition:
-
     def test_empty(self):
         a, b = partition(())
         assert list(a) == []
@@ -23,19 +21,18 @@ class TestPartition:
 
 
 class TestExpandableChain:
-
     def test_normal_function(self):
         i = [iter(range(100)) for x in range(3)]
         e = expandable_chain()
         e.extend(i)
-        assert list(e) == list(range(100))*3
+        assert list(e) == list(range(100)) * 3
         for x in i + [e]:
             pytest.raises(StopIteration, x.__next__)
 
     def test_extend(self):
         e = expandable_chain()
         e.extend(range(100) for i in (1, 2))
-        assert list(e) == list(range(100))*2
+        assert list(e) == list(range(100)) * 2
         with pytest.raises(StopIteration):
             e.extend([[]])
 
@@ -62,7 +59,6 @@ class TestExpandableChain:
 
 
 class TestCachingIter:
-
     def test_iter_consumption(self):
         i = iter(range(100))
         c = caching_iter(i)
@@ -147,6 +143,7 @@ class Test_iter_sort:
     def test_ordering(self):
         def f(l):
             return sorted(l, key=operator.itemgetter(0))
+
         result = list(iter_sort(f, *[iter(range(x, x + 10)) for x in (30, 20, 0, 10)]))
         expected = list(range(40))
         assert result == expected

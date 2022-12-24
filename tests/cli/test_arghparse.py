@@ -11,56 +11,60 @@ from snakeoil.test import argparse_helpers
 
 
 class TestArgparseDocs:
-
     def test_add_argument_docs(self):
         # force using an unpatched version of argparse
         reload(argparse)
 
         parser = argparse.ArgumentParser()
-        parser.add_argument('--foo', action='store_true')
+        parser.add_argument("--foo", action="store_true")
 
         # vanilla argparse doesn't support docs kwargs
         with pytest.raises(TypeError):
             parser.add_argument(
-                '-b', '--blah', action='store_true', docs='Blah blah blah')
+                "-b", "--blah", action="store_true", docs="Blah blah blah"
+            )
         with pytest.raises(TypeError):
-            parser.add_argument_group('fa', description='fa la la', docs='fa la la la')
+            parser.add_argument_group("fa", description="fa la la", docs="fa la la la")
         with pytest.raises(TypeError):
-            parser.add_mutually_exclusive_group('fee', description='fi', docs='fo fum')
+            parser.add_mutually_exclusive_group("fee", description="fi", docs="fo fum")
 
         # forcibly monkey-patch argparse to allow docs kwargs
         reload(arghparse)
 
-        default = 'baz baz'
-        docs = 'blah blah'
+        default = "baz baz"
+        docs = "blah blah"
         for enable_docs, expected_txt in ((False, default), (True, docs)):
             arghparse._generate_docs = enable_docs
             parser = argparse.ArgumentParser()
             subparsers = parser.add_subparsers(description=default, docs=docs)
-            subparser = subparsers.add_parser('foo', description=default, docs=docs)
+            subparser = subparsers.add_parser("foo", description=default, docs=docs)
             action = parser.add_argument(
-                '-b', '--blah', action='store_true', help=default, docs=docs)
-            arg_group = parser.add_argument_group('fa', description=default, docs=docs)
+                "-b", "--blah", action="store_true", help=default, docs=docs
+            )
+            arg_group = parser.add_argument_group("fa", description=default, docs=docs)
             mut_arg_group = parser.add_mutually_exclusive_group()
             mut_action = mut_arg_group.add_argument(
-                '-f', '--fee', action='store_true', help=default, docs=docs)
+                "-f", "--fee", action="store_true", help=default, docs=docs
+            )
 
-            assert getattr(parser._subparsers, 'description', None) == expected_txt
-            assert getattr(subparser, 'description', None) == expected_txt
-            assert getattr(action, 'help', None) == expected_txt
-            assert getattr(arg_group, 'description', None) == expected_txt
-            assert getattr(mut_action, 'help', None) == expected_txt
+            assert getattr(parser._subparsers, "description", None) == expected_txt
+            assert getattr(subparser, "description", None) == expected_txt
+            assert getattr(action, "help", None) == expected_txt
+            assert getattr(arg_group, "description", None) == expected_txt
+            assert getattr(mut_action, "help", None) == expected_txt
 
         # list/tuple-based docs
         arghparse._generate_docs = True
-        docs = 'foo bar'
+        docs = "foo bar"
         parser = argparse.ArgumentParser()
         list_action = parser.add_argument(
-            '-b', '--blah', action='store_true', help=default, docs=list(docs.split()))
+            "-b", "--blah", action="store_true", help=default, docs=list(docs.split())
+        )
         tuple_action = parser.add_argument(
-            '-c', '--cat', action='store_true', help=default, docs=tuple(docs.split()))
-        assert getattr(list_action, 'help', None) == 'foo\nbar'
-        assert getattr(tuple_action, 'help', None) == 'foo\nbar'
+            "-c", "--cat", action="store_true", help=default, docs=tuple(docs.split())
+        )
+        assert getattr(list_action, "help", None) == "foo\nbar"
+        assert getattr(tuple_action, "help", None) == "foo\nbar"
 
 
 class TestOptionalsParser:
@@ -68,7 +72,9 @@ class TestOptionalsParser:
     # TODO: move this to a generic argparse fixture
     @pytest.fixture(autouse=True)
     def __setup_optionals_parser(self):
-        self.optionals_parser = argparse_helpers.mangle_parser(arghparse.OptionalsParser())
+        self.optionals_parser = argparse_helpers.mangle_parser(
+            arghparse.OptionalsParser()
+        )
 
     def test_no_args(self):
         args, unknown = self.optionals_parser.parse_known_optionals([])
@@ -76,14 +82,14 @@ class TestOptionalsParser:
         assert unknown == []
 
     def test_only_positionals(self):
-        self.optionals_parser.add_argument('args')
+        self.optionals_parser.add_argument("args")
         args, unknown = self.optionals_parser.parse_known_optionals([])
-        assert vars(args) == {'args': None}
+        assert vars(args) == {"args": None}
         assert unknown == []
 
     def test_optionals(self):
-        self.optionals_parser.add_argument('--opt1')
-        self.optionals_parser.add_argument('args')
+        self.optionals_parser.add_argument("--opt1")
+        self.optionals_parser.add_argument("args")
         parse = self.optionals_parser.parse_known_optionals
 
         # no args
@@ -92,37 +98,37 @@ class TestOptionalsParser:
         assert unknown == []
 
         # only known optional
-        args, unknown = parse(['--opt1', 'yes'])
-        assert args.opt1 == 'yes'
+        args, unknown = parse(["--opt1", "yes"])
+        assert args.opt1 == "yes"
         assert unknown == []
 
         # unknown optional
-        args, unknown = parse(['--foo'])
+        args, unknown = parse(["--foo"])
         assert args.opt1 is None
-        assert unknown == ['--foo']
+        assert unknown == ["--foo"]
 
         # unknown optional and positional
-        args, unknown = parse(['--foo', 'arg'])
+        args, unknown = parse(["--foo", "arg"])
         assert args.opt1 is None
-        assert unknown == ['--foo', 'arg']
+        assert unknown == ["--foo", "arg"]
 
         # known optional with unknown optional
-        args, unknown = parse(['--opt1', 'yes', '--foo'])
-        assert args.opt1 == 'yes'
-        assert unknown == ['--foo']
+        args, unknown = parse(["--opt1", "yes", "--foo"])
+        assert args.opt1 == "yes"
+        assert unknown == ["--foo"]
         # different order
-        args, unknown = parse(['--foo', '--opt1', 'yes'])
-        assert args.opt1 == 'yes'
-        assert unknown == ['--foo']
+        args, unknown = parse(["--foo", "--opt1", "yes"])
+        assert args.opt1 == "yes"
+        assert unknown == ["--foo"]
 
         # known optional with unknown positional
-        args, unknown = parse(['--opt1', 'yes', 'arg'])
-        assert args.opt1 == 'yes'
-        assert unknown == ['arg']
+        args, unknown = parse(["--opt1", "yes", "arg"])
+        assert args.opt1 == "yes"
+        assert unknown == ["arg"]
         # known optionals parsing stops at the first positional arg
-        args, unknown = parse(['arg', '--opt1', 'yes'])
+        args, unknown = parse(["arg", "--opt1", "yes"])
         assert args.opt1 is None
-        assert unknown == ['arg', '--opt1', 'yes']
+        assert unknown == ["arg", "--opt1", "yes"]
 
 
 class TestCsvActionsParser:
@@ -134,20 +140,19 @@ class TestCsvActionsParser:
 
     def test_bad_action(self):
         with pytest.raises(ValueError) as excinfo:
-            self.csv_parser.add_argument('--arg1', action='unknown')
+            self.csv_parser.add_argument("--arg1", action="unknown")
         assert 'unknown action "unknown"' == str(excinfo.value)
 
     def test_csv_actions(self):
-        self.csv_parser.add_argument('--arg1', action='csv')
-        self.csv_parser.add_argument('--arg2', action='csv_append')
-        self.csv_parser.add_argument('--arg3', action='csv_negations')
-        self.csv_parser.add_argument('--arg4', action='csv_negations_append')
-        self.csv_parser.add_argument('--arg5', action='csv_elements')
-        self.csv_parser.add_argument('--arg6', action='csv_elements_append')
+        self.csv_parser.add_argument("--arg1", action="csv")
+        self.csv_parser.add_argument("--arg2", action="csv_append")
+        self.csv_parser.add_argument("--arg3", action="csv_negations")
+        self.csv_parser.add_argument("--arg4", action="csv_negations_append")
+        self.csv_parser.add_argument("--arg5", action="csv_elements")
+        self.csv_parser.add_argument("--arg6", action="csv_elements_append")
 
 
 class TestArgumentParser(TestCsvActionsParser, TestOptionalsParser):
-
     def test_debug(self):
         # debug passed
         parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser(debug=True))
@@ -161,8 +166,10 @@ class TestArgumentParser(TestCsvActionsParser, TestOptionalsParser):
         assert namespace.debug is False
 
         # debug passed in sys.argv -- early debug attr on the parser instance is set
-        with mock.patch('sys.argv', ['script', '--debug']):
-            parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser(debug=True))
+        with mock.patch("sys.argv", ["script", "--debug"]):
+            parser = argparse_helpers.mangle_parser(
+                arghparse.ArgumentParser(debug=True)
+            )
             assert parser.debug is True
 
     def test_debug_disabled(self):
@@ -176,34 +183,36 @@ class TestArgumentParser(TestCsvActionsParser, TestOptionalsParser):
         # parser attribute still exists
         assert parser.debug is False
         # but namespace attribute doesn't
-        assert not hasattr(namespace, 'debug')
+        assert not hasattr(namespace, "debug")
 
     def test_verbosity(self):
         values = (
             ([], 0),
-            (['-q'], -1),
-            (['--quiet'], -1),
-            (['-v'], 1),
-            (['--verbose'], 1),
-            (['-q', '-v'], 0),
-            (['--quiet', '--verbose'], 0),
-            (['-q', '-q'], -2),
-            (['-v', '-v'], 2),
+            (["-q"], -1),
+            (["--quiet"], -1),
+            (["-v"], 1),
+            (["--verbose"], 1),
+            (["-q", "-v"], 0),
+            (["--quiet", "--verbose"], 0),
+            (["-q", "-q"], -2),
+            (["-v", "-v"], 2),
         )
         for args, val in values:
-            with mock.patch('sys.argv', ['script'] + args):
+            with mock.patch("sys.argv", ["script"] + args):
                 parser = argparse_helpers.mangle_parser(
-                    arghparse.ArgumentParser(quiet=True, verbose=True))
+                    arghparse.ArgumentParser(quiet=True, verbose=True)
+                )
                 namespace = parser.parse_args(args)
-                assert parser.verbosity == val, '{} failed'.format(args)
-                assert namespace.verbosity == val, '{} failed'.format(args)
+                assert parser.verbosity == val, "{} failed".format(args)
+                assert namespace.verbosity == val, "{} failed".format(args)
 
     def test_verbosity_disabled(self):
         parser = argparse_helpers.mangle_parser(
-            arghparse.ArgumentParser(quiet=False, verbose=False))
+            arghparse.ArgumentParser(quiet=False, verbose=False)
+        )
 
         # ensure the options aren't there if disabled
-        for args in ('-q', '--quiet', '-v', '--verbose'):
+        for args in ("-q", "--quiet", "-v", "--verbose"):
             with pytest.raises(argparse_helpers.Error):
                 namespace = parser.parse_args([args])
 
@@ -211,17 +220,15 @@ class TestArgumentParser(TestCsvActionsParser, TestOptionalsParser):
         # parser attribute still exists
         assert parser.verbosity == 0
         # but namespace attribute doesn't
-        assert not hasattr(namespace, 'verbosity')
+        assert not hasattr(namespace, "verbosity")
 
 
 class BaseArgparseOptions:
-
     def setup_method(self, method):
         self.parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser())
 
 
 class TestStoreBoolAction(BaseArgparseOptions):
-
     def setup_method(self, method):
         super().setup_method(method)
         self.parser.add_argument("--testing", action=arghparse.StoreBool, default=None)
@@ -229,13 +236,13 @@ class TestStoreBoolAction(BaseArgparseOptions):
     def test_bool_disabled(self):
         for raw_val in ("n", "no", "false"):
             for allowed in (raw_val.upper(), raw_val.lower()):
-                namespace = self.parser.parse_args(['--testing=' + allowed])
+                namespace = self.parser.parse_args(["--testing=" + allowed])
                 assert namespace.testing is False
 
     def test_bool_enabled(self):
         for raw_val in ("y", "yes", "true"):
             for allowed in (raw_val.upper(), raw_val.lower()):
-                namespace = self.parser.parse_args(['--testing=' + allowed])
+                namespace = self.parser.parse_args(["--testing=" + allowed])
                 assert namespace.testing is True
 
     def test_bool_invalid(self):
@@ -244,249 +251,244 @@ class TestStoreBoolAction(BaseArgparseOptions):
 
 
 class ParseStdinTest(BaseArgparseOptions):
-
     def setup_method(self, method):
         super().setup_method(method)
-        self.parser.add_argument(
-            "testing", nargs='+', action=arghparse.ParseStdin)
+        self.parser.add_argument("testing", nargs="+", action=arghparse.ParseStdin)
 
     def test_none_invalid(self):
         with pytest.raises(argparse_helpers.Error):
             self.parser.parse_args([])
 
     def test_non_stdin(self):
-        namespace = self.parser.parse_args(['foo'])
-        assert namespace.testing == ['foo']
+        namespace = self.parser.parse_args(["foo"])
+        assert namespace.testing == ["foo"]
 
     def test_non_stdin_multiple(self):
-        namespace = self.parser.parse_args(['foo', 'bar'])
-        assert namespace.testing == ['foo', 'bar']
+        namespace = self.parser.parse_args(["foo", "bar"])
+        assert namespace.testing == ["foo", "bar"]
 
     def test_stdin(self):
         # stdin is an interactive tty
-        with mock.patch('sys.stdin.isatty', return_value=True):
+        with mock.patch("sys.stdin.isatty", return_value=True):
             with pytest.raises(argparse_helpers.Error) as excinfo:
-                namespace = self.parser.parse_args(['-'])
-            assert 'only valid when piping data in' in str(excinfo.value)
+                namespace = self.parser.parse_args(["-"])
+            assert "only valid when piping data in" in str(excinfo.value)
 
         # fake piping data in
         for readlines, expected in (
-                ([], []),
-                ([' '], []),
-                (['\n'], []),
-                (['\n', '\n'], []),
-                (['foo'], ['foo']),
-                (['foo '], ['foo']),
-                (['foo\n'], ['foo']),
-                (['foo', 'bar', 'baz'], ['foo', 'bar', 'baz']),
-                (['\nfoo\n', ' bar ', '\nbaz'], ['\nfoo', ' bar', '\nbaz']),
+            ([], []),
+            ([" "], []),
+            (["\n"], []),
+            (["\n", "\n"], []),
+            (["foo"], ["foo"]),
+            (["foo "], ["foo"]),
+            (["foo\n"], ["foo"]),
+            (["foo", "bar", "baz"], ["foo", "bar", "baz"]),
+            (["\nfoo\n", " bar ", "\nbaz"], ["\nfoo", " bar", "\nbaz"]),
         ):
-            with mock.patch('sys.stdin') as stdin, \
-                    mock.patch("builtins.open", mock.mock_open()) as mock_file:
+            with mock.patch("sys.stdin") as stdin, mock.patch(
+                "builtins.open", mock.mock_open()
+            ) as mock_file:
                 stdin.readlines.return_value = readlines
                 stdin.isatty.return_value = False
-                namespace = self.parser.parse_args(['-'])
+                namespace = self.parser.parse_args(["-"])
                 mock_file.assert_called_once_with("/dev/tty")
             assert namespace.testing == expected
 
 
 class TestCommaSeparatedValuesAction(BaseArgparseOptions):
-
     def setup_method(self, method):
         super().setup_method(method)
         self.test_values = (
-            ('', []),
-            (',', []),
-            (',,', []),
-            ('a', ['a']),
-            ('a,b,-c', ['a', 'b', '-c']),
+            ("", []),
+            (",", []),
+            (",,", []),
+            ("a", ["a"]),
+            ("a,b,-c", ["a", "b", "-c"]),
         )
 
-        self.action = 'csv'
+        self.action = "csv"
         self.single_expected = lambda x: x
         self.multi_expected = lambda x: x
 
     def test_parse_args(self):
-        self.parser.add_argument('--testing', action=self.action)
+        self.parser.add_argument("--testing", action=self.action)
         for raw_val, expected in self.test_values:
-            namespace = self.parser.parse_args(['--testing=' + raw_val])
+            namespace = self.parser.parse_args(["--testing=" + raw_val])
             assert namespace.testing == self.single_expected(expected)
 
     def test_parse_multi_args(self):
-        self.parser.add_argument('--testing', action=self.action)
+        self.parser.add_argument("--testing", action=self.action)
         for raw_val, expected in self.test_values:
-            namespace = self.parser.parse_args([
-                '--testing=' + raw_val, '--testing=' + raw_val,
-            ])
+            namespace = self.parser.parse_args(
+                [
+                    "--testing=" + raw_val,
+                    "--testing=" + raw_val,
+                ]
+            )
             assert namespace.testing == self.multi_expected(expected)
 
 
 class TestCommaSeparatedValuesAppendAction(TestCommaSeparatedValuesAction):
-
     def setup_method(self, method):
         super().setup_method(method)
-        self.action = 'csv_append'
+        self.action = "csv_append"
         self.multi_expected = lambda x: x + x
 
 
 class TestCommaSeparatedNegationsAction(TestCommaSeparatedValuesAction):
-
     def setup_method(self, method):
         super().setup_method(method)
         self.test_values = (
-            ('', ([], [])),
-            (',', ([], [])),
-            (',,', ([], [])),
-            ('a', ([], ['a'])),
-            ('-a', (['a'], [])),
-            ('a,-b,-c,d', (['b', 'c'], ['a', 'd'])),
+            ("", ([], [])),
+            (",", ([], [])),
+            (",,", ([], [])),
+            ("a", ([], ["a"])),
+            ("-a", (["a"], [])),
+            ("a,-b,-c,d", (["b", "c"], ["a", "d"])),
         )
-        self.bad_args = ('-',)
-        self.action = 'csv_negations'
+        self.bad_args = ("-",)
+        self.action = "csv_negations"
 
     def test_parse_bad_args(self):
-        self.parser.add_argument('--testing', action=self.action)
+        self.parser.add_argument("--testing", action=self.action)
         for arg in self.bad_args:
             with pytest.raises(argparse.ArgumentTypeError) as excinfo:
-                namespace = self.parser.parse_args(['--testing=' + arg])
-            assert 'without a token' in str(excinfo.value)
+                namespace = self.parser.parse_args(["--testing=" + arg])
+            assert "without a token" in str(excinfo.value)
 
 
 class TestCommaSeparatedNegationsAppendAction(TestCommaSeparatedNegationsAction):
-
     def setup_method(self, method):
         super().setup_method(method)
-        self.action = 'csv_negations_append'
+        self.action = "csv_negations_append"
         self.multi_expected = lambda x: tuple(x + y for x, y in zip(x, x))
 
 
 class TestCommaSeparatedElementsAction(TestCommaSeparatedNegationsAction):
-
     def setup_method(self, method):
         super().setup_method(method)
         self.test_values = (
-            ('', ([], [], [])),
-            (',', ([], [], [])),
-            (',,', ([], [], [])),
-            ('-a', (['a'], [], [])),
-            ('a', ([], ['a'], [])),
-            ('+a', ([], [], ['a'])),
-            ('a,-b,-c,d', (['b', 'c'], ['a', 'd'], [])),
-            ('a,-b,+c,-d,+e,f', (['b', 'd'], ['a', 'f'], ['c', 'e'])),
+            ("", ([], [], [])),
+            (",", ([], [], [])),
+            (",,", ([], [], [])),
+            ("-a", (["a"], [], [])),
+            ("a", ([], ["a"], [])),
+            ("+a", ([], [], ["a"])),
+            ("a,-b,-c,d", (["b", "c"], ["a", "d"], [])),
+            ("a,-b,+c,-d,+e,f", (["b", "d"], ["a", "f"], ["c", "e"])),
         )
-        self.bad_values = ('-', '+')
-        self.action = 'csv_elements'
+        self.bad_values = ("-", "+")
+        self.action = "csv_elements"
 
 
 class TestCommaSeparatedElementsAppendAction(TestCommaSeparatedElementsAction):
-
     def setup_method(self, method):
         super().setup_method(method)
-        self.action = 'csv_elements_append'
+        self.action = "csv_elements_append"
         self.multi_expected = lambda x: tuple(x + y for x, y in zip(x, x))
 
 
 class TestExistentPathType(BaseArgparseOptions):
-
     def setup_method(self, method):
         super().setup_method(method)
-        self.parser.add_argument('--path', type=arghparse.existent_path)
+        self.parser.add_argument("--path", type=arghparse.existent_path)
 
     def test_nonexistent(self):
         # nonexistent path arg raises an error
         with pytest.raises(argparse_helpers.Error):
-            self.parser.parse_args(['--path=/path/to/nowhere'])
+            self.parser.parse_args(["--path=/path/to/nowhere"])
 
     def test_os_errors(self, tmpdir):
         # random OS/FS issues raise errors
-        with mock.patch('os.path.realpath') as realpath:
-            realpath.side_effect = OSError(19, 'Random OS error')
+        with mock.patch("os.path.realpath") as realpath:
+            realpath.side_effect = OSError(19, "Random OS error")
             with pytest.raises(argparse_helpers.Error):
-                self.parser.parse_args(['--path=%s' % tmpdir])
+                self.parser.parse_args(["--path=%s" % tmpdir])
 
     def test_regular_usage(self, tmpdir):
-        namespace = self.parser.parse_args(['--path=%s' % tmpdir])
+        namespace = self.parser.parse_args(["--path=%s" % tmpdir])
         assert namespace.path == str(tmpdir)
 
 
 class TestExistentDirType(BaseArgparseOptions):
-
     def setup_method(self, method):
         super().setup_method(method)
-        self.parser.add_argument('--path', type=arghparse.existent_dir)
+        self.parser.add_argument("--path", type=arghparse.existent_dir)
 
     def test_nonexistent(self):
         # nonexistent path arg raises an error
         with pytest.raises(argparse_helpers.Error):
-            self.parser.parse_args(['--path=/path/to/nowhere'])
+            self.parser.parse_args(["--path=/path/to/nowhere"])
 
     def test_os_errors(self, tmp_path):
         # random OS/FS issues raise errors
-        with mock.patch('os.path.realpath') as realpath:
-            realpath.side_effect = OSError(19, 'Random OS error')
+        with mock.patch("os.path.realpath") as realpath:
+            realpath.side_effect = OSError(19, "Random OS error")
             with pytest.raises(argparse_helpers.Error):
-                self.parser.parse_args([f'--path={tmp_path}'])
+                self.parser.parse_args([f"--path={tmp_path}"])
 
     def test_file_path(self, tmp_path):
-        f = tmp_path / 'file'
+        f = tmp_path / "file"
         f.touch()
         with pytest.raises(argparse_helpers.Error):
-            self.parser.parse_args([f'--path={f}'])
+            self.parser.parse_args([f"--path={f}"])
 
     def test_regular_usage(self, tmp_path):
-        namespace = self.parser.parse_args([f'--path={tmp_path}'])
+        namespace = self.parser.parse_args([f"--path={tmp_path}"])
         assert namespace.path == str(tmp_path)
 
 
 class TestNamespace:
-
     def setup_method(self, method):
         self.parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser())
 
     def test_pop(self):
-        self.parser.set_defaults(test='test')
+        self.parser.set_defaults(test="test")
         namespace = self.parser.parse_args([])
-        assert namespace.pop('test') == 'test'
+        assert namespace.pop("test") == "test"
 
         # re-popping raises an exception since the attr has been removed
         with pytest.raises(AttributeError):
-            namespace.pop('test')
+            namespace.pop("test")
 
         # popping a nonexistent attr with a fallback returns the fallback
-        assert namespace.pop('nonexistent', 'foo') == 'foo'
+        assert namespace.pop("nonexistent", "foo") == "foo"
 
     def test_collapse_delayed(self):
         def _delayed_val(namespace, attr, val):
             setattr(namespace, attr, val)
-        self.parser.set_defaults(delayed=arghparse.DelayedValue(partial(_delayed_val, val=42)))
+
+        self.parser.set_defaults(
+            delayed=arghparse.DelayedValue(partial(_delayed_val, val=42))
+        )
         namespace = self.parser.parse_args([])
         assert namespace.delayed == 42
 
     def test_bool(self):
         namespace = arghparse.Namespace()
         assert not namespace
-        namespace.arg = 'foo'
+        namespace.arg = "foo"
         assert namespace
 
 
 class TestManHelpAction:
-
     def test_help(self, capsys):
         parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser())
-        with mock.patch('subprocess.Popen') as popen:
+        with mock.patch("subprocess.Popen") as popen:
             # --help long option tries man page first before falling back to help output
             with pytest.raises(argparse_helpers.Exit):
-                namespace = parser.parse_args(['--help'])
+                namespace = parser.parse_args(["--help"])
             popen.assert_called_once()
-            assert popen.call_args[0][0][0] == 'man'
+            assert popen.call_args[0][0][0] == "man"
             captured = capsys.readouterr()
-            assert captured.out.strip().startswith('usage: ')
+            assert captured.out.strip().startswith("usage: ")
             popen.reset_mock()
 
             # -h short option just displays the regular help output
             with pytest.raises(argparse_helpers.Exit):
-                namespace = parser.parse_args(['-h'])
+                namespace = parser.parse_args(["-h"])
             popen.assert_not_called()
             captured = capsys.readouterr()
-            assert captured.out.strip().startswith('usage: ')
+            assert captured.out.strip().startswith("usage: ")
             popen.reset_mock()

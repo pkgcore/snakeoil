@@ -3,7 +3,8 @@ pickling convenience module
 """
 
 __all__ = (
-    "iter_stream", "dump_stream",
+    "iter_stream",
+    "dump_stream",
 )
 
 from pickle import dump, load
