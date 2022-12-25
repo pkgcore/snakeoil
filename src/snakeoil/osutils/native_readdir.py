@@ -99,8 +99,7 @@ def readdir(path):
     :param path: path of a directory to scan
     :return: list of (filename, filetype)
     """
-    pjf = pjoin
-    things = listdir(path)
-    lstat = os.lstat
-    dt = d_type_mapping
-    return [(name, dt[S_IFMT(lstat(pjf(path, name)).st_mode)]) for name in things]
+    return [
+        (name, d_type_mapping[S_IFMT(os.lstat(pjoin(path, name)).st_mode)])
+        for name in os.listdir(path)
+    ]
