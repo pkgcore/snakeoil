@@ -46,7 +46,7 @@ class TestArComp:
             ArComp(file, ext=".foo")
 
     def test_missing_tar(self, tmp_path, tar_file):
-        with hide_binary("tar"), chdir(tmp_path):
+        with hide_binary("gtar", "tar"), chdir(tmp_path):
             with pytest.raises(ArCompError, match="required binary not found"):
                 ArComp(tar_file, ext=".tar").unpack(dest=tmp_path)
 
