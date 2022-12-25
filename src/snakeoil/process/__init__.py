@@ -92,6 +92,3 @@ class CommandNotFound(Exception):
 class ProcessNotFound(Exception):
     def __init__(self, pid):
         super().__init__(f"nonexistent process: {pid}")
-
-
-closerange = os.closerange

@@ -19,7 +19,7 @@ import sys
 
 from ..mappings import ProtectedDict
 from ..osutils import access
-from . import CommandNotFound, closerange, find_binary
+from . import find_binary
 
 BASH_BINARY = find_binary("bash", fallback="/bin/bash")
 SANDBOX_BINARY = find_binary("sandbox", fallback="/usr/bin/sandbox")
@@ -336,10 +336,10 @@ def _exec(
     last = 0
     for fd in sorted(fd_pipes):
         if fd != last:
-            closerange(last, fd)
+            os.closerange(last, fd)
         last = fd + 1
 
-    closerange(last, max_fd_limit)
+    os.closerange(last, max_fd_limit)
 
     if cwd is not None:
         os.chdir(cwd)
