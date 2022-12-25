@@ -56,7 +56,8 @@ def enable():
     """Enable lazy loading for all future module imports."""
     if os.environ.get("SNAKEOIL_DEMANDIMPORT", "y").lower() not in (
         "n",
-        "no" "0",
+        "no",
+        "0",
         "false",
     ):
         sys.path_hooks.insert(0, _filefinder)

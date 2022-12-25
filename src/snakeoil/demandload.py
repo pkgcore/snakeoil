@@ -313,7 +313,8 @@ def disabled_demand_compile_regexp(name, *args, **kwargs):
 
 if os.environ.get("SNAKEOIL_DEMANDLOAD_DISABLED", "n").lower() in (
     "y",
-    "yes" "1",
+    "yes",
+    "1",
     "true",
 ):
     demandload = disabled_demandload
