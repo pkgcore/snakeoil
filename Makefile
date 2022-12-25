@@ -13,3 +13,7 @@ sdist wheel:
 .PHONY: clean
 clean:
 	$(RM) -r build/sphinx doc/api dist
+
+.PHONY: format
+format:
+	$(PYTHON) -m black .
