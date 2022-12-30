@@ -234,5 +234,5 @@ class FormattingHandler(logging.Handler):
             self.handleError(record)
         finally:
             self.out.later_prefix.pop()
-            for i in range(len(first_prefix)):
+            for _ in range(len(first_prefix)):
                 self.out.first_prefix.pop()

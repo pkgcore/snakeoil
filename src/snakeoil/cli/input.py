@@ -91,11 +91,10 @@ def userquery(prompt, out, err, responses=None, default_answer=None, limit=3):
             )
         )
         if not results:
-            err.write("Sorry, response %r not understood." % (response,))
+            err.write(f"Sorry, response {response!r} not understood.")
         elif len(results) > 1:
             err.write(
-                "Response %r is ambiguous (%s)"
-                % (response, ", ".join(key for key, val in results))
+                f"Response {response!r} is ambiguous ({', '.join(key for key, _ in results)})"
             )
         else:
             return list(results)[0][1][0]

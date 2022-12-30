@@ -148,13 +148,13 @@ class CommaSeparatedValues(argparse._AppendAction):
     """Split comma-separated values into a list."""
 
     def parse_values(self, values):
-        items = []
         if isinstance(values, str):
-            items.extend(x for x in values.split(",") if x)
+            return list(filter(None, values.split(",")))
         else:
+            items = []
             for value in values:
                 items.extend(x for x in value.split(",") if x)
-        return items
+            return items
 
     def __call__(self, parser, namespace, values, option_string=None):
         items = self.parse_values(values)
@@ -188,9 +188,9 @@ class CommaSeparatedNegations(argparse._AppendAction):
             values = [values]
         for value in values:
             try:
-                neg, pos = split_negations(x for x in value.split(",") if x)
-            except ValueError as e:
-                raise argparse.ArgumentTypeError(e)
+                neg, pos = split_negations(filter(None, value.split(",")))
+            except ValueError as exc:
+                raise argparse.ArgumentTypeError(exc)
             disabled.extend(neg)
             enabled.extend(pos)
 
@@ -236,9 +236,9 @@ class CommaSeparatedElements(argparse._AppendAction):
             values = [values]
         for value in values:
             try:
-                neg, neu, pos = split_elements(x for x in value.split(",") if x)
-            except ValueError as e:
-                raise argparse.ArgumentTypeError(e)
+                neg, neu, pos = split_elements(filter(None, value.split(",")))
+            except ValueError as exc:
+                raise argparse.ArgumentTypeError(exc)
             disabled.extend(neg)
             neutral.extend(neu)
             enabled.extend(pos)
@@ -323,7 +323,7 @@ class StoreBool(argparse._StoreAction):
             return True
         elif value in ("n", "no", "false", "0"):
             return False
-        raise ValueError("value %r must be [y|yes|true|1|n|no|false|0]" % (value,))
+        raise ValueError(f"value {value!r} must be [y|yes|true|1|n|no|false|0]")
 
 
 class EnableDebug(argparse._StoreTrueAction):
@@ -469,7 +469,7 @@ class Expansion(argparse.Action):
             args = [x % dvals for x in args]
             if not action:
                 raise ValueError(
-                    "unable to find option %r for %r" % (option, self.option_strings)
+                    f"unable to find option {option!r} for {self.option_strings!r}"
                 )
             if action.type is not None:
                 args = list(map(action.type, args))
@@ -1137,7 +1137,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
                     help="enable/disable color support",
                     docs="""
                         Toggle colored output support. This can be used to forcibly
-                        enable color support when piping output or other sitations
+                        enable color support when piping output or other situations
                         where stdout is not a tty.
                     """,
                 )
@@ -1273,7 +1273,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
                 namespace.main_func = subcmd_parser.__main_func
 
         if unknown_args:
-            self.error("unrecognized arguments: %s" % " ".join(unknown_args))
+            self.error(f"unrecognized arguments: {' '.join(unknown_args)}")
 
         # Two runs are required; first, handle any suppression defaults
         # introduced. Subparsers defaults cannot override the parent parser, as
@@ -1302,19 +1302,17 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
         try:
             for attr, delayed in sorted(i, key=lambda val: val[1].priority):
                 delayed(args, attr)
-        except (TypeError, ValueError) as e:
-            raise TypeError("failed loading/parsing '%s': %s" % (attr, str(e))) from e
+        except (TypeError, ValueError) as exc:
+            raise TypeError(f"failed loading/parsing {attr!r}: {exc}") from exc
         except argparse.ArgumentError:
-            e = sys.exc_info()[1]
-            self.error(str(e))
+            exc = sys.exc_info()[1]
+            self.error(str(exc))
 
         # run final arg validation
-        final_checks = [
-            k for k in args.__dict__.keys() if k.startswith("__final_check__")
-        ]
-        for check in final_checks:
-            functor = args.pop(check)
-            functor(self, args)
+        for check in set(vars(args).keys()):
+            if check.startswith("__final_check__"):
+                functor = args.pop(check)
+                functor(self, args)
 
         return args
 
@@ -1327,7 +1325,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
         if self.debug and sys.exc_info() != (None, None, None):
             # output traceback if any exception is on the stack
             traceback.print_exc()
-        self.exit(status, "%s: error: %s\n" % (self.prog, message))
+        self.exit(status, f"{self.prog}: error: {message}\n")
 
     def bind_main_func(self, functor):
         """Decorator to set a main function for the parser."""
@@ -1340,7 +1338,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
     def bind_class(self, obj):
         if not isinstance(obj, ArgparseCommand):
             raise ValueError(
-                "expected obj to be an instance of " "ArgparseCommand; got %r" % (obj,)
+                f"expected obj to be an instance of ArgparseCommand; got {obj!r}"
             )
         obj.bind_to_parser(self)
         return self
