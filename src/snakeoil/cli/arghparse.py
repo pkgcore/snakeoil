@@ -1309,7 +1309,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
             self.error(str(exc))
 
         # run final arg validation
-        for check in set(args.__dict__.keys()):
+        for check in tuple(args.__dict__.keys()):
             if check.startswith("__final_check__"):
                 functor = args.pop(check)
                 functor(self, args)
