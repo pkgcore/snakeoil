@@ -10,7 +10,6 @@ from unittest import mock
 import pytest
 from snakeoil import osutils
 from snakeoil.contexts import Namespace
-from snakeoil.fileutils import touch
 from snakeoil.osutils import native_readdir, supported_systems, sizeof_fmt
 from snakeoil.osutils.mount import MNT_DETACH, MS_BIND, mount, umount
 
@@ -114,8 +113,7 @@ class TestEnsureDirs:
 
     def test_path_is_a_file(self, tmp_path):
         # fail if passed a path to an existing file
-        path = tmp_path / "file"
-        touch(path)
+        (path := tmp_path / "file").touch()
         assert path.is_file()
         assert not osutils.ensure_dirs(path, mode=0o700)
 

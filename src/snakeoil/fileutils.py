@@ -12,21 +12,17 @@ from .currying import pretty_docs
 from .klass import GetAttrProxy
 
 
-def touch(fname, mode=0o644, **kwargs):
+def touch(fname: str, mode: int = 0o644, dir_fd=None, **kwargs):
     """touch(1) equivalent
 
     :param fname: file path
-    :type fname: str
     :param mode: file mode
-    :type mode: octal
 
     See os.utime for other supported arguments.
     """
     flags = os.O_CREAT | os.O_APPEND
-    dir_fd = kwargs.get("dir_fd", None)
-    os_open = partial(os.open, dir_fd=dir_fd)
 
-    with os.fdopen(os_open(fname, flags, mode)) as f:
+    with os.fdopen(os.open(fname, flags, mode, dir_fd=dir_fd)) as f:
         os.utime(
             f.fileno() if os.utime in os.supports_fd else fname,
             dir_fd=None if os.supports_fd else dir_fd,
@@ -34,7 +30,7 @@ def touch(fname, mode=0o644, **kwargs):
         )
 
 
-def mmap_or_open_for_read(path):
+def mmap_or_open_for_read(path: str):
     size = os.stat(path).st_size
     if size == 0:
         return (None, data_source.bytes_ro_StringIO(b""))
@@ -153,10 +149,10 @@ class AtomicWriteFile(AtomicWriteFile_mixin):
     __getattr__ = GetAttrProxy("raw")
 
 
-def _mk_pretty_derived_func(func, name_base, name, *args, **kwds):
+def _mk_pretty_derived_func(func, name_base: str, name: str, *args, **kwds):
     if name:
         name = "_" + name
-    return pretty_docs(partial(func, *args, **kwds), name="%s%s" % (name_base, name))
+    return pretty_docs(partial(func, *args, **kwds), name=name_base + name)
 
 
 _mk_readfile = partial(_mk_pretty_derived_func, _fileutils.native_readfile, "readfile")

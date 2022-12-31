@@ -122,13 +122,6 @@ class TestAtomicWriteFile:
         af.close()
 
 
-def cpy_setup_class(scope, func_name):
-    if getattr(fileutils, "native_%s" % func_name) is getattr(fileutils, func_name):
-        scope["skip"] = "extensions disabled"
-    else:
-        scope["func"] = staticmethod(getattr(fileutils, func_name))
-
-
 class Test_readfile:
     func = staticmethod(fileutils.readfile)
 
