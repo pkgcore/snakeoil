@@ -556,6 +556,8 @@ class CsvHelpFormatter(argparse.HelpFormatter):
             result = "%s[,-%s,...]" % get_metavar(2)
         elif isinstance(action, (CommaSeparatedElements, CommaSeparatedElementsAppend)):
             result = "%s[,-%s,+%s...]" % get_metavar(3)
+        elif isinstance(action, Delayed):
+            result = self._format_args(action.target, default_metavar)
         else:
             result = super()._format_args(action, default_metavar)
         return result
