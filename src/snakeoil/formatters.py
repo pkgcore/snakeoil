@@ -4,6 +4,7 @@ import errno
 import io
 import locale
 import os
+import typing
 from functools import partial
 
 from .klass import GetAttrProxy, steal_docs
@@ -49,7 +50,11 @@ class Formatter:
         self.autoline = True
         self.wrap = False
 
-    def write(self, *args, **kwargs):
+    def write(
+        self,
+        *args: typing.Union[None, str, typing.Callable[["Formatter"], None]],
+        **kwargs,
+    ):
         """Write something to the stream.
 
         Acceptable arguments are:
@@ -80,7 +85,7 @@ class Formatter:
         to write.
         """
 
-    def fg(self, color=None):
+    def fg(self, color: typing.Optional[str] = None) -> str:
         """Change foreground color.
 
         :param color: color to change to. A default is used if omitted.
@@ -89,7 +94,7 @@ class Formatter:
             color, if possible for this formatter.
         """
 
-    def bg(self, color=None):
+    def bg(self, color: typing.Optional[str] = None) -> str:
         """Change background color.
 
         :param color: color to change to. A default is used if omitted.
@@ -98,15 +103,21 @@ class Formatter:
             color, if possible for this formatter.
         """
 
-    def error(self, message):
+    def error(
+        self, message: typing.Union[None, str, typing.Callable[["Formatter"], None]]
+    ):
         """Format a string as an error message."""
         self.write(message, prefixes=(self.fg("red"), self.bold, "!!! ", self.reset))
 
-    def warn(self, message):
+    def warn(
+        self, message: typing.Union[None, str, typing.Callable[["Formatter"], None]]
+    ):
         """Format a string as a warning message."""
         self.write(message, prefixes=(self.fg("yellow"), self.bold, "*** ", self.reset))
 
-    def title(self, string):
+    def title(
+        self, string: typing.Union[None, str, typing.Callable[["Formatter"], None]]
+    ):
         """Set the title to string"""
 
     def flush(self):
@@ -125,7 +136,9 @@ class PlainTextFormatter(Formatter):
 
     bold = underline = reset = ""
 
-    def __init__(self, stream, width=79, encoding=None):
+    def __init__(
+        self, stream: typing.IO, width: int = 79, encoding: typing.Optional[str] = None
+    ):
         """Initialize.
 
         :type stream: file-like object.
@@ -321,7 +334,7 @@ class _BogusTerminfo(ValueError):
 class TerminfoUnsupported(Exception):
     """Raised if our terminal type is unsupported."""
 
-    def __init__(self, term):
+    def __init__(self, term: str):
         self.term = term
 
     def __str__(self):
@@ -345,11 +358,11 @@ else:
 
         __slots__ = ("mode", "color", "__weakref__")
 
-        def __init__(self, mode, color):
+        def __init__(self, mode: int, color: str):
             object.__setattr__(self, "mode", mode)
             object.__setattr__(self, "color", color)
 
-        def __call__(self, formatter):
+        def __call__(self, formatter: "TerminfoFormatter"):
             if self.color is None:
                 formatter._current_colors[self.mode] = None
                 res = formatter._color_reset
@@ -398,7 +411,7 @@ else:
         __doc__ = TerminfoCode.__doc__
         __slots__ = ()
 
-        def __call__(self, formatter):
+        def __call__(self, formatter: "TerminfoFormatter"):
             formatter._modes.add(self)
             formatter.stream.write(self.value)
 
@@ -407,7 +420,7 @@ else:
         __doc__ = TerminfoCode.__doc__
         __slots__ = ()
 
-        def __call__(self, formatter):
+        def __call__(self, formatter: "TerminfoFormatter"):
             formatter._modes.clear()
             formatter.stream.write(self.value)
 
@@ -425,7 +438,12 @@ else:
             white=curses.COLOR_WHITE,
         )
 
-        def __init__(self, stream, term=None, encoding=None):
+        def __init__(
+            self,
+            stream: typing.IO,
+            term: typing.Optional[str] = None,
+            encoding: typing.Optional[str] = None,
+        ):
             """Initialize.
 
             :type stream: file-like object.
@@ -521,7 +539,7 @@ class ObserverFormatter:
 fileno_excepts = (AttributeError, io.UnsupportedOperation)
 
 
-def get_formatter(stream, force_color=False):
+def get_formatter(stream: typing.IO, force_color: bool = False):
     """TerminfoFormatter if the stream is a tty, else PlainTextFormatter."""
     if TerminfoColor is None:
         return PlainTextFormatter(stream)
@@ -547,7 +565,7 @@ def decorate_forced_wrapping(setting=True):
     """Decorator to force a specific line wrapping state for the duration of invocation."""
 
     def wrapped_func(func):
-        def f(out, *args, **kwds):
+        def f(out: Formatter, *args, **kwds):
             oldwrap = out.wrap
             out.wrap = setting
             try:
