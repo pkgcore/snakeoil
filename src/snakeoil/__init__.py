@@ -11,4 +11,4 @@ This library is a bit of a grabbag of the following:
 """
 
 __title__ = "snakeoil"
-__version__ = "0.10.4"
+__version__ = "0.10.5"

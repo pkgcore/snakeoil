@@ -2,6 +2,16 @@
 Release Notes
 =============
 
+snakeoil 0.10.5 (2023-01-20)
+----------------------------
+
+- cli.arghparse: improve _format_args for Delayed (Arthur Zamarin)
+  https://github.com/pkgcore/pkgcheck/issues/520
+
+- compression: prefer gtar over tar if available (Sam James, #93)
+
+- format code with ``black`` (Brian Harring, Arthur Zamarin, #95)
+
 snakeoil 0.10.4 (2022-12-09)
 ----------------------------
 
