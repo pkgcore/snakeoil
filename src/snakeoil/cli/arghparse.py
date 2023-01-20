@@ -519,8 +519,7 @@ class _SubParser(argparse._SubParsersAction):
         Reverts the broken upstream change made in issue #9351 which causes
         issue #23058. This can be dropped when the problem is fixed upstream.
         """
-        parser_name = values[0]
-        arg_strings = values[1:]
+        parser_name, *arg_strings = values
 
         # set the parser name if requested
         if self.dest is not argparse.SUPPRESS:
@@ -555,7 +554,7 @@ class CsvHelpFormatter(argparse.HelpFormatter):
         ):
             result = "%s[,-%s,...]" % get_metavar(2)
         elif isinstance(action, (CommaSeparatedElements, CommaSeparatedElementsAppend)):
-            result = "%s[,-%s,+%s...]" % get_metavar(3)
+            result = "%s[,-%s,+%s,...]" % get_metavar(3)
         elif isinstance(action, Delayed):
             result = self._format_args(action.target, default_metavar)
         else:
