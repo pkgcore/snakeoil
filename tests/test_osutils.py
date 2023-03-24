@@ -207,7 +207,6 @@ class TestAbsSymlink:
 
 
 class Test_Native_NormPath:
-
     func = staticmethod(osutils.normpath)
 
     def test_normpath(self):
@@ -245,7 +244,6 @@ class Test_Native_NormPath:
 
 @pytest.mark.skipif(os.getuid() != 0, reason="these tests must be ran as root")
 class TestAccess:
-
     func = staticmethod(osutils.fallback_access)
 
     def test_fallback(self, tmp_path):
@@ -261,7 +259,6 @@ class TestAccess:
 
 
 class Test_unlink_if_exists:
-
     func = staticmethod(osutils.unlink_if_exists)
 
     def test_it(self, tmp_path):

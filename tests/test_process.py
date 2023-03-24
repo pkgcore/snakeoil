@@ -7,7 +7,6 @@ from snakeoil import process
 
 
 class TestFindBinary:
-
     script = "findpath-test.sh"
 
     @pytest.fixture(autouse=True)

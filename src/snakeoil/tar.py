@@ -110,7 +110,6 @@ class TarInfo(tarfile.TarInfo):
 
 # add in a tweaked ExFileObject that is usable by snakeoil.data_source
 class ExFileObject(tarfile.ExFileObject):
-
     exceptions = (EnvironmentError,)
 
 

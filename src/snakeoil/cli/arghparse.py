@@ -726,7 +726,6 @@ class OptionalsParser(argparse.ArgumentParser):
         arg_string_pattern_parts = []
         arg_strings_iter = iter(arg_strings)
         for i, arg_string in enumerate(arg_strings_iter):
-
             # all args after -- are non-options
             if arg_string == "--":
                 arg_string_pattern_parts.append("-")
@@ -773,7 +772,6 @@ class OptionalsParser(argparse.ArgumentParser):
 
         # function to convert arg_strings into an optional action
         def consume_optional(start_index):
-
             # get the optional identified at this index
             option_tuple = option_string_indices[start_index]
             action, option_string, explicit_arg = option_tuple
@@ -783,7 +781,6 @@ class OptionalsParser(argparse.ArgumentParser):
             match_argument = self._match_argument
             action_tuples = []
             while True:
-
                 # if we found no optional action, skip it
                 if action is None:
                     extras.append(arg_strings[start_index])
@@ -882,7 +879,6 @@ class OptionalsParser(argparse.ArgumentParser):
         else:
             max_option_string_index = -1
         while start_index <= max_option_string_index:
-
             # consume any Positionals preceding the next option
             next_option_string_index = min(
                 [index for index in option_string_indices if index >= start_index]

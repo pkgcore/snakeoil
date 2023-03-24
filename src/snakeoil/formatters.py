@@ -407,7 +407,6 @@ else:
             raise AttributeError(f"{self.__class__.__name__} instances are immutable")
 
     class TerminfoMode(TerminfoCode):
-
         __doc__ = TerminfoCode.__doc__
         __slots__ = ()
 
@@ -416,7 +415,6 @@ else:
             formatter.stream.write(self.value)
 
     class TerminfoReset(TerminfoCode):
-
         __doc__ = TerminfoCode.__doc__
         __slots__ = ()
 

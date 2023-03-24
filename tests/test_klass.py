@@ -137,7 +137,6 @@ class Test_get:
 
 
 class Test_chained_getter:
-
     kls = klass.chained_getter
 
     def test_hash(self):
@@ -178,7 +177,6 @@ class Test_chained_getter:
 
 
 class Test_jit_attr:
-
     kls = staticmethod(klass._internal_jit_attr)
 
     @property
@@ -201,7 +199,6 @@ class Test_jit_attr:
         func=None,
         singleton=klass._uncached_singleton,
     ):
-
         f = func
         if not func:
 
@@ -435,7 +432,6 @@ class Test_jit_attr:
 
 
 class Test_aliased_attr:
-
     func = staticmethod(klass.alias_attr)
 
     def test_it(self):
@@ -561,7 +557,6 @@ class TestImmutableInstance:
 
 
 class TestAliasMethod:
-
     func = staticmethod(klass.alias_method)
 
     def test_alias_method(self):

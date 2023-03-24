@@ -26,7 +26,7 @@ def touch(fname: str, mode: int = 0o644, dir_fd=None, **kwargs):
         os.utime(
             f.fileno() if os.utime in os.supports_fd else fname,
             dir_fd=None if os.supports_fd else dir_fd,
-            **kwargs
+            **kwargs,
         )
 
 
@@ -135,7 +135,6 @@ class AtomicWriteFile_mixin:
 
 
 class AtomicWriteFile(AtomicWriteFile_mixin):
-
     __doc__ = AtomicWriteFile_mixin.__doc__
 
     def _actual_init(self):

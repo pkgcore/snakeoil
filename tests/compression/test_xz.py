@@ -22,7 +22,6 @@ def test_missing_xz_binary():
 
 
 class XzBase(Base):
-
     module = "xz"
     decompressed_test_data = b"Some text here\n" * 2
     compressed_test_data = (

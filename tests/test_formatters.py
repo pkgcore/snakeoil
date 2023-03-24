@@ -13,7 +13,6 @@ issue7567 = protect_process
 
 
 class TestPlainTextFormatter:
-
     kls = staticmethod(formatters.PlainTextFormatter)
 
     def test_basics(self):

@@ -2,7 +2,6 @@ from . import mixins
 
 
 class ExportedModules(mixins.PythonNamespaceWalker):
-
     target_namespace = "snakeoil"
 
     def test__all__accuracy(self):

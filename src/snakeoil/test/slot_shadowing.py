@@ -4,7 +4,6 @@ from . import mixins
 
 
 class SlotShadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker):
-
     target_namespace = "snakeoil"
     err_if_slots_is_str = True
     err_if_slots_is_mutable = True

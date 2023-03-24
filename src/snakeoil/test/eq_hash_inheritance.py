@@ -2,7 +2,6 @@ from . import mixins
 
 
 class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker):
-
     target_namespace = "snakeoil"
 
     singleton = object()

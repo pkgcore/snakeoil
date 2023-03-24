@@ -3,7 +3,6 @@ from snakeoil.test import mixins
 
 
 class TestDemandLoadTargets(mixins.PythonNamespaceWalker):
-
     target_namespace = "snakeoil"
     ignore_all_import_failures = False
 

@@ -18,7 +18,6 @@ class MissingChksumHandler(Exception):
 
 
 def get_handler(requested):
-
     """
     get a chksum handler
 
@@ -34,7 +33,6 @@ def get_handler(requested):
 
 
 def get_handlers(requested=None):
-
     """
     get multiple chksum handlers
 
@@ -55,7 +53,6 @@ def get_handlers(requested=None):
 
 
 def init(additional_handlers=None):
-
     """
     init the chksum subsystem.
 

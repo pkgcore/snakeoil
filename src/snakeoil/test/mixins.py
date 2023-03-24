@@ -8,7 +8,6 @@ from ..compatibility import IGNORED_EXCEPTIONS
 
 
 class PythonNamespaceWalker:
-
     ignore_all_import_failures = False
 
     valid_inits = frozenset(f"__init__.{x}" for x in ("py", "pyc", "pyo", "so"))
@@ -144,7 +143,6 @@ class TargetedNamespaceWalker(PythonNamespaceWalker):
 
 
 class _classWalker:
-
     cls_blacklist = frozenset()
 
     def is_blacklisted(self, cls):

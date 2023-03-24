@@ -65,7 +65,6 @@ class TestTouch:
 
 
 class TestAtomicWriteFile:
-
     kls = AtomicWriteFile
 
     def test_normal_ops(self, tmp_path):
@@ -273,7 +272,6 @@ for case in ("ascii", "bytes", "utf8"):
 
 
 class TestBrokenStats:
-
     test_cases = ["/proc/crypto", "/sys/devices/system/cpu/present"]
 
     def test_readfile(self):
@@ -303,7 +301,6 @@ class TestBrokenStats:
 
 
 class Test_mmap_or_open_for_read:
-
     func = staticmethod(fileutils.mmap_or_open_for_read)
 
     def test_zero_length(self, tmp_path):

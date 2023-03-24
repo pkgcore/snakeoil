@@ -7,7 +7,6 @@ __all__ = ("cmp", "sorted_cmp", "sort_cmp")
 
 def sorted_key_from_cmp(cmp_func, key_func=None):
     class _key_proxy:
-
         __slots__ = ("_obj",)
 
         if key_func:  # done this way for speed reasons.

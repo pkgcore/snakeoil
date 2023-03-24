@@ -176,7 +176,6 @@ def spawn(
     cwd: Optional[str] = None,
     pgid: Optional[int] = None,
 ):
-
     """wrapper around execve
 
     :type mycommand: list or string
@@ -237,7 +236,6 @@ def spawn(
     try:
         # Otherwise we clean them up.
         while mypids:
-
             # Pull the last reader in the pipe chain. If all processes
             # in the pipe are well behaved, it will die when the process
             # it is reading from dies.
@@ -380,7 +378,6 @@ def spawn_get_output(
     split_lines: bool = True,
     **kwds,
 ):
-
     """Call spawn, collecting the output to fd's specified in collect_fds list.
 
     :param spawn_type: the passed in function to call- typically :func:`spawn_bash`

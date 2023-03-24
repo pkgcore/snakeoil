@@ -244,7 +244,6 @@ class TestProtectedSet:
 
 
 class TestRefCountingSet:
-
     kls = containers.RefCountingSet
 
     def test_it(self):

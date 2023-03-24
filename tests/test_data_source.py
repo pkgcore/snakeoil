@@ -5,7 +5,6 @@ from snakeoil import compression, data_source
 
 
 class TestDataSource:
-
     supports_mutable = True
 
     @pytest.fixture(autouse=True)
@@ -144,7 +143,6 @@ class TestBz2Source(TestDataSource):
 
 
 class Test_invokable_data_source(TestDataSource):
-
     supports_mutable = False
 
     def get_obj(self, data="foonani", mutable=False):
@@ -161,7 +159,6 @@ class Test_invokable_data_source(TestDataSource):
 
 
 class Test_invokable_data_source_wrapper_text(Test_invokable_data_source):
-
     supports_mutable = False
     text_mode = True
 
@@ -180,5 +177,4 @@ class Test_invokable_data_source_wrapper_text(Test_invokable_data_source):
 
 
 class Test_invokable_data_source_wrapper_bytes(Test_invokable_data_source_wrapper_text):
-
     text_mode = False

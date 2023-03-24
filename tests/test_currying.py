@@ -14,7 +14,6 @@ def documented():
 
 
 class TestPreCurry:
-
     pre_curry = staticmethod(currying.pre_curry)
 
     def test_pre_curry(self):
@@ -54,7 +53,6 @@ class TestPreCurry:
 
 
 class Test_pretty_docs:
-
     currying_targets = (currying.pre_curry, currying.post_curry)
 
     def test_module_magic(self):

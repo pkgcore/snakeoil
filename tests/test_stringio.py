@@ -6,7 +6,6 @@ from snakeoil import stringio
 
 
 class readonly_mixin:
-
     encoding = None
     kls = None
 

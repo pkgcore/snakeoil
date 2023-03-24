@@ -68,7 +68,6 @@ class TestArgparseDocs:
 
 
 class TestOptionalsParser:
-
     # TODO: move this to a generic argparse fixture
     @pytest.fixture(autouse=True)
     def __setup_optionals_parser(self):
@@ -132,7 +131,6 @@ class TestOptionalsParser:
 
 
 class TestCsvActionsParser:
-
     # TODO: move this to a generic argparse fixture
     @pytest.fixture(autouse=True)
     def __setup_csv_actions_parser(self):

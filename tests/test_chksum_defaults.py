@@ -114,7 +114,6 @@ del chf_type, expected
 
 
 class TestGetChksums(base):
-
     chfs = [k for k in sorted(checksums) if k in ("md5", "sha1")]
     expected_long = [checksums[k][0] for k in chfs]
 

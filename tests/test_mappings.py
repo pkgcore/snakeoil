@@ -112,6 +112,7 @@ class LazyValDictTestMixin:
 
     def test_getkey(self):
         assert self.dict[3] == -3
+
         # missing key
         def get():
             return self.dict[42]
@@ -402,7 +403,6 @@ class TestOrderedSet(TestOrderedFrozenSet):
 
 
 class TestStackedDict:
-
     orig_dict = dict.fromkeys(range(100))
     new_dict = dict.fromkeys(range(100, 200))
 
@@ -564,7 +564,6 @@ class TestFoldingDict:
 
 
 class Testdefaultdictkey:
-
     kls = mappings.defaultdictkey
 
     def test_it(self):
@@ -577,7 +576,6 @@ class Testdefaultdictkey:
 
 
 class Test_attr_to_item_mapping:
-
     kls = mappings.AttrAccessible
     inject = staticmethod(mappings.inject_getitem_as_getattr)
 
@@ -612,7 +610,6 @@ class Test_attr_to_item_mapping:
 
 
 class Test_ProxiedAttrs:
-
     kls = mappings.ProxiedAttrs
 
     def test_it(self):
@@ -648,7 +645,6 @@ class Test_ProxiedAttrs:
 
 
 class TestSlottedDict:
-
     kls = staticmethod(mappings.make_SlottedDict_kls)
 
     def test_exceptions(self):

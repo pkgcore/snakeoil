@@ -32,7 +32,6 @@ try:
 
     native = True
 except ImportError:
-
     # We need this because if we are not native then TarFile.open will fail
     # (and some code needs to be able to check that).
     native = False

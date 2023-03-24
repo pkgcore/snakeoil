@@ -15,7 +15,6 @@ def hide_binary(*binaries: str):
 
 
 class Base:
-
     module: str = ""
     decompressed_test_data: bytes = b""
     compressed_test_data: bytes = b""

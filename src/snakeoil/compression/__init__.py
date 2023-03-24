@@ -148,7 +148,6 @@ class _CompressedStdin:
 
 
 class _Tar(_Archive, ArComp):
-
     exts = frozenset([".tar"])
     binary = (
         "gtar",
@@ -179,87 +178,74 @@ class _Tar(_Archive, ArComp):
 
 
 class _TarGZ(_Tar):
-
     exts = frozenset([".tar.gz", ".tgz", ".tar.Z", ".tar.z"])
     compress_binary = (("pigz",), ("gzip",))
 
 
 class _TarBZ2(_Tar):
-
     exts = frozenset([".tar.bz2", ".tbz2", ".tbz"])
     compress_binary = (("lbzip2",), ("pbzip2",), ("bzip2",))
 
 
 class _TarLZMA(_Tar):
-
     exts = frozenset([".tar.lzma"])
     compress_binary = ("lzma",)
 
 
 class _TarXZ(_Tar):
-
     exts = frozenset([".tar.xz", ".txz"])
     compress_binary = (("pixz",), ("xz", f"-T{multiprocessing.cpu_count()}"))
 
 
 class _Zip(_Archive, ArComp):
-
     exts = frozenset([".ZIP", ".zip", ".jar"])
     binary = ("unzip",)
     default_unpack_cmd = '{binary} -qo "{path}"'
 
 
 class _GZ(_CompressedStdin, ArComp):
-
     exts = frozenset([".gz", ".Z", ".z"])
     binary = ("pigz", "gzip")
     default_unpack_cmd = "{binary} -d -c"
 
 
 class _BZ2(_CompressedStdin, ArComp):
-
     exts = frozenset([".bz2", ".bz"])
     binary = ("lbzip2", "pbzip2", "bzip2")
     default_unpack_cmd = "{binary} -d -c"
 
 
 class _XZ(_CompressedStdin, ArComp):
-
     exts = frozenset([".xz"])
     binary = ("pixz", "xz")
     default_unpack_cmd = "{binary} -d -c"
 
 
 class _7Z(_Archive, ArComp):
-
     exts = frozenset([".7Z", ".7z"])
     binary = ("7z",)
     default_unpack_cmd = '{binary} x -y "{path}"'
 
 
 class _Rar(_Archive, ArComp):
-
     exts = frozenset([".RAR", ".rar"])
     binary = ("unrar",)
     default_unpack_cmd = '{binary} x -idq -o+ "{path}"'
 
 
 class _LHA(_Archive, ArComp):
-
     exts = frozenset([".LHa", ".LHA", ".lha", ".lzh"])
     binary = ("lha",)
     default_unpack_cmd = '{binary} xfq "{path}"'
 
 
 class _Ar(_Archive, ArComp):
-
     exts = frozenset([".a", ".deb"])
     binary = ("ar",)
     default_unpack_cmd = '{binary} x "{path}"'
 
 
 class _LZMA(_CompressedFile, ArComp):
-
     exts = frozenset([".lzma"])
     binary = ("lzma",)
     default_unpack_cmd = '{binary} -dc "{path}"'

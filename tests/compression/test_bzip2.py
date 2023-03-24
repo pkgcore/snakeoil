@@ -28,7 +28,6 @@ def test_missing_lbzip2_binary():
 
 
 class Bzip2Base(Base):
-
     module = "bzip2"
     decompressed_test_data = b"Some text here\n"
     compressed_test_data = (
