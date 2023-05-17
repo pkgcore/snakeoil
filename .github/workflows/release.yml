@@ -8,6 +8,13 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment: release
+
+    permissions:
+      id-token: write # Used to authenticate to PyPI via OIDC
+
+      contents: write # Used to authenticate github release publish
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -48,20 +55,9 @@ jobs:
         name: results
         path: dist/*
 
-    - name: Install twine and check files
-      run: |
-        pip install twine wheel-inspect
-        twine check dist/*
-        wheel2json dist/*.whl
-
-    - name: Upload to PyPI
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-      # only upload files for tagged releases
+    - name: publish
+      uses: pypa/gh-action-pypi-publish@release/v1
       if: startsWith(github.ref, 'refs/tags/')
-      run: |
-        twine upload dist/*
 
     - name: Create GitHub release
       uses: softprops/action-gh-release@v1
@@ -69,3 +65,4 @@ jobs:
       with:
         files: dist/*.tar.gz
         fail_on_unmatched_files: true
+        draft: true
