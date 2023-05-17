@@ -6,7 +6,7 @@ build-backend = "flit_core.buildapi"
 name = "snakeoil"
 description = "misc common functionality and useful optimizations"
 readme = "README.rst"
-requires-python = "~=3.9"
+requires-python = "~=3.10"
 authors = [
     {name = "Tim Harder", email = "radhermit@gmail.com"},
     {name = "Arthur Zamarin", email = "arthurzam@gentoo.org"},
@@ -17,7 +17,6 @@ maintainers = [
 classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: BSD License",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
