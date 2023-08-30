@@ -298,7 +298,7 @@ class ProtectedDict(DictMixin):
         raise KeyError(key)
 
     def keys(self):
-        for k in self.new.keys():
+        for k in self.new:
             yield k
         for k in self.orig.keys():
             if k not in self.blacklist and k not in self.new:
@@ -320,14 +320,14 @@ class ImmutableDict(Mapping):
         elif isinstance(data, Mapping):
             mapping = data
         elif isinstance(data, DictMixin):
-            mapping = {k: v for k, v in data.items()}
+            mapping = dict(data.items())
         elif data is None:
             mapping = {}
         else:
             try:
-                mapping = {k: v for k, v in data}
-            except TypeError as e:
-                raise TypeError(f"unsupported data format: {e}")
+                mapping = dict(data)
+            except TypeError as exc:
+                raise TypeError(f"unsupported data format: {exc}")
         object.__setattr__(self, "_dict", mapping)
 
     def __getitem__(self, key):
@@ -362,8 +362,8 @@ class OrderedFrozenSet(Set):
     def __init__(self, iterable=()):
         try:
             self._dict = ImmutableDict({x: None for x in iterable})
-        except TypeError as e:
-            raise TypeError("not iterable") from e
+        except TypeError as exc:
+            raise TypeError("not iterable") from exc
 
     def __contains__(self, key):
         return key in self._dict
@@ -419,8 +419,8 @@ class OrderedSet(OrderedFrozenSet, MutableSet):
     def __init__(self, iterable=()):
         try:
             self._dict = {x: None for x in iterable}
-        except TypeError as e:
-            raise TypeError("not iterable") from e
+        except TypeError as exc:
+            raise TypeError("not iterable") from exc
 
     def add(self, value):
         self._dict[value] = None
