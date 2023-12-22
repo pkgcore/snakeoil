@@ -2,6 +2,15 @@
 Release Notes
 =============
 
+snakeoil 0.10.6 (2023-12-22)
+----------------------------
+
+- remove deprecated ``distutils_extensions`` (Arthur Zamarin, #77)
+
+- enable Python 3.12 support (Sam James, #96)
+
+- drop support for Python 3.9 (Arthur Zamarin)
+
 snakeoil 0.10.5 (2023-01-20)
 ----------------------------
 
