@@ -28,6 +28,8 @@ __all__ = (
     "alias",
     "patch",
     "SlotsPicklingMixin",
+    "DirProxy",
+    "GetAttrProxy",
 )
 
 import inspect
