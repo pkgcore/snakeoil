@@ -21,14 +21,14 @@ Installing from git::
 
 Installing from a tarball::
 
-    python setup.py install
+    pip install .
 
 Tests
 =====
 
-A standalone test runner is integrated in setup.py; to run, just execute::
+Normal pytest is used, just execute::
 
-    python setup.py test
+    pytest
 
 Using tox for all supported python versions::
 
