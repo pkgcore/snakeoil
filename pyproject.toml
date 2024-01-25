@@ -7,9 +7,11 @@ name = "snakeoil"
 description = "misc common functionality and useful optimizations"
 readme = "README.rst"
 requires-python = "~=3.10"
+# alphabetical by surname
 authors = [
-    {name = "Tim Harder", email = "radhermit@gmail.com"},
-    {name = "Arthur Zamarin", email = "arthurzam@gentoo.org"},
+	{name = "Tim Harder", email = "radhermit@gmail.com"},
+	{name = "Brian Harring", email = "ferringb@gmail.com"},
+	{name = "Arthur Zamarin", email = "arthurzam@gentoo.org"},
 ]
 maintainers = [
     {name = "Arthur Zamarin", email = "arthurzam@gentoo.org"},
