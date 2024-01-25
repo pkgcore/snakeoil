@@ -2,3 +2,9 @@
 2fbaa7b40c7a6107d3c4b558324e9ba6e8ce1acc
 # Reformat via black-23.1.0
 266d2c7b8b975ccc6361eb47bcab7e73b578a1f6
+# tests being moved into tests/* layout
+69eb509bf9dad811fa7060807c2be4d0570bc7cc
+795d355af19a0440385070b3693b89da33f6e74c
+3db0d6447d8bd7e25bfdd97a31414ea44ef610bf
+# migration of code into src/* layout.
+7df0022b7ebd530a3287fa9677531c49237fba62
