@@ -2,6 +2,15 @@
 Release Notes
 =============
 
+snakeoil 0.10.7 (2024-01-26)
+----------------------------
+
+- ci: add PyPy3.10, Python 3.12 and Python 3.13 to testing (Sam James, #99)
+
+- fix and update tox.ini (Arthur Zamarin)
+
+- sphinx_ext: support optional email address in authors (Brian Harring)
+
 snakeoil 0.10.6 (2023-12-22)
 ----------------------------
 
