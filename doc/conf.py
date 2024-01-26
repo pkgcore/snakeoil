@@ -68,7 +68,7 @@ master_doc = "index"
 # General information about the project.
 project = "snakeoil"
 authors = ""
-copyright = "2007-2022, snakeoil contributors"
+copyright = "2007-2024, snakeoil contributors"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -241,7 +241,9 @@ man_pages = [("index", "snakeoil", "snakeoil Documentation", [], 1)]
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {"http://docs.python.org/": None}
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+}
 autodoc_default_flags = [
     "members",
     "show-inheritance",
