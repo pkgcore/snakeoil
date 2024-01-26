@@ -241,7 +241,11 @@ man_pages = [("index", "snakeoil", "snakeoil Documentation", [], 1)]
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {"http://docs.python.org/": None}
+intersphinx_mapping = {
+    "lazy-object-proxy": ("https://python-lazy-object-proxy.readthedocs.io/en/latest/", None),
+    "python": ("https://docs.python.org/3", None),
+}
+
 autodoc_default_flags = [
     "members",
     "show-inheritance",
