@@ -30,9 +30,19 @@ def prepare_scripts_man(repo_dir: Path, man_pages: list[tuple]):
     with open(repo_dir / 'pyproject.toml', 'rb') as file:
         pyproj = tomllib.load(file)
 
-    authors_list = [
-        f'{author["name"]} <{author["email"]}>' for author in pyproj['project']['authors']
-    ]
+    authors_list: list[str] = []
+    for author in pyproj['project']['authors']:
+        name, email = author.get('name'), author.get('email')
+        if name:
+            if email:
+                authors_list.append(f'{name} <{email}>')
+            else:
+                authors_list.append(name)
+        elif email:
+            authors_list.append(email)
+        else:
+            # no name or contact info, so ignore it.
+            continue
 
     for i, man_page in enumerate(man_pages):
         if man_page[3] is None:
