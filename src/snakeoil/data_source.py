@@ -190,7 +190,6 @@ class base:
 
 
 class local_source(base):
-
     """locally accessible data source
 
     Literally a file on disk.
@@ -289,7 +288,6 @@ class bz2_source(base):
 
 
 class data_source(base):
-
     """
     base class encapsulating a purely virtual data source lacking an on disk location.
 
@@ -389,7 +387,6 @@ class bytes_data_source(data_source):
 
 
 class invokable_data_source(data_source):
-
     """
     data source that takes a callable instead of the actual data item
 

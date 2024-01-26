@@ -18,7 +18,6 @@ from .klass import steal_docs
 
 
 class InvertedContains(set):
-
     """Set that inverts all contains lookup results.
 
     Essentially, it's a set class usable for blacklist containment testing.
@@ -97,7 +96,6 @@ class SetMixin:
 
 
 class LimitedChangeSet(SetMixin):
-
     """
     Set used to limit the number of times a key can be removed/added.
 
@@ -263,7 +261,6 @@ class ProtectedSet(SetMixin):
 
 
 class RefCountingSet(dict):
-
     """
     Set implementation that implements refcounting for add/remove, removing the key only when its refcount is 0.
 

@@ -284,9 +284,10 @@ class ParseStdinTest(BaseArgparseOptions):
             (["foo", "bar", "baz"], ["foo", "bar", "baz"]),
             (["\nfoo\n", " bar ", "\nbaz"], ["\nfoo", " bar", "\nbaz"]),
         ):
-            with mock.patch("sys.stdin") as stdin, mock.patch(
-                "builtins.open", mock.mock_open()
-            ) as mock_file:
+            with (
+                mock.patch("sys.stdin") as stdin,
+                mock.patch("builtins.open", mock.mock_open()) as mock_file,
+            ):
                 stdin.readlines.return_value = readlines
                 stdin.isatty.return_value = False
                 namespace = self.parser.parse_args(["-"])

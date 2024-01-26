@@ -141,9 +141,10 @@ class TestEnsureDirs:
         path.mkdir()
         path.chmod(0o750)
 
-        with mock.patch("snakeoil.osutils.os.chmod") as chmod, mock.patch(
-            "snakeoil.osutils.os.chown"
-        ) as chown:
+        with (
+            mock.patch("snakeoil.osutils.os.chmod") as chmod,
+            mock.patch("snakeoil.osutils.os.chown") as chown,
+        ):
             chmod.side_effect = OSError(5, "Input/output error")
 
             # chmod failure when file exists and trying to reset perms to match

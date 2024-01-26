@@ -1,6 +1,5 @@
 """Wrapper for readdir which grabs file type from d_type."""
 
-
 import errno
 import os
 from stat import (

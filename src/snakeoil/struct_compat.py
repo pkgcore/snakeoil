@@ -17,7 +17,6 @@ base_struct = Struct
 
 # pylint: disable=function-redefined
 class Struct(base_struct):
-
     """
     Struct extension class adding `read` and `write` methods for handling files
     """

@@ -27,7 +27,6 @@ del t
 
 
 class TarInfo(tarfile.TarInfo):
-
     """
     Customized TarInfo implementation.
 

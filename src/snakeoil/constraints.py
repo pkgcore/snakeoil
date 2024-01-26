@@ -80,9 +80,9 @@ class Problem:
     def __init__(self):
         self.variables: dict[str, _Domain] = {}
         self.constraints: list[tuple[Constraint, frozenset[str]]] = []
-        self.vconstraints: dict[
-            str, list[tuple[Constraint, frozenset[str]]]
-        ] = defaultdict(list)
+        self.vconstraints: dict[str, list[tuple[Constraint, frozenset[str]]]] = (
+            defaultdict(list)
+        )
 
     def add_variable(self, domain: Iterable[Any], *variables: str):
         """Add variables to the problem, which use the specified domain.

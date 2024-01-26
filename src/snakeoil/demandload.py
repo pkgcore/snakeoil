@@ -131,7 +131,6 @@ else:
 
 
 class Placeholder:
-
     """Object that knows how to replace itself when first accessed.
 
     See the module docstring for common problems with its use.

@@ -23,9 +23,10 @@ class TestVersion:
         assert v.startswith("snakeoil 9.9.9")
 
     def test_get_version_git_dev(self):
-        with mock.patch("snakeoil.version.import_module") as import_module, mock.patch(
-            "snakeoil.version.get_git_version"
-        ) as get_git_version:
+        with (
+            mock.patch("snakeoil.version.import_module") as import_module,
+            mock.patch("snakeoil.version.get_git_version") as get_git_version,
+        ):
             import_module.side_effect = ImportError
             verinfo = {
                 "rev": "1ff76b021d208f7df38ac524537b6419404f1c64",
@@ -57,9 +58,10 @@ class TestVersion:
             assert result == f"snakeoil {verinfo['tag']} -- released {verinfo['date']}"
 
     def test_get_version_no_git_version(self):
-        with mock.patch("snakeoil.version.import_module") as import_module, mock.patch(
-            "snakeoil.version.get_git_version"
-        ) as get_git_version:
+        with (
+            mock.patch("snakeoil.version.import_module") as import_module,
+            mock.patch("snakeoil.version.get_git_version") as get_git_version,
+        ):
             import_module.side_effect = ImportError
             get_git_version.return_value = None
             result = version.get_version("snakeoil", "nonexistent", __version__)
@@ -113,9 +115,10 @@ class TestGitVersion:
             assert result == expected
 
     def test_get_git_version_good_tag(self):
-        with mock.patch("snakeoil.version._run_git") as run_git, mock.patch(
-            "snakeoil.version._get_git_tag"
-        ) as get_git_tag:
+        with (
+            mock.patch("snakeoil.version._run_git") as run_git,
+            mock.patch("snakeoil.version._get_git_tag") as get_git_tag,
+        ):
             # tagged, release version
             run_git.return_value = (
                 b"1ff76b021d208f7df38ac524537b6419404f1c64\nMon Sep 25 13:50:24 2017 -0400",

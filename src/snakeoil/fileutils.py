@@ -52,7 +52,6 @@ def mmap_or_open_for_read(path: str):
 
 
 class AtomicWriteFile_mixin:
-
     """File class that stores the changes in a tempfile.
 
     Upon invocation of the close method, this class will use

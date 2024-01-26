@@ -73,7 +73,6 @@ If that doesn't make sense to the reader, it's probably best that the reader not
 try to proxy builtin objects like tuples, lists, dicts, sets, etc.
 """
 
-
 __all__ = ("DelayedInstantiation", "DelayedInstantiation_kls", "make_kls", "popattr")
 
 from . import klass
