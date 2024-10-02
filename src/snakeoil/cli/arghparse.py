@@ -739,6 +739,9 @@ class OptionalsParser(argparse.ArgumentParser):
                 if option_tuple is None:
                     pattern = "A"
                 else:
+                    if len(option_tuple) == 1:
+                        # https://github.com/python/cpython/commit/cbea45ad74779c0ffe760bab7f9d5ce149302495
+                        option_tuple = option_tuple[0]
                     option_string_indices[i] = option_tuple
                     pattern = "O"
                 arg_string_pattern_parts.append(pattern)

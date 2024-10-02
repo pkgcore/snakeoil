@@ -2,6 +2,11 @@
 Release Notes
 =============
 
+snakeoil 0.10.9 (2024-10-02)
+----------------------------
+
+- arghparse: fix compatibility with Python 3.12.7 (Arthur Zamarin)
+
 snakeoil 0.10.8 (2024-04-08)
 ----------------------------
 
