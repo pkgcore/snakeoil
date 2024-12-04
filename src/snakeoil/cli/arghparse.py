@@ -1247,7 +1247,15 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
                 namespace, args = functor(parser, namespace, args)
 
             # parse the arguments and exit if there are any errors
-            namespace, args = self._parse_known_args(args, namespace)
+            # Python 3.12.8 introduced obligatory intermixed arg.  The same
+            # commit adds _parse_known_args2 function, so use that to determine
+            # if we need to pass that.
+            if hasattr(self, "_parse_known_args2"):
+                namespace, args = self._parse_known_args(
+                    args, namespace, intermixed=False
+                )
+            else:
+                namespace, args = self._parse_known_args(args, namespace)
             if hasattr(namespace, _UNRECOGNIZED_ARGS_ATTR):
                 args.extend(getattr(namespace, _UNRECOGNIZED_ARGS_ATTR))
                 delattr(namespace, _UNRECOGNIZED_ARGS_ATTR)
