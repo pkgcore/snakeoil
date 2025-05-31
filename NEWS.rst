@@ -2,6 +2,15 @@
 Release Notes
 =============
 
+snakeoil 0.10.11 (2025-05-31)
+----------------------------
+
+- Fix compatibility with python 3.14 (Michał Górny, #105)
+
+- Bump minimal python version to 3.11 (Arthur Zamarin)
+
+- Use ruff for code formatting (Arthur Zamarin)
+
 snakeoil 0.10.10 (2024-12-04)
 ----------------------------
 
