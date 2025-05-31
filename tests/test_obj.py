@@ -40,11 +40,8 @@ class TestDelayedInstantiation:
             missing.difference_update(obj.base_kls_descriptors)
             missing.difference_update(default_ignores)
             missing.difference_update(ignores)
-            assert (
-                not missing
-            ), "object %r potentially has unsupported special " "attributes: %s" % (
-                cls,
-                ", ".join(missing),
+            assert not missing, (
+                f"object {cls!r} potentially has unsupported special attributes: {', '.join(missing)}"
             )
 
         assertKls(object)

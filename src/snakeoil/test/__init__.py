@@ -72,9 +72,9 @@ def protect_process(functor, name=None):
             )
             stdout, _ = p.communicate()
             ret = p.wait()
-            assert (
-                ret == 0
-            ), f"subprocess run: {args!r}\nnon zero exit: {ret}\nstdout:\n{stdout}"
+            assert ret == 0, (
+                f"subprocess run: {args!r}\nnon zero exit: {ret}\nstdout:\n{stdout}"
+            )
         finally:
             if wipe:
                 os.environ.pop(_PROTECT_ENV_VAR, None)

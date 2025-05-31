@@ -171,8 +171,7 @@ class _Tar(_Archive, ArComp):
             else:
                 choices = ", ".join(next(zip(*self.compress_binary)))
                 raise ArCompError(
-                    "no compression binary found from the "
-                    f"following choices: {choices}"
+                    f"no compression binary found from the following choices: {choices}"
                 )
         return cmd
 

@@ -98,9 +98,9 @@ class Problem:
             from each domain.
         """
         for variable in variables:
-            assert (
-                variable not in self.variables
-            ), f"variable {variable!r} was already added"
+            assert variable not in self.variables, (
+                f"variable {variable!r} was already added"
+            )
             self.variables[variable] = _Domain(domain)
 
     def add_constraint(self, constraint: Constraint, variables: frozenset[str]):

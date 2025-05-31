@@ -254,9 +254,7 @@ autosummary_generate = False
 rst_epilog = """
 .. |homepage| replace:: https://github.com/pkgcore/snakeoil
 .. |release_url| replace:: https://github.com/pkgcore/snakeoil/releases
-""" % {
-    "release": release
-}
+"""
 
 extlinks = {
     "git_tag": ("https://github.com/pkgcore/snakeoil/releases/tag/%s", "git log "),

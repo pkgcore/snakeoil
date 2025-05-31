@@ -211,8 +211,7 @@ class PlainTextFormatter(Formatter):
         if prefixes is not None:
             if first_prefixes is not None or later_prefixes is not None:
                 raise TypeError(
-                    "do not pass first_prefixes or later_prefixes "
-                    "if prefixes is passed"
+                    "do not pass first_prefixes or later_prefixes if prefixes is passed"
                 )
             first_prefixes = later_prefixes = prefixes
         prefix = kwargs.get("prefix")

@@ -62,4 +62,6 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    - uses: psf/black@stable
+    - uses: astral-sh/ruff-action@v3
+      with:
+        args: "format --check --diff"

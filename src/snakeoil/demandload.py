@@ -200,7 +200,7 @@ class Placeholder:
                     raise ValueError(f"Placeholder for {name!r} was triggered twice")
                 elif _noisy_protection():
                     logging.warning(
-                        "Placeholder for %r was triggered multiple times " "in file %r",
+                        "Placeholder for %r was triggered multiple times in file %r",
                         name,
                         scope.get("__file__", "unknown"),
                     )

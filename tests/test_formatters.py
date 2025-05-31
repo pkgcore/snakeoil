@@ -37,11 +37,11 @@ class TestPlainTextFormatter:
             (("\N{SNOWMAN}",), "foon:?"),
             (
                 (7 * "spork ",),
-                "foon:spork spork\n" "spork spork spork\n" "spork spork ",
+                "foon:spork spork\nspork spork spork\nspork spork ",
             ),
             (
                 7 * ("spork ",),
-                "foon:spork spork \n" "spork spork spork \n" "spork spork ",
+                "foon:spork spork \nspork spork spork \nspork spork ",
             ),
             ((30 * "a"), "foon:" + 15 * "a" + "\n" + 15 * "a"),
             (30 * ("a",), "foon:" + 15 * "a" + "\n" + 15 * "a"),
@@ -57,11 +57,11 @@ class TestPlainTextFormatter:
             (("\N{SNOWMAN}",), "?"),
             (
                 (7 * "spork ",),
-                "spork spork spork\n" "foon:spork spork\n" "foon:spork spork ",
+                "spork spork spork\nfoon:spork spork\nfoon:spork spork ",
             ),
             (
                 7 * ("spork ",),
-                "spork spork spork \n" "foon:spork spork \n" "foon:spork spork ",
+                "spork spork spork \nfoon:spork spork \nfoon:spork spork ",
             ),
             ((30 * "a"), 20 * "a" + "\n" + "foon:" + 10 * "a"),
             (30 * ("a",), 20 * "a" + "\n" + "foon:" + 10 * "a"),
@@ -127,7 +127,7 @@ class TestPlainTextFormatter:
         for inputs, output in [
             ((3 * ("spork",)), "spork\nspork\nspork\n"),
             (3 * (("spork",),), "spork\nspork\nspork\n"),
-            (((3 * "spork",),), "\n" "foonsporks\n" "foonporksp\n" "foonork\n"),
+            (((3 * "spork",),), "\nfoonsporks\nfoonporksp\nfoonork\n"),
             (
                 (
                     ("fo",),
@@ -140,7 +140,7 @@ class TestPlainTextFormatter:
                     ("fo",),
                     (3 * "spork",),
                 ),
-                "fo\n" "\n" "foonsporks\n" "foonporksp\n" "foonork\n",
+                "fo\n\nfoonsporks\nfoonporksp\nfoonork\n",
             ),
         ]:
             stream = BytesIO()

@@ -13,9 +13,7 @@ from snakeoil.bash import (
 class TestBashCommentStripping:
     def test_iter_read_bash(self):
         output = iter_read_bash(
-            StringIO(
-                "\n" "# hi I am a comment\n" "I am not \n" " asdf # inline comment\n"
-            )
+            StringIO("\n# hi I am a comment\nI am not \n asdf # inline comment\n")
         )
         assert list(output) == ["I am not", "asdf"]
 
@@ -40,11 +38,7 @@ class TestBashCommentStripping:
         # continuation into inline comment
         output = iter_read_bash(
             StringIO(
-                "\n"
-                "# hi I am a comment\n"
-                "I am \\\n"
-                "not a \\\n"
-                "comment # inline comment\n"
+                "\n# hi I am a comment\nI am \\\nnot a \\\ncomment # inline comment\n"
             ),
             allow_line_cont=True,
         )
@@ -52,15 +46,7 @@ class TestBashCommentStripping:
 
         # ends with continuation
         output = iter_read_bash(
-            StringIO(
-                "\n"
-                "# hi I am a comment\n"
-                "I am \\\n"
-                "\\\n"
-                "not a \\\n"
-                "comment\\\n"
-                "\\\n"
-            ),
+            StringIO("\n# hi I am a comment\nI am \\\n\\\nnot a \\\ncomment\\\n\\\n"),
             allow_line_cont=True,
         )
         assert list(output) == ["I am not a comment"]
@@ -84,25 +70,23 @@ class TestBashCommentStripping:
         # Line continuations have to end with \<newline> without any backslash
         # before the pattern.
         output = iter_read_bash(
-            StringIO("I am \\ \n" "not a comment"), allow_line_cont=True
+            StringIO("I am \\ \nnot a comment"), allow_line_cont=True
         )
         assert list(output) == ["I am \\", "not a comment"]
         output = iter_read_bash(
-            StringIO("\\\n" "I am \\\\\n" "not a comment"), allow_line_cont=True
+            StringIO("\\\nI am \\\\\nnot a comment"), allow_line_cont=True
         )
         assert list(output) == ["I am \\\\", "not a comment"]
 
     def test_read_bash(self):
-        output = read_bash(StringIO("\n" "# hi I am a comment\n" "I am not\n"))
+        output = read_bash(StringIO("\n# hi I am a comment\nI am not\n"))
         assert output == ["I am not"]
 
 
 class TestReadDictConfig:
     def test_read_dict(self):
         bash_dict = read_dict(
-            StringIO(
-                "\n" "# hi I am a comment\n" "foo1=bar\n" 'foo2="bar"\n' "foo3='bar\"\n"
-            )
+            StringIO('\n# hi I am a comment\nfoo1=bar\nfoo2="bar"\nfoo3=\'bar"\n')
         )
         assert bash_dict == {
             "foo1": "bar",
@@ -140,14 +124,12 @@ class TestReadBashDict:
         self.sourcing_file2 = tmp_path / "sourcing2"
         self.sourcing_file2.write_text(f'source "{self.valid_file}"\n')
         self.advanced_file = tmp_path / "advanced"
-        self.advanced_file.write_text(
-            "one1=1\n" "one_=$one1\n" "two1=2\n" "two_=${two1}\n"
-        )
+        self.advanced_file.write_text("one1=1\none_=$one1\ntwo1=2\ntwo_=${two1}\n")
         self.env_file = tmp_path / "env"
         self.env_file.write_text("imported=${external}\n")
         self.escaped_file = tmp_path / "escaped"
         self.escaped_file.write_text(
-            "end=bye\n" 'quoteddollar="\\${dollar}"\n' 'quotedexpansion="\\${${end}}"\n'
+            'end=bye\nquoteddollar="\\${dollar}"\nquotedexpansion="\\${${end}}"\n'
         )
         self.unclosed_file = tmp_path / "unclosed"
         self.unclosed_file.write_text('foo="bar')
