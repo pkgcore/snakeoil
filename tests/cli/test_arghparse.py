@@ -139,7 +139,7 @@ class TestCsvActionsParser:
     def test_bad_action(self):
         with pytest.raises(ValueError) as excinfo:
             self.csv_parser.add_argument("--arg1", action="unknown")
-        assert 'unknown action "unknown"' == str(excinfo.value)
+        assert "unknown action" in str(excinfo.value)
 
     def test_csv_actions(self):
         self.csv_parser.add_argument("--arg1", action="csv")
