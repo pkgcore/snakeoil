@@ -54,6 +54,7 @@ Simple usage example:
 
 __all__ = ("WeakInstMeta",)
 
+import functools
 import warnings
 from weakref import WeakValueDictionary
 
@@ -80,42 +81,46 @@ class WeakInstMeta(type):
     U{pkgcore project<http://pkgcore.org>}
     """
 
-    def __new__(cls, name, bases, d):
-        if d.get("__inst_caching__", False):
-            d["__inst_caching__"] = True
-            d["__inst_dict__"] = WeakValueDictionary()
-        else:
-            d["__inst_caching__"] = False
-        slots = d.get("__slots__")
-        # get ourselves a singleton to be safe...
-        o = object()
-        if slots is not None:
-            for base in bases:
-                if getattr(base, "__weakref__", o) is not o:
-                    break
-            else:
-                d["__slots__"] = tuple(slots) + ("__weakref__",)
-        return type.__new__(cls, name, bases, d)
+    def __new__(cls, name: str, bases: tuple[type, ...], scope) -> type:
+        if scope.setdefault("__inst_caching__", False):
+            scope["__inst_dict__"] = WeakValueDictionary()
+            if new_init := scope.get("__init__"):
+                # derive a new metaclass on the fly so we can ensure the __call__
+                # signature carries the docs/annotations of the __init__ for this class.
+                # Basically, show the __init__ doc/annotations, rather than just the bare
+                # doc/annotations of cls.__call__
+                class c(cls):
+                    __call__ = functools.wraps(new_init)(cls.__call__)
+                    # wraps passes the original annotations; don't mutate the underlying __init__
+                    __call__.__annotations__ = new_init.__annotations__.copy()
+                    __call__.__annotations__["disable_inst_caching"] = bool
+
+                c.__name__ = f"_{cls.__name__}_{name}"
+                cls = c
+
+        # if slots is in use, no __weakref__ slot disables weakref; inject it if needed.
+        if (slots := scope.get("__slots__")) is not None:
+            if not any(hasattr(base, "__weakref__") for base in bases):
+                scope["__slots__"] = tuple(slots) + ("__weakref__",)
+
+        return type.__new__(cls, name, bases, scope)
 
     def __call__(cls, *a, **kw):
         """disable caching via disable_inst_caching=True"""
-        if cls.__inst_caching__ and not kw.pop("disable_inst_caching", False):
-            kwlist = list(kw.items())
-            kwlist.sort()
-            key = (a, tuple(kwlist))
-            try:
-                instance = cls.__inst_dict__.get(key)
-            except (NotImplementedError, TypeError) as t:
-                warnings.warn(f"caching keys for {cls}, got {t} for a={a}, kw={kw}")
-                del t
-                key = instance = None
+        # This is subtle, but note that this explictly passes "disable_inst_caching" down to the class
+        # if the class itself has disabled caching.  This is a debatable design- it means any
+        # consumer that disables caching across a semver will throw an exception here.  However,
+        # this is historical behavior, thus left this way.
+        if not cls.__inst_caching__ or kw.pop("disable_inst_caching", False):  # type: ignore[attr-defined]
+            return super(WeakInstMeta, cls).__call__(*a, **kw)
 
-            if instance is None:
-                instance = super(WeakInstMeta, cls).__call__(*a, **kw)
-
-                if key is not None:
-                    cls.__inst_dict__[key] = instance
-        else:
-            instance = super(WeakInstMeta, cls).__call__(*a, **kw)
-
-        return instance
+        try:
+            key = (a, tuple(sorted(kw.items())))
+            if None is (instance := cls.__inst_dict__.get(key)):  # type: ignore[attr-defined]
+                instance = cls.__inst_dict__[key] = super(WeakInstMeta, cls).__call__(
+                    *a, **kw
+                )  # type: ignore[attr-defined]
+            return instance
+        except (NotImplementedError, TypeError) as t:
+            warnings.warn(f"caching keys for {cls}, got {t} for a={a}, kw={kw}")
+            return super(WeakInstMeta, cls).__call__(*a, **kw)
