@@ -169,3 +169,23 @@ class TestWeakInstMeta:
         gc.collect()
         o = weak_inst(unique)
         assert weak_inst.counter == 2
+
+    def test_function_metadata(self):
+        def f(
+            self, x: str, y: int = 1, *a: tuple[str, ...], **kw: int
+        ) -> dict[str, int]:
+            "blah blah blah blah"
+            return {}
+
+        class c(metaclass=WeakInstMeta):
+            __inst_caching__ = True
+            __init__ = f  # type: ignore
+
+        new_call = c.__class__.__call__
+        # ensure it's not mutating the reference functools passes.
+        assert new_call.__annotations__ is not f.__annotations__
+        assert new_call.__annotations__["disable_inst_caching"] == bool
+        a = new_call.__annotations__.copy()
+        a.pop("disable_inst_caching")
+        assert a == f.__annotations__
+        assert c.__init__.__doc__ == f.__doc__
