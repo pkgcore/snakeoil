@@ -7,6 +7,7 @@ involved in writing classes.
 """
 
 __all__ = (
+    "combine_classes",
     "generic_equality",
     "reflective_hash",
     "inject_richcmp_methods_from_cmp",
@@ -41,14 +42,11 @@ from functools import partial, wraps
 from importlib import import_module
 from operator import attrgetter
 
-from snakeoil._util import deprecated
+from snakeoil._util import deprecated as warn_deprecated
 
 from ..caching import WeakInstMeta
-from .immutable import (
-    ImmutableInstance,
-    immutable_instance,
-    inject_immutable_instance,
-)
+from .deprecated import ImmutableInstance, immutable_instance, inject_immutable_instance
+from .meta import combine_classes
 from .properties import (
     _uncached_singleton,  # noqa: F401 .  This exists purely due to a stupid usage of pkgcore.ebuild.profile which is being removed.
     alias,
@@ -274,7 +272,7 @@ def inject_richcmp_methods_from_cmp(scope):
         scope.setdefault(key, func)
 
 
-@deprecated(
+@warn_deprecated(
     "snakeoil.klass.chained_getter is deprecated.  Use operator.attrgetter instead."
 )
 class chained_getter(metaclass=partial(generic_equality, real_type=WeakInstMeta)):
@@ -340,7 +338,7 @@ class chained_getter(metaclass=partial(generic_equality, real_type=WeakInstMeta)
         return self.getter(obj)
 
 
-static_attrgetter = deprecated(
+static_attrgetter = warn_deprecated(
     "snakeoil.klass.static_attrgetter is deprecated.  Use operator.attrgetter instead"
 )(chained_getter)
 instance_attrgetter = chained_getter
