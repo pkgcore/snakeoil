@@ -4,7 +4,9 @@ from functools import partial
 from time import time
 
 import pytest
+
 from snakeoil import klass
+from snakeoil.klass.properties import _internal_jit_attr, _uncached_singleton
 
 
 class Test_GetAttrProxy:
@@ -177,7 +179,7 @@ class Test_chained_getter:
 
 
 class Test_jit_attr:
-    kls = staticmethod(klass._internal_jit_attr)
+    kls = staticmethod(_internal_jit_attr)
 
     @property
     def jit_attr(self):
@@ -197,7 +199,7 @@ class Test_jit_attr:
         method_lookup=False,
         use_cls_setattr=False,
         func=None,
-        singleton=klass._uncached_singleton,
+        singleton=_uncached_singleton,
     ):
         f = func
         if not func:
