@@ -1,21 +1,13 @@
 """Implementations of immutable instance metaclasses"""
 
 __all__ = ("immutable_instance", "inject_immutable_instance", "ImmutableInstance")
+
 import typing
 
 from snakeoil._util import deprecated
 
-T = typing.TypeVar("T")
 
-
-def _immutable_setattr(self, attr: str, _value: T) -> T:
-    raise AttributeError(self, attr)
-
-
-def _immutable_delattr(self, attr: str) -> None:
-    raise AttributeError(self, attr)
-
-
+@deprecated("Use snakeoil.klass.meta.Immutable* metaclasses instead")
 def immutable_instance(
     name: str, bases: tuple[type], scope: dict[str, typing.Any], real_type=type
 ) -> type:
@@ -28,26 +20,15 @@ def immutable_instance(
     return real_type(name, bases, scope)
 
 
-def inject_immutable_instance(scope: dict[str, typing.Any]):
-    """inject immutable __setattr__ and __delattr__ implementations
-
-    see immutable_instance for further details
-
-    :param scope: mapping to modify, inserting __setattr__ and __delattr__
-      methods if they're not yet defined.
-    """
-    scope.setdefault("__setattr__", _immutable_setattr)
-    scope.setdefault("__delattr__", _immutable_delattr)
-
-
-@deprecated(
-    "snakeoil.klass.ImmutableInstance will be removed in future versions.  Use the metaclasses instead"
-)
+@deprecated("Use snakeoil.klass.meta.Immutable* metaclasses instead")
 class ImmutableInstance:
     """Class that disables surface-level attribute modifications."""
 
-    __setattr__ = _immutable_setattr
-    __delattr__ = _immutable_delattr
+    def __setattr__(self, attr, _value):
+        raise AttributeError(self, attr)
+
+    def __delattr__(self, attr):
+        raise AttributeError(self, attr)
 
     def __getstate__(self) -> dict[str, typing.Any]:
         return self.__dict__.copy()
@@ -56,3 +37,16 @@ class ImmutableInstance:
         # This is necessary since any mutation attempts would explode.
         for k, v in state.items():
             object.__setattr__(self, k, v)
+
+
+@deprecated("Use snakeoil.klass.meta.Immutable* metaclasses instead")
+def inject_immutable_instance(scope: dict[str, typing.Any]):
+    """inject immutable __setattr__ and __delattr__ implementations
+
+    see immutable_instance for further details
+
+    :param scope: mapping to modify, inserting __setattr__ and __delattr__
+      methods if they're not yet defined.
+    """
+    scope.setdefault("__setattr__", ImmutableInstance.__setattr__)
+    scope.setdefault("__delattr__", ImmutableInstance.__delattr__)
