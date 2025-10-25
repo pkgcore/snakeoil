@@ -2,7 +2,8 @@
 
 __all__ = ("immutable_instance", "inject_immutable_instance", "ImmutableInstance")
 import typing
-import warnings
+
+from snakeoil._util import deprecated
 
 T = typing.TypeVar("T")
 
@@ -39,7 +40,7 @@ def inject_immutable_instance(scope: dict[str, typing.Any]):
     scope.setdefault("__delattr__", _immutable_delattr)
 
 
-@warnings.deprecated(
+@deprecated(
     "snakeoil.klass.ImmutableInstance will be removed in future versions.  Use the metaclasses instead"
 )
 class ImmutableInstance:

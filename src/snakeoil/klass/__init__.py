@@ -35,11 +35,12 @@ __all__ = (
 
 import inspect
 import itertools
-import warnings
 from collections import deque
 from functools import partial, wraps
 from importlib import import_module
 from operator import attrgetter
+
+from snakeoil._util import deprecated
 
 from ..caching import WeakInstMeta
 from .immutable import (
@@ -271,7 +272,7 @@ def inject_richcmp_methods_from_cmp(scope):
         scope.setdefault(key, func)
 
 
-@warnings.deprecated(
+@deprecated(
     "snakeoil.klass.chained_getter is deprecated.  Use operator.attrgetter instead."
 )
 class chained_getter(metaclass=partial(generic_equality, real_type=WeakInstMeta)):
@@ -337,7 +338,7 @@ class chained_getter(metaclass=partial(generic_equality, real_type=WeakInstMeta)
         return self.getter(obj)
 
 
-static_attrgetter = warnings.deprecated(
+static_attrgetter = deprecated(
     "snakeoil.klass.static_attrgetter is deprecated.  Use operator.attrgetter instead"
 )(chained_getter)
 instance_attrgetter = chained_getter

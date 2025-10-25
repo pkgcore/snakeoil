@@ -11,7 +11,8 @@ __all__ = (
 # even if no real code changed (since the id() continually moves)...
 import operator
 import typing
-import warnings
+
+from snakeoil._util import deprecated
 
 from ..currying import post_curry
 
@@ -303,7 +304,7 @@ def alias_method(attr, name=None, doc=None):
     return _asecond_level_call
 
 
-@warnings.deprecated("snakeoil.klass.alias will be removed in future versions")
+@deprecated("snakeoil.klass.alias will be removed in future versions")
 class alias:
     """Decorator for making methods callable through aliases.
 
