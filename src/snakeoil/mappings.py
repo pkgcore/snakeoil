@@ -21,8 +21,9 @@ from collections import defaultdict
 from collections.abc import Mapping, MutableSet, Set
 from functools import partial
 from itertools import chain, filterfalse, islice
+from typing import Any, TypeVar
 
-from .klass import contains, get, sentinel, steal_docs
+from .klass import contains, get, get_attrs_of, sentinel, steal_docs
 
 
 class DictMixin:
@@ -732,29 +733,31 @@ class ProxiedAttrs(DictMixin):
 
     __slots__ = ("__target__",)
 
-    def __init__(self, target):
+    def __init__(self, target: Mapping[Any, Any]) -> None:
         self.__target__ = target
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Any) -> Any:
         try:
             return getattr(self.__target__, key)
         except AttributeError:
             raise KeyError(key)
 
-    def __setitem__(self, key, value):
+    # While it seems like value: TypeVar("T") -> T is correct,
+    # the underlying __setattr__ may mutate/return something else.
+    def __setitem__(self, key: Any, value: Any) -> Any:
         try:
             return setattr(self.__target__, key, value)
         except AttributeError:
             raise KeyError(key)
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: Any) -> None:
         try:
             return delattr(self.__target__, key)
         except AttributeError:
             raise KeyError(key)
 
     def keys(self):
-        return iter(dir(self.__target__))
+        return map(operator.itemgetter(0), get_attrs_of(self.__target__))
 
 
 class _SlottedDict(DictMixin):
