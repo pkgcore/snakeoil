@@ -21,7 +21,7 @@ from collections import defaultdict
 from collections.abc import Mapping, MutableSet, Set
 from functools import partial
 from itertools import chain, filterfalse, islice
-from typing import Any, TypeVar
+from typing import Any
 
 from .klass import contains, get, get_attrs_of, sentinel, steal_docs
 
@@ -502,6 +502,8 @@ class IndeterminantDict:
 class StackedDict(DictMixin):
     """An unmodifiable dict that makes multiple dicts appear as one"""
 
+    __slots__ = ("_dicts",)
+
     def __init__(self, *dicts):
         self._dicts = dicts
 
@@ -538,6 +540,8 @@ class PreservingFoldingDict(DictMixin):
 
     This version returns the original 'unfolded' key.
     """
+
+    __slots__ = ("_dict", "_folder")
 
     def __init__(self, folder, sourcedict=None):
         self._folder = folder
@@ -602,6 +606,8 @@ class NonPreservingFoldingDict(DictMixin):
 
     This version returns the 'folded' key.
     """
+
+    __slots__ = ("_dict", "_folder")
 
     def __init__(self, folder, sourcedict=None):
         self._folder = folder
@@ -878,7 +884,9 @@ class _SlottedDict(DictMixin):
 
 
 def make_SlottedDict_kls(keys):
-    """Create a space efficient mapping class with a limited set of keys."""
+    """
+    Create a space efficient mapping class with a limited set of keys.
+    """
     new_keys = tuple(sorted(keys))
     cls_name = f"SlottedDict_{hash(new_keys)}"
     o = globals().get(cls_name, None)
