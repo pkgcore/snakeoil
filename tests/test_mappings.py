@@ -2,6 +2,7 @@ import operator
 from itertools import chain
 
 import pytest
+
 from snakeoil import mappings
 
 
@@ -642,6 +643,19 @@ class Test_ProxiedAttrs:
             operator.__setitem__(d, "x", 1)
         with pytest.raises(KeyError):
             operator.__delitem__(d, "x")
+
+    def test_against_slotted_backing(self):
+        class slotted:
+            __slots__ = ("x",)
+
+        target = slotted()
+        proxy = self.kls(target)
+        assert [] == list(proxy.keys())
+        target.x = 1
+        assert ["x"] == list(proxy.keys())
+        proxy["x"] = 2
+        assert proxy["x"] == 2
+        del proxy["x"]
 
 
 class TestSlottedDict:

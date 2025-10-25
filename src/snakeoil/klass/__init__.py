@@ -31,10 +31,11 @@ __all__ = (
     "SlotsPicklingMixin",
     "DirProxy",
     "GetAttrProxy",
+    "get_slots_of",
+    "get_attrs_of",
 )
 
 import inspect
-import itertools
 from collections import deque
 from functools import partial, wraps
 from importlib import import_module
@@ -61,6 +62,7 @@ from .properties import (
     jit_attr_named,
     jit_attr_none,
 )
+from .util import get_attrs_of, get_slots_of
 
 sentinel = object()
 
@@ -494,15 +496,7 @@ class SlotsPicklingMixin:
     __slots__ = ()
 
     def __getstate__(self):
-        all_slots = itertools.chain.from_iterable(
-            getattr(t, "__slots__", ()) for t in type(self).__mro__
-        )
-        state = {
-            attr: getattr(self, attr)
-            for attr in all_slots
-            if hasattr(self, attr) and attr != "__weakref__"
-        }
-        return state
+        return dict(get_attrs_of(self))
 
     def __setstate__(self, state):
         for k, v in state.items():
