@@ -57,6 +57,46 @@ jobs:
       with:
         files: ./coverage.xml
 
+  revdep:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        repo: ['pkgcore', 'pkgcheck', 'pkgdev']
+      fail-fast: false
+    steps:
+    - name: Checkout snakeoil
+      uses: actions/checkout@v4
+      with:
+        path: snakeoil
+
+    - name: Checkout ${{ matrix.repo }}
+      uses: actions/checkout@v4
+      with:
+        repository: pkgcore/${{ matrix.repo }}
+        path: ${{ matrix.repo }}
+
+    - name: Set up Python 3.13
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+        cache: 'pip'
+        cache-dependency-path: |
+          snakeoil/pyproject.toml
+          ${{ matrix.repo }}/pyproject.toml
+
+    - name: Install pip dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e "./snakeoil"
+        pip install "./${{ matrix.repo }}[test]"
+
+    - name: Test with pytest
+      working-directory: ./${{ matrix.repo }}
+      env:
+        PY_COLORS: 1 # forcibly enable pytest colors
+      run: pytest -v
+
   format:
     runs-on: ubuntu-latest
     steps:
