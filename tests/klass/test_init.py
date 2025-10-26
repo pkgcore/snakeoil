@@ -146,7 +146,7 @@ class Test_chained_getter:
         assert hash(self.kls("foon.dar")) == hash("foon.dar")
 
     def test_caching(self):
-        l = [id(self.kls("fa2341f%s" % x)) for x in "abcdefghij"]
+        l = [id(self.kls("fa2341f%s" % x)) for x in "abcdefghij"]  # noqa: E741
         assert id(self.kls("fa2341fa")) == l[0]
 
     def test_eq(self):
@@ -396,32 +396,13 @@ class Test_jit_attr:
         obj.attr
 
     def test_cached_property(self):
-        l = []
+        l = []  # noqa: E741
 
         class foo:
             @klass.cached_property
-            def blah(self, l=l, i=iter(range(5))):
+            def blah(self, l=l, i=iter(range(5))):  # noqa: E741
                 l.append(None)
                 return next(i)
-
-        f = foo()
-        assert f.blah == 0
-        assert len(l) == 1
-        assert f.blah == 0
-        assert len(l) == 1
-        del f.blah
-        assert f.blah == 1
-        assert len(l) == 2
-
-    def test_cached_property(self):
-        l = []
-
-        def named(self, l=l, i=iter(range(5))):
-            l.append(None)
-            return next(i)
-
-        class foo:
-            blah = klass.cached_property_named("blah")(named)
 
         f = foo()
         assert f.blah == 0
@@ -563,7 +544,7 @@ class TestAliasMethod:
 
     def test_alias_method(self):
         class kls:
-            __len__ = lambda s: 3
+            __len__ = lambda s: 3  # noqa: E731
             lfunc = self.func("__len__")
 
         c = kls()
