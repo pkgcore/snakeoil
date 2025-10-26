@@ -98,12 +98,14 @@ class WeakInstMeta(type):
                 c.__name__ = f"_{cls.__name__}_{name}"
                 cls = c
 
-        # if slots is in use, no __weakref__ slot disables weakref; inject it if needed.
-        if (slots := scope.get("__slots__")) is not None:
-            if not any(hasattr(base, "__weakref__") for base in bases):
-                scope["__slots__"] = tuple(slots) + ("__weakref__",)
+        # slotted, unless __weakref__ is explicit, must be added or there must
+        # be a parent that isn't slotted (which automatically adds __weakref__)
+        if "__slots__" in scope and not any(
+            hasattr(base, "__weakref__") for base in bases
+        ):
+            scope["__slots__"] = tuple(scope["__slots__"]) + ("__weakref__",)
 
-        return type.__new__(cls, name, bases, scope)
+        return super().__new__(cls, name, bases, scope)
 
     def __call__(cls, *a, **kw):
         """disable caching via disable_inst_caching=True"""
