@@ -19,7 +19,6 @@ import sys
 from typing import Iterable, Optional, Sequence, Union
 
 from ..mappings import ProtectedDict
-from ..osutils import access
 from . import find_binary
 
 BASH_BINARY = find_binary("bash", fallback="/bin/bash")
@@ -468,7 +467,7 @@ def is_sandbox_capable(force: bool = False):
     if "SANDBOX_ACTIVE" in os.environ:
         # we can not spawn a sandbox inside another one
         res = False
-    elif not (os.path.isfile(SANDBOX_BINARY) and access(SANDBOX_BINARY, os.X_OK)):
+    elif not (os.path.isfile(SANDBOX_BINARY) and os.access(SANDBOX_BINARY, os.X_OK)):
         res = False
     else:
         try:

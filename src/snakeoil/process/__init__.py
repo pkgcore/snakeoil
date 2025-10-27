@@ -8,14 +8,12 @@ import signal
 import sys
 import time
 
-from ..osutils import access
-
 
 def find_binary(binary: str, paths=None, fallback=None) -> str:
     """look through the PATH environment, finding the binary to execute"""
 
     if os.path.isabs(binary):
-        if not (os.path.isfile(binary) and access(binary, os.X_OK)):
+        if not (os.path.isfile(binary) and os.access(binary, os.X_OK)):
             raise CommandNotFound(binary)
         return binary
 
@@ -24,7 +22,7 @@ def find_binary(binary: str, paths=None, fallback=None) -> str:
 
     for path in paths:
         filename = os.path.join(os.path.abspath(path), binary)
-        if access(filename, os.X_OK) and os.path.isfile(filename):
+        if os.access(filename, os.X_OK) and os.path.isfile(filename):
             return filename
 
     if fallback is not None:

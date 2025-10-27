@@ -8,9 +8,10 @@ import sys
 from unittest import mock
 
 import pytest
+
 from snakeoil import osutils
 from snakeoil.contexts import Namespace
-from snakeoil.osutils import native_readdir, supported_systems, sizeof_fmt
+from snakeoil.osutils import native_readdir, sizeof_fmt, supported_systems
 from snakeoil.osutils.mount import MNT_DETACH, MS_BIND, mount, umount
 
 
@@ -241,22 +242,6 @@ class Test_Native_NormPath:
         )
         check("/föó/..", "/")
         check(b"/f\xc3\xb6\xc3\xb3/..", b"/")
-
-
-@pytest.mark.skipif(os.getuid() != 0, reason="these tests must be ran as root")
-class TestAccess:
-    func = staticmethod(osutils.fallback_access)
-
-    def test_fallback(self, tmp_path):
-        fp = tmp_path / "file"
-        # create the file
-        fp.touch()
-        fp.chmod(0o000)
-        assert not self.func(fp, os.X_OK)
-        assert self.func(fp, os.W_OK)
-        assert self.func(fp, os.R_OK)
-        assert self.func(fp, os.W_OK | os.R_OK)
-        assert not self.func(fp, os.W_OK | os.R_OK | os.X_OK)
 
 
 class Test_unlink_if_exists:
