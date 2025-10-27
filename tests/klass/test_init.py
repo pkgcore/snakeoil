@@ -595,3 +595,69 @@ class TestPatch:
 
         assert math.ceil(n) == 0
         assert math.floor(n) == 0
+
+
+class TestGenericEquality:
+    def test_it(self):
+        class still_abc(klass.GenericEquality):
+            pass
+
+        try:
+
+            class foo(still_abc):
+                pass
+
+            foo()
+            pytest.fail(
+                "GenericEquality subclass check didn't require __attr_comparison__ to be set in the class"
+            )
+        except TypeError:
+            pass
+
+        class kls(klass.GenericEquality):
+            __attr_comparison__ = ("x", "y")
+
+            def __init__(self, x, y, **vals):
+                self.x = x
+                self.y = y
+                for k, v in vals.items():
+                    setattr(self, k, v)
+
+        assert kls(1, 2) == kls(1, 2)
+        assert kls(1, 2) != kls(2, 1)
+        assert kls(1, 2) == kls(1, 2, z="3"), (
+            "__eq__ invalidly check z, which is not in the __attr__comparison__"
+        )
+        # assert it's not sensitive to None
+        assert kls(1, None) == kls(1, None)
+        assert kls(1, 2) != kls(None, 2)
+
+        obj1, obj2 = kls(1, 2), kls(1, 2)
+        del obj1.x
+        assert obj1 != obj2, "obj1.x doesn't exist, this should fail"
+        del obj2.x
+        assert obj1 == obj2, ".x is missing on both, they should be equal"
+
+        # validate disabling logic.
+        try:
+
+            class broken(kls):
+                __attr_comparison__ = None
+
+            pytest.fail(
+                "__attr_comparison__ was disabled, but __eq__ method is still GenericEquality.__eq__"
+            )
+        except TypeError:
+            pass
+
+        class subclass_disabling_must_be_allowed(kls):
+            __attr_comparison__ = None
+
+            # we've overridden __eq__.  The subclass check must allow this.
+            def __eq__(self, other):
+                return False
+
+        assert (
+            subclass_disabling_must_be_allowed.__annotations__["__attr_comparison__"]
+            is None
+        ), "annotations weren't updated"

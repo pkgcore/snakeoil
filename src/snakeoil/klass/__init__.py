@@ -36,11 +36,13 @@ __all__ = (
     "get_attrs_of",
 )
 
+import abc
 import inspect
 from collections import deque
-from functools import partial, wraps
+from functools import wraps
 from importlib import import_module
 from operator import attrgetter
+from typing import Any
 
 from snakeoil.deprecation import deprecated as warn_deprecated
 
@@ -105,37 +107,6 @@ def get(self, key, default=None):
         return default
 
 
-_attrlist_getter = attrgetter("__attr_comparison__")
-
-
-def generic_attr_eq(inst1, inst2):
-    """
-    compare inst1 to inst2, returning True if equal, False if not.
-
-    Comparison is down via comparing attributes listed in inst1.__attr_comparison__
-    """
-    if inst1 is inst2:
-        return True
-    for attr in _attrlist_getter(inst1):
-        if getattr(inst1, attr, sentinel) != getattr(inst2, attr, sentinel):
-            return False
-    return True
-
-
-def generic_attr_ne(inst1, inst2):
-    """
-    compare inst1 to inst2, returning True if different, False if equal.
-
-    Comparison is down via comparing attributes listed in inst1.__attr_comparison__
-    """
-    if inst1 is inst2:
-        return False
-    for attr in _attrlist_getter(inst1):
-        if getattr(inst1, attr, sentinel) != getattr(inst2, attr, sentinel):
-            return True
-    return False
-
-
 def reflective_hash(attr):
     """
     default __hash__ implementation that returns a pregenerated hash attribute
@@ -150,10 +121,89 @@ def reflective_hash(attr):
     return __hash__
 
 
+class GenericEquality(abc.ABC):
+    """
+    implement simple __eq__/__ne__ comparison via a list of attributes to compare
+
+    For deriviatives, __attr_comparison__ must be defined; this is a sequence of attributes
+    to check for comparison.
+
+    If you need to extend the logic beyond just adding an attribute, override __eq__; __ne__
+    is just a negated reflection of that methods result.
+
+    >>> from snakeoil.klass import GenericEquality
+    >>> class kls(GenericEquality):
+    ...   __attr_comparison__ = ("a", "b", "c")
+    ...   def __init__(self, a=1, b=2, c=3):
+    ...     self.a, self.b, self.c = a, b, c
+    >>>
+    >>> assert kls() == foo()
+    >>> assert foo(3, 2, 1) != foo()
+    """
+
+    __slots__ = ()
+
+    # The pyright disable is since we're shoving in annotations in a weird way.
+    # ABC is used to ensure this gets changed, but the actual class value in the non virtual
+    # class must be tuple.
+    @property
+    @abc.abstractmethod
+    def __attr_comparison__(self) -> tuple[str, ...]:  # pyright: ignore[reportRedeclaration]
+        """list of attributes to compare.
+
+        This should be replaced with a tuple in derivative classes unless dynamic
+        behavior is needed for discerning what attributes to compare.
+
+        The only reason to do this is if you're inheriting from something that is GenericEquality,
+        and you fully have overridden the comparison logic and wish to document for any
+        consumers __attr_comparison__ is no longer relevant.
+        """
+        pass
+
+    __attr_comparison__: tuple[str, ...]
+
+    def __eq__(self, other: Any) -> bool:
+        """
+        Comparison is down via comparing attributes listed in self.__attr_comparison__
+        """
+        if self is other:
+            return True
+        for attr in self.__attr_comparison__:
+            if getattr(self, attr, sentinel) != getattr(other, attr, sentinel):
+                return False
+        return True
+
+    def __init_subclass__(cls) -> None:
+        if cls.__attr_comparison__ is None:
+            # __ne__ is just a reflection of __eq__, so just check that one.
+            if cls.__eq__ is GenericEquality.__eq__:
+                raise TypeError(
+                    "__attr_comparison__ was set to None, but __eq__ is still GenericEquality.__eq__"
+                )
+            # If this is the first disabling, update the annotations
+            if "__attr_comparison__" in cls.__dict__:
+                cls.__annotations__["__attr_comparison__"] = None
+        elif not isinstance(cls.__attr_comparison__, (tuple, property)):
+            raise TypeError(
+                f"__attr_comparison__ must be a tuple, received {cls.__attr_comparison__!r}"
+            )
+        return super().__init_subclass__()
+
+
+@warn_deprecated(
+    "generic_equality metaclass usage is deprecated; inherit from snakeoil.klass.GenericEquality instead."
+)
 def generic_equality(
-    name, bases, scope, real_type=type, eq=generic_attr_eq, ne=generic_attr_ne
+    name,
+    bases,
+    scope,
+    real_type=type,
+    eq=GenericEquality.__eq__,
+    ne=lambda self, other: not GenericEquality.__eq__(self, other),
 ):
     """
+    Deprecated.  Use snakeoil.klass.GenericEquality instead.
+
     metaclass generating __eq__/__ne__ methods from an attribute list
 
     The consuming class must set a class attribute named __attr_comparison__
@@ -177,17 +227,14 @@ def generic_equality(
     attrlist = scope.pop("__attr_comparison__", None)
     if attrlist is None:
         raise TypeError("__attr_comparison__ must be in the classes scope")
-    elif isinstance(attrlist, str):
-        attrlist = scope[attrlist]
-    for x in attrlist:
-        if not isinstance(x, str):
-            raise TypeError(
-                f"all members of attrlist must be strings- got {type(x)!r} {x!r}"
-            )
+    elif isinstance(attrlist, str) or not all(isinstance(x, str) for x in attrlist):
+        raise TypeError(
+            "__attr_comparison__ must be a sequence of strings, got {attrlist!r}"
+        )
 
     scope["__attr_comparison__"] = tuple(attrlist)
-    scope.setdefault("__eq__", eq)
-    scope.setdefault("__ne__", ne)
+    scope.setdefault("__eq__", GenericEquality.__eq__)
+    scope.setdefault("__ne__", GenericEquality.__ne__)
     return real_type(name, bases, scope)
 
 
@@ -274,8 +321,12 @@ def inject_richcmp_methods_from_cmp(scope):
 @warn_deprecated(
     "snakeoil.klass.chained_getter is deprecated.  Use operator.attrgetter instead."
 )
-class chained_getter(metaclass=partial(generic_equality, real_type=WeakInstMeta)):
+class chained_getter(
+    GenericEquality, metaclass=combine_classes(WeakInstMeta, abc.ABCMeta)
+):
     """
+    Deprecated.  Use operator.attrgetter instead.
+
     object that will do multi part lookup, regardless of if it's in the context
     of an instancemethod or staticmethod.
 
