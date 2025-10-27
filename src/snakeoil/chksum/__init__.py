@@ -6,7 +6,9 @@ import os
 import sys
 from importlib import import_module
 
-from .. import klass, osutils
+from snakeoil.klass.immutable import Simple
+
+from .. import osutils
 from .defaults import chksum_loop_over_file
 
 chksum_types = {}
@@ -130,7 +132,7 @@ def get_chksums(location, *chksums, **kwds):
     )
 
 
-class LazilyHashedPath(metaclass=klass.immutable_instance):
+class LazilyHashedPath(Simple):
     """Given a pathway, compute chksums on demand via attribute access."""
 
     def __init__(self, path, **initial_values):
@@ -139,6 +141,7 @@ class LazilyHashedPath(metaclass=klass.immutable_instance):
         for attr, val in initial_values.items():
             f(self, attr, val)
 
+    @Simple.__allow_mutation_wrapper__
     def __getattr__(self, attr):
         if not attr.islower():
             # Disallow sHa1.
@@ -153,6 +156,7 @@ class LazilyHashedPath(metaclass=klass.immutable_instance):
         object.__setattr__(self, attr, val)
         return val
 
+    @Simple.__allow_mutation_wrapper__
     def clear(self):
         for key in get_handlers():
             if hasattr(self, key):
@@ -161,6 +165,5 @@ class LazilyHashedPath(metaclass=klass.immutable_instance):
     def __getstate__(self):
         return self.__dict__.copy()
 
-    def __setstate__(self, state):
-        for k, v in state.items():
-            object.__setattr__(self, k, v)
+    def __setstate__(self, data):
+        self.__dict__.update(data)

@@ -1,4 +1,3 @@
-import contextvars
 import math
 import re
 from functools import partial
@@ -7,7 +6,6 @@ from time import time
 import pytest
 
 from snakeoil import klass
-from snakeoil.klass import combine_classes, meta
 from snakeoil.klass.properties import _internal_jit_attr, _uncached_singleton
 
 

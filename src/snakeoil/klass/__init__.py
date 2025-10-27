@@ -46,7 +46,6 @@ from snakeoil.deprecation import deprecated as warn_deprecated
 
 from ..caching import WeakInstMeta
 from .deprecated import ImmutableInstance, immutable_instance, inject_immutable_instance
-from .meta import combine_classes
 from .properties import (
     _uncached_singleton,  # noqa: F401 .  This exists purely due to a stupid usage of pkgcore.ebuild.profile which is being removed.
     alias,
@@ -60,7 +59,7 @@ from .properties import (
     jit_attr_named,
     jit_attr_none,
 )
-from .util import get_attrs_of, get_slots_of
+from .util import combine_classes, get_attrs_of, get_slots_of
 
 sentinel = object()
 

@@ -1,7 +1,9 @@
 import weakref
 from typing import Any
 
-from snakeoil.klass.util import get_attrs_of
+import pytest
+
+from snakeoil.klass.util import combine_classes, get_attrs_of
 
 
 def test_get_attrs_of():
@@ -50,9 +52,9 @@ def test_get_attrs_of():
     # the fun one.  Mixed slotting.
     obj = mk_obj(mk_obj(), slots="x", create=True)
     obj.x = 1
-    assert "x" not in obj.__dict__, (
-        "a slotted variable was tucked into __dict__; this is not how python is understood to work for this code.  While real code can do this- it's dumb but possible- this test doesn't do that, thus something is off."
-    )
+    assert (
+        "x" not in obj.__dict__
+    ), "a slotted variable was tucked into __dict__; this is not how python is understood to work for this code.  While real code can do this- it's dumb but possible- this test doesn't do that, thus something is off."
     assert_attrs(obj, {"x": 1})
     obj.y = 2
     assert_attrs(obj, {"x": 1, "y": 2})
@@ -65,3 +67,31 @@ def test_get_attrs_of():
     assert_attrs(obj, {"__weakref__": ref}, weakref=True)
     obj.blah = 1
     assert_attrs(obj, {}, suppressions=["blah"])
+
+
+def test_combine_classes():
+    class kls1(type):
+        pass
+
+    class kls2(type):
+        pass
+
+    class kls3(type):
+        pass
+
+    # assert it requires at least one arg
+    pytest.raises(TypeError, combine_classes)
+
+    assert combine_classes(kls1) is kls1, "unneeded derivative metaclass was created"
+
+    # assert that it refuses duplicats
+    pytest.raises(TypeError, combine_classes, kls1, kls1)
+
+    # there is caching, thus also do identity check whilst checking the MRO chain
+    kls = combine_classes(kls1, kls2, kls3)
+    assert (
+        kls is combine_classes(kls1, kls2, kls3)
+    ), "combine_metaclass uses lru_cache to avoid generating duplicate classes, however this didn't cache"
+
+    combined = combine_classes(kls1, kls2)
+    assert [combined, kls1, kls2, type, object] == list(combined.__mro__)

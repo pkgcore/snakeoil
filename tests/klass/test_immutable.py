@@ -3,7 +3,7 @@ from functools import partial, wraps
 
 import pytest
 
-from snakeoil.klass import combine_classes, meta
+from snakeoil.klass import immutable
 
 
 def inject_context_protection(name: str, bases: tuple[type, ...], scope) -> type:
@@ -49,7 +49,7 @@ class TestInjectContextProtection(metaclass=inject_context_protection):
 
 
 class TestSimpleImmutable(metaclass=inject_context_protection):
-    class _immutable_test_kls(metaclass=meta.Immutable):
+    class _immutable_test_kls(immutable.Simple):
         def __init__(self, recurse=False):
             self.dar = 1
             if recurse:
@@ -58,7 +58,7 @@ class TestSimpleImmutable(metaclass=inject_context_protection):
                 pytest.raises(AttributeError, setattr, o, "dar", 4)
                 self.dar = 3
 
-        @meta.Immutable.allow_mutation
+        @immutable.Simple.__allow_mutation_wrapper__
         def set_dar(self, value: int) -> None:
             self.dar = value
 
@@ -69,9 +69,10 @@ class TestSimpleImmutable(metaclass=inject_context_protection):
         def setstate(self, data):
             self.x = data
 
-        class foo(metaclass=meta.Immutable):
+        class foo(immutable.Simple):
             __init__ = init
 
+        assert foo.__init__.__disable_mutation_autowrapping__  # pyright: ignore[reportFunctionMemberAccess]
         assert foo.__init__ is not init
 
         class foo2(foo):
@@ -80,10 +81,25 @@ class TestSimpleImmutable(metaclass=inject_context_protection):
         assert foo.__init__ is foo2.__init__
         assert foo2.__setstate__ is not setstate
 
-        # ensure that we're not daftly injecting extra instances of the default class logic.
-        # this is required to ensure we're not overriding things further down mro.
-        assert len([x for x in foo.mro() if x == meta.Immutable.Mixin]) == 1
-        assert len([x for x in foo2.mro() if x == meta.Immutable.Mixin]) == 1
+        def self_mutation_managing_init(self):
+            pass
+
+        self_mutation_managing_init.__disable_mutation_autowrapping__ = True  # pyright: ignore[reportFunctionMemberAccess]
+
+        class foo3(foo2):
+            __init__ = self_mutation_managing_init
+
+        assert foo3.__init__ is self_mutation_managing_init, (
+            "__init__ was marked to not be wrapped, but got wrapped anyways"
+        )
+
+    def test_disallowed_mutation(self):
+        class kls(immutable.Simple):
+            pass
+
+        obj = kls()
+        pytest.raises(AttributeError, setattr, obj, "x", 1)
+        pytest.raises(AttributeError, delattr, obj, "y")
 
     def test_mutation_init(self):
         o = self._immutable_test_kls()
@@ -105,7 +121,7 @@ class TestSimpleImmutable(metaclass=inject_context_protection):
         assert o.dar == 1
         o.set_dar(5)
         assert o.dar == 5
-        with o.__allow_mutation_block__():
+        with o.__allow_mutation__():
             o.dar = 6
         assert o.dar == 6
 
@@ -118,7 +134,7 @@ class TestSimpleImmutable(metaclass=inject_context_protection):
         var = contextvars.ContextVar("test", default=1)
 
         @push_context
-        def basic():
+        def basic(var=var):
             assert 1 == var.get()
             var.set(2)
 
@@ -126,7 +142,7 @@ class TestSimpleImmutable(metaclass=inject_context_protection):
         assert 1 == var.get()
 
         @push_context
-        def generator(val=2):
+        def generator(val=2, var=var):
             assert 1 == var.get()
             var.set(2)
             yield
@@ -140,29 +156,25 @@ class TestSimpleImmutable(metaclass=inject_context_protection):
         del var
 
 
-def test_combine_metaclasses():
-    class kls1(type):
-        pass
+class TestStrict:
+    def _common(self, slotted=False):
+        class kls(immutable.Strict):
+            if slotted:
+                __slots__ = ("x",)
 
-    class kls2(type):
-        pass
+            def m(self):
+                self.x = 1
 
-    class kls3(type):
-        pass
+        obj = kls()
+        pytest.raises(AttributeError, setattr, obj, "x", 2)
+        pytest.raises(AttributeError, delattr, obj, "x")
+        if slotted:
+            pytest.raises(AttributeError, setattr, obj, "y", 2)
+            pytest.raises(AttributeError, delattr, obj, "y")
 
-    # assert it requires at least one arg
-    pytest.raises(TypeError, combine_classes)
+        kls.__init__ = kls.m
+        pytest.raises(AttributeError, kls)
 
-    assert combine_classes(kls1) is kls1, "unneeded derivative metaclass was created"
-
-    # assert that it refuses duplicats
-    pytest.raises(TypeError, combine_classes, kls1, kls1)
-
-    # there is caching, thus also do identity check whilst checking the MRO chain
-    kls = combine_classes(kls1, kls2, kls3)
-    assert kls is combine_classes(kls1, kls2, kls3), (
-        "combine_metaclass uses lru_cache to avoid generating duplicate classes, however this didn't cache"
-    )
-
-    combined = combine_classes(kls1, kls2)
-    assert [combined, kls1, kls2, type, object] == list(combined.__mro__)
+    def test_basics(self):
+        self._common()
+        self._common(slotted=True)

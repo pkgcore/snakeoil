@@ -1,5 +1,6 @@
-__all__ = ("get_attrs_of", "get_slots_of")
+__all__ = ("get_attrs_of", "get_slots_of", "combine_classes")
 import builtins
+import functools
 from typing import Any, Iterable
 
 _known_builtins = frozenset(
@@ -60,3 +61,29 @@ def get_attrs_of(
                 if (o := getattr(obj, slot, _sentinel)) is not _sentinel:
                     yield slot, o
                     seen.add(slot)
+
+
+@functools.lru_cache
+def combine_classes(kls: type, *extra: type) -> type:
+    """Given a set of classes, combine this as if one had wrote the class by hand
+
+    This is primarily for composing metaclasses on the fly; this:
+
+    class foo(metaclass=combine_metaclasses(kls1, kls2, kls3)): pass
+
+    is the same as if you did this:
+
+    class mkls(kls1, kls2, kls3): pass
+    class foo(metaclass=mkls): pass
+    """
+    klses = [kls]
+    klses.extend(extra)
+
+    if len(klses) == 1:
+        return kls
+
+    class combined(*klses):
+        pass
+
+    combined.__name__ = f"combined_{'_'.join(kls.__qualname__ for kls in klses)}"
+    return combined
