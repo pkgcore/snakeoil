@@ -3,8 +3,9 @@ from itertools import chain
 from operator import itemgetter
 
 import pytest
+
 from snakeoil import sequences
-from snakeoil.sequences import split_elements, split_negations
+from snakeoil.sequences import iter_stable_unique, split_elements, split_negations
 
 
 class UnhashableComplex(complex):
@@ -32,6 +33,13 @@ class TestStableUnique:
         o = UnhashableComplex()
         l = [1, 2, 3, o, UnhashableComplex(), 4, 3, UnhashableComplex()]
         assert list(sequences.iter_stable_unique(l)) == [1, 2, 3, o, 4]
+
+    def test_TypeError_propagation(self):
+        def iterator():
+            raise TypeError()
+            yield
+
+        pytest.raises(TypeError, lambda: list(iter_stable_unique(iterator())))
 
     def _generator(self):
         for x in range(5, -1, -1):

@@ -71,25 +71,29 @@ def iter_stable_unique(iterable):
     For performance reasons, only use this if you really do need to preserve
     the ordering.
     """
-    s = set()
-    sadd = s.add
-    sl = []
-    slappend = sl.append
+    seen = set()
+    unhashable_seen = []
     iterable = iter(iterable)
     # the reason for this structuring is purely speed- entering try/except
     # repeatedly is costly, thus structure it to penalize the unhashables
     # instead of penalizing the hashables.
+    singleton = object()
+
     while True:
+        x = singleton
         try:
             for x in iterable:
-                if x not in s:
+                if x not in seen:
                     yield x
-                    sadd(x)
+                    seen.add(x)
         except TypeError:
-            # unhashable item...
-            if x not in sl:
+            # unhashable item pathway
+            if x is singleton:
+                # the iterable itself threw the TypeError
+                raise
+            if x not in unhashable_seen:
                 yield x
-                slappend(x)
+                unhashable_seen.append(x)
             continue
         break
 
