@@ -42,7 +42,6 @@ from collections import deque
 from functools import wraps
 from importlib import import_module
 from operator import attrgetter
-from typing import Any
 
 from snakeoil.deprecation import deprecated as warn_deprecated
 
@@ -167,14 +166,22 @@ class GenericEquality(abc.ABC):
 
     __attr_comparison__: tuple[str, ...]
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(
+        self, value, /, attr_comparison_override: tuple[str, ...] | None = None
+    ) -> bool:
         """
-        Comparison is down via comparing attributes listed in self.__attr_comparison__
+        Comparison is down via comparing attributes listed in self.__attr_comparison__,
+        or via the passed in attr_comparison_override.  That exists specifically to
+        simplify subclass partial reuse of the class when logic gets complex.
         """
-        if self is other:
+        if self is value:
             return True
-        for attr in self.__attr_comparison__:
-            if getattr(self, attr, sentinel) != getattr(other, attr, sentinel):
+        for attr in (
+            self.__attr_comparison__
+            if attr_comparison_override is None
+            else attr_comparison_override
+        ):
+            if getattr(self, attr, sentinel) != getattr(value, attr, sentinel):
                 return False
         return True
 
@@ -193,6 +200,56 @@ class GenericEquality(abc.ABC):
                 f"__attr_comparison__ must be a tuple, received {cls.__attr_comparison__!r}"
             )
         return super().__init_subclass__()
+
+
+class GenericRichComparison(GenericEquality):
+    __slots__ = ()
+
+    def __lt__(self, value, attr_comparison_override: tuple[str, ...] | None = None):
+        if self is value:
+            return False
+        attrlist = (
+            self.__attr_comparison__
+            if attr_comparison_override is None
+            else attr_comparison_override
+        )
+        for attr in attrlist:
+            obj1, obj2 = getattr(self, attr, sentinel), getattr(value, attr, sentinel)
+            if obj1 is sentinel:
+                if obj2 is sentinel:
+                    continue
+                return True
+            elif obj2 is sentinel:
+                return False
+            if not (obj1 >= obj2):  # pyright: ignore[reportOperatorIssue]
+                return True
+        return False
+
+    def __le__(self, value, attr_comparison_override: tuple[str, ...] | None = None):
+        if self is value:
+            return True
+        attrlist = (
+            self.__attr_comparison__
+            if attr_comparison_override is None
+            else attr_comparison_override
+        )
+        for attr in attrlist:
+            obj1, obj2 = getattr(self, attr, sentinel), getattr(value, attr, sentinel)
+            if obj1 is sentinel:
+                if obj2 is sentinel:
+                    continue
+                return True
+            elif obj2 is sentinel:
+                return False
+            if not (obj1 > obj2):  # pyright: ignore[reportOperatorIssue]
+                return True
+        return False
+
+    def __gt__(self, value, attr_comparison_override: tuple[str, ...] | None = None):
+        return not self.__le__(value, attr_comparison_override=attr_comparison_override)
+
+    def __ge__(self, value, attr_comparison_override: tuple[str, ...] | None = None):
+        return not self.__lt__(value, attr_comparison_override=attr_comparison_override)
 
 
 @warn_deprecated(

@@ -661,3 +661,43 @@ class TestGenericEquality:
             subclass_disabling_must_be_allowed.__annotations__["__attr_comparison__"]
             is None
         ), "annotations weren't updated"
+
+
+class TestGenericRichComparison:
+    def test_it(self):
+        class kls(klass.GenericRichComparison):
+            __attr_comparison__ = ("x", "y")
+
+            def __init__(self, x=1, y=2):
+                self.x, self.y = x, y
+
+        obj1 = kls()
+        # these use identity check shortcuts, validate how it handles
+        # the same instance.
+        assert obj1 == obj1
+        assert obj1 <= obj1
+        assert obj1 >= obj1
+        assert not (obj1 < obj1)
+        assert not (obj1 > obj1)
+        assert not (obj1 != obj1)
+
+        # validate the usual scenarios
+        obj2 = kls()
+        assert not (obj1 < obj2)
+        assert obj1 <= obj2
+        assert not (obj1 != obj2)
+        assert obj1 >= obj2
+        assert not (obj1 > obj2)
+
+        obj1.x = 0
+        assert obj1 < obj2
+        assert obj1 <= obj2
+        assert not (obj1 > obj2)
+        assert not (obj1 >= obj2)
+
+        del obj1.x
+        assert obj1 != obj2
+        assert obj1 < obj2
+        assert obj1 <= obj2
+        assert not (obj1 > obj2)
+        assert not (obj1 >= obj2)
