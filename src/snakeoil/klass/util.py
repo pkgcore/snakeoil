@@ -1,6 +1,13 @@
-__all__ = ("get_attrs_of", "get_slots_of", "combine_classes")
+__all__ = (
+    "get_attrs_of",
+    "get_slots_of",
+    "combine_classes",
+    "copy_class_docs",
+    "copy_docs",
+)
 import builtins
 import functools
+import types
 from typing import Any, Iterable
 
 _known_builtins = frozenset(
@@ -88,3 +95,55 @@ def combine_classes(kls: type, *extra: type) -> type:
 
     combined.__name__ = f"combined_{'_'.join(kls.__qualname__ for kls in klses)}"
     return combined
+
+
+# For this list, look at functools.wraps for an idea of what is possibly mappable.
+_copy_doc_targets = ("__annotations__", "__doc__", "__type_params__")
+
+
+def copy_docs(target):
+    """Copy the docs and annotations off of the given target
+
+    This is used for implementations that look like something (the target), but
+    do not actually invoke the the target.
+
+    If you're just wrapping something- a true decorator- use functools.wraps
+    """
+
+    if isinstance(target, type):
+        return copy_class_docs(target)
+
+    def inner(functor):
+        for name in _copy_doc_targets:
+            try:
+                setattr(functor, name, getattr(target, name))
+            except AttributeError:
+                pass
+        return functor
+
+    return inner
+
+
+def copy_class_docs(source_class):
+    """
+    Copy the docs and annotations of a target class for methods that intersect with the target.
+
+    This does *not* check that the prototype signatures are the same, and it exempts __init__
+    since that makes no sense to copy
+    """
+
+    def do_it(cls):
+        if cls.__name__ == "OrderedFrozenSet":
+            import pdb
+
+            pdb.set_trace()
+        for name in set(source_class.__dict__).intersection(cls.__dict__):
+            obj = getattr(cls, name)
+            if not isinstance(obj, types.FunctionType):
+                continue
+            if getattr(obj, "__annotations__", None) or getattr(obj, "__doc__", None):
+                continue
+            setattr(cls, name, copy_docs(getattr(source_class, name))(obj))
+        return cls
+
+    return do_it

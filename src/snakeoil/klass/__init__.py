@@ -21,6 +21,7 @@ __all__ = (
     "cached_hash",
     "cached_property",
     "cached_property_named",
+    "copy_docs",
     "steal_docs",
     "ImmutableInstance",
     "immutable_instance",
@@ -36,7 +37,6 @@ __all__ = (
 )
 
 import abc
-import inspect
 from collections import deque
 from operator import attrgetter
 
@@ -48,6 +48,7 @@ from .deprecated import (
     immutable_instance,
     inject_immutable_instance,
     inject_richcmp_methods_from_cmp,
+    steal_docs,
 )
 from .properties import (
     _uncached_singleton,  # noqa: F401 .  This exists purely due to a stupid usage of pkgcore.ebuild.profile which is being removed.
@@ -62,7 +63,7 @@ from .properties import (
     jit_attr_named,
     jit_attr_none,
 )
-from .util import combine_classes, get_attrs_of, get_slots_of
+from .util import combine_classes, copy_docs, get_attrs_of, get_slots_of
 
 sentinel = object()
 
@@ -405,55 +406,6 @@ def cached_hash(func):
         return val
 
     return __hash__
-
-
-def steal_docs(target, ignore_missing=False, name=None):
-    """
-    decorator to steal __doc__ off of a target class or function
-
-    Specifically when the target is a class, it will look for a member matching
-    the functors names from target, and clones those docs to that functor;
-    otherwise, it will simply clone the targeted function's docs to the
-    functor.
-
-    :param target: class or function to steal docs from
-    :param ignore_missing: if True, it'll swallow the exception if it
-        cannot find a matching method on the target_class.  This is rarely
-        what you want- it's mainly useful for cases like `dict.has_key`, where it
-        exists in py2k but doesn't in py3k
-    :param name: function name from class to steal docs from, by default the name of the
-        decorated function is used; only used when the target is a class name
-
-    Example Usage:
-
-    >>> from snakeoil.klass import steal_docs
-    >>> class foo(list):
-    ...   @steal_docs(list)
-    ...   def extend(self, *a):
-    ...     pass
-    >>>
-    >>> f = foo([1,2,3])
-    >>> assert f.extend.__doc__ == list.extend.__doc__
-    """
-
-    def inner(functor):
-        if inspect.isclass(target):
-            if name is not None:
-                target_name = name
-            else:
-                target_name = functor.__name__
-            try:
-                obj = getattr(target, target_name)
-            except AttributeError:
-                if not ignore_missing:
-                    raise
-                return functor
-        else:
-            obj = target
-        functor.__doc__ = obj.__doc__
-        return functor
-
-    return inner
 
 
 class SlotsPicklingMixin:

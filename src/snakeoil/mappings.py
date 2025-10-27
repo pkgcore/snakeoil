@@ -19,13 +19,14 @@ __all__ = (
 import operator
 from collections import defaultdict
 from collections.abc import Mapping, MutableSet, Set
-from functools import partial
+from functools import partial, wraps
 from itertools import chain, filterfalse, islice
 from typing import Any
 
-from .klass import contains, get, get_attrs_of, sentinel, steal_docs
+from .klass import contains, copy_docs, get, get_attrs_of, sentinel
 
 
+@copy_docs(dict)
 class DictMixin:
     """
     new style class replacement for :py:func:`UserDict.DictMixin`
@@ -58,28 +59,22 @@ class DictMixin:
         if kwargs:
             self.update(kwargs.items())
 
-    @steal_docs(dict)
     def __iter__(self):
         return self.keys()
 
-    @steal_docs(dict)
     def __str__(self):
         return str(dict(self.items()))
 
-    @steal_docs(dict)
     def items(self):
         for k in self:
             yield k, self[k]
 
-    @steal_docs(dict)
     def keys(self):
         raise NotImplementedError(self, "keys")
 
-    @steal_docs(dict)
     def values(self):
         return map(self.__getitem__, self)
 
-    @steal_docs(dict)
     def update(self, iterable):
         for k, v in iterable:
             self[k] = v
@@ -87,7 +82,6 @@ class DictMixin:
     get = get
     __contains__ = contains
 
-    @steal_docs(dict)
     def __eq__(self, other):
         if len(self) != len(other):
             return False
@@ -98,11 +92,9 @@ class DictMixin:
                 return False
         return True
 
-    @steal_docs(dict)
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    @steal_docs(dict)
     def pop(self, key, default=sentinel):
         if not self.__externally_mutable__:
             raise AttributeError(self, "pop")
@@ -115,7 +107,6 @@ class DictMixin:
             raise
         return val
 
-    @steal_docs(dict)
     def setdefault(self, key, default=None):
         if not self.__externally_mutable__:
             raise AttributeError(self, "setdefault")
@@ -137,7 +128,6 @@ class DictMixin:
             raise AttributeError(self, "__delitem__")
         raise NotImplementedError(self, "__delitem__")
 
-    @steal_docs(dict)
     def clear(self):
         if not self.__externally_mutable__:
             raise AttributeError(self, "clear")
@@ -159,7 +149,6 @@ class DictMixin:
             return True
         return False
 
-    @steal_docs(dict)
     def popitem(self):
         if not self.__externally_mutable__:
             raise AttributeError(self, "popitem")
@@ -445,6 +434,7 @@ class OrderedSet(OrderedFrozenSet, MutableSet):
         raise TypeError(f"unhashable type: {self.__class__.__name__!r}")
 
 
+@copy_docs(dict)
 class IndeterminantDict:
     """A wrapped dict with constant defaults, and a function for other keys.
 
@@ -528,7 +518,7 @@ class StackedDict(DictMixin):
     def __setitem__(self, *a):
         raise TypeError("unmodifiable")
 
-    __delitem__ = clear = __setitem__
+    __delitem__ = clear = __setitem__  # pyright: ignore[reportAssignmentType]
 
 
 class PreservingFoldingDict(DictMixin):
@@ -624,6 +614,7 @@ class NonPreservingFoldingDict(DictMixin):
 
     def __setitem__(self, key, value):
         self._dict[self._folder(key)] = value
+        return value
 
     def __delitem__(self, key):
         del self._dict[self._folder(key)]
@@ -661,21 +652,19 @@ class defaultdictkey(defaultdict):
         # that a default_factory is required
         defaultdict.__init__(self, default_factory)
 
-    @steal_docs(defaultdict)
     def __missing__(self, key):
         obj = self[key] = self.default_factory(key)
         return obj
 
 
 def _KeyError_to_Attr(functor):
+    @wraps(functor)
     def inner(self, *args):
         try:
             return functor(self, *args)
         except KeyError:
             raise AttributeError(args[0])
 
-    inner.__name__ = functor.__name__
-    inner.__doc__ = functor.__doc__
     return inner
 
 
@@ -756,7 +745,7 @@ class ProxiedAttrs(DictMixin):
         except AttributeError:
             raise KeyError(key)
 
-    def __delitem__(self, key: Any) -> None:
+    def __delitem__(self, key: Any):
         try:
             return delattr(self.__target__, key)
         except AttributeError:

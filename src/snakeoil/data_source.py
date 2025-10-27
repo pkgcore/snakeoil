@@ -43,10 +43,10 @@ __all__ = (
 )
 
 import errno
-from functools import partial
 import io
+from functools import partial
 
-from . import compression, fileutils, klass, stringio
+from . import compression, fileutils, stringio
 from .currying import post_curry
 
 
@@ -210,7 +210,6 @@ class local_source(base):
         self.mutable = mutable
         self.encoding = encoding
 
-    @klass.steal_docs(base)
     def text_fileobj(self, writable=False):
         if writable and not self.mutable:
             raise TypeError("data source %s is immutable" % (self,))
@@ -230,7 +229,6 @@ class local_source(base):
                 raise
             return opener(self.path, "w+")
 
-    @klass.steal_docs(base)
     def bytes_fileobj(self, writable=False):
         if not writable:
             return open_file(self.path, "rb", self.buffering_window)
@@ -321,7 +319,6 @@ class data_source(base):
             return self.data
         return self.data.decode()
 
-    @klass.steal_docs(base)
     def text_fileobj(self, writable=False):
         if writable:
             if not self.mutable:
@@ -337,7 +334,6 @@ class data_source(base):
             data = data.decode()
         self.data = data
 
-    @klass.steal_docs(base)
     def bytes_fileobj(self, writable=False):
         if writable:
             if not self.mutable:
@@ -354,7 +350,6 @@ class text_data_source(data_source):
 
     __slots__ = ()
 
-    @klass.steal_docs(data_source)
     def __init__(self, data, mutable=False):
         if not isinstance(data, str):
             raise TypeError("data must be a str")
@@ -374,7 +369,6 @@ class bytes_data_source(data_source):
 
     __slots__ = ()
 
-    @klass.steal_docs(data_source)
     def __init__(self, data, mutable=False):
         if not isinstance(data, bytes):
             raise TypeError("data must be bytes")
@@ -405,13 +399,11 @@ class invokable_data_source(data_source):
         """
         data_source.__init__(self, data, mutable=False)
 
-    @klass.steal_docs(data_source)
     def text_fileobj(self, writable=False):
         if writable:
             raise TypeError(f"data source {self} data is immutable")
         return self.data(True)
 
-    @klass.steal_docs(data_source)
     def bytes_fileobj(self, writable=False):
         if writable:
             raise TypeError(f"data source {self} data is immutable")

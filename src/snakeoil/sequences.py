@@ -11,10 +11,10 @@ __all__ = (
     "split_negations",
 )
 
+import functools
 from typing import Any, Callable, Iterable, Type
 
 from .iterables import expandable_chain
-from .klass import steal_docs
 
 
 def unstable_unique(sequence):
@@ -223,11 +223,11 @@ class ChainedLists:
     def __str__(self):
         return "[ %s ]" % ", ".join(str(l) for l in self._lists)
 
-    @steal_docs(list)
+    @functools.wraps(list.append)
     def append(self, item):
         self._lists.append(item)
 
-    @steal_docs(list)
+    @functools.wraps(list.extend)
     def extend(self, items):
         self._lists.extend(items)
 

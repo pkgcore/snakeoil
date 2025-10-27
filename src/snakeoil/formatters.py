@@ -7,7 +7,7 @@ import os
 import typing
 from functools import partial
 
-from .klass import GetAttrProxy, steal_docs
+from .klass import GetAttrProxy, copy_docs
 from .mappings import defaultdictkey
 
 __all__ = (
@@ -201,7 +201,6 @@ class PlainTextFormatter(Formatter):
             # but it is completely arbitrary.
             self._pos = self.width - 10
 
-    @steal_docs(Formatter)
     def write(self, *args, **kwargs):
         wrap = kwargs.get("wrap", self.wrap)
         autoline = kwargs.get("autoline", self.autoline)
@@ -487,15 +486,14 @@ else:
             self._fg_cache = defaultdictkey(partial(TerminfoColor, 0))
             self._bg_cache = defaultdictkey(partial(TerminfoColor, 1))
 
-        @steal_docs(Formatter)
+        @copy_docs(Formatter.fg)
         def fg(self, color=None):
             return self._fg_cache[color]
 
-        @steal_docs(Formatter)
+        @copy_docs(Formatter.bg)
         def bg(self, color=None):
             return self._bg_cache[color]
 
-        @steal_docs(Formatter)
         def write(self, *args, **kwargs):
             super().write(*args, **kwargs)
             try:
@@ -509,8 +507,8 @@ else:
                     raise StreamClosed(e)
                 raise
 
-        @steal_docs(Formatter)
-        def title(self, string):
+        def title(self, title: str):  # pyright: ignore[reportIncompatibleMethodOverride]
+            """ "Set the title"""
             # I want to use curses.tigetflag('hs') here but at least
             # the screen-s entry defines a tsl and fsl string but does
             # not set the hs flag. So just check for the ability to
@@ -519,7 +517,7 @@ else:
             tsl = curses.tigetstr("tsl")
             fsl = curses.tigetstr("fsl")
             if tsl and fsl:
-                self.stream.write(tsl + string.encode(self.encoding, "replace") + fsl)
+                self.stream.write(tsl + title.encode(self.encoding, "replace") + fsl)
                 self.stream.flush()
 
 
