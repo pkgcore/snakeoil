@@ -15,11 +15,12 @@ def get_slots_of(kls: type) -> Iterable[tuple[type, None | tuple[str, ...]]]:
     or literal python C extensions, not unless they expose __slots__.
 
     """
-    yield (kls, getattr(kls, "__slots__", () if kls in _known_builtins else None))
     for base in kls.mro():
         yield (
             base,
-            getattr(base, "__slots__", () if base in _known_builtins else None),
+            # class objects provide a proxy map so abuse that to look at the class
+            # directly.
+            base.__dict__.get("__slots__", () if base in _known_builtins else None),
         )
 
 

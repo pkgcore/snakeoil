@@ -3,7 +3,7 @@ from typing import Any
 
 import pytest
 
-from snakeoil.klass.util import combine_classes, get_attrs_of
+from snakeoil.klass.util import combine_classes, get_attrs_of, get_slots_of
 
 
 def test_get_attrs_of():
@@ -52,9 +52,9 @@ def test_get_attrs_of():
     # the fun one.  Mixed slotting.
     obj = mk_obj(mk_obj(), slots="x", create=True)
     obj.x = 1
-    assert (
-        "x" not in obj.__dict__
-    ), "a slotted variable was tucked into __dict__; this is not how python is understood to work for this code.  While real code can do this- it's dumb but possible- this test doesn't do that, thus something is off."
+    assert "x" not in obj.__dict__, (
+        "a slotted variable was tucked into __dict__; this is not how python is understood to work for this code.  While real code can do this- it's dumb but possible- this test doesn't do that, thus something is off."
+    )
     assert_attrs(obj, {"x": 1})
     obj.y = 2
     assert_attrs(obj, {"x": 1, "y": 2})
@@ -67,6 +67,29 @@ def test_get_attrs_of():
     assert_attrs(obj, {"__weakref__": ref}, weakref=True)
     obj.blah = 1
     assert_attrs(obj, {}, suppressions=["blah"])
+
+
+def test_slots_of():
+    # the bulk of this logic is already flxed by get_attrs_of.  Just assert the api.
+    class kls1:
+        __slots__ = ("x",)
+
+    class kls2(kls1):
+        pass
+
+    class kls3(kls2):
+        __slots__ = ()
+
+    class kls4(kls3):
+        __slots__ = ("y",)
+
+    assert [
+        (kls4, ("y",)),
+        (kls3, ()),
+        (kls2, None),
+        (kls1, ("x",)),
+        (object, ()),
+    ] == list(get_slots_of(kls4))
 
 
 def test_combine_classes():
@@ -89,9 +112,9 @@ def test_combine_classes():
 
     # there is caching, thus also do identity check whilst checking the MRO chain
     kls = combine_classes(kls1, kls2, kls3)
-    assert (
-        kls is combine_classes(kls1, kls2, kls3)
-    ), "combine_metaclass uses lru_cache to avoid generating duplicate classes, however this didn't cache"
+    assert kls is combine_classes(kls1, kls2, kls3), (
+        "combine_metaclass uses lru_cache to avoid generating duplicate classes, however this didn't cache"
+    )
 
     combined = combine_classes(kls1, kls2)
     assert [combined, kls1, kls2, type, object] == list(combined.__mro__)
