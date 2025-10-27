@@ -47,7 +47,12 @@ from typing import Any
 from snakeoil.deprecation import deprecated as warn_deprecated
 
 from ..caching import WeakInstMeta
-from .deprecated import ImmutableInstance, immutable_instance, inject_immutable_instance
+from .deprecated import (
+    ImmutableInstance,
+    immutable_instance,
+    inject_immutable_instance,
+    inject_richcmp_methods_from_cmp,
+)
 from .properties import (
     _uncached_singleton,  # noqa: F401 .  This exists purely due to a stupid usage of pkgcore.ebuild.profile which is being removed.
     alias,
@@ -236,86 +241,6 @@ def generic_equality(
     scope.setdefault("__eq__", GenericEquality.__eq__)
     scope.setdefault("__ne__", GenericEquality.__ne__)
     return real_type(name, bases, scope)
-
-
-def generic_lt(self, other):
-    """generic implementation of __lt__ that uses __cmp__"""
-    return self.__cmp__(other) < 0
-
-
-def generic_le(self, other):
-    """reflective implementation of __le__ that uses __cmp__"""
-    return self.__cmp__(other) <= 0
-
-
-def generic_eq(self, other):
-    """reflective implementation of __eq__ that uses __cmp__"""
-    return self.__cmp__(other) == 0
-
-
-def generic_ne(self, other):
-    """reflective implementation of __ne__ that uses __cmp__"""
-    return self.__cmp__(other) != 0
-
-
-def generic_ge(self, other):
-    """reflective implementation of __ge__ that uses __cmp__"""
-    return self.__cmp__(other) >= 0
-
-
-def generic_gt(self, other):
-    """reflective implementation of __gt__ that uses __cmp__"""
-    return self.__cmp__(other) > 0
-
-
-def inject_richcmp_methods_from_cmp(scope):
-    """
-    class namespace modifier injecting richcmp methods that rely on __cmp__ for py3k
-    compatibility
-
-    Note that this just injects generic implementations such as :py:func:`generic_lt`;
-    if a method already exists, it will not override it.  This behavior is primarily
-    beneficial if the developer wants to optimize one specific method- __lt__ for sorting
-    reasons for example, but performance is less of a concern for the other
-    rich comparison methods.
-
-    Example usage:
-
-    >>> from snakeoil.klass import inject_richcmp_methods_from_cmp
-    >>> from snakeoil.compatibility import cmp
-    >>> class foo:
-    ...
-    ...   # note that for this example, we inject always since we're
-    ...   # explicitly accessing __ge__ methods- under py2k, they wouldn't
-    ...   # exist (__cmp__ would be sufficient).
-    ...
-    ...   # add the generic rich comparsion methods to the local class namespace
-    ...   inject_richcmp_methods_from_cmp(locals())
-    ...
-    ...   def __init__(self, a, b):
-    ...     self.a, self.b = a, b
-    ...
-    ...   def __cmp__(self, other):
-    ...     c = cmp(self.a, other.a)
-    ...     if c == 0:
-    ...       c = cmp(self.b, other.b)
-    ...     return c
-    >>>
-    >>> assert foo(1, 2).__ge__(foo(1, 1))
-    >>> assert foo(1, 1).__eq__(foo(1, 1))
-
-    :param scope: the modifiable scope of a class namespace to work on
-    """
-
-    for key, func in (
-        ("__lt__", generic_lt),
-        ("__le__", generic_le),
-        ("__eq__", generic_eq),
-        ("__ne__", generic_ne),
-        ("__ge__", generic_ge),
-        ("__gt__", generic_gt),
-    ):
-        scope.setdefault(key, func)
 
 
 @warn_deprecated(
