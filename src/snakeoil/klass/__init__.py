@@ -28,7 +28,6 @@ __all__ = (
     "alias_method",
     "aliased",
     "alias",
-    "patch",
     "SlotsPicklingMixin",
     "DirProxy",
     "GetAttrProxy",
@@ -39,8 +38,6 @@ __all__ = (
 import abc
 import inspect
 from collections import deque
-from functools import wraps
-from importlib import import_module
 from operator import attrgetter
 
 from snakeoil.deprecation import deprecated as warn_deprecated
@@ -457,67 +454,6 @@ def steal_docs(target, ignore_missing=False, name=None):
         return functor
 
     return inner
-
-
-def patch(target, external_decorator=None):
-    """Simplified monkeypatching via decorator.
-
-    :param target: target method to replace
-    :param external_decorator: decorator used on target method,
-        e.g. classmethod or staticmethod
-
-    Example usage (that's entirely useless):
-
-    >>> import math
-    >>> from snakeoil.klass import patch
-    >>> @patch('math.ceil')
-    >>> def ceil(orig_ceil, n):
-    ...   return math.floor(n)
-    >>> assert math.ceil(0.1) == 0
-    """
-
-    def _import_module(target):
-        components = target.split(".")
-        import_path = components.pop(0)
-        module = import_module(import_path)
-        for comp in components:
-            try:
-                module = getattr(module, comp)
-            except AttributeError:
-                import_path += f".{comp}"
-                module = import_module(import_path)
-        return module
-
-    def _get_target(target):
-        try:
-            module, attr = target.rsplit(".", 1)
-        except (TypeError, ValueError):
-            raise TypeError(f"invalid target: {target!r}")
-        module = _import_module(module)
-        return module, attr
-
-    def decorator(func):
-        # use the original function wrapper
-        func = getattr(func, "_func", func)
-
-        module, attr = _get_target(target)
-        orig_func = getattr(module, attr)
-
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            return func(orig_func, *args, **kwargs)
-
-        # save the original function wrapper
-        wrapper._func = func
-
-        if external_decorator is not None:
-            wrapper = external_decorator(wrapper)
-
-        # overwrite the original method with our wrapper
-        setattr(module, attr, wrapper)
-        return wrapper
-
-    return decorator
 
 
 class SlotsPicklingMixin:

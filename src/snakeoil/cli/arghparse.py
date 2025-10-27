@@ -22,7 +22,8 @@ from argparse import (
     _SubParsersAction,
 )
 from collections import Counter
-from functools import partial
+from functools import partial, wraps
+from importlib import import_module
 from itertools import chain
 from operator import attrgetter
 from textwrap import dedent
@@ -41,11 +42,73 @@ from ..version import get_version
 _generate_docs = False
 
 
-@klass.patch("argparse.ArgumentParser.add_subparsers")
-@klass.patch("argparse._SubParsersAction.add_parser")
-@klass.patch("argparse._ActionsContainer.add_mutually_exclusive_group")
-@klass.patch("argparse._ActionsContainer.add_argument_group")
-@klass.patch("argparse._ActionsContainer.add_argument")
+# BUG: This ain't desirable, find a different way.
+def _monkey_patch(target, external_decorator=None):
+    """Simplified monkeypatching via decorator.
+
+    :param target: target method to replace
+    :param external_decorator: decorator used on target method,
+        e.g. classmethod or staticmethod
+
+    Example usage (that's entirely useless):
+
+    >>> import math
+    >>> from snakeoil.klass import patch
+    >>> @patch('math.ceil')
+    >>> def ceil(orig_ceil, n):
+    ...   return math.floor(n)
+    >>> assert math.ceil(0.1) == 0
+    """
+
+    def _import_module(target):
+        components = target.split(".")
+        import_path = components.pop(0)
+        module = import_module(import_path)
+        for comp in components:
+            try:
+                module = getattr(module, comp)
+            except AttributeError:
+                import_path += f".{comp}"
+                module = import_module(import_path)
+        return module
+
+    def _get_target(target):
+        try:
+            module, attr = target.rsplit(".", 1)
+        except (TypeError, ValueError):
+            raise TypeError(f"invalid target: {target!r}")
+        module = _import_module(module)
+        return module, attr
+
+    def decorator(func):
+        # use the original function wrapper
+        func = getattr(func, "_func", func)
+
+        module, attr = _get_target(target)
+        orig_func = getattr(module, attr)
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(orig_func, *args, **kwargs)
+
+        # save the original function wrapper
+        wrapper._func = func
+
+        if external_decorator is not None:
+            wrapper = external_decorator(wrapper)
+
+        # overwrite the original method with our wrapper
+        setattr(module, attr, wrapper)
+        return wrapper
+
+    return decorator
+
+
+@_monkey_patch("argparse.ArgumentParser.add_subparsers")
+@_monkey_patch("argparse._SubParsersAction.add_parser")
+@_monkey_patch("argparse._ActionsContainer.add_mutually_exclusive_group")
+@_monkey_patch("argparse._ActionsContainer.add_argument_group")
+@_monkey_patch("argparse._ActionsContainer.add_argument")
 def _add_argument_docs(orig_func, self, *args, **kwargs):
     """Enable docs keyword argument support for argparse arguments.
 

@@ -35,16 +35,6 @@ def coverage():
     return cov
 
 
-@klass.patch("os._exit")
-def _os_exit(orig_exit, val):
-    """Monkeypatch os._exit() to save coverage data before exit."""
-    cov = coverage()
-    if cov is not None:
-        cov.stop()
-        cov.save()
-    orig_exit(val)
-
-
 _PROTECT_ENV_VAR = "SNAKEOIL_UNITTEST_PROTECT_PROCESS"
 
 

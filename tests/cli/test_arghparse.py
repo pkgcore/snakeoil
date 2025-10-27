@@ -1,11 +1,11 @@
 import argparse
-import os
-import tempfile
+import math
 from functools import partial
 from importlib import reload
 from unittest import mock
 
 import pytest
+
 from snakeoil.cli import arghparse
 from snakeoil.test import argparse_helpers
 
@@ -491,3 +491,38 @@ class TestManHelpAction:
             captured = capsys.readouterr()
             assert captured.out.strip().startswith("usage: ")
             popen.reset_mock()
+
+
+class Test_MonkeyPatchPatch:
+    def setup_method(self, method):
+        # cache original methods
+        self._math_ceil = math.ceil
+        self._math_floor = math.floor
+
+    def teardown_method(self, method):
+        # restore original methods
+        math.ceil = self._math_ceil
+        math.floor = self._math_floor
+
+    def test_patch(self):
+        n = 0.1
+        assert math.ceil(n) == 1
+
+        @arghparse._monkey_patch("math.ceil")
+        def ceil(orig_ceil, n):
+            return math.floor(n)
+
+        assert math.ceil(n) == 0
+
+    def test_multiple_patches(self):
+        n = 1.1
+        assert math.ceil(n) == 2
+        assert math.floor(n) == 1
+
+        @arghparse._monkey_patch("math.ceil")
+        @arghparse._monkey_patch("math.floor")
+        def zero(orig_func, n):
+            return 0
+
+        assert math.ceil(n) == 0
+        assert math.floor(n) == 0

@@ -1,4 +1,3 @@
-import math
 import re
 from functools import partial
 from time import time
@@ -560,41 +559,6 @@ class TestAliasMethod:
         assert c.__len__() == c.lfunc()
         c.__len__ = lambda: 4
         assert c.__len__() == c.lfunc()
-
-
-class TestPatch:
-    def setup_method(self, method):
-        # cache original methods
-        self._math_ceil = math.ceil
-        self._math_floor = math.floor
-
-    def teardown_method(self, method):
-        # restore original methods
-        math.ceil = self._math_ceil
-        math.floor = self._math_floor
-
-    def test_patch(self):
-        n = 0.1
-        assert math.ceil(n) == 1
-
-        @klass.patch("math.ceil")
-        def ceil(orig_ceil, n):
-            return math.floor(n)
-
-        assert math.ceil(n) == 0
-
-    def test_multiple_patches(self):
-        n = 1.1
-        assert math.ceil(n) == 2
-        assert math.floor(n) == 1
-
-        @klass.patch("math.ceil")
-        @klass.patch("math.floor")
-        def zero(orig_func, n):
-            return 0
-
-        assert math.ceil(n) == 0
-        assert math.floor(n) == 0
 
 
 class TestGenericEquality:
