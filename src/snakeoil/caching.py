@@ -81,7 +81,7 @@ class WeakInstMeta(type):
     U{pkgcore project<http://pkgcore.org>}
     """
 
-    def __new__(cls, name: str, bases: tuple[type, ...], scope) -> type:
+    def __new__(cls, name: str, bases: tuple[type, ...], scope, **kwds) -> type:
         if scope.setdefault("__inst_caching__", False):
             scope["__inst_dict__"] = WeakValueDictionary()
             if new_init := scope.get("__init__"):
@@ -105,7 +105,7 @@ class WeakInstMeta(type):
         ):
             scope["__slots__"] = tuple(scope["__slots__"]) + ("__weakref__",)
 
-        return super().__new__(cls, name, bases, scope)
+        return super().__new__(cls, name, bases, scope, **kwds)
 
     def __call__(cls, *a, **kw):
         """disable caching via disable_inst_caching=True"""
