@@ -12,7 +12,7 @@ __all__ = (
 import operator
 import typing
 
-from snakeoil._util import deprecated
+from snakeoil.deprecation import deprecated
 
 from ..currying import post_curry
 

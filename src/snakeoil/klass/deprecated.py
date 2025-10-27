@@ -4,7 +4,7 @@ __all__ = ("immutable_instance", "inject_immutable_instance", "ImmutableInstance
 
 import typing
 
-from snakeoil._util import deprecated
+from snakeoil.deprecation import deprecated, suppress_deprecation_warning
 
 
 @deprecated("Use snakeoil.klass.meta.Immutable* metaclasses instead")
@@ -16,7 +16,8 @@ def immutable_instance(
     It still is possible to do object.__setattr__ to get around it during
     initialization, but usage of this class effectively prevents accidental
     modification, instead requiring explicit modification."""
-    inject_immutable_instance(scope)
+    with suppress_deprecation_warning():
+        inject_immutable_instance(scope)
     return real_type(name, bases, scope)
 
 

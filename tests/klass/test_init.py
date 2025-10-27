@@ -141,15 +141,23 @@ class Test_get:
 
 
 class Test_chained_getter:
-    kls = klass.chained_getter
+    @staticmethod
+    def kls(*args, **kwargs):
+        with pytest.deprecated_call():
+            kwargs.setdefault("disable_inst_caching", True)
+            return klass.chained_getter(*args, **kwargs)
 
     def test_hash(self):
         assert hash(self.kls("foon")) == hash("foon")
         assert hash(self.kls("foon.dar")) == hash("foon.dar")
 
     def test_caching(self):
-        l = [id(self.kls("fa2341f%s" % x)) for x in "abcdefghij"]  # noqa: E741
-        assert id(self.kls("fa2341fa")) == l[0]
+        # since it caches, it'll only trigger the warning the *first* time, thus
+        # invoke this ourselves directly
+        with pytest.deprecated_call():
+            assert klass.chained_getter(
+                "asdf", disable_inst_caching=False
+            ) is klass.chained_getter("asdf", disable_inst_caching=False)
 
     def test_eq(self):
         assert self.kls("asdf", disable_inst_caching=True) == self.kls(
@@ -170,14 +178,13 @@ class Test_chained_getter:
 
         d = {}
         m = maze(d)
-        f = self.kls
-        assert f("foon")(m) == m
+        assert self.kls("foon")(m) == m
         d["foon"] = 1
-        assert f("foon")(m) == 1
-        assert f("dar.foon")(m) == 1
-        assert f(".".join(["blah"] * 10))(m) == m
+        assert self.kls("foon")(m) == 1
+        assert self.kls("dar.foon")(m) == 1
+        assert self.kls(".".join(["blah"] * 10))(m) == m
         with pytest.raises(AttributeError):
-            f("foon.dar")(m)
+            self.kls("foon.dar")(m)
 
 
 class Test_jit_attr:
@@ -504,11 +511,13 @@ class Test_reflective_hash:
 
 class TestImmutableInstance:
     def test_metaclass(self):
-        self.common_test(lambda x: x, metaclass=klass.immutable_instance)
+        with pytest.deprecated_call():
+            self.common_test(lambda x: x, metaclass=klass.immutable_instance)
 
     def test_injection(self):
         def f(scope):
-            klass.inject_immutable_instance(scope)
+            with pytest.deprecated_call():
+                klass.inject_immutable_instance(scope)
 
         self.common_test(f)
 

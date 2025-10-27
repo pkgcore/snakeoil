@@ -42,7 +42,7 @@ from functools import partial, wraps
 from importlib import import_module
 from operator import attrgetter
 
-from snakeoil._util import deprecated as warn_deprecated
+from snakeoil.deprecation import deprecated as warn_deprecated
 
 from ..caching import WeakInstMeta
 from .deprecated import ImmutableInstance, immutable_instance, inject_immutable_instance
