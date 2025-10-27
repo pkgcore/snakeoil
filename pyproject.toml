@@ -28,6 +28,7 @@ dynamic = ["version"]
 
 dependencies = [
     "lazy-object-proxy",
+    "deprecated~=1.2.18",
 ]
 
 [project.optional-dependencies]
