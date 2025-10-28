@@ -1,8 +1,12 @@
+import abc
 import errno
 import inspect
 import os
 import stat
 import sys
+import warnings
+
+import pytest
 
 from ..compatibility import IGNORED_EXCEPTIONS
 
@@ -142,13 +146,29 @@ class TargetedNamespaceWalker(PythonNamespaceWalker):
             pass
 
 
-class _classWalker:
+class _classWalker(abc.ABC):
     cls_blacklist = frozenset()
+    collected_issues: list[str]
+
+    @pytest.fixture(scope="function")
+    @staticmethod
+    def issue_collector(request):
+        request.cls.collected_issues = []
+        yield request.cls.collected_issues
+        collected = request.cls.collected_issues
+        if not collected:
+            return
+        collected_issues = sorted(collected)
+        if getattr(request.cls, "strict"):
+            s = "\n".join(collected_issues)
+            pytest.fail(f"multiple failures detected:\n{s}")
+        for issue in collected_issues:
+            warnings.warn(issue)
 
     def is_blacklisted(self, cls):
         return cls.__name__ in self.cls_blacklist
 
-    def test_object_derivatives(self, *args, **kwds):
+    def test_object_derivatives(self, *args, issue_collector, **kwds):
         # first load all namespaces...
         self.load_namespaces()
 
@@ -164,7 +184,7 @@ class _classWalker:
                 continue
             yield obj
 
-    def test_builtin_derivatives(self, *args, **kwds):
+    def test_builtin_derivatives(self, *args, issue_collector, **kwds):
         self.load_namespaces()
         for obj in self.iter_builtin_targets():
             for cls in self.walk_derivatives(obj, *args, **kwds):
@@ -174,8 +194,12 @@ class _classWalker:
     def walk_derivatives(self, obj):
         raise NotImplementedError(self.__class__, "walk_derivatives")
 
-    def run_check(self, cls):
+    @abc.abstractmethod
+    def run_check(self, cls: type) -> None:
         raise NotImplementedError
+
+    def report_issue(self, message):
+        self.collected_issues.append(message)
 
 
 class SubclassWalker(_classWalker):

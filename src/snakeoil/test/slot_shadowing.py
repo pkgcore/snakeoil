@@ -1,7 +1,3 @@
-import warnings
-
-import pytest
-
 from . import mixins
 
 
@@ -86,9 +82,3 @@ class SlotShadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker):
                 self.report_issue(
                     f"cls {kls!r}; slot {slot!r} was already defined at {slotting[slot]!r}"
                 )
-
-    def report_issue(self, message):
-        if self.strict:
-            pytest.fail(message)
-        else:
-            warnings.warn(f"slot_shadowing detected: {message}")
