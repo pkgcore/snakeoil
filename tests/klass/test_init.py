@@ -1,4 +1,5 @@
 import re
+import sys
 from functools import partial
 from time import time
 
@@ -6,6 +7,15 @@ import pytest
 
 from snakeoil import klass
 from snakeoil.klass.properties import _internal_jit_attr, _uncached_singleton
+
+if sys.version_info >= (3, 13):
+    from pytest import deprecated_call
+else:
+    import contextlib
+
+    @contextlib.contextmanager
+    def deprecated_call(*args, **kwargs):
+        yield
 
 
 class Test_GetAttrProxy:
@@ -140,7 +150,7 @@ class Test_get:
 class Test_chained_getter:
     @staticmethod
     def kls(*args, **kwargs):
-        with pytest.deprecated_call():
+        with deprecated_call():
             kwargs.setdefault("disable_inst_caching", True)
             return klass.chained_getter(*args, **kwargs)
 
@@ -151,7 +161,7 @@ class Test_chained_getter:
     def test_caching(self):
         # since it caches, it'll only trigger the warning the *first* time, thus
         # invoke this ourselves directly
-        with pytest.deprecated_call():
+        with deprecated_call():
             assert klass.chained_getter(
                 "asdf", disable_inst_caching=False
             ) is klass.chained_getter("asdf", disable_inst_caching=False)
@@ -508,12 +518,12 @@ class Test_reflective_hash:
 
 class TestImmutableInstance:
     def test_metaclass(self):
-        with pytest.deprecated_call():
+        with deprecated_call():
             self.common_test(lambda x: x, metaclass=klass.immutable_instance)
 
     def test_injection(self):
         def f(scope):
-            with pytest.deprecated_call():
+            with deprecated_call():
                 klass.inject_immutable_instance(scope)
 
         self.common_test(f)
