@@ -1,7 +1,7 @@
 *.py[co]
 .*.swp
 .*.un~
-.venv/
+.venv
 
 # C extensions
 /src/snakeoil/*.c
