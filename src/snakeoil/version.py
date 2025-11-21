@@ -1,5 +1,6 @@
 """Version information."""
 
+import datetime
 import errno
 import os
 import subprocess
@@ -77,13 +78,14 @@ def get_git_version(path):
     """Return git related revision data."""
     path = os.path.abspath(path)
     try:
-        stdout, ret = _run_git(path, ["log", "--format=%H\n%aD", "HEAD^..HEAD"])
+        stdout, ret = _run_git(path, ["log", "-1", "--format=%H\n%at", "HEAD"])
 
         if ret != 0:
             return None
 
-        data = stdout.decode().splitlines()
-        tag = _get_git_tag(path, data[0])
+        (ref, timestamp) = stdout.decode().splitlines()
+        datetime_obj = datetime.datetime.fromtimestamp(int(timestamp))
+        tag = _get_git_tag(path, ref)
 
         # get number of commits since most recent tag
         stdout, ret = _run_git(path, ["describe", "--tags", "--abbrev=0"])
@@ -95,9 +97,13 @@ def get_git_version(path):
             if ret == 0:
                 commits = len(stdout.decode().splitlines())
 
+        # historically, this code
         return {
-            "rev": data[0],
-            "date": data[1],
+            "rev": ref,
+            # include this so any code that can do date localization, does so.
+            "datetime": datetime_obj,
+            # ... and force this to american norms, since that's the historical behavior.
+            "date": datetime_obj.strftime("%a, %d %b %Y %H:%M:%S %z"),
             "tag": tag,
             "commits": commits,
         }

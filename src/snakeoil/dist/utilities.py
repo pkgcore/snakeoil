@@ -32,8 +32,7 @@ def module_version(repodir, moduledir):
         if tag is None:
             commits = git_version['commits']
             rev = git_version['rev'][:7]
-            date = datetime.strptime(git_version['date'], '%a, %d %b %Y %H:%M:%S %z')
-            date = datetime.strftime(date, '%Y%m%d')
+            date = git_version['datetime'].strftime("%Y%m%d")
             if commits is not None:
                 version += f'.dev{commits}'
             version += f'+g{rev}.d{date}'
