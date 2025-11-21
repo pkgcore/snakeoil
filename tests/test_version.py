@@ -3,6 +3,7 @@ from importlib import reload
 from unittest import mock
 
 import pytest
+
 from snakeoil import __version__, version
 
 
@@ -102,13 +103,14 @@ class TestGitVersion:
         with mock.patch("snakeoil.version._run_git") as run_git:
             # dev version
             run_git.return_value = (
-                b"1ff76b021d208f7df38ac524537b6419404f1c64\nMon Sep 25 13:50:24 2017 -0400",
+                b"1ff76b021d208f7df38ac524537b6419404f1c64\n1506361824",
                 0,
             )
             result = version.get_git_version("nonexistent")
             expected = {
                 "rev": "1ff76b021d208f7df38ac524537b6419404f1c64",
-                "date": "Mon Sep 25 13:50:24 2017 -0400",
+                "date": "Mon Sep 25 17:50:24 2017",
+                "timestamp": 1506361824,
                 "tag": None,
                 "commits": 2,
             }
@@ -121,14 +123,15 @@ class TestGitVersion:
         ):
             # tagged, release version
             run_git.return_value = (
-                b"1ff76b021d208f7df38ac524537b6419404f1c64\nMon Sep 25 13:50:24 2017 -0400",
+                b"1ff76b021d208f7df38ac524537b6419404f1c64\n1506361824",
                 0,
             )
             get_git_tag.return_value = "1.1.1"
             result = version.get_git_version("nonexistent")
             expected = {
                 "rev": "1ff76b021d208f7df38ac524537b6419404f1c64",
-                "date": "Mon Sep 25 13:50:24 2017 -0400",
+                "date": "Mon Sep 25 17:50:24 2017",
+                "timestamp": 1506361824,
                 "tag": "1.1.1",
                 "commits": 2,
             }

@@ -84,7 +84,8 @@ def get_git_version(path):
             return None
 
         (ref, timestamp) = stdout.decode().splitlines()
-        datetime_obj = datetime.datetime.fromtimestamp(int(timestamp))
+        timestamp = int(timestamp)
+        datetime_obj = datetime.datetime.fromtimestamp(timestamp, datetime.UTC)
         tag = _get_git_tag(path, ref)
 
         # get number of commits since most recent tag
@@ -97,13 +98,11 @@ def get_git_version(path):
             if ret == 0:
                 commits = len(stdout.decode().splitlines())
 
-        # historically, this code
         return {
             "rev": ref,
-            # include this so any code that can do date localization, does so.
-            "datetime": datetime_obj,
             # ... and force this to american norms, since that's the historical behavior.
-            "date": datetime_obj.strftime("%a, %d %b %Y %H:%M:%S %z"),
+            "date": datetime_obj.strftime("%a %b %d %H:%M:%S %Y"),
+            "timestamp": timestamp,
             "tag": tag,
             "commits": commits,
         }

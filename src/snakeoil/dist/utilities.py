@@ -1,7 +1,7 @@
+import datetime
 import errno
 import os
 import re
-from datetime import datetime
 
 from ..version import get_git_version
 
@@ -32,7 +32,7 @@ def module_version(repodir, moduledir):
         if tag is None:
             commits = git_version['commits']
             rev = git_version['rev'][:7]
-            date = git_version['datetime'].strftime("%Y%m%d")
+            date = datetime.datetime.fromtimestamp(git_version['timestamp'], datetime.UTC).strftime("%Y%m%d")
             if commits is not None:
                 version += f'.dev{commits}'
             version += f'+g{rev}.d{date}'
