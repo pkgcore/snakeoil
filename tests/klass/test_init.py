@@ -150,7 +150,7 @@ class Test_get:
 class Test_chained_getter:
     @staticmethod
     def kls(*args, **kwargs):
-        with deprecated_call():
+        with pytest.deprecated_call():
             kwargs.setdefault("disable_inst_caching", True)
             return klass.chained_getter(*args, **kwargs)
 
@@ -161,7 +161,7 @@ class Test_chained_getter:
     def test_caching(self):
         # since it caches, it'll only trigger the warning the *first* time, thus
         # invoke this ourselves directly
-        with deprecated_call():
+        with pytest.deprecated_call():
             assert klass.chained_getter(
                 "asdf", disable_inst_caching=False
             ) is klass.chained_getter("asdf", disable_inst_caching=False)
@@ -518,12 +518,12 @@ class Test_reflective_hash:
 
 class TestImmutableInstance:
     def test_metaclass(self):
-        with deprecated_call():
+        with pytest.deprecated_call():
             self.common_test(lambda x: x, metaclass=klass.immutable_instance)
 
     def test_injection(self):
         def f(scope):
-            with deprecated_call():
+            with pytest.deprecated_call():
                 klass.inject_immutable_instance(scope)
 
         self.common_test(f)
