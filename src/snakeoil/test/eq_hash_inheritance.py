@@ -1,7 +1,7 @@
-from . import mixins
+from .slot_shadowing import KlassWalker, TargetedNamespaceWalker
 
 
-class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker):
+class Test(TargetedNamespaceWalker, KlassWalker):
     target_namespace = "snakeoil"
 
     singleton = object()
@@ -21,7 +21,7 @@ class Test(mixins.TargetedNamespaceWalker, mixins.KlassWalker):
 
     def run_check(self, cls):
         for parent in cls.__bases__:
-            if parent == object:
+            if parent is object:
                 # object sets __hash__/__eq__, which isn't usually
                 # intended to be inherited/reused
                 continue

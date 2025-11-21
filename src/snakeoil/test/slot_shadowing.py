@@ -1,7 +1,116 @@
-from . import mixins
+import abc
+import inspect
+import warnings
+
+import pytest
+
+from snakeoil._namespaces import PythonNamespaceWalker
 
 
-class SlotShadowing(mixins.TargetedNamespaceWalker, mixins.SubclassWalker):
+class TargetedNamespaceWalker(PythonNamespaceWalker):
+    target_namespace = None
+
+    def load_namespaces(self, namespace=None):
+        if namespace is None:
+            namespace = self.target_namespace
+        for _mod in self.walk_namespace(namespace):
+            pass
+
+
+class _classWalker(abc.ABC):
+    cls_blacklist = frozenset()
+    collected_issues: list[str]
+
+    @pytest.fixture(scope="function")
+    @staticmethod
+    def issue_collector(request):
+        request.cls.collected_issues = []
+        yield request.cls.collected_issues
+        collected = request.cls.collected_issues
+        if not collected:
+            return
+        collected_issues = sorted(collected)
+        if getattr(request.cls, "strict"):
+            s = "\n".join(collected_issues)
+            pytest.fail(f"multiple failures detected:\n{s}")
+        for issue in collected_issues:
+            warnings.warn(issue)
+
+    def is_blacklisted(self, cls):
+        return cls.__name__ in self.cls_blacklist
+
+    def test_object_derivatives(self, *args, issue_collector, **kwds):
+        # first load all namespaces...
+        self.load_namespaces()
+
+        # next walk all derivatives of object
+        for cls in self.walk_derivatives(object, *args, **kwds):
+            if not self._should_ignore(cls):
+                self.run_check(cls)
+
+    def iter_builtin_targets(self):
+        for attr in dir(__builtins__):
+            obj = getattr(__builtins__, attr)
+            if not inspect.isclass(obj):
+                continue
+            yield obj
+
+    def test_builtin_derivatives(self, *args, issue_collector, **kwds):
+        self.load_namespaces()
+        for obj in self.iter_builtin_targets():
+            for cls in self.walk_derivatives(obj, *args, **kwds):
+                if not self._should_ignore(cls):
+                    self.run_check(cls)
+
+    def walk_derivatives(self, obj):
+        raise NotImplementedError(self.__class__, "walk_derivatives")
+
+    @abc.abstractmethod
+    def run_check(self, cls: type) -> None:
+        raise NotImplementedError
+
+    def report_issue(self, message):
+        self.collected_issues.append(message)
+
+
+class SubclassWalker(_classWalker):
+    def walk_derivatives(self, cls, seen=None):
+        if len(inspect.signature(cls.__subclasses__).parameters) != 0:
+            return
+        if seen is None:
+            seen = set()
+        pos = 0
+        for pos, subcls in enumerate(cls.__subclasses__()):
+            if subcls in seen:
+                continue
+            seen.add(subcls)
+            if self.is_blacklisted(subcls):
+                continue
+            for grand_daddy in self.walk_derivatives(subcls, seen):
+                yield grand_daddy
+        if pos == 0:
+            yield cls
+
+
+class KlassWalker(_classWalker):
+    def walk_derivatives(self, cls, seen=None):
+        if len(inspect.signature(cls.__subclasses__).parameters) != 0:
+            return
+
+        if seen is None:
+            seen = set()
+        elif cls not in seen:
+            seen.add(cls)
+            yield cls
+
+        for subcls in cls.__subclasses__():
+            if subcls in seen:
+                continue
+            for node in self.walk_derivatives(subcls, seen=seen):
+                yield node
+
+
+class SlotShadowing(TargetedNamespaceWalker, SubclassWalker):
     target_namespace = "snakeoil"
     err_if_slots_is_str = True
     err_if_slots_is_mutable = True
