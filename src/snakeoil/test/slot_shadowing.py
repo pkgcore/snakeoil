@@ -4,7 +4,7 @@ import warnings
 
 import pytest
 
-from snakeoil._namespaces import PythonNamespaceWalker
+from snakeoil.python_namespaces import PythonNamespaceWalker
 
 
 class TargetedNamespaceWalker(PythonNamespaceWalker):
