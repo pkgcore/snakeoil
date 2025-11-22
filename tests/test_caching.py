@@ -1,5 +1,7 @@
-import pytest
 import gc
+
+import pytest
+
 from snakeoil.caching import WeakInstMeta
 
 
@@ -116,10 +118,9 @@ class TestWeakInstMeta:
 
         assert weak_inst([]) is not weak_inst([])
         assert weak_inst.counter == 2
-        for x in (TypeError, NotImplementedError):
-            assert weak_inst(RaisingHashForTestUncachable(x)) is not weak_inst(
-                RaisingHashForTestUncachable(x)
-            )
+        assert weak_inst(RaisingHashForTestUncachable(TypeError)) is not weak_inst(
+            RaisingHashForTestUncachable(TypeError)
+        )
 
     @pytest.mark.filterwarnings("error::UserWarning")
     def test_uncachable_warning_msg(self):
@@ -131,9 +132,8 @@ class TestWeakInstMeta:
             def __hash__(self):
                 raise self.error
 
-        for x in (TypeError, NotImplementedError):
-            with pytest.raises(UserWarning):
-                weak_inst(RaisingHashForTestUncachableWarnings(x))
+        with pytest.raises(UserWarning):
+            weak_inst(RaisingHashForTestUncachableWarnings(TypeError))
 
     def test_hash_collision(self):
         class BrokenHash:

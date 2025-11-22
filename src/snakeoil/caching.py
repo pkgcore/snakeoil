@@ -123,6 +123,6 @@ class WeakInstMeta(type):
                     *a, **kw
                 )  # type: ignore[attr-defined]
             return instance
-        except (NotImplementedError, TypeError) as t:
+        except TypeError as t:
             warnings.warn(f"caching keys for {cls}, got {t} for a={a}, kw={kw}")
             return super(WeakInstMeta, cls).__call__(*a, **kw)
