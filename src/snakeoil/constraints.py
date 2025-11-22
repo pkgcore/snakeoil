@@ -32,8 +32,7 @@ class Constraint(Protocol):
         :return: ``True`` if the assignment is satisfied.
     """
 
-    def __call__(self, **kwargs: Any) -> bool:
-        raise NotImplementedError("Constraint", "__call__")
+    def __call__(self, **kwargs: Any) -> bool: ...
 
 
 class _Domain(list):
