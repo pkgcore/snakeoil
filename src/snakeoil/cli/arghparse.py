@@ -10,6 +10,7 @@ import pkgutil
 import subprocess
 import sys
 import traceback
+import types
 import typing
 from argparse import (
     _UNRECOGNIZED_ARGS_ATTR,
@@ -30,13 +31,11 @@ from itertools import chain
 from operator import attrgetter
 from textwrap import dedent
 
-import lazy_object_proxy
-
 from snakeoil.formatters import PlainTextFormatter
 
 from .. import klass
 from ..mappings import ImmutableDict
-from ..obj import popattr
+from ..obj import DelayedInstantiation, popattr
 from ..sequences import split_elements, split_negations
 from ..strings import pluralism
 from ..version import get_version
@@ -570,19 +569,16 @@ class _SubParser(argparse._SubParsersAction):
 
         return parser
 
-    def _lazy_parser(self, module, subcmd):
-        """Lazily-import the subcommand parser for a given module."""
-        return getattr(importlib.import_module(module), subcmd)
-
-    def add_command(self, subcmd):
+    def add_command(self, subcmd: str) -> None:
         """Register a given subcommand to be imported on demand.
 
         Note that this assumes a specific module naming and layout scheme for commands.
         """
         prog = self._prog_prefix
         module = f"{prog}.scripts.{prog}_{subcmd}"
-        func = partial(self._lazy_parser, module, subcmd)
-        self._name_parser_map[subcmd] = lazy_object_proxy.Proxy(func)
+        self._name_parser_map[subcmd] = DelayedInstantiation(
+            self.__class__, lambda: getattr(importlib.import_module(module), subcmd)
+        )
 
     def __call__(self, parser, namespace, values, option_string=None):
         """override stdlib argparse to revert subparser namespace changes

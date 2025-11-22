@@ -26,9 +26,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 
-dependencies = [
-    "lazy-object-proxy",
-]
+dependencies = []
 
 [project.optional-dependencies]
 test = [
