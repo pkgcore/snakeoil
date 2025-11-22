@@ -9,6 +9,7 @@ import pkgutil
 import subprocess
 import sys
 import traceback
+import typing
 from argparse import (
     _UNRECOGNIZED_ARGS_ATTR,
     OPTIONAL,
@@ -30,6 +31,8 @@ from textwrap import dedent
 
 import lazy_object_proxy
 
+from snakeoil.formatters import PlainTextFormatter
+
 from .. import klass
 from ..mappings import ImmutableDict
 from ..obj import popattr
@@ -40,6 +43,10 @@ from ..version import get_version
 # Enable flag to pull extended docs keyword args into arguments during doc
 # generation, when disabled the keyword is silently discarded.
 _generate_docs = False
+
+T_main_func: typing.TypeAlias = typing.Callable[
+    [typing.Any, PlainTextFormatter, PlainTextFormatter], int
+]
 
 
 # BUG: This ain't desirable, find a different way.
@@ -1085,7 +1092,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
         # subparsers action object from calling add_subparsers()
         self.__subparsers = None
         # function to execute for this parser
-        self.__main_func = None
+        self.__main_func: T_main_func | None = None
         # pre-parse functions to execute for this parser
         self.__pre_parse = []
         # early parse functions to execute for this parser
@@ -1398,7 +1405,7 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
             traceback.print_exc()
         self.exit(status, f"{self.prog}: error: {message}\n")
 
-    def bind_main_func(self, functor):
+    def bind_main_func(self, functor: T_main_func) -> T_main_func:
         """Decorator to set a main function for the parser."""
         self.set_defaults(main_func=functor)
         self.__main_func = functor
