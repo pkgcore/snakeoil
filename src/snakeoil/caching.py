@@ -55,6 +55,7 @@ Simple usage example:
 __all__ = ("WeakInstMeta",)
 
 import functools
+import typing
 import warnings
 from weakref import WeakValueDictionary
 
@@ -105,9 +106,11 @@ class WeakInstMeta(type):
         ):
             scope["__slots__"] = tuple(scope["__slots__"]) + ("__weakref__",)
 
-        return super().__new__(cls, name, bases, scope, **kwds)
+        new_cls = super().__new__(cls, name, bases, scope, **kwds)
+        new_cls.__annotations__["__inst_dict__"] = dict[typing.Hashable, typing.Any]
+        return new_cls
 
-    def __call__(cls, *a, **kw):
+    def __call__(cls, *a: typing.Hashable, **kw: typing.Hashable):
         """disable caching via disable_inst_caching=True"""
         # This is subtle, but note that this explictly passes "disable_inst_caching" down to the class
         # if the class itself has disabled caching.  This is a debatable design- it means any
