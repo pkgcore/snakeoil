@@ -1,5 +1,6 @@
 import abc
 import inspect
+import typing
 import warnings
 
 import pytest
@@ -62,12 +63,11 @@ class _classWalker(abc.ABC):
                 if not self._should_ignore(cls):
                     self.run_check(cls)
 
-    def walk_derivatives(self, obj):
-        raise NotImplementedError(self.__class__, "walk_derivatives")
+    @abc.abstractmethod
+    def walk_derivatives(self, cls: typing.Type) -> typing.Iterable[typing.Type]: ...
 
     @abc.abstractmethod
-    def run_check(self, cls: type) -> None:
-        raise NotImplementedError
+    def run_check(self, cls: type) -> None: ...
 
     def report_issue(self, message):
         self.collected_issues.append(message)
