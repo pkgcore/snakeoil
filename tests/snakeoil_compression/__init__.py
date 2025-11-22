@@ -1,6 +1,8 @@
+import abc
 from unittest.mock import patch
 
 import pytest
+
 from snakeoil import compression
 from snakeoil.process import CommandNotFound, find_binary
 
@@ -14,13 +16,13 @@ def hide_binary(*binaries: str):
     return patch("snakeoil.process.find_binary", side_effect=mock_find_binary)
 
 
-class Base:
+class Base(abc.ABC):
     module: str = ""
     decompressed_test_data: bytes = b""
     compressed_test_data: bytes = b""
 
-    def decompress(self, data: bytes) -> bytes:
-        raise NotImplementedError(self, "decompress")
+    @abc.abstractmethod
+    def decompress(self, data: bytes) -> bytes: ...
 
     @pytest.mark.parametrize("parallelize", (True, False))
     @pytest.mark.parametrize("level", (1, 9))
