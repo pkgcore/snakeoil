@@ -1,5 +1,6 @@
 """Classes wrapping a file-like object to do fancy output on it."""
 
+import abc
 import errno
 import io
 import locale
@@ -32,7 +33,7 @@ class StreamClosed(KeyboardInterrupt):
 # pylint: disable=C0103
 
 
-class Formatter:
+class Formatter(abc.ABC):
     """Abstract formatter base class.
 
     The types of most of the instance attributes is undefined (depends
@@ -46,10 +47,12 @@ class Formatter:
         (defaults to on).
     """
 
-    def __init__(self):
+    def __init__(self, stream: typing.IO):
         self.autoline = True
         self.wrap = False
+        self.stream = stream
 
+    @abc.abstractmethod
     def write(
         self,
         *args: typing.Union[None, str, typing.Callable[["Formatter"], None]],
@@ -146,7 +149,7 @@ class PlainTextFormatter(Formatter):
         :param width: maximum line width (defaults to 79).
         :param encoding: encoding unicode strings are converted to.
         """
-        super().__init__()
+        super().__init__(stream)
         # We used to require a TextIOWrapper on py3. We still accept
         # one, guess the encoding from it and grab its underlying
         # bytestream.

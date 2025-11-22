@@ -17,6 +17,9 @@ from .exceptions import ExitException, find_user_exception
 class Tool:
     """Abstraction for commandline tools."""
 
+    out: formatters.Formatter
+    err: formatters.Formatter
+
     def __init__(self, parser, outfile=None, errfile=None):
         """Initialize the utility to run.
 
