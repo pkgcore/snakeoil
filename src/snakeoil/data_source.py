@@ -42,6 +42,7 @@ __all__ = (
     "invokable_data_source",
 )
 
+import abc
 import errno
 import io
 from functools import partial
@@ -130,7 +131,7 @@ def open_file(*args, **kwds):
     return handle
 
 
-class base:
+class base(abc.ABC):
     """
     base data_source class; implementations of the protocol are advised
     to derive from this.
@@ -143,6 +144,7 @@ class base:
 
     path = None
 
+    @abc.abstractmethod
     def text_fileobj(self, writable=False):
         """get a text level filehandle for for this data
 
@@ -150,8 +152,8 @@ class base:
         :raise: TypeError if immutable and write is requested
         :return: file handle like object
         """
-        raise NotImplementedError(self, "text_fileobj")
 
+    @abc.abstractmethod
     def bytes_fileobj(self, writable=False):
         """get a bytes level filehandle for for this data
 
@@ -159,7 +161,6 @@ class base:
         :raise: TypeError if immutable and write is requested
         :return: file handle like object
         """
-        raise NotImplementedError(self, "bytes_fileobj")
 
     def transfer_to_path(self, path):
         return self.transfer_to_data_source(
