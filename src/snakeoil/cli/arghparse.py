@@ -1,5 +1,6 @@
 """Various argparse actions, types, and miscellaneous extensions."""
 
+import abc
 import argparse
 import copy
 import importlib
@@ -1479,12 +1480,12 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
         return functor
 
 
-class ArgparseCommand:
+class ArgparseCommand(abc.ABC):
     def bind_to_parser(self, parser):
         parser.bind_main_func(self)
 
-    def __call__(self, namespace, out, err):
-        raise NotImplementedError(self, "__call__")
+    @abc.abstractmethod
+    def __call__(self, namespace, out, err): ...
 
 
 class FileType(argparse.FileType):
