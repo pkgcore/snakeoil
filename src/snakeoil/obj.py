@@ -75,6 +75,8 @@ try to proxy builtin objects like tuples, lists, dicts, sets, etc.
 
 __all__ = ("DelayedInstantiation", "DelayedInstantiation_kls", "make_kls", "popattr")
 
+import typing
+
 from . import klass
 
 # For our proxy, we have two sets of descriptors-
@@ -267,7 +269,6 @@ kls_descriptors = frozenset(
 kls_descriptors = kls_descriptors.difference(base_kls_descriptors)
 descriptor_overrides = {k: klass.alias_method(f"__obj__.{k}") for k in kls_descriptors}
 
-
 _method_cache = {}
 
 
@@ -289,20 +290,25 @@ def make_kls(kls, proxy_base=BaseDelayedObject):
     return o
 
 
-def DelayedInstantiation_kls(kls, *a, **kwd):
+T = typing.TypeVar("T")
+
+
+def DelayedInstantiation_kls(kls: type[T], *a, **kwd) -> T:
     r"""Wrapper for DelayedInstantiation
 
     This just invokes DelayedInstantiation(kls, kls \*a, \*\*kwd)
 
     See :func:`DelayedInstantiation` for argument specifics.
     """
-    return DelayedInstantiation(kls, kls, *a, **kwd)
+    return DelayedInstantiation(kls, kls, *a, **kwd)  # pyright: ignore[reportReturnType]
 
 
 _class_cache = {}
 
 
-def DelayedInstantiation(resultant_kls, func, *a, **kwd):
+def DelayedInstantiation(
+    resultant_kls: type[T], func: typing.Callable[..., T], *a, **kwd
+) -> T:
     """Generate an objects that does not get initialized before it is used.
 
     The returned object can be passed around without triggering
@@ -310,17 +316,15 @@ def DelayedInstantiation(resultant_kls, func, *a, **kwd):
     is accessed) it is initialized once.
 
     The returned "fake" object cannot completely reliably mimic a
-    builtin type. It will usually work but some corner cases may fail
-    in confusing ways. Make sure to test if DelayedInstantiation has
-    no unwanted side effects.
+    builtin type at the C level of python.
 
     :param resultant_kls: type object to fake an instance of.
     :param func: callable, the return value is used as initialized object.
 
     All other positional args and keywords are passed to func during instantiation.
     """
-    o = _class_cache.get(resultant_kls, None)
+    o = _class_cache.get(resultant_kls)
     if o is None:
         o = make_kls(resultant_kls)
         _class_cache[resultant_kls] = o
-    return o(resultant_kls, func, *a, **kwd)
+    return o(resultant_kls, func, *a, **kwd)  # pyright: ignore[reportReturnType]
