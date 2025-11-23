@@ -304,6 +304,8 @@ class ImmutableDict(Mapping):
     Because this is immutable, it's hashable.
     """
 
+    __slots__ = ("_dict", "__weakref__")
+
     def __init__(self, data=None):
         if isinstance(data, ImmutableDict):
             mapping = data._dict
