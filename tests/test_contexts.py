@@ -6,6 +6,7 @@ import socket
 import sys
 
 import pytest
+
 from snakeoil.contexts import Namespace, SplitExec, chdir, syspath
 
 
@@ -44,8 +45,8 @@ def test_syspath(tmpdir):
             assert mangled_syspath == tuple(sys.path)
 
 
-@pytest.mark.skip(
-    reason="this currently breaks on github ci, https://github.com/pkgcore/snakeoil/issues/68"
+@pytest.mark.xfail(
+    reason="this currently is broken: https://github.com/pkgcore/snakeoil/issues/68 is the GH side first incidence of it"
 )
 class TestSplitExec:
     def test_context_process(self):
