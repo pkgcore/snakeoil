@@ -3,10 +3,12 @@ import gc
 import mmap
 import os
 import time
+from unittest import mock
 
 pjoin = os.path.join
 
 import pytest
+
 from snakeoil import _fileutils, currying, fileutils
 from snakeoil.fileutils import AtomicWriteFile
 from snakeoil.test import random_str
@@ -47,21 +49,11 @@ class TestTouch:
         assert 1 == new_stat.st_mtime
 
     def test_set_custom_nstimes(self, random_path):
-        fileutils.touch(random_path)
-        orig_stat = random_path.stat()
-        ns = (1, 1)
-        fileutils.touch(random_path, ns=ns)
-        new_stat = random_path.stat()
-
-        # system doesn't have nanosecond precision, try microseconds
-        if new_stat.st_atime == 0:
-            ns = (1000, 1000)
-            fileutils.touch(random_path, ns=ns)
-            new_stat = random_path.stat()
-
-        assert orig_stat != new_stat
-        assert ns[0] == new_stat.st_atime_ns
-        assert ns[0] == new_stat.st_mtime_ns
+        # just assert it can take the ns argument, even if it the underlying FS has that precession.
+        # other tests confirm the execution, this is literally just ns.
+        with mock.patch("os.utime") as f:
+            fileutils.touch(random_path, ns=(1, 1))
+            f.assert_called_with(random_path, dir_fd=None, ns=(1, 1))
 
 
 class TestAtomicWriteFile:
