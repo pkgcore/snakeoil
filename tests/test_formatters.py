@@ -1,3 +1,4 @@
+import contextlib
 import curses
 import os
 import pty
@@ -5,11 +6,14 @@ from io import BytesIO
 from tempfile import TemporaryFile
 
 import pytest
+
 from snakeoil import formatters
 from snakeoil.test import protect_process
 
-# protect against python issue 7567 for the curses module.
-issue7567 = protect_process
+# protect against python GH #51816 for the curses module.
+# Short version: it hard locks the term mode and can't be updated,
+# thus we do the nasty in a subprocess.
+pythonGHissue51816 = protect_process
 
 
 class TestPlainTextFormatter:
@@ -165,7 +169,7 @@ class TerminfoFormatterTest:
             result,
         )
 
-    @issue7567
+    @pythonGHissue51816
     def test_terminfo(self):
         esc = "\x1b["
         stream = TemporaryFile()
@@ -213,7 +217,7 @@ class TerminfoFormatterTest:
         with pytest.raises(formatters.TerminfoUnsupported):
             formatters.TerminfoFormatter(stream, term="dumb")
 
-    @issue7567
+    @pythonGHissue51816
     def test_title(self):
         stream = TemporaryFile()
         try:
@@ -225,11 +229,12 @@ class TerminfoFormatterTest:
         assert b"\x1b]0;TITLE\x07" == stream.read()
 
 
-def _with_term(term, func, *args, **kwargs):
+@contextlib.contextmanager
+def forced_term(term):
     orig_term = os.environ.get("TERM")
     try:
         os.environ["TERM"] = term
-        return func(*args, **kwargs)
+        yield
     finally:
         if orig_term is None:
             del os.environ["TERM"]
@@ -245,36 +250,38 @@ def _get_pty_pair(encoding="ascii"):
     return master, out
 
 
-@pytest.mark.skip(
-    reason="this currently breaks on github ci due to the issue7567 workaround"
-)
 class TestGetFormatter:
-    @issue7567
+    @pythonGHissue51816
     def test_dumb_terminal(self):
         master, _out = _get_pty_pair()
-        formatter = _with_term("dumb", formatters.get_formatter, master)
-        assert isinstance(formatter, formatters.PlainTextFormatter)
+        with forced_term("dumb"):
+            formatter = formatters.get_formatter(master)
+            assert isinstance(formatter, formatters.PlainTextFormatter)
 
-    @issue7567
+    @pythonGHissue51816
     def test_vt100_terminal(self):
         master, _out = _get_pty_pair()
-        formatter = _with_term("vt100", formatters.get_formatter, master)
-        assert isinstance(formatter, formatters.PlainTextFormatter)
+        with forced_term("vt100"):
+            formatter = formatters.get_formatter(master)
+            assert isinstance(formatter, formatters.PlainTextFormatter)
 
-    @issue7567
+    @pythonGHissue51816
     def test_smart_terminal(self):
         master, _out = _get_pty_pair()
-        formatter = _with_term("xterm", formatters.get_formatter, master)
-        assert isinstance(formatter, formatters.TerminfoFormatter)
+        with forced_term("xterm"):
+            formatter = formatters.get_formatter(master)
+            assert isinstance(formatter, formatters.TerminfoFormatter)
 
-    @issue7567
+    @pythonGHissue51816
     def test_not_a_tty(self):
-        stream = TemporaryFile()
-        formatter = _with_term("xterm", formatters.get_formatter, stream)
-        assert isinstance(formatter, formatters.PlainTextFormatter)
+        with TemporaryFile() as stream:
+            with forced_term("xterm"):
+                formatter = formatters.get_formatter(stream)
+                assert isinstance(formatter, formatters.PlainTextFormatter)
 
-    @issue7567
+    @pythonGHissue51816
     def test_no_fd(self):
         stream = BytesIO()
-        formatter = _with_term("xterm", formatters.get_formatter, stream)
-        assert isinstance(formatter, formatters.PlainTextFormatter)
+        with forced_term("xterm"):
+            formatter = formatters.get_formatter(stream)
+            assert isinstance(formatter, formatters.PlainTextFormatter)
