@@ -2,6 +2,7 @@
 file related operations, mainly reading
 """
 
+import abc
 import mmap
 import os
 from functools import partial
@@ -51,7 +52,7 @@ def mmap_or_open_for_read(path: str):
         raise
 
 
-class AtomicWriteFile_mixin:
+class AtomicWriteFile_mixin(abc.ABC):
     """File class that stores the changes in a tempfile.
 
     Upon invocation of the close method, this class will use
@@ -67,6 +68,14 @@ class AtomicWriteFile_mixin:
     If this object falls out of memory without ever being discarded nor
     closed, the contents are discarded and a warning is issued.
     """
+
+    __slots__ = ("_is_finalized", "_computed_mode", "_original_fp", "_temp_fp")
+
+    @abc.abstractmethod
+    def _actual_init(self) -> None: ...
+
+    @abc.abstractmethod
+    def _real_close(self) -> None: ...
 
     def __init__(self, fp, binary=False, perms=None, uid=-1, gid=-1):
         """
@@ -135,6 +144,7 @@ class AtomicWriteFile_mixin:
 
 class AtomicWriteFile(AtomicWriteFile_mixin):
     __doc__ = AtomicWriteFile_mixin.__doc__
+    __slots__ = ("raw",)
 
     def _actual_init(self):
         self.raw = open(self._temp_fp, mode=self._computed_mode)
