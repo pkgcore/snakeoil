@@ -1,8 +1,9 @@
 import pytest
-from snakeoil.test import mixins
+
+from snakeoil.test.mixins import PythonNamespaceWalker
 
 
-class TestDemandLoadTargets(mixins.PythonNamespaceWalker):
+class TestDemandLoadTargets(PythonNamespaceWalker):
     target_namespace = "snakeoil"
     ignore_all_import_failures = False
 

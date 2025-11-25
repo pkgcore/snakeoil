@@ -1,136 +1,94 @@
-import errno
+__all__ = ("import_submodules_of", "get_submodules_of")
+import functools
+import importlib
+import importlib.machinery
 import os
-import stat
-import sys
+import pathlib
+import types
+import typing
 
-from .compatibility import IGNORED_EXCEPTIONS
+T_class_filter = typing.Callable[[str], bool]
 
 
-class PythonNamespaceWalker:
-    ignore_all_import_failures = False
+def get_submodules_of(
+    root: types.ModuleType,
+    /,
+    dont_import: T_class_filter | typing.Container[str] | None = None,
+    ignore_import_failures: T_class_filter | typing.Container[str] | bool = False,
+) -> typing.Iterable[types.ModuleType]:
+    """Visit all submodules of the target via walking the underlying filesystem
 
-    valid_inits = frozenset(f"__init__.{x}" for x in ("py", "pyc", "pyo", "so"))
+    This currently cannot work against a frozen python exe (for example), nor source only contained within an egg; it currently just walks the FS.
+    :param root: the module to trace
+    :param dont_import: do not try importing anything in this sequence or dont_import(qualname)
+      boolean result.  Defaults to no filter
+    :param ignore_import_failures: filter of what modules are known to potentially raise an
+      ImportError, and to tolerate those if it occurs.  Defaults to tolerating none.
+    """
 
-    # This is for py3.2/PEP3149; dso's now have the interp + major/minor embedded
-    # in the name.
-    # TODO: update this for pypy's naming
-    abi_target = "cpython-%i%i" % tuple(sys.version_info[:2])
+    if dont_import is None:
+        dont_import = lambda _: False  # noqa: E731
+    elif isinstance(dont_import, typing.Container):
+        dont_import = dont_import.__contains__
 
-    module_blacklist = frozenset(
-        {
-            "snakeoil.cli.arghparse",
-            "snakeoil.pickling",
-        }
-    )
+    if ignore_import_failures is True:
+        ignore_import_failures = bool
+    elif ignore_import_failures is False:
+        ignore_import_failures = lambda x: False  # noqa: E731
+    elif isinstance(ignore_import_failures, typing.Container):
+        ignore_import_failures = ignore_import_failures.__contains__
 
-    def _default_module_blacklister(self, target):
-        return target in self.module_blacklist or target.startswith("snakeoil.dist")
+    to_scan = [root]
+    while to_scan:
+        current = to_scan.pop()
+        if current.__file__ is None:
+            raise ValueError(
+                f"module {current!r} lacks __file__ attribute.  If this is a PEP420 namespace module, that is unsupported currently"
+            )
 
-    def walk_namespace(self, namespace, **kwds):
-        location = os.path.abspath(
-            os.path.dirname(self.poor_mans_load(namespace).__file__)
-        )
-        return self.get_modules(self.recurse(location), namespace=namespace, **kwds)
-
-    def get_modules(
-        self, feed, namespace=None, blacklist_func=None, ignore_failed_imports=None
-    ):
-        if ignore_failed_imports is None:
-            ignore_failed_imports = self.ignore_all_import_failures
-        if namespace is None:
-
-            def mangle(x):  # pyright: ignore[reportRedeclaration]
-                return x
-        else:
-            orig_namespace = namespace
-
-            def mangle(x):
-                return f"{orig_namespace}.{x}"
-
-        if blacklist_func is None:
-            blacklist_func = self._default_module_blacklister
-        for mod_name in feed:
-            try:
-                if mod_name is None:
-                    if namespace is None:
-                        continue
-                else:
-                    namespace = mangle(mod_name)
-                if blacklist_func(namespace):
+        if current is not root:
+            yield current
+        base = pathlib.Path(os.path.abspath(current.__file__))
+        # if it's not the root of a module, there's nothing to do- return it..
+        if not base.name.startswith("__init__."):
+            continue
+        for potential in base.parent.iterdir():
+            name = potential.name
+            qualname = f"{current.__name__}.{name.split('.', 1)[0]}"
+            if name.startswith("__init__."):
+                # if we're in this directory, we already imported the enclosing namespace.
+                continue
+            if potential.is_dir():
+                if name == "__pycache__":
                     continue
-                yield self.poor_mans_load(namespace)
+            else:
+                for ext in importlib.machinery.all_suffixes():
+                    if name.endswith(ext):
+                        name = name[: -len(ext)]
+                        break
+                else:
+                    # it's not a python source.
+                    continue
+
+            if dont_import(qualname):
+                continue
+
+            try:
+                # intentionally re-examine it; for a file tree this is wasteful since
+                # we would know if it's a directory or not, but whenever this code gets
+                # extended for working from .whl or .egg directly, we will want that
+                # logic in one spot. TL;DR: this is intentionally not optimized for the
+                # common case.
+                to_scan.append(importlib.import_module(qualname))
             except ImportError:
-                if not ignore_failed_imports:
+                if not ignore_import_failures(qualname):
                     raise
 
-    def recurse(self, location, valid_namespace=True):
-        if os.path.dirname(location) == "__pycache__":
-            # Shouldn't be possible, but make sure we avoid this if it manages
-            # to occur.
-            return
-        dirents = os.listdir(location)
-        if not self.valid_inits.intersection(dirents):
-            if valid_namespace:
-                return
-        else:
-            yield None
 
-        stats: list[tuple[str, int]] = []
-        for x in dirents:
-            try:
-                stats.append((x, os.stat(os.path.join(location, x)).st_mode))
-            except OSError as exc:
-                if exc.errno != errno.ENOENT:
-                    raise
-                # file disappeared under our feet... lock file from
-                # trial can cause this.  ignore.
-                import logging
+def import_submodules_of(target: types.ModuleType, **kwargs) -> None:
+    """load all modules of the given namespace.
 
-                logging.debug(
-                    "file %r disappeared under our feet, ignoring",
-                    os.path.join(location, x),
-                )
-
-        seen = set(["__init__"])
-        for x, st in stats:
-            if not (x.startswith(".") or x.endswith("~")) and stat.S_ISREG(st):
-                if x.endswith((".py", ".pyc", ".pyo", ".so")):
-                    y = x.rsplit(".", 1)[0]
-                    # Ensure we're not looking at a >=py3k .so which injects
-                    # the version name in...
-                    if y not in seen:
-                        if "." in y and x.endswith(".so"):
-                            y, abi = x.rsplit(".", 1)
-                            if abi != self.abi_target:
-                                continue
-                        seen.add(y)
-                        yield y
-
-        for x, st in stats:
-            if stat.S_ISDIR(st):
-                for y in self.recurse(os.path.join(location, x)):
-                    if y is None:
-                        yield x
-                    else:
-                        yield f"{x}.{y}"
-
-    @staticmethod
-    def poor_mans_load(namespace, existence_check=False):
-        try:
-            obj = __import__(namespace)
-            if existence_check:
-                return True
-        except:
-            if existence_check:
-                return False
-            raise
-        for chunk in namespace.split(".")[1:]:
-            try:
-                obj = getattr(obj, chunk)
-            except IGNORED_EXCEPTIONS:
-                raise
-            except AttributeError:
-                raise AssertionError(f"failed importing target {namespace}")
-            except Exception as e:
-                raise AssertionError(f"failed importing target {namespace}; error {e}")
-        return obj
+    See get_submodules_of for the kwargs options.
+    """
+    for _ in get_submodules_of(target, **kwargs):
+        pass

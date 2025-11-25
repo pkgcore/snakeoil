@@ -1,7 +1,7 @@
-from . import mixins
+from snakeoil.test.mixins import PythonNamespaceWalker
 
 
-class ExportedModules(mixins.PythonNamespaceWalker):
+class ExportedModules(PythonNamespaceWalker):
     target_namespace = "snakeoil"
 
     def test__all__accuracy(self):
