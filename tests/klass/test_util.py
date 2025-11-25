@@ -3,7 +3,12 @@ from typing import Any
 
 import pytest
 
-from snakeoil.klass.util import combine_classes, get_attrs_of, get_slots_of
+from snakeoil.klass.util import (
+    ClassSlotting,
+    combine_classes,
+    get_attrs_of,
+    get_slots_of,
+)
 
 
 def test_get_attrs_of():
@@ -84,11 +89,11 @@ def test_slots_of():
         __slots__ = ("y",)
 
     assert [
-        (kls4, ("y",)),
-        (kls3, ()),
-        (kls2, None),
-        (kls1, ("x",)),
-        (object, ()),
+        ClassSlotting(kls4, ("y",)),
+        ClassSlotting(kls3, ()),
+        ClassSlotting(kls2, None),
+        ClassSlotting(kls1, ("x",)),
+        ClassSlotting(object, ()),
     ] == list(get_slots_of(kls4))
 
 

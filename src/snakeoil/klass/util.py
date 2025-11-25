@@ -1,13 +1,17 @@
 __all__ = (
     "get_attrs_of",
+    "get_slot_of",
     "get_slots_of",
     "combine_classes",
     "copy_class_docs",
     "copy_docs",
+    "ClassSlotting",
 )
+
 import builtins
 import functools
 import types
+import typing
 from typing import Any, Iterable
 
 _known_builtins = frozenset(
@@ -15,7 +19,12 @@ _known_builtins = frozenset(
 )
 
 
-def get_slots_of(kls: type) -> Iterable[tuple[type, None | tuple[str, ...]]]:
+class ClassSlotting(typing.NamedTuple):
+    cls: type
+    slots: typing.Sequence[str] | None
+
+
+def get_slots_of(kls: type) -> Iterable[ClassSlotting]:
     """Visit a class MRO collecting all slotting
 
     This cannot collect slotting of C objects- python builtins like object,
@@ -23,12 +32,17 @@ def get_slots_of(kls: type) -> Iterable[tuple[type, None | tuple[str, ...]]]:
 
     """
     for base in kls.mro():
-        yield (
-            base,
-            # class objects provide a proxy map so abuse that to look at the class
-            # directly.
-            base.__dict__.get("__slots__", () if base in _known_builtins else None),
-        )
+        yield get_slot_of(base)
+
+
+def get_slot_of(cls: type) -> ClassSlotting:
+    """Return the non-inherited slotting from a class, IE specifically what that definition set."""
+    return ClassSlotting(
+        cls,
+        # class objects provide a proxy map so abuse that to look at the class
+        # directly.
+        cls.__dict__.get("__slots__", () if cls in _known_builtins else None),
+    )
 
 
 def get_attrs_of(
@@ -61,10 +75,10 @@ def get_attrs_of(
         if k not in seen:
             yield (k, v)
             seen.add(k)
-    for _, slots in get_slots_of(type(obj)):
-        if slots is None:
+    for data in get_slots_of(type(obj)):
+        if data.slots is None:
             continue
-        for slot in slots:
+        for slot in data.slots:
             if slot not in seen:
                 if (o := getattr(obj, slot, _sentinel)) is not _sentinel:
                     yield slot, o
