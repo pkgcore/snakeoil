@@ -1,6 +1,7 @@
-import sre_constants
+import re
 
 import pytest
+
 from snakeoil import demandload
 
 # few notes:
@@ -123,5 +124,5 @@ class TestDemandCompileRegexp:
         assert list(scope.keys()) == ["foo"]
         # should blow up on accessing an attribute.
         obj = scope["foo"]
-        with pytest.raises(sre_constants.error):
+        with pytest.raises(re.error):
             getattr(obj, "pattern")
