@@ -33,6 +33,8 @@ class InvertedContains(set):
     infinite series it represents.
     """
 
+    __slots__ = ()
+
     def __contains__(self, key):
         return not set.__contains__(self, key)
 
@@ -52,6 +54,8 @@ class SetMixin:
     math protocols, methods like symmetric_difference aren't defined here.
 
     """
+
+    __slots__ = ()
 
     def __and__(self, other, kls=None):
         # Note: for these methods we don't bother to filter dupes from this
@@ -109,6 +113,15 @@ class LimitedChangeSet(SetMixin):
     Unchangable: key '2' is unchangable
 
     """
+
+    __slots__ = (
+        "_new",
+        "_validater",
+        "_blacklist",
+        "_changed",
+        "_change_order",
+        "_orig",
+    )
 
     _removed = 0
     _added = 1
@@ -228,6 +241,8 @@ class ProtectedSet(SetMixin):
     >>> assert 2 not in protected
     """
 
+    __slots__ = ("_orig", "_new")
+
     def __init__(self, orig_set):
         self._orig = orig_set
         self._new = set()
@@ -263,6 +278,8 @@ class RefCountingSet(dict):
     >>> myset.remove(1)
     >>> assert list(myset) == []
     """
+
+    __slots__ = ()
 
     def __init__(self, iterable=None):
         if iterable is not None:
