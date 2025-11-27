@@ -2,6 +2,7 @@ __all__ = (
     "get_attrs_of",
     "get_slot_of",
     "get_slots_of",
+    "get_subclasses_of",
     "combine_classes",
     "copy_class_docs",
     "copy_docs",
@@ -10,6 +11,7 @@ __all__ = (
 
 import builtins
 import functools
+import inspect
 import types
 import typing
 from typing import Any, Iterable
@@ -83,6 +85,36 @@ def get_attrs_of(
                 if (o := getattr(obj, slot, _sentinel)) is not _sentinel:
                     yield slot, o
                     seen.add(slot)
+
+
+def get_subclasses_of(
+    cls: type,
+    only_leaf_nodes=False,
+    ABC: None | bool = None,
+) -> typing.Iterable[type]:
+    """yield the subclasses of the given class.
+
+    This walks the in memory tree of a class hierarchy, yield the subclasses of the given
+    cls after optional filtering.
+
+    :param only_leaf_nodes: if True, only yield classes which have no subclasses
+    :param ABC: if True, only yield abstract classes.  If False, only yield classes no longer
+      abstract.  If None- the default- do no filtering for ABC.
+    """
+    stack = cls.__subclasses__()
+    while stack:
+        current = stack.pop()
+        subclasses = current.__subclasses__()
+        stack.extend(subclasses)
+
+        if ABC is not None:
+            if inspect.isabstract(current) != ABC:
+                continue
+
+        if not only_leaf_nodes:
+            yield current
+        elif not subclasses:  # it's a leaf
+            yield current
 
 
 @functools.lru_cache

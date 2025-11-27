@@ -32,9 +32,10 @@ __all__ = (
     "SlotsPicklingMixin",
     "DirProxy",
     "GetAttrProxy",
-    "get_slots_of",
-    "get_slot_of",
     "get_attrs_of",
+    "get_slot_of",
+    "get_slots_of",
+    "get_subclasses_of",
 )
 
 import abc
@@ -64,7 +65,14 @@ from .properties import (
     jit_attr_named,
     jit_attr_none,
 )
-from .util import combine_classes, copy_docs, get_attrs_of, get_slot_of, get_slots_of
+from .util import (
+    combine_classes,
+    copy_docs,
+    get_attrs_of,
+    get_slot_of,
+    get_slots_of,
+    get_subclasses_of,
+)
 
 sentinel = object()
 

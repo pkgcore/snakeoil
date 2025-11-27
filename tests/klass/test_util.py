@@ -1,3 +1,5 @@
+import abc
+import operator
 import weakref
 from typing import Any
 
@@ -8,6 +10,7 @@ from snakeoil.klass.util import (
     combine_classes,
     get_attrs_of,
     get_slots_of,
+    get_subclasses_of,
 )
 
 
@@ -123,3 +126,47 @@ def test_combine_classes():
 
     combined = combine_classes(kls1, kls2)
     assert [combined, kls1, kls2, type, object] == list(combined.__mro__)
+
+
+def test_get_subclasses_of():
+    attr = operator.attrgetter("__name__")
+
+    def assert_it(cls, expected, msg=None, **kwargs):
+        expected = list(sorted(expected, key=attr))
+        got = list(sorted(get_subclasses_of(cls, **kwargs), key=attr))
+        if msg:
+            assert expected == got, msg
+        else:
+            assert expected == got
+
+    class layer1: ...
+
+    class layer2(layer1): ...
+
+    class layer3(layer2): ...
+
+    assert_it(layer3, [])
+    assert_it(layer2, [layer3])
+    assert_it(layer1, [layer2, layer3])
+    assert_it(layer1, [layer2, layer3], ABC=False)
+    assert_it(layer1, [], ABC=True)
+    assert_it(layer1, [layer3], only_leaf_nodes=True)
+
+    class ABClayer4(abc.ABC, layer3):
+        @abc.abstractmethod
+        def f(self): ...
+
+    class layer5(ABClayer4):
+        def f(self):
+            pass
+
+    assert_it(layer2, [layer3, layer5], ABC=False)
+    assert_it(layer2, [ABClayer4], ABC=True)
+    assert_it(layer2, [], ABC=True, only_leaf_nodes=True)
+    assert_it(layer2, [layer5], ABC=False, only_leaf_nodes=True)
+
+    class ABClayer6(layer5):
+        @abc.abstractmethod
+        def f2(self): ...
+
+    assert_it(layer3, [ABClayer6], ABC=True, only_leaf_nodes=True)
