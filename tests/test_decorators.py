@@ -1,9 +1,11 @@
-import errno
+import contextlib
 import os
 import socket
 import sys
+from unittest import mock
 
 import pytest
+
 from snakeoil.decorators import coroutine, namespace, splitexec
 
 
@@ -21,37 +23,36 @@ class TestSplitExecDecorator:
     not sys.platform.startswith("linux"), reason="supported on Linux only"
 )
 class TestNamespaceDecorator:
-    @pytest.mark.skipif(
-        not os.path.exists("/proc/self/ns/user"),
-        reason="user namespace support required",
-    )
+    @contextlib.contextmanager
+    def capture_call(self):
+        @contextlib.contextmanager
+        def fake_namespace():
+            yield
+
+        with mock.patch("snakeoil.contexts.Namespace") as m:
+            m.side_effect = lambda *a, **kw: fake_namespace()
+            yield object(), m
+
     def test_user_namespace(self):
-        @namespace(user=True)
-        def do_test():
-            assert os.getuid() == 0
+        with self.capture_call() as (unique, m):
 
-        try:
-            do_test()
-        except PermissionError:
-            pytest.skip("No permission to use user namespace")
+            @namespace(user=True)
+            def do_test():
+                return unique
 
-    @pytest.mark.skipif(
-        not (
-            os.path.exists("/proc/self/ns/user") and os.path.exists("/proc/self/ns/uts")
-        ),
-        reason="user and uts namespace support required",
-    )
+            # do_test()
+            assert unique is do_test()
+            m.assert_called_once_with(user=True)
+
     def test_uts_namespace(self):
-        @namespace(user=True, uts=True, hostname="host")
-        def do_test():
-            ns_hostname, _, ns_domainname = socket.getfqdn().partition(".")
-            assert ns_hostname == "host"
-            assert ns_domainname == ""
+        with self.capture_call() as (unique, m):
 
-        try:
-            do_test()
-        except PermissionError:
-            pytest.skip("No permission to use user and uts namespace")
+            @namespace(user=True, uts=True, hostname="host")
+            def do_test():
+                return unique
+
+            assert unique is do_test()
+            m.assert_called_once_with(user=True, uts=True, hostname="host")
 
 
 class TestCoroutineDecorator:
