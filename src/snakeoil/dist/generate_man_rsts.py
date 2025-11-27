@@ -106,6 +106,11 @@ class ManConverter:
         self.parser = parser
         self.mtime = mtime
         self.replace_cmd = replace_cmd
+        self.mandir = os.path.abspath(os.path.join(self.base_path, '..', 'man'))
+        if not os.path.exists(self.mandir):
+            os.mkdir(self.mandir)
+        elif not os.path.isdir(self.mandir):
+            raise Exception(f'man dir {self.mandir} exists, but is not a directory')
 
         header_chars = headers or ('=', '-', '~', '#', '*', '^')
         self.header_char = header_chars[len(name.split(' ')) - 1]
@@ -236,9 +241,8 @@ class ManConverter:
 
         if main_command:
             # generate missing, generic man page rst docs
-            mandir = os.path.abspath(os.path.join(self.base_path, '..', 'man'))
-            manpage = os.path.join(mandir, rst_filename)
-            if os.path.exists(mandir) and not os.path.isfile(manpage):
+            manpage = os.path.join(self.mandir, rst_filename)
+            if os.path.exists(self.mandir) and not os.path.isfile(manpage):
                 with open(rst_path, 'w') as f:
                     f.write(rst)
                 force_symlink(rst_path, manpage)
