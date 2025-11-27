@@ -2,7 +2,7 @@
 
 from functools import wraps
 
-from .contexts import Namespace, SplitExec
+from . import contexts
 
 
 def splitexec(func):
@@ -10,7 +10,7 @@ def splitexec(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        with SplitExec():
+        with contexts.SplitExec():
             return func(*args, **kwargs)
 
     return wrapper
@@ -22,7 +22,7 @@ def namespace(**namespaces):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            with Namespace(**namespaces):
+            with contexts.Namespace(**namespaces):
                 return func(*args, **kwargs)
 
         return wrapper
