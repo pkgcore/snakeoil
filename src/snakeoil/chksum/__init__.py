@@ -135,6 +135,8 @@ def get_chksums(location, *chksums, **kwds):
 class LazilyHashedPath(Simple):
     """Given a pathway, compute chksums on demand via attribute access."""
 
+    __slotting_intentionally_disabled__ = True
+
     def __init__(self, path, **initial_values):
         f = object.__setattr__
         f(self, "path", path)
