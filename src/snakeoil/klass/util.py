@@ -97,14 +97,21 @@ def get_subclasses_of(
     This walks the in memory tree of a class hierarchy, yield the subclasses of the given
     cls after optional filtering.
 
+    Note: this cannot work on metaclasses.  Python doesn't carry the necessary bookkeeping.
+    The first level of a metaclass will be returned, but none of it's derivative, and it'll
+    be treated as a leaf node- even if it isn't.
+
     :param only_leaf_nodes: if True, only yield classes which have no subclasses
     :param ABC: if True, only yield abstract classes.  If False, only yield classes no longer
       abstract.  If None- the default- do no filtering for ABC.
     """
+    if is_metaclass(cls):
+        return
     stack = cls.__subclasses__()
     while stack:
         current = stack.pop()
-        subclasses = current.__subclasses__()
+
+        subclasses = () if is_metaclass(current) else current.__subclasses__()
         stack.extend(subclasses)
 
         if ABC is not None:
@@ -115,6 +122,10 @@ def get_subclasses_of(
             yield current
         elif not subclasses:  # it's a leaf
             yield current
+
+
+def is_metaclass(cls: type) -> bool:
+    return issubclass(cls, type)
 
 
 @functools.lru_cache

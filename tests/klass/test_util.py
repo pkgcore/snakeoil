@@ -11,6 +11,7 @@ from snakeoil.klass.util import (
     get_attrs_of,
     get_slots_of,
     get_subclasses_of,
+    is_metaclass,
 )
 
 
@@ -170,3 +171,12 @@ def test_get_subclasses_of():
         def f2(self): ...
 
     assert_it(layer3, [ABClayer6], ABC=True, only_leaf_nodes=True)
+
+
+def test_is_metaclass():
+    assert not is_metaclass(object)
+    assert is_metaclass(type)
+
+    class foon(type): ...
+
+    assert is_metaclass(foon)
