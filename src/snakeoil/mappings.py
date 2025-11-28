@@ -351,6 +351,8 @@ class ImmutableDict(Mapping):
 class OrderedFrozenSet(Set):
     """Ordered, immutable set using guaranteed insertion order dicts in py3.6 onwards."""
 
+    __slots__ = ("_dict",)
+
     def __init__(self, iterable=()):
         try:
             self._dict = ImmutableDict({x: None for x in iterable})
@@ -407,6 +409,8 @@ class OrderedFrozenSet(Set):
 
 class OrderedSet(OrderedFrozenSet, MutableSet):
     """Ordered, mutable set using guaranteed insertion order dicts in py3.6 onwards."""
+
+    __slots__ = ()
 
     def __init__(self, iterable=()):
         try:
