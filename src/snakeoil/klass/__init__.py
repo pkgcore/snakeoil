@@ -27,8 +27,6 @@ __all__ = (
     "immutable_instance",
     "inject_immutable_instance",
     "alias_method",
-    "aliased",
-    "alias",
     "SlotsPicklingMixin",
     "DirProxy",
     "GetAttrProxy",
@@ -54,10 +52,8 @@ from .deprecated import (
 )
 from .properties import (
     _uncached_singleton,  # noqa: F401 .  This exists purely due to a stupid usage of pkgcore.ebuild.profile which is being removed.
-    alias,
     alias_attr,
     alias_method,
-    aliased,
     cached_property,
     cached_property_named,
     jit_attr,
