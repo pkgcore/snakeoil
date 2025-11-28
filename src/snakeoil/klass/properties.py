@@ -17,9 +17,15 @@ from snakeoil.deprecation import deprecated
 from ..currying import post_curry
 
 
-class _singleton_kls:
+class kls:
+    __slots__ = ()
+
     def __str__(self):
         return "uncached singleton instance"
+
+
+_uncached_singleton = kls()
+del kls
 
 
 def _internal_jit_attr(
@@ -96,8 +102,6 @@ class _raw_internal_jit_attr:
                 self._setter(instance, self.storage_attr, obj)
         return obj
 
-
-_uncached_singleton = _singleton_kls
 
 T = typing.TypeVar("T")
 
