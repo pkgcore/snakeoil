@@ -44,7 +44,7 @@ class expandable_chain:
     2
     """
 
-    __slot__ = ("iterables", "__weakref__")
+    __slots__ = ("iterables", "__weakref__")
 
     def __init__(self, *iterables):
         """
