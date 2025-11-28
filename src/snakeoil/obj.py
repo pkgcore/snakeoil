@@ -130,6 +130,8 @@ class BaseDelayedObject:
     methods.
     """
 
+    __slots__ = ("__delayed__", "__obj__")
+
     def __new__(cls, desired_kls, func, *a, **kwd):
         """
         :param desired_kls: the class we'll be proxying to
@@ -282,6 +284,7 @@ def make_kls(kls, proxy_base=BaseDelayedObject):
     if o is None:
 
         class CustomDelayedObject(proxy_base):
+            __slots__ = ()
             locals().update((k, descriptor_overrides[k]) for k in special_descriptors)
             __doc__ = doc
 
