@@ -107,9 +107,15 @@ def get_subclasses_of(
     """
     if is_metaclass(cls):
         return
+    seen = set()
     stack = cls.__subclasses__()
     while stack:
         current = stack.pop()
+        if (
+            current in seen
+        ):  # diamond inheritance can lead to seeing the same leaft multiple times.
+            continue
+        seen.add(current)
 
         subclasses = () if is_metaclass(current) else current.__subclasses__()
         stack.extend(subclasses)

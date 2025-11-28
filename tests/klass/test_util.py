@@ -172,6 +172,17 @@ def test_get_subclasses_of():
 
     assert_it(layer3, [ABClayer6], ABC=True, only_leaf_nodes=True)
 
+    # stupid diamond inheritance
+    class base: ...
+
+    class left(base): ...
+
+    class right(base): ...
+
+    class combined(left, right): ...
+
+    assert_it(base, [left, right, combined])
+
 
 def test_is_metaclass():
     assert not is_metaclass(object)
