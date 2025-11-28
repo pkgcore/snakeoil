@@ -17,6 +17,9 @@ from .exceptions import ExitException, find_user_exception
 class Tool:
     """Abstraction for commandline tools."""
 
+    # TODO: remove args once all downstreams have been fixed to pass *args/**kwargs down
+    __slots__ = ("out", "err", "parser", "options", "_outfile", "_errfile", "args")
+
     out: formatters.Formatter
     err: formatters.Formatter
 
@@ -154,9 +157,11 @@ class Tool:
             self.parser.error(exc)
         raise
 
-    def main(self):
+    def main(self, args=None):
         """Execute the main script function."""
-        exitstatus = -10
+        exitstatus: int = -10
+
+        args = self.args if args is None else args
 
         # ignore broken pipes
         signal(SIGPIPE, SIG_DFL)
@@ -175,7 +180,7 @@ class Tool:
                 exitstatus = func(self.options, self.out, self.err)
         except SystemExit as e:
             # handle argparse or other third party modules using sys.exit internally
-            exitstatus = e.code
+            exitstatus = e.code  # pyright: ignore[reportAssignmentType]
         except KeyboardInterrupt:
             self._errfile.write("keyboard interrupted- exiting")
             if self.parser.debug:
@@ -202,7 +207,9 @@ class Tool:
 class FormattingHandler(logging.Handler):
     """Logging handler printing through a formatter."""
 
-    def __init__(self, formatter):
+    __slots__ = ("out",)
+
+    def __init__(self, formatter: formatters.Formatter):
         logging.Handler.__init__(self)
         # "formatter" clashes with a Handler attribute.
         self.out = formatter

@@ -10,6 +10,8 @@ class NoChoice(KeyboardInterrupt):
     should do something reasonable.
     """
 
+    __slots__ = ()
+
 
 def userquery(prompt, out, err, responses=None, default_answer=None, limit=3):
     """Ask the user to choose from a set of options.
