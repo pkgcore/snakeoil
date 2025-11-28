@@ -1,8 +1,8 @@
-from snakeoil.test.code_quality import Slots
+from snakeoil.test import code_quality
 
 
-class TestSlots(Slots):
-    namespaces = ["snakeoil"]
+class TestSlots(code_quality.Slots):
+    namespaces = ("snakeoil",)
     namespace_ignores = (
         # The bulk of the ignores are since the code involved just needs to be rewritten
         "snakeoil.bash",
@@ -24,3 +24,7 @@ class TestSlots(Slots):
     )
     ignored_subclasses = (Exception,)
     strict = True
+
+
+class TestModules(code_quality.Modules):
+    namespaces = ("snakeoil",)
