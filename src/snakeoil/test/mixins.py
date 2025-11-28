@@ -1,5 +1,6 @@
 import errno
 import os
+import stat
 import sys
 
 from snakeoil.compatibility import IGNORED_EXCEPTIONS
