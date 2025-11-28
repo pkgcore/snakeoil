@@ -166,6 +166,5 @@ _mk_readlines = partial(
 )
 
 readlines_ascii = _mk_readlines("ascii", "r", encoding="ascii")
-readlines_bytes = _mk_readlines("bytes", "rb")
 readlines_utf8 = _mk_readlines("utf8", "r", encoding="utf8")
 readlines = readlines_utf8

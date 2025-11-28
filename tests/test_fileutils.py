@@ -172,21 +172,6 @@ class Test_readfile_utf8(Test_readfile):
     default_encoding = "utf8"
 
 
-class Test_readfile_bytes(Test_readfile):
-    func = staticmethod(fileutils.readfile_bytes)
-    default_encoding = None
-    test_cases = list(
-        map(
-            currying.post_curry(Test_readfile.convert_data, "ascii"),
-            Test_readfile.test_cases,
-        )
-    )
-    test_cases.append("\ua000fa".encode("utf8"))
-    none_on_missing_ret_data = Test_readfile.convert_data(
-        Test_readfile.none_on_missing_ret_data, "ascii"
-    )
-
-
 class readlines_mixin:
     def assertFunc(self, path, expected):
         expected = tuple(expected.split())
@@ -258,7 +243,7 @@ def mk_readlines_test(scope, mode):
     scope["Test_%s" % func_name] = kls
 
 
-for case in ("ascii", "bytes", "utf8"):
+for case in ("ascii", "utf8"):
     name = "readlines_%s" % case
     mk_readlines_test(locals(), case)
 
