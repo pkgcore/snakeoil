@@ -1,5 +1,6 @@
 __all__ = (
     "get_attrs_of",
+    "get_instances_of",
     "get_slot_of",
     "get_slots_of",
     "get_subclasses_of",
@@ -12,6 +13,7 @@ __all__ = (
 
 import builtins
 import functools
+import gc
 import inspect
 import types
 import typing
@@ -136,6 +138,27 @@ def get_subclasses_of(
             yield current
         elif not subclasses:  # it's a leaf
             yield current
+
+
+def get_instances_of(cls: type, getattribute=False) -> list[type]:
+    """
+    Find all instances of the class in memory that are reachable by python GC.
+
+    Certain cpython types may not implement visitation correctly- they're broke,
+    but they will hide the instances from this.  This should never happen, but
+    if you know an instance exists and is in cpython object, this is the 'why'
+
+    Note: this uses object.__getattribute__ directly.  Even if your instance has
+    a __getattribute__ that returns a __class__ that isn't it's actuall class, this
+    *will* find it.
+    """
+    return [
+        x
+        for x in gc.get_referrers(cls)
+        # __getattribute__ because certain thunking implementations also lie as
+        # what class they are- they proxy in a way they appear as their target.
+        if object.__getattribute__(x, "__class__") is cls
+    ]
 
 
 @functools.lru_cache

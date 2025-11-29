@@ -1,4 +1,5 @@
 import abc
+import gc
 import operator
 import weakref
 from typing import Any
@@ -9,6 +10,7 @@ from snakeoil.klass.util import (
     ClassSlotting,
     combine_classes,
     get_attrs_of,
+    get_instances_of,
     get_slots_of,
     get_subclasses_of,
     is_metaclass,
@@ -191,3 +193,57 @@ def test_get_subclasses_of():
     class combined(left, right): ...
 
     assert_it(base, [left, right, combined])
+
+
+class Test_get_instances_of:
+    def test_normal(self):
+        class foon: ...
+
+        assert [] == get_instances_of(foon)
+        o = foon()
+        assert [o] == get_instances_of(foon)
+
+        o2 = foon()
+        assert set([o, o2]) == set(get_instances_of(foon))
+
+    def test_verify_sees_through_thunks(self):
+        """
+        Parts of snakeoil infrastructure provide thunking proxies that lie *very* well.
+
+        Specifically, if you ask them what their class is, they'll tell you they're the thing
+        that they'll eventually reify.  The testing infrastructure for demandload is reliant
+        on being able to see through this, thus this test asserts that get_instances_of can
+        see through that.
+        """
+
+        class foo: ...
+
+        class liar:
+            def __init__(self, real):
+                object.__setattr__(self, "_real", real)
+
+            def __getattribute__(self, attr):
+                return object.__getattribute__(self, "_real").__class__
+
+            def __eq__(self, other):
+                return object.__getattribute__(self, "_real") == other
+
+        real = foo()
+        # validate our setup.  Note the level of hiding it does.
+        # Demandload infrastructure actually emulates the full protocol of the target's
+        # cpython guts, so that hides *far* more thoroughly.  Only object.__getattribute__
+        # can see through that, and python doesn't use that; certain cpython parts use an
+        # equivalent, but if you can lie to isinstance... etc.
+        assert foo is liar(real).__class__
+        assert isinstance(liar(real), foo)
+        assert real == liar(real)
+
+        # can't lie about that one however since it's a pointer check
+        assert id(real) != id(liar)
+        assert real is not liar
+
+        assert [real] == get_instances_of(foo)
+        liar_obj = liar(real)
+        collected = get_instances_of(liar)
+        assert 1 == len(collected)
+        assert liar_obj is collected[0]
