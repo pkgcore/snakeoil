@@ -86,7 +86,9 @@ class ParameterizeBase(typing.Generic[T], abc.ABC):
     def collect_modules(cls) -> typing.Iterable[ModuleType]:
         for namespace in cls.namespaces:
             yield from get_submodules_of(
-                __import__(namespace), dont_import=cls.namespace_ignores
+                __import__(namespace),
+                dont_import=cls.namespace_ignores,
+                include_root=True,
             )
 
 

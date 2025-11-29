@@ -15,6 +15,7 @@ def get_submodules_of(
     /,
     dont_import: T_class_filter | typing.Container[str] | None = None,
     ignore_import_failures: T_class_filter | typing.Container[str] | bool = False,
+    include_root=False,
 ) -> typing.Iterable[types.ModuleType]:
     """Visit all submodules of the target via walking the underlying filesystem
 
@@ -46,7 +47,7 @@ def get_submodules_of(
                 f"module {current!r} lacks __file__ attribute.  If this is a PEP420 namespace module, that is unsupported currently"
             )
 
-        if current is not root:
+        if current is not root or include_root:
             yield current
         base = pathlib.Path(os.path.abspath(current.__file__))
         # if it's not the root of a module, there's nothing to do- return it..

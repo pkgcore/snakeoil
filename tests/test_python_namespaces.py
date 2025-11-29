@@ -63,8 +63,12 @@ class TestNamespaceCollector:
             ), (
                 "dont_import filter failed to prevent scanning a submodule and it's children"
             )
-            assert ["_ns_test.blah", "_ns_test.real"], get_it(
+            assert ["_ns_test.blah", "_ns_test.real"] == get_it(
                 "_ns_test", dont_import="_ns_test.real.extra".__eq__
+            )
+
+            assert ["_ns_test.real", "_ns_test.real.extra"] == get_it(
+                "_ns_test.real", include_root=True
             )
 
     def test_load(self, tmp_path):
