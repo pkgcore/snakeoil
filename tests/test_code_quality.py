@@ -20,6 +20,7 @@ class TestSlots(code_quality.Slots):
         "snakeoil.stringio",
         "snakeoil.tar",
         "snakeoil.test",
+        "snakeoil.tools",  # this is CLI stuff which a lot of it intentionally avoids snakeoil internals
     )
     ignored_subclasses = (Exception,)
     strict = True
