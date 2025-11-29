@@ -4,12 +4,16 @@ import warnings
 from contextlib import contextmanager
 
 _import_failed = False
+deprecation_frame_depth = 1  # some old code does "reach up the stack" tricks.  Thus it has to know how far up to climb.
 try:
-    from warnings import deprecated  # pyright: ignore[reportAssignmentType]
+    from warnings import deprecated  # pyright: ignore[reportAttributeAccessIssue]
+
+    deprecation_frame_depth = 2
 except ImportError:
     _import_failed = True
+    import typing
 
-    def deprecated(_message):
+    def deprecated(_message: str):
         """
         This is a noop; deprecation warnings are disabled for pre python
         3.13.
