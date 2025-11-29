@@ -1,8 +1,8 @@
 """String related methods."""
 
-from .demandload import demand_compile_regexp
+from .delayed import regexp
 
-demand_compile_regexp("_whitespace_regex", r"^(?P<indent>\s+)")
+_whitespace_regex = regexp(r"^(?P<indent>\s+)")
 
 
 def pluralism(obj, none=None, singular="", plural="s"):
@@ -26,6 +26,7 @@ def pluralism(obj, none=None, singular="", plural="s"):
 
 def doc_dedent(s):
     """Support dedenting docstrings with initial line having no indentation."""
+    indent: str = ""
     try:
         lines = s.split("\n")
     except AttributeError:
@@ -36,7 +37,5 @@ def doc_dedent(s):
             if mo := _whitespace_regex.match(line):
                 indent = mo.group("indent")
                 break
-        else:
-            indent = ""
     len_i = len(indent)
     return "\n".join(x[len_i:] if x.startswith(indent) else x for x in lines)

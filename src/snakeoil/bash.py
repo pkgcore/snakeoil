@@ -10,16 +10,16 @@ libtool .la files that are bash compatible, but non-executable.
 
 from shlex import shlex
 
-from .demandload import demand_compile_regexp
+from .delayed import regexp
 from .fileutils import readlines
 from .log import logger
 from .mappings import ProtectedDict
 
-demand_compile_regexp("line_cont_regexp", r"^(.*[^\\]|)\\$")
-demand_compile_regexp("inline_comment_regexp", r"^.*\s#.*$")
-demand_compile_regexp("var_find", r"\\?(\${\w+}|\$\w+)")
-demand_compile_regexp("backslash_find", r"\\.")
-demand_compile_regexp("ansi_escape_re", r"(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]")
+line_cont_regexp = regexp(r"^(.*[^\\]|)\\$")
+inline_comment_regexp = regexp(r"^.*\s#.*$")
+var_find = regexp(r"\\?(\${\w+}|\$\w+)")
+backslash_find = regexp(r"\\.")
+ansi_escape_re = regexp(r"(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]")
 
 __all__ = (
     "iter_read_bash",
