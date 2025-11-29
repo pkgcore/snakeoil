@@ -3,6 +3,7 @@ __all__ = (
     "get_slot_of",
     "get_slots_of",
     "get_subclasses_of",
+    "is_metaclass",
     "combine_classes",
     "copy_class_docs",
     "copy_docs",
@@ -14,7 +15,6 @@ import functools
 import inspect
 import types
 import typing
-from typing import Any, Iterable
 
 _known_builtins = frozenset(
     v for k, v in vars(builtins).items() if not k.startswith("_")
@@ -26,7 +26,7 @@ class ClassSlotting(typing.NamedTuple):
     slots: typing.Sequence[str] | None
 
 
-def get_slots_of(kls: type) -> Iterable[ClassSlotting]:
+def get_slots_of(kls: type) -> typing.Iterable[ClassSlotting]:
     """Visit a class MRO collecting all slotting
 
     This cannot collect slotting of C objects- python builtins like object,
@@ -48,8 +48,11 @@ def get_slot_of(cls: type) -> ClassSlotting:
 
 
 def get_attrs_of(
-    obj: Any, weakref=False, suppressions: Iterable[str] = (), _sentinel=object()
-) -> Iterable[tuple[str, Any]]:
+    obj: typing.Any,
+    weakref=False,
+    suppressions: typing.Iterable[str] = (),
+    _sentinel=object(),
+) -> typing.Iterable[tuple[str, typing.Any]]:
     """
     yield the attributes of a given instance.
 
@@ -130,7 +133,7 @@ def get_subclasses_of(
             yield current
 
 
-def is_metaclass(cls: type) -> bool:
+def is_metaclass(cls: type) -> typing.TypeGuard[type[type]]:
     return issubclass(cls, type)
 
 
