@@ -169,7 +169,7 @@ class TerminfoFormatterTest:
             result,
         )
 
-    @pythonGHissue51816
+    @pythonGHissue51816()
     def test_terminfo(self):
         esc = "\x1b["
         stream = TemporaryFile()
@@ -217,7 +217,7 @@ class TerminfoFormatterTest:
         with pytest.raises(formatters.TerminfoUnsupported):
             formatters.TerminfoFormatter(stream, term="dumb")
 
-    @pythonGHissue51816
+    @pythonGHissue51816()
     def test_title(self):
         stream = TemporaryFile()
         try:
@@ -251,35 +251,35 @@ def _get_pty_pair(encoding="ascii"):
 
 
 class TestGetFormatter:
-    @pythonGHissue51816
+    @pythonGHissue51816()
     def test_dumb_terminal(self):
         master, _out = _get_pty_pair()
         with forced_term("dumb"):
             formatter = formatters.get_formatter(master)
             assert isinstance(formatter, formatters.PlainTextFormatter)
 
-    @pythonGHissue51816
+    @pythonGHissue51816()
     def test_vt100_terminal(self):
         master, _out = _get_pty_pair()
         with forced_term("vt100"):
             formatter = formatters.get_formatter(master)
             assert isinstance(formatter, formatters.PlainTextFormatter)
 
-    @pythonGHissue51816
+    @pythonGHissue51816()
     def test_smart_terminal(self):
         master, _out = _get_pty_pair()
         with forced_term("xterm"):
             formatter = formatters.get_formatter(master)
             assert isinstance(formatter, formatters.TerminfoFormatter)
 
-    @pythonGHissue51816
+    @pythonGHissue51816()
     def test_not_a_tty(self):
         with TemporaryFile() as stream:
             with forced_term("xterm"):
                 formatter = formatters.get_formatter(stream)
                 assert isinstance(formatter, formatters.PlainTextFormatter)
 
-    @pythonGHissue51816
+    @pythonGHissue51816()
     def test_no_fd(self):
         stream = BytesIO()
         with forced_term("xterm"):

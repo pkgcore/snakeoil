@@ -1,3 +1,11 @@
+__all__ = (
+    "ArgParseMixin",
+    "Bold",
+    "Color",
+    "FakeStreamFormatter",
+    "mangle_parser",
+    "Reset",
+)
 import difflib
 from copy import copy
 

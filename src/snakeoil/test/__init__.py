@@ -1,5 +1,16 @@
 """Our unittest extensions."""
 
+__all__ = (
+    "coverage",
+    "hide_imports",
+    "Modules",
+    "ParameterizeBase",
+    "protect_process",
+    "random_str",
+    "Slots",
+)
+
+import functools
 import os
 import random
 import string
@@ -7,8 +18,7 @@ import subprocess
 import sys
 from unittest.mock import patch
 
-# not relative imports so protect_process() works properly
-from snakeoil import klass
+from .code_quality import Modules, ParameterizeBase, Slots
 
 
 def random_str(length):
@@ -35,45 +45,53 @@ def coverage():
     return cov
 
 
-_PROTECT_ENV_VAR = "SNAKEOIL_UNITTEST_PROTECT_PROCESS"
+def protect_process(
+    forced_test: None | str = None,
+    marker_env_var="SNAKEOIL_UNITTEST_PROTECT_PROCESS",
+    extra_env: dict[str, str] | None = None,
+):
+    def wrapper(functor):
+        @functools.wraps(functor)
+        def _inner_run(self, *args, **kwargs):
+            # we're in the child.  Just run it.
+            if os.environ.get(marker_env_var, False):
+                return functor(self, *args, **kwargs)
 
-
-def protect_process(functor, name=None):
-    def _inner_run(self, name=name):
-        if os.environ.get(_PROTECT_ENV_VAR, False):
-            return functor(self)
-        if name is None:
-            name = (
-                f"{self.__class__.__module__}.{self.__class__.__name__}.{method_name}"
+            # we're in the parent.  if capsys is in there, we have
+            # to intercept it for the code below.
+            capsys = kwargs.get("capsys")
+            env = os.environ.copy()
+            if extra_env:
+                env.update(extra_env)
+            env[marker_env_var] = "disable"
+            test = (
+                os.environ["PYTEST_CURRENT_TEST"]
+                if forced_test is None
+                else forced_test
             )
-        runner_path = __file__
-        if runner_path.endswith(".pyc") or runner_path.endswith(".pyo"):
-            runner_path = runner_path.rsplit(".", maxsplit=1)[0] + ".py"
-        wipe = _PROTECT_ENV_VAR not in os.environ
-        try:
-            os.environ[_PROTECT_ENV_VAR] = "yes"
-            args = [sys.executable, __file__, name]
+            # https://docs.pytest.org/en/latest/example/simple.html#pytest-current-test-environment-variable
+            assert test.endswith(" (call)")
+            test = test[: -len(" (call)")]
+            args = [sys.executable, "-m", "pytest", "-v", test]
             p = subprocess.Popen(
                 args,
-                shell=False,
-                env=os.environ.copy(),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
+                env=env,
+                stdout=None if capsys else subprocess.PIPE,
+                stderr=None if capsys else subprocess.PIPE,
             )
-            stdout, _ = p.communicate()
+
+            stdout, stderr = p.communicate()
+            if capsys:
+                result = capsys.readouterr()
+                stdout, stderr = result.out, result.err
             ret = p.wait()
             assert ret == 0, (
-                f"subprocess run: {args!r}\nnon zero exit: {ret}\nstdout:\n{stdout}"
+                f"subprocess run: {args!r}\nnon zero exit: {ret}\nstdout:\n{stdout.decode()}'n\nstderr:\n{stderr.decode()}"
             )
-        finally:
-            if wipe:
-                os.environ.pop(_PROTECT_ENV_VAR, None)
 
-    for x in ("__doc__", "__name__"):
-        if hasattr(functor, x):
-            setattr(_inner_run, x, getattr(functor, x))
-    method_name = getattr(functor, "__name__", None)
-    return _inner_run
+        return _inner_run
+
+    return wrapper
 
 
 def hide_imports(*import_names: str):

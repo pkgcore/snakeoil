@@ -23,6 +23,7 @@ __all__ = (
     "cached_property_named",
     "copy_docs",
     "steal_docs",
+    "is_metaclass",
     "ImmutableInstance",
     "immutable_instance",
     "inject_immutable_instance",
@@ -68,6 +69,7 @@ from .util import (
     get_slot_of,
     get_slots_of,
     get_subclasses_of,
+    is_metaclass,
 )
 
 sentinel = object()

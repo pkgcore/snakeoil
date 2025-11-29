@@ -28,3 +28,10 @@ class TestSlots(code_quality.Slots):
 
 class TestModules(code_quality.Modules):
     namespaces = ("snakeoil",)
+    namespace_ignores = (
+        # dead code only existing to not break versions of down stream
+        # packaging.  They'll be removed
+        "snakeoil.test.eq_hash_inheritance",
+        "snakeoil.test.mixins",
+        "snakeoil.test.slot_shadowing",
+    )

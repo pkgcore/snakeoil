@@ -129,6 +129,15 @@ def test_combine_classes():
     assert [combined, kls1, kls2, type, object] == list(combined.__mro__)
 
 
+def test_is_metaclass():
+    assert not is_metaclass(object)
+    assert is_metaclass(type)
+
+    class foon(type): ...
+
+    assert is_metaclass(foon)
+
+
 def test_get_subclasses_of():
     attr = operator.attrgetter("__name__")
 
@@ -182,12 +191,3 @@ def test_get_subclasses_of():
     class combined(left, right): ...
 
     assert_it(base, [left, right, combined])
-
-
-def test_is_metaclass():
-    assert not is_metaclass(object)
-    assert is_metaclass(type)
-
-    class foon(type): ...
-
-    assert is_metaclass(foon)

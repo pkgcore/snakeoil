@@ -90,6 +90,11 @@ def get_attrs_of(
                     seen.add(slot)
 
 
+def is_metaclass(cls: type) -> typing.TypeGuard[type[type]]:
+    """discern if something is a metaclass.  This intentionally ignores function based metaclasses"""
+    return issubclass(cls, type)
+
+
 def get_subclasses_of(
     cls: type,
     only_leaf_nodes=False,
@@ -131,10 +136,6 @@ def get_subclasses_of(
             yield current
         elif not subclasses:  # it's a leaf
             yield current
-
-
-def is_metaclass(cls: type) -> typing.TypeGuard[type[type]]:
-    return issubclass(cls, type)
 
 
 @functools.lru_cache
