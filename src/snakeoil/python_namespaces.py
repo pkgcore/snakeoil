@@ -1,5 +1,5 @@
 __all__ = ("import_submodules_of", "get_submodules_of")
-import functools
+
 import importlib
 import importlib.machinery
 import os
