@@ -12,8 +12,7 @@ class TestSlots(code_quality.Slots):
         "snakeoil.constraints",
         "snakeoil.contexts",
         "snakeoil.data_source",  # oofta on that class, py2k/py3k transition was brutal on that one.
-        "snakeoil.demandload",  # needs to be rewritten to descriptor protocol in particular.
-        "snakeoil.demandimport",  # may need rewrite, but isn't worth caring.  Py3.15 renders this dead.
+        "snakeoil.demandload",  # needs to be rewritten to descriptor protocol in particular
         "snakeoil.klass.deprecated",
         "snakeoil.dist",
         "snakeoil.formatters",
