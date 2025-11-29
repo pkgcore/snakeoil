@@ -17,14 +17,27 @@ from snakeoil.python_namespaces import get_submodules_of
 T = typing.TypeVar("T")
 
 
+class _abstractvar:
+    __slots__ = ()
+    __isabstractmethod__ = True
+
+
+def abstractvar(_: type[T]) -> T:
+    """
+    mechanism to use with ClassVars to force abc.ABC to block creation if the subclass hasn't set it.
+
+    The mechanism currently is janky; you must pass in the type definition since it's the
+    only way to attach this information to the returned object, lieing to the type system
+    that the value is type compatible while carrying the marker abc.ABC needs.
+    """
+    return typing.cast(T, _abstractvar())
+
+
 class ParameterizeBase(typing.Generic[T], abc.ABC):
-    namespaces: tuple[str]
+    namespaces: typing.ClassVar[tuple[str]] = abstractvar(tuple[str])
     namespace_ignores: tuple[str, ...] = ()
     strict: tuple[str] | bool = False
-    tests_to_parameterize: typing.ClassVar[tuple[str, ...]]
-
-    # ABC doesn't apply to actual attributes, thus this.
-    is_abstract_still: typing.ClassVar[bool] = False
+    tests_to_parameterize: typing.ClassVar[tuple[str, ...]] = abstractvar(tuple[str])
 
     @classmethod
     @abc.abstractmethod
@@ -39,14 +52,6 @@ class ParameterizeBase(typing.Generic[T], abc.ABC):
 
         if inspect.isabstract(cls):
             return
-        if cls.is_abstract_still:
-            del cls.is_abstract_still
-            return
-
-        if not hasattr(cls, "namespaces"):
-            raise TypeError("namespaces wasn't defined on the class")
-        if not hasattr(cls, "tests_to_parameterize"):
-            raise TypeError("tests_to_parameterize wasn't set")
 
         # Inject the parameterization
         targets = list(
@@ -88,8 +93,6 @@ class ParameterizeBase(typing.Generic[T], abc.ABC):
 class Slots(ParameterizeBase[type]):
     disable_str: typing.Final = "__slotting_intentionally_disabled__"
     ignored_subclasses: tuple[type, ...] = (Exception,)
-
-    is_abstract_still = True
 
     tests_to_parameterize = (
         "test_shadowing",
@@ -137,7 +140,6 @@ class Slots(ParameterizeBase[type]):
 
 
 class Modules(ParameterizeBase[ModuleType]):
-    is_abstract_still = True
     tests_to_parameterize = (
         "test_has__all__",
         "test_valid__all__",
