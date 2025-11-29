@@ -223,10 +223,6 @@ def copy_class_docs(source_class):
     """
 
     def do_it(cls):
-        if cls.__name__ == "OrderedFrozenSet":
-            import pdb
-
-            pdb.set_trace()
         for name in set(source_class.__dict__).intersection(cls.__dict__):
             obj = getattr(cls, name)
             if not isinstance(obj, types.FunctionType):
