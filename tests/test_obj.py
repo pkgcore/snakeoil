@@ -1,4 +1,5 @@
 import pytest
+
 from snakeoil import obj
 
 # sorry, but the name is good, just too long for these tests
@@ -128,34 +129,3 @@ class TestDelayedInstantiation:
             "this is a class level attribute, thus shouldn't "
             "trigger instantiation"
         )
-
-
-class TestPopattr:
-    class Object:
-        pass
-
-    def setup_method(self, method):
-        self.o = self.Object()
-        self.o.test = 1
-
-    def test_no_attrs(self):
-        # object without any attrs
-        with pytest.raises(AttributeError):
-            obj.popattr(object(), "nonexistent")
-
-    def test_nonexistent_attr(self):
-        # object with attr trying to get nonexistent attr
-        with pytest.raises(AttributeError):
-            obj.popattr(self.o, "nonexistent")
-
-    def test_fallback(self):
-        # object with attr trying to get nonexistent attr using fallback
-        value = obj.popattr(self.o, "nonexistent", 2)
-        assert value == 2
-
-    def test_removed_attr(self):
-        value = obj.popattr(self.o, "test")
-        assert value == 1
-        # verify that attr was removed from the object
-        with pytest.raises(AttributeError):
-            obj.popattr(self.o, "test")

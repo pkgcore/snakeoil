@@ -73,7 +73,7 @@ If that doesn't make sense to the reader, it's probably best that the reader not
 try to proxy builtin objects like tuples, lists, dicts, sets, etc.
 """
 
-__all__ = ("DelayedInstantiation", "DelayedInstantiation_kls", "make_kls", "popattr")
+__all__ = ("DelayedInstantiation", "make_kls")
 
 import typing
 
@@ -107,17 +107,6 @@ base_kls_descriptors = [
 if hasattr(object, "__sizeof__"):
     base_kls_descriptors.append("__sizeof__")
 base_kls_descriptors = frozenset(base_kls_descriptors)
-
-
-def popattr(obj, name, default=klass.sentinel):
-    """Remove and return an attribute from an object if it exists."""
-    try:
-        return obj.__dict__.pop(name)
-    except KeyError:
-        if default is not klass.sentinel:
-            return default
-        # force AttributeError to be raised
-        getattr(obj, name)
 
 
 class BaseDelayedObject:

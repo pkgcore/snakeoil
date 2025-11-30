@@ -10,7 +10,6 @@ import pkgutil
 import subprocess
 import sys
 import traceback
-import types
 import typing
 from argparse import (
     _UNRECOGNIZED_ARGS_ATTR,
@@ -35,7 +34,7 @@ from snakeoil.formatters import PlainTextFormatter
 
 from .. import klass
 from ..mappings import ImmutableDict
-from ..obj import DelayedInstantiation, popattr
+from ..obj import DelayedInstantiation
 from ..sequences import split_elements, split_negations
 from ..strings import pluralism
 from ..version import get_version
@@ -643,7 +642,9 @@ class Namespace(argparse.Namespace):
     def pop(self, key, default=klass.sentinel):
         """Remove and return an object from the namespace if it exists."""
         try:
-            return popattr(self, key)
+            val = getattr(self, key)
+            delattr(self, key)
+            return val
         except AttributeError:
             if default is not klass.sentinel:
                 return default
