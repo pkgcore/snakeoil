@@ -12,7 +12,6 @@ __all__ = (
     "reflective_hash",
     "inject_richcmp_methods_from_cmp",
     "static_attrgetter",
-    "instance_attrgetter",
     "jit_attr",
     "jit_attr_none",
     "jit_attr_named",
@@ -313,42 +312,6 @@ class chained_getter(
 ):
     """
     Deprecated.  Use operator.attrgetter instead.
-
-    object that will do multi part lookup, regardless of if it's in the context
-    of an instancemethod or staticmethod.
-
-    Note that developers should use :py:func:`static_attrgetter` or
-    :py:func:`instance_attrgetter` instead of this class directly.  They should do
-    this since dependent on the python version, there may be a faster implementation
-    to use- for python2.6, :py:func:`operator.attrgetter` can do this same functionality
-    but cannot be used as an instance method (like most stdlib functions, it's a staticmethod)
-
-    Example Usage:
-
-    >>> from snakeoil.klass import chained_getter
-    >>> # general usage example: basically like operator.attrgetter
-    >>> print(chained_getter("extend")(list).__name__)
-    extend
-    >>>
-    >>> class foo:
-    ...
-    ...   seq = (1,2,3)
-    ...
-    ...   def __init__(self, a=1):
-    ...     self.a = a
-    ...
-    ...   b = property(chained_getter("a"))
-    ...   # please note that recursive should be using :py:func:`alias_attr` instead,
-    ...   # since that's effectively what that functor does
-    ...   recursive = property(chained_getter("seq.__hash__"))
-    >>>
-    >>> o = foo()
-    >>> print(o.a)
-    1
-    >>> print(o.b)
-    1
-    >>> print(o.recursive == foo.seq.__hash__)
-    True
     """
 
     __slots__ = ("namespace", "getter")
@@ -378,7 +341,6 @@ class chained_getter(
 static_attrgetter = warn_deprecated(
     "snakeoil.klass.static_attrgetter is deprecated.  Use operator.attrgetter instead"
 )(chained_getter)
-instance_attrgetter = chained_getter
 
 
 def cached_hash(func):
