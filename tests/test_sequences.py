@@ -58,56 +58,6 @@ class TestStableUnique:
         assert sorted(sequences.unstable_unique(self._generator())) == sorted(range(6))
 
 
-class TestChainedLists:
-    @staticmethod
-    def gen_cl():
-        return sequences.ChainedLists(
-            list(range(3)), list(range(3, 6)), list(range(6, 100))
-        )
-
-    def test_contains(self):
-        cl = self.gen_cl()
-        for x in (1, 2, 4, 99):
-            assert x in cl
-
-    def test_iter(self):
-        assert list(self.gen_cl()) == list(range(100))
-
-    def test_len(self):
-        assert len(self.gen_cl()) == 100
-
-    def test_str(self):
-        l = sequences.ChainedLists(list(range(3)), list(range(3, 5)))
-        assert str(l) == "[ [0, 1, 2], [3, 4] ]"
-
-    def test_getitem(self):
-        cl = self.gen_cl()
-        for x in (1, 2, 4, 98, -1, -99, 0):
-            # "Statement seems to have no effect"
-            # pylint: disable=W0104
-            cl[x]
-        with pytest.raises(IndexError):
-            cl.__getitem__(100)
-        with pytest.raises(IndexError):
-            cl.__getitem__(-101)
-
-    def test_mutable(self):
-        with pytest.raises(TypeError):
-            self.gen_cl().__delitem__(1)
-        with pytest.raises(TypeError):
-            self.gen_cl().__setitem__(1, 2)
-
-    def test_append(self):
-        cl = self.gen_cl()
-        cl.append(list(range(10)))
-        assert len(cl) == 110
-
-    def test_extend(self):
-        cl = self.gen_cl()
-        cl.extend(list(range(10)) for i in range(5))
-        assert len(cl) == 150
-
-
 class Test_iflatten_instance:
     func = staticmethod(sequences.iflatten_instance)
 

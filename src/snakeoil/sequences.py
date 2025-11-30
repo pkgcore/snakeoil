@@ -6,12 +6,11 @@ __all__ = (
     "iter_stable_unique",
     "iflatten_instance",
     "iflatten_func",
-    "ChainedLists",
     "predicate_split",
     "split_negations",
+    "split_elements",
 )
 
-import functools
 from typing import Any, Callable, Iterable, Type
 
 from .iterables import expandable_chain
@@ -146,90 +145,6 @@ def iflatten_func(l: Iterable, skip_func: Callable[[Any], bool]) -> Iterable:
                 yield x
     except StopIteration:
         pass
-
-
-class ChainedLists:
-    """Given a set of sequences, this will act as a proxy to them without
-    collapsing them into a single list.
-
-    This is primarily useful when you're dealing in large sets (or custom
-    sequence objects), and do not want to collapse them into one sequence- but
-    you still want to be able to access them as if they were one sequence.
-
-    Note that while you can add more lists onto this, you cannot directly
-    change the underlying lists through this class.
-
-    >>> from snakeoil.sequences import ChainedLists
-    >>> l1, l2 = [0, 1, 2, 3], [4,5,6]
-    >>> cl = ChainedLists(l1, l2)
-    >>> print(cl[3])
-    3
-    >>> print(cl[4])
-    4
-    >>> print(cl[0])
-    0
-    >>> assert 4 in cl
-    >>> print(len(cl))
-    7
-    >>> cl[0] = 9
-    Traceback (most recent call last):
-        ...
-    TypeError: not mutable
-    """
-
-    __slots__ = ("_lists", "__weakref__")
-
-    def __init__(self, *lists):
-        """
-        all args must be sequences
-        """
-        # ensure they're iterable
-        for x in lists:
-            iter(x)
-
-        if isinstance(lists, tuple):
-            lists = list(lists)
-        self._lists = lists
-
-    def __len__(self):
-        return sum(len(l) for l in self._lists)
-
-    def __getitem__(self, idx):
-        if idx < 0:
-            idx += len(self)
-            if idx < 0:
-                raise IndexError
-        for l in self._lists:
-            l2 = len(l)
-            if idx < l2:
-                return l[idx]
-            idx -= l2
-        raise IndexError
-
-    def __setitem__(self, idx, val):
-        raise TypeError("not mutable")
-
-    def __delitem__(self, idx):
-        raise TypeError("not mutable")
-
-    def __iter__(self):
-        for l in self._lists:
-            for x in l:
-                yield x
-
-    def __contains__(self, obj):
-        return obj in iter(self)
-
-    def __str__(self):
-        return "[ %s ]" % ", ".join(str(l) for l in self._lists)
-
-    @functools.wraps(list.append)
-    def append(self, item):
-        self._lists.append(item)
-
-    @functools.wraps(list.extend)
-    def extend(self, items):
-        self._lists.extend(items)
 
 
 def predicate_split(func, stream, key=None):
