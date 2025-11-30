@@ -10,6 +10,8 @@ libtool .la files that are bash compatible, but non-executable.
 
 from shlex import shlex
 
+from snakeoil.deprecation import deprecated
+
 from .delayed import regexp
 from .fileutils import readlines
 from .log import logger
@@ -26,12 +28,16 @@ __all__ = (
     "read_bash",
     "read_dict",
     "read_bash_dict",
-    "bash_parser",
     "BashParseError",
 )
 
 
-def iter_read_bash(
+iter_read_bash = deprecated(
+    "snakeoil.bash.iter_read_bash has been renamed to read_bash"
+)(lambda *a, **kw: read_bash(*a, **kw))
+
+
+def read_bash(
     bash_source, allow_inline_comments=True, allow_line_cont=False, enum_line=False
 ):
     """Iterate over a file honoring bash commenting rules and line continuations.
@@ -78,16 +84,6 @@ def iter_read_bash(
             yield lineno, s
         else:
             yield s
-
-
-def read_bash(*args, **kwargs):
-    """Read a file honoring bash commenting rules.
-
-    See :py:func:`iter_read_bash` for parameter details.
-
-    Returns a list of lines w/ comments stripped out.
-    """
-    return list(iter_read_bash(*args, **kwargs))
 
 
 def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):

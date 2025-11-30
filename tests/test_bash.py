@@ -1,9 +1,9 @@
 from io import StringIO
 
 import pytest
+
 from snakeoil.bash import (
     BashParseError,
-    iter_read_bash,
     read_bash,
     read_bash_dict,
     read_dict,
@@ -11,19 +11,17 @@ from snakeoil.bash import (
 
 
 class TestBashCommentStripping:
-    def test_iter_read_bash(self):
-        output = iter_read_bash(
+    def test_read_bash(self):
+        output = read_bash(
             StringIO("\n# hi I am a comment\nI am not \n asdf # inline comment\n")
         )
         assert list(output) == ["I am not", "asdf"]
 
-        output = iter_read_bash(
-            StringIO("inline # comment "), allow_inline_comments=False
-        )
+        output = read_bash(StringIO("inline # comment "), allow_inline_comments=False)
         assert list(output) == ["inline # comment"]
 
-    def test_iter_read_bash_line_cont(self):
-        output = iter_read_bash(
+    def test_read_bash_line_cont(self):
+        output = read_bash(
             StringIO(
                 "\n"
                 "# hi I am a comment\\\n"
@@ -36,7 +34,7 @@ class TestBashCommentStripping:
         assert list(output) == ["I am not a comment", "asdf"]
 
         # continuation into inline comment
-        output = iter_read_bash(
+        output = read_bash(
             StringIO(
                 "\n# hi I am a comment\nI am \\\nnot a \\\ncomment # inline comment\n"
             ),
@@ -45,14 +43,14 @@ class TestBashCommentStripping:
         assert list(output) == ["I am not a comment"]
 
         # ends with continuation
-        output = iter_read_bash(
+        output = read_bash(
             StringIO("\n# hi I am a comment\nI am \\\n\\\nnot a \\\ncomment\\\n\\\n"),
             allow_line_cont=True,
         )
         assert list(output) == ["I am not a comment"]
 
         # embedded comment prefix via continued lines
-        output = iter_read_bash(
+        output = read_bash(
             StringIO(
                 "\\\n"
                 "# comment\\\n"
@@ -69,18 +67,12 @@ class TestBashCommentStripping:
 
         # Line continuations have to end with \<newline> without any backslash
         # before the pattern.
-        output = iter_read_bash(
-            StringIO("I am \\ \nnot a comment"), allow_line_cont=True
-        )
+        output = read_bash(StringIO("I am \\ \nnot a comment"), allow_line_cont=True)
         assert list(output) == ["I am \\", "not a comment"]
-        output = iter_read_bash(
+        output = read_bash(
             StringIO("\\\nI am \\\\\nnot a comment"), allow_line_cont=True
         )
         assert list(output) == ["I am \\\\", "not a comment"]
-
-    def test_read_bash(self):
-        output = read_bash(StringIO("\n# hi I am a comment\nI am not\n"))
-        assert output == ["I am not"]
 
 
 class TestReadDictConfig:
