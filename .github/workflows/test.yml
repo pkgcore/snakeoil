@@ -70,11 +70,23 @@ jobs:
       with:
         path: snakeoil
 
-    - name: Checkout ${{ matrix.repo }}
+    - name: Find last ${{ matrix.repo }} release
+      run: |
+        versions=$(git ls-remote -q --refs https://github.com/pkgcore/${{ matrix.repo }}  | \
+          sed -nre 's:.*refs/tags/(.+)$:\1:p' | \
+          sort -V)
+        echo found versions:
+        echo "${versions}"
+        latest=$(echo "$versions" | tail -n 1)
+        echo "latest=${latest}"
+        [ -z "$latest" ] && { echo "failed finding the tag"; exit 1; }
+        echo "LATEST_TAG=$latest" >> $GITHUB_ENV
+    - name: Checkout ${{ matrix.repo }} ${{ env.LATEST_TAG }}
       uses: actions/checkout@v4
       with:
         repository: pkgcore/${{ matrix.repo }}
         path: ${{ matrix.repo }}
+        ref: ${{ env.LATEST_TAG }}
 
     - name: Set up Python 3.13
       uses: actions/setup-python@v5
