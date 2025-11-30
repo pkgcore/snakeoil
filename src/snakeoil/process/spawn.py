@@ -3,7 +3,6 @@ subprocess related functionality
 """
 
 __all__ = [
-    "cleanup_pids",
     "spawn",
     "spawn_sandbox",
     "spawn_bash",
@@ -136,7 +135,7 @@ atexit.register(run_exitfuncs)
 spawned_pids = []
 
 
-def cleanup_pids(pids: Iterable[int] = None):
+def cleanup_pids(pids: Iterable[int] | None = None):
     """reap list of pids if specified, else all children"""
 
     if pids is None:
