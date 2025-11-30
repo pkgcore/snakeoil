@@ -1,7 +1,12 @@
 __all__ = ("deprecated",)
 
+import functools
+import typing
 import warnings
 from contextlib import contextmanager
+
+T = typing.TypeVar("T")
+P = typing.ParamSpec("P")
 
 _import_failed = False
 deprecation_frame_depth = 1  # some old code does "reach up the stack" tricks.  Thus it has to know how far up to climb.
@@ -41,3 +46,14 @@ def suppress_deprecation_warning():
         with warnings.catch_warnings():
             warnings.simplefilter(action="ignore", category=DeprecationWarning)
             yield
+
+
+def suppress_deprecations(thing: typing.Callable[P, T]) -> typing.Callable[P, T]:
+    """Decorator to suppress all deprecation warnings within the callable"""
+
+    @functools.wraps(thing)
+    def f(*args, **kwargs) -> T:
+        with suppress_deprecation_warning():
+            return thing(*args, **kwargs)
+
+    return f
