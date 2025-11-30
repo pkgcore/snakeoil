@@ -1,36 +1,5 @@
 """
 OS related functionality
-
-This module is primarily optimized implementations of various filesystem operations,
-written for posix specifically.  If this is a non-posix system (or extensions were
-disabled) it falls back to native python implementations that yield no real speed gains.
-
-A rough example of the performance benefits, collected from a core2 2.4GHz running
-python 2.6.5, w/ an EXT4 FS on a 160GB x25-M for the FS related invocations (it's worth
-noting the IO is pretty fast in this setup- for slow IO like nfs, the speedup for extension
-vs native for listdir* functionality is a fair bit larger).
-
-Rough stats:
-
-========================================================  =========   ===============
-python -m timeit code snippet                             native      extension time
-========================================================  =========   ===============
-join("/usr/portage", "dev-util", "bsdiff", "ChangeLog")   2.8 usec    0.36 usec
-normpath("/usr/portage/foon/blah/dar")                    5.52 usec   0.15 usec
-normpath("/usr/portage//foon/blah//dar")                  5.66 usec   0.15 usec
-normpath("/usr/portage/./foon/../blah/")                  5.92 usec   0.15 usec
-listdir_files("/usr/lib64") # 2338 entries, 990 syms      18.6 msec   4.17 msec
-listdir_files("/usr/lib64", False) # same dir content     16.9 msec   1.48 msec
-readfile("/etc/passwd") # 1899 bytes                      20.4 usec   4.05 usec
-readfile("tmp-file") # 1MB                                300 usec    259 usec
-list(readlines("/etc/passwd")) # 1899 bytes, 34 lines     37.3 usec   12.8 usec
-list(readlines("/etc/passwd", False)) # leave whitespace  26.7 usec   12.8 usec
-========================================================  =========   ===============
-
-If you're just invoking join or normpath, or reading a file or two a couple of times,
-these optimizations are probably overkill.  If you're doing lots of path manipulation,
-reading files, scanning directories, etc, these optimizations start adding up
-pretty quickly.
 """
 
 __all__ = (
@@ -42,7 +11,6 @@ __all__ = (
     "listdir_files",
     "listdir_dirs",
     "listdir",
-    "readdir",
     "normpath",
     "unlink_if_exists",
     "supported_systems",
@@ -52,15 +20,16 @@ import errno
 import os
 import stat
 import sys
+from stat import (
+    S_ISDIR,
+    S_ISREG,
+)
 
-from . import native_readdir as module
+from snakeoil.deprecation import deprecated
 
-listdir = os.listdir
-listdir_dirs = module.listdir_dirs
-listdir_files = module.listdir_files
-readdir = module.readdir
-
-del module
+listdir = deprecated("snakeoil.osutils.listdir is deprecated.  Use os.listdir")(
+    lambda *a, **kw: os.listdir(*a, **kw)
+)
 
 
 def supported_systems(*systems):
@@ -206,6 +175,7 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
     return True
 
 
+@deprecated("snakeoil.osutils.absyymlink is deprecated")
 def abssymlink(path):
     """Return the absolute path of a symlink
 
@@ -237,6 +207,7 @@ def force_symlink(target, link):
             raise
 
 
+@deprecated("snakeoil.osutils.abspath is deprecated.  Us os.path.abspath")
 def abspath(path):
     """resolve a path absolutely, including symlink resolving.
 
@@ -257,6 +228,7 @@ def abspath(path):
         return path
 
 
+@deprecated("snakeoil.osutils.norpath is deprecated.  Us os.path.normpath")
 def normpath(mypath: str) -> str:
     """normalize path- //usr/bin becomes /usr/bin, /usr/../bin becomes /bin
 
@@ -271,7 +243,12 @@ def normpath(mypath: str) -> str:
 
 
 # convenience.  importing join into a namespace is ugly, pjoin less so
-pjoin = join = os.path.join
+pjoin = deprecated("snakeoil.osutils.pjoin is deprecated.  Use os.path.join")(
+    lambda *a, **kw: os.path.join(*a, **kw)
+)
+join = deprecated("snakeoil.osutils.join is deprecated.  Use os.path.join")(
+    lambda *a, **kw: os.path.join(*a, **kw)
+)
 
 
 def unlink_if_exists(path):
@@ -311,3 +288,56 @@ def lstat_mtime_long(path, st=None):
 
 def fstat_mtime_long(fd, st=None):
     return (os.fstat(fd) if st is None else st)[stat.ST_MTIME]
+
+
+def _stat_swallow_enoent(path, check, default=False, stat=os.stat):
+    try:
+        return check(stat(path).st_mode)
+    except OSError as oe:
+        if oe.errno == errno.ENOENT:
+            return default
+        raise
+
+
+def listdir_dirs(path, followSymlinks=True):
+    """
+    Return a list of all subdirectories within a directory
+
+    :param path: directory to scan
+    :param followSymlinks: this controls if symlinks are resolved.
+        If True and the symlink resolves to a directory, it is returned,
+        else if False it isn't returned.
+    :return: list of directories within `path`
+    """
+    scheck = S_ISDIR
+    lstat = os.lstat
+    if followSymlinks:
+        return [
+            x
+            for x in os.listdir(path)
+            if _stat_swallow_enoent(os.path.join(path, x), scheck)
+        ]
+    lstat = os.lstat
+    return [x for x in os.listdir(path) if scheck(lstat(os.path.join(path, x)).st_mode)]
+
+
+def listdir_files(path, followSymlinks=True):
+    """
+    Return a list of all files within a directory
+
+    :param path: directory to scan
+    :param followSymlinks: this controls if symlinks are resolved.
+        If True and the symlink resolves to a file, it is returned,
+        else if False it isn't returned.
+    :return: list of files within `path`
+    """
+
+    scheck = S_ISREG
+    if followSymlinks:
+        return [
+            x
+            for x in os.listdir(path)
+            if _stat_swallow_enoent(os.path.join(path, x), scheck)
+        ]
+    lstat = os.lstat
+    return [x for x in os.listdir(path) if scheck(lstat(os.path.join(path, x)).st_mode)]

@@ -11,7 +11,8 @@ import pytest
 
 from snakeoil import osutils
 from snakeoil.contexts import Namespace
-from snakeoil.osutils import native_readdir, sizeof_fmt, supported_systems
+from snakeoil.deprecation import suppress_deprecations
+from snakeoil.osutils import listdir_dirs, listdir_files, sizeof_fmt, supported_systems
 from snakeoil.osutils.mount import MNT_DETACH, MS_BIND, mount, umount
 
 
@@ -30,46 +31,25 @@ class ReaddirCommon:
 
 class TestNativeListDir(ReaddirCommon):
     def test_listdir_dirs(self, tmp_path, subdir):
-        assert native_readdir.listdir_dirs(tmp_path) == ["dir"]
-        assert native_readdir.listdir_dirs(subdir) == []
+        assert listdir_dirs(tmp_path) == ["dir"]
+        assert listdir_dirs(subdir) == []
 
     def test_listdir_files(self, tmp_path, subdir):
-        assert native_readdir.listdir_files(tmp_path) == ["file"]
-        assert native_readdir.listdir_dirs(subdir) == []
+        assert listdir_files(tmp_path) == ["file"]
+        assert listdir_dirs(subdir) == []
 
     def test_missing(self, tmp_path, subdir):
         return self._test_missing(
             tmp_path,
             (
-                native_readdir.listdir_dirs,
-                native_readdir.listdir_files,
+                listdir_dirs,
+                listdir_files,
             ),
         )
 
     def test_dangling_sym(self, tmp_path, subdir):
         (tmp_path / "monkeys").symlink_to("foon")
-        assert native_readdir.listdir_files(tmp_path) == ["file"]
-
-
-class TestNativeReaddir(ReaddirCommon):
-    # TODO: test char/block devices and sockets, devices might be a bit hard
-    # because it seems like you need to be root to create them in linux
-
-    def test_readdir(self, tmp_path, subdir):
-        (tmp_path / "monkeys").symlink_to("foon")
-        (tmp_path / "sym").symlink_to(tmp_path / "file")
-        expected = {
-            ("dir", "directory"),
-            ("file", "file"),
-            ("fifo", "fifo"),
-            ("monkeys", "symlink"),
-            ("sym", "symlink"),
-        }
-        assert set(native_readdir.readdir(tmp_path)) == expected
-        assert native_readdir.readdir(subdir) == []
-
-    def test_missing(self, tmp_path):
-        return self._test_missing(tmp_path, (native_readdir.readdir,))
+        assert listdir_files(tmp_path) == ["file"]
 
 
 class TestEnsureDirs:
@@ -200,6 +180,7 @@ class TestEnsureDirs:
 
 
 class TestAbsSymlink:
+    @suppress_deprecations
     def test_abssymlink(self, tmp_path):
         target = tmp_path / "target"
         linkname = tmp_path / "link"
