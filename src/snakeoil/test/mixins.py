@@ -23,7 +23,6 @@ class PythonNamespaceWalker:
     module_blacklist = frozenset(
         {
             "snakeoil.cli.arghparse",
-            "snakeoil.pickling",
         }
     )
 
