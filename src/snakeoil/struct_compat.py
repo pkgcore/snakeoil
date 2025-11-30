@@ -5,14 +5,14 @@ In usage, instead of importing struct you should just import this module instead
 It's designed to be a drop in replacement.
 """
 
-__all__ = ("Struct", "error", "pack", "pack", "calcsize")
+__all__ = ("Struct", "error", "unpack", "pack")
 
 # since we're trying to be usable in struct's place, we do a start import;
 # sucks, but is what it is.
 # pylint: disable=wildcard-import,unused-wildcard-import
-from struct import *
 
-base_struct = Struct
+from struct import Struct as base_struct
+from struct import error, pack, unpack
 
 
 # pylint: disable=function-redefined
