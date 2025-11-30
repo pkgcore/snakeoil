@@ -15,6 +15,8 @@ Usage examples:
 >>>     print(f"x={solution['x']}, y={solution['y']}, z={solution['z']}")
 """
 
+__all__ = ("Constraint", "Problem")
+
 from collections import defaultdict
 from typing import Any, Iterable, Protocol
 
@@ -36,6 +38,8 @@ class Constraint(Protocol):
 
 
 class _Domain(list):
+    __slots__ = ("_hidden", "_states")
+
     def __init__(self, items: Iterable[Any]):
         super().__init__(items)
         self._hidden = []
@@ -75,6 +79,8 @@ class Problem:
         of a :py:class:`dict` assigning to each variable in the problem a
         single value from it's domain.
     """
+
+    __slots__ = ("variables", "constraints", "vconstraints")
 
     def __init__(self):
         self.variables: dict[str, _Domain] = {}

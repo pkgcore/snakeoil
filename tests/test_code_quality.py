@@ -9,7 +9,6 @@ class TestSlots(code_quality.Slots):
         "snakeoil.chksum",
         "snakeoil.cli.arghparse",
         "snakeoil.compression",
-        "snakeoil.constraints",
         "snakeoil.contexts",
         "snakeoil.data_source",  # oofta on that class, py2k/py3k transition was brutal on that one.
         "snakeoil.demandload",  # needs to be rewritten to descriptor protocol in particular
@@ -18,11 +17,11 @@ class TestSlots(code_quality.Slots):
         "snakeoil.formatters",
         "snakeoil.process",
         "snakeoil.stringio",
+        "snakeoil.struct_compat",
         "snakeoil.tar",
         "snakeoil.test",
         "snakeoil.tools",  # this is CLI stuff which a lot of it intentionally avoids snakeoil internals
     )
-    ignored_subclasses = (Exception,)
     strict = True
 
 

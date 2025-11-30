@@ -94,7 +94,10 @@ class ParameterizeBase(typing.Generic[T], abc.ABC):
 
 class Slots(ParameterizeBase[type]):
     disable_str: typing.Final = "__slotting_intentionally_disabled__"
-    ignored_subclasses: tuple[type, ...] = (Exception,)
+    ignored_subclasses: tuple[type, ...] = (
+        Exception,
+        typing.Protocol,  # pyright: ignore[reportAssignmentType]
+    )
 
     tests_to_parameterize = (
         "test_shadowing",
