@@ -81,9 +81,9 @@ def get_submodules_of(
                 # logic in one spot. TL;DR: this is intentionally not optimized for the
                 # common case.
                 to_scan.append(importlib.import_module(qualname))
-            except ImportError:
+            except ImportError as e:
                 if not ignore_import_failures(qualname):
-                    raise
+                    raise ImportError(f"failed importing {qualname}: {e}") from e
 
 
 def import_submodules_of(target: types.ModuleType, **kwargs) -> None:

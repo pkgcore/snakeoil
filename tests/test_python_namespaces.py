@@ -98,11 +98,11 @@ class TestNamespaceCollector:
             mod = importlib.import_module("_ns_test")
             with pytest.raises(ImportError) as capture:
                 import_submodules_of(mod, ignore_import_failures=["_ns_test.bad2"])
-            assert ("bad1",) == tuple(capture.value.args)
+            assert "bad1" in " ".join(tuple(capture.value.args))
 
             with pytest.raises(ImportError) as capture:
                 import_submodules_of(mod, ignore_import_failures=["_ns_test.bad1"])
-            assert ("bad2",) == tuple(capture.value.args)
+            assert "bad2" in " ".join(tuple(capture.value.args))
 
             with pytest.raises(ImportError):
                 import_submodules_of(mod, ignore_import_failures=False)
