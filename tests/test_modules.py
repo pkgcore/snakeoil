@@ -1,7 +1,9 @@
 import sys
 
 import pytest
+
 from snakeoil import modules
+from snakeoil.deprecation import suppress_deprecations
 
 
 class TestModules:
@@ -32,32 +34,7 @@ class TestModules:
         sys.modules.pop("mod_horked", None)
         sys.modules.pop("mod_testpack.mod_horked", None)
 
-    def test_load_module(self):
-        # import an already-imported module
-        assert modules.load_module("snakeoil.modules") is modules
-        # and a system one, just for kicks
-        assert modules.load_module("sys") is sys
-        # non-existing module from an existing package
-        with pytest.raises(modules.FailedImport):
-            modules.load_module("snakeoil.__not_there")
-        # (hopefully :) non-existing top-level module/package
-        with pytest.raises(modules.FailedImport):
-            modules.load_module("__not_there")
-
-        # "Unable to import"
-        # pylint: disable=F0401
-
-        # unimported toplevel module
-        modtest1 = modules.load_module("mod_test1")
-        import mod_test1
-
-        assert mod_test1 is modtest1
-        # unimported in-package module
-        packtest2 = modules.load_module("mod_testpack.mod_test2")
-        from mod_testpack import mod_test2
-
-        assert mod_test2 is packtest2
-
+    @suppress_deprecations
     def test_load_attribute(self):
         # already imported
         assert modules.load_attribute("sys.path") is sys.path
@@ -83,6 +60,7 @@ class TestModules:
         with pytest.raises(modules.FailedImport):
             modules.load_attribute("mod_testpack.mod_test3")
 
+    @suppress_deprecations
     def test_load_any(self):
         # import an already-imported module
         assert modules.load_any("snakeoil.modules") is modules
@@ -111,8 +89,9 @@ class TestModules:
         with pytest.raises(modules.FailedImport):
             modules.load_any("mod_testpack.mod_test3")
 
+    @suppress_deprecations
     def test_broken_module(self):
-        for func in [modules.load_module, modules.load_any]:
+        for func in [modules.load_any]:
             with pytest.raises(modules.FailedImport):
                 func("mod_testpack.mod_horked")
             assert "mod_testpack.mod_horked" not in sys.modules

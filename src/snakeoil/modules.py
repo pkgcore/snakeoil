@@ -2,12 +2,11 @@
 dynamic import functionality
 """
 
-__all__ = ("FailedImport", "load_module", "load_attribute", "load_any")
+__all__ = ("FailedImport", "load_attribute", "load_any")
 
-import sys
 from importlib import import_module
 
-from .compatibility import IGNORED_EXCEPTIONS
+from snakeoil.deprecation import deprecated
 
 
 class FailedImport(ImportError):
@@ -20,31 +19,14 @@ class FailedImport(ImportError):
         self.trg, self.e = trg, e
 
 
-def load_module(name):
-    """load a module
-
-    Deprecated, use ``importlib.import_module`` instead.
-
-    :param name: python dotted namespace path of the module to import
-    :raise: FailedImport if importing fails
-    :return: imported module
-    """
-    if name in sys.modules:
-        return sys.modules[name]
-    try:
-        return import_module(name)
-    except IGNORED_EXCEPTIONS:
-        raise
-    except Exception as exc:
-        raise FailedImport(name, exc) from exc
-
-
+@deprecated(
+    "snakeoil.modules.load_attribute is deprecated.  Use importlib.import_module's package argument"
+)
 def load_attribute(name):
     """load an attribute from a module
 
     :param name: python dotted namespace path of the attribute to load from a
-        module for example, ``snakeoil.modules.load_module`` would return
-        :py:func:`load_module`
+        module for example.
     :raise: FailedImport if importing fails, or the requested attribute cannot
         be found
     :return: attribute resolved from `name`
@@ -63,15 +45,13 @@ def load_attribute(name):
         raise FailedImport(name, exc) from exc
 
 
+@deprecated(
+    "snakeoil.modules.load_any is deprecated.  Use importlib.import_module's package argument"
+)
 def load_any(name):
-    """load an attribute or a module from a namespace
+    """
+    load an attribute or a module from a namespace
 
-    :param name: python dotted namespace path of the object to load from a
-        module for example, ``snakeoil.modules.load_module`` would return
-        :py:func:`load_module`, and ``snakeoil.modules`` would return `modules`
-    :raise: FailedImport if importing fails, or the requested attribute cannot
-        be found
-    :return: object resolved from `name`
     """
 
     try:
