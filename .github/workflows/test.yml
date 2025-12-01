@@ -2,9 +2,20 @@ name: test
 
 on:
   push:
-    branches-ignore: [deploy]
+    branches-ignore: [release-test-*]
   pull_request:
     branches: [master]
+  workflow_call:
+    inputs:
+      release-artifact-id:
+        required: false
+        type: string
+        default: ''
+        description: The artifact-id to run the tests against.
+      disable-format-check:
+        type: string
+        default: ''
+        description: Disable ruff format check if it is a non empty value
 
 jobs:
   build:
@@ -26,7 +37,9 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: pkgcore/gh-actions/get-source@main
+      with:
+        artifact-id: ${{ inputs.release-artifact-id }}
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
@@ -66,8 +79,9 @@ jobs:
       fail-fast: false
     steps:
     - name: Checkout snakeoil
-      uses: actions/checkout@v4
+      uses: pkgcore/gh-actions/get-source@main
       with:
+        artifact-id: ${{ inputs.release-artifact-id }}
         path: snakeoil
 
     - name: Find last ${{ matrix.repo }} release
@@ -112,6 +126,7 @@ jobs:
 
   format:
     runs-on: ubuntu-latest
+    if: inputs.disable-format-check == ''
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
