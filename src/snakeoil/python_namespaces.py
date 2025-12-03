@@ -1,11 +1,10 @@
 __all__ = ("import_submodules_of", "get_submodules_of")
 
-import importlib
-import importlib.machinery
 import os
-import pathlib
 import types
 import typing
+from importlib import import_module, machinery
+from pathlib import Path
 
 T_class_filter = typing.Callable[[str], bool]
 
@@ -17,7 +16,7 @@ def get_submodules_of(
     ignore_import_failures: T_class_filter | typing.Container[str] | bool = False,
     include_root=False,
 ) -> typing.Iterable[types.ModuleType]:
-    """Visit all submodules of the target via walking the underlying filesystem
+    """Visit all submodules of the target finding modules ending with PEP3147 suffixes.
 
     This currently cannot work against a frozen python exe (for example), nor source only contained within an egg; it currently just walks the FS.
     :param root: the module to trace
@@ -49,7 +48,7 @@ def get_submodules_of(
 
         if current is not root or include_root:
             yield current
-        base = pathlib.Path(os.path.abspath(current.__file__))
+        base = Path(os.path.abspath(current.__file__))
         # if it's not the root of a module, there's nothing to do- return it..
         if not base.name.startswith("__init__."):
             continue
@@ -62,14 +61,9 @@ def get_submodules_of(
             if potential.is_dir():
                 if name == "__pycache__":
                     continue
-            else:
-                for ext in importlib.machinery.all_suffixes():
-                    if name.endswith(ext):
-                        name = name[: -len(ext)]
-                        break
-                else:
-                    # it's not a python source.
-                    continue
+            elif remove_py_extension(name) is None:
+                # it's not a python source.
+                continue
 
             if dont_import(qualname):
                 continue
@@ -80,7 +74,7 @@ def get_submodules_of(
                 # extended for working from .whl or .egg directly, we will want that
                 # logic in one spot. TL;DR: this is intentionally not optimized for the
                 # common case.
-                to_scan.append(importlib.import_module(qualname))
+                to_scan.append(import_module(qualname))
             except ImportError as e:
                 if not ignore_import_failures(qualname):
                     raise ImportError(f"failed importing {qualname}: {e}") from e
@@ -93,3 +87,19 @@ def import_submodules_of(target: types.ModuleType, **kwargs) -> None:
     """
     for _ in get_submodules_of(target, **kwargs):
         pass
+
+
+def remove_py_extension(path: Path | str) -> str | None:
+    """Return the stem of a path or None, if the extension is PEP3147 (.py, .pyc, etc)
+
+    This accounts for the fact certain extensions in importlib.machinery.all_suffixes()
+    intersect each other.  This will give you the resultant package name irregardless of
+    PEP3147 conflicts.
+
+    If it's not a valid extension, None is returned.
+    """
+    name = Path(path).name
+    for ext in sorted(machinery.all_suffixes(), key=lambda x: x.split(".")):
+        if name.endswith(ext):
+            return name[: -len(ext)]
+    return None

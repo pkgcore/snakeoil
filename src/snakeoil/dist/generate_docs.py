@@ -6,6 +6,8 @@ import subprocess
 from importlib import import_module
 from io import StringIO
 
+from snakeoil import python_namespaces
+
 from ..contexts import syspath
 from .generate_man_rsts import ManConverter
 
