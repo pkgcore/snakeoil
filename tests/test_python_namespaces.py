@@ -1,26 +1,32 @@
+import contextlib
 import pathlib
 import sys
+import types
 from contextlib import contextmanager
 from importlib import import_module, invalidate_caches, machinery
+from typing import Any, NamedTuple
 
 import pytest
 
 from snakeoil.python_namespaces import (
     get_submodules_of,
+    import_module_from_path,
     import_submodules_of,
+    protect_imports,
     remove_py_extension,
 )
 
 
-class test_python_namespaces:
-    def write_tree(self, base: pathlib.Path, *paths: str | pathlib.Path):
-        base.mkdir(exist_ok=True)
-        for path in sorted(paths):
-            path = base / pathlib.Path(path)
-            if not path.parent.exists():
-                path.parent.mkdir(parents=True)
-            path.touch()
+def write_tree(base: pathlib.Path, *paths: str | pathlib.Path):
+    base.mkdir(exist_ok=True)
+    for path in sorted(paths):
+        path = base / pathlib.Path(path)
+        if not path.parent.exists():
+            path.parent.mkdir(parents=True)
+        path.touch()
 
+
+class test_python_namespaces:
     @contextmanager
     def protect_modules(self, base):
         python_path = sys.path[:]
@@ -35,7 +41,7 @@ class test_python_namespaces:
             invalidate_caches()
 
     def test_it(self, tmp_path):
-        self.write_tree(
+        write_tree(
             tmp_path,
             "_ns_test/__init__.py",
             "_ns_test/blah.py",
@@ -73,7 +79,7 @@ class test_python_namespaces:
             )
 
     def test_load(self, tmp_path):
-        self.write_tree(
+        write_tree(
             pathlib.Path(tmp_path) / "_ns_test",
             "__init__.py",
             "blah.py",
@@ -88,7 +94,7 @@ class test_python_namespaces:
 
     def test_import_failures(self, tmp_path):
         base = pathlib.Path(tmp_path) / "_ns_test"
-        self.write_tree(base, "__init__.py", "blah.py")
+        write_tree(base, "__init__.py", "blah.py")
 
         with (base / "bad1.py").open("w") as f:
             f.write("raise ImportError('bad1')")
@@ -127,3 +133,95 @@ def test_remove_py_extension():
     )
     assert None is remove_py_extension("asdf")
     assert None is remove_py_extension("asdf.txt")
+
+
+@contextlib.contextmanager
+def assert_protect_modules():
+    # cpython has notes that swapping the object may result in unexpected behavior- thus
+    # assert we don't.
+    orig_modules_content = (orig_modules := sys.modules).copy()
+    orig_path_content = (orig_path := sys.path)[:]
+    with protect_imports() as (path, modules):
+        assert orig_path is sys.path
+        assert orig_path is path
+        assert orig_path_content == path
+        assert orig_modules is sys.modules
+        assert orig_modules is modules
+        assert orig_modules_content == modules
+        yield (path, modules)
+
+    assert orig_modules is sys.modules, "sys.modules isn't the same object"
+    assert not set(orig_modules_content).symmetric_difference(sys.modules), (
+        "sys.modules wasn't reset to it's original content"
+    )
+    assert orig_path is sys.path, "sys.path isn't the same object"
+    assert orig_path_content == sys.path, (
+        "sys.path content wasn't reset to it's original content"
+    )
+
+
+def test_protect_imports(tmp_path):
+    p = tmp_path / "_must_not_exist.py"
+    p.touch()
+    with assert_protect_modules() as (path, modules):
+        with pytest.raises(ModuleNotFoundError):
+            # confirm we're not somehow intersecting something elsewhere
+            import_module(p.stem)
+
+        # also validate assert_protect_module while we're at it- thus the extra
+        # checks.
+        path.append(str(tmp_path))
+        assert str(tmp_path) == sys.path[-1]
+        import_module(p.stem)
+        assert p.stem in modules
+        assert p.stem in sys.modules
+
+
+class ShouldBeReachedOnlyInSuccess(Exception): ...
+
+
+class params(NamedTuple):
+    name: str
+    module_name: str = ""
+    throws: type[Exception] = ShouldBeReachedOnlyInSuccess
+    content: str = ""
+    attrs: dict[str, Any] = {}
+
+
+@pytest.mark.parametrize(
+    "config",
+    [
+        params("blah.py", "blah"),
+        params("asdf", throws=ValueError),
+        # enforce override
+        params("blah.py", module_name="asdf"),
+        params(
+            "blah.py",
+            throws=DeprecationWarning,
+            content="raise DeprecationWarning()",
+        ),
+        params("foon.py", "foon", content='x="value";y=2', attrs=dict(x="value", y=2)),
+        # basic validation of pass through of underlying python machinery failure
+        params("foon.py", "foon", content="fda=", throws=SyntaxError),
+    ],
+)
+def test_import_module_from_path(tmp_path, config):
+    p = tmp_path / config.name
+
+    with p.open("w") as f:
+        f.write(config.content)
+
+    with assert_protect_modules():
+        # there's a trick here; either the exception required gets thrown, or
+        # we terminate the "success" path via throwing the default exception, thus
+        # making that 'fine'.  For code expecting a different exception, our default throw
+        # flags them as not matching the assertion.
+        with pytest.raises(config.throws):
+            module = import_module_from_path(p, config.module_name)
+            assert isinstance(module, types.ModuleType)
+            assert config.module_name == module.__name__
+            assert str(p) == module.__file__
+            for k, v in config.attrs.items():
+                # Let fly the AttributeError- if it occurs, it's because the test is faulty.
+                assert v == getattr(module, k)
+            raise ShouldBeReachedOnlyInSuccess()

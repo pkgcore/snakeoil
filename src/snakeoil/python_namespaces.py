@@ -1,9 +1,12 @@
 __all__ = ("import_submodules_of", "get_submodules_of")
 
+import contextlib
 import os
+import sys
 import types
 import typing
-from importlib import import_module, machinery
+from importlib import import_module, invalidate_caches, machinery
+from importlib import util as import_util
 from pathlib import Path
 
 T_class_filter = typing.Callable[[str], bool]
@@ -103,3 +106,55 @@ def remove_py_extension(path: Path | str) -> str | None:
         if name.endswith(ext):
             return name[: -len(ext)]
     return None
+
+
+@contextlib.contextmanager
+def protect_imports() -> typing.Generator[
+    tuple[list[str], dict[str, types.ModuleType]], None, None
+]:
+    """
+    Non threadsafe mock.patch of internal imports to allow revision
+
+    This should used in tests or very select scenarios.  Assume that underlying
+    c extensions that hold internal static state (curse module) will reimport, but
+    will not be 'clean'.  Any changes an import inflicts on the other modules in
+    memory, etc, this cannot block that.  Nor is this intended to do so; it's
+    for controlled tests or very specific usages.
+    """
+    orig_content = sys.path[:]
+    orig_modules = sys.modules.copy()
+    with contextlib.nullcontext():
+        yield sys.path, sys.modules
+
+    sys.path[:] = orig_content
+    # This is explicitly not thread safe, but manipulating sys.path fundamentally isn't thus this context
+    # isn't thread safe.  TL;dr: nuke it, and restore, it's the only way to be sure (to paraphrase)
+    sys.modules.clear()
+    sys.modules.update(orig_modules)
+    # Out of paranoia, force loaders to reset their caches.
+    invalidate_caches()
+
+
+def import_module_from_path(
+    path: str | Path, module_name: str | None = None
+) -> types.ModuleType:
+    """Load and return a module from a file path, without needing a package.
+
+    :param path: the path to load.  No python package structure will be inferred from this.  Currently it
+      must end in a python extension.
+    :param module_name:  If given, this is __name__ within the module.  If not given it is
+      inferred from path if path has a valid python extension.  If it does not, an ImportError
+      is raised and you must specify module_name yourself.
+    """
+    if (default_module_name := remove_py_extension(path)) is None:
+        raise ValueError(f"{path} must end in a valid python extension like .py")
+
+    module_name = default_module_name if module_name is None else module_name
+
+    spec = import_util.spec_from_file_location(module_name, path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Cannot create import spec for {path}")
+
+    module = import_util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
