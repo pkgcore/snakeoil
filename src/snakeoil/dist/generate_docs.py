@@ -8,7 +8,6 @@ from io import StringIO
 
 from snakeoil import python_namespaces
 
-from ..contexts import syspath
 from .generate_man_rsts import ManConverter
 
 
@@ -41,12 +40,10 @@ def _generate_custom(project, docdir, gendir):
                 continue
 
             fake_file = StringIO()
-            with syspath(os.path.dirname(script_path)):
-                module = import_module(os.path.basename(os.path.splitext(script_path)[0]))
-                module.main(fake_file, docdir=docdir, gendir=gendir)
+            module = python_namespaces.import_module_from_path(script_path)
+            module.main(fake_file, docdir=docdir, gendir=gendir)
 
-            fake_file.seek(0)
-            if data := fake_file.read():
+            if data := fake_file.getvalue():
                 rst = os.path.join(gendir, subdir, os.path.splitext(script)[0] + '.rst')
                 print(f"generating {rst}")
                 with open(rst, 'w') as f:
