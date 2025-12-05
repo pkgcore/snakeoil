@@ -5,7 +5,12 @@ from operator import itemgetter
 import pytest
 
 from snakeoil import sequences
-from snakeoil.sequences import iter_stable_unique, split_elements, split_negations
+from snakeoil.sequences import (
+    iter_stable_unique,
+    split_elements,
+    split_negations,
+    unique_stable,
+)
 
 
 class UnhashableComplex(complex):
@@ -266,3 +271,16 @@ class TestSplitElements:
             tuple(range(100)),
             tuple(range(100)),
         )
+
+
+def test_unique_stable():
+    with pytest.raises(TypeError):
+        # verify our assumptions of object being unhashable
+        hash([])
+    with pytest.raises(TypeError):
+        list(unique_stable([[]]))  # pyright: ignore[reportArgumentType]
+
+    # force iter so it's not possible to infer from the type.
+    assert ["c", "a", "b"] == list(
+        unique_stable(iter(["c", "a", "a", "c", "a", "b", "b"]))
+    )
