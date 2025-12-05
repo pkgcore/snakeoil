@@ -5,7 +5,10 @@ Collection of functionality to make using iterators transparently easier
 __all__ = ("partition", "expandable_chain", "caching_iter", "iter_sort")
 
 import itertools
+import typing
 from collections import deque
+
+T = typing.TypeVar("T")
 
 
 def partition(iterable, predicate=bool):
@@ -22,7 +25,7 @@ def partition(iterable, predicate=bool):
     return ((x for pred, x in a if not pred), (x for pred, x in b if pred))
 
 
-class expandable_chain:
+class expandable_chain(typing.Generic[T]):
     """
     chained iterables, with the ability to add new iterables to the chain
     as long as the instance hasn't raised ``StopIteration`` already.  This is
@@ -46,17 +49,17 @@ class expandable_chain:
 
     __slots__ = ("iterables", "__weakref__")
 
-    def __init__(self, *iterables):
+    def __init__(self, *iterables: typing.Iterable[T]) -> None:
         """
         accepts N iterables, must have at least one specified
         """
-        self.iterables = deque()
+        self.iterables = deque[typing.Iterator[T]]()
         self.extend(iterables)
 
-    def __iter__(self):
+    def __iter__(self) -> typing.Iterator[T]:
         return self
 
-    def __next__(self):
+    def __next__(self) -> T:
         if self.iterables is not None:
             while self.iterables:
                 try:
@@ -66,25 +69,25 @@ class expandable_chain:
             self.iterables = None
         raise StopIteration()
 
-    def append(self, iterable):
+    def append(self, iterable: typing.Iterable[T]) -> None:
         """append an iterable to the chain to be consumed"""
         if self.iterables is None:
             raise StopIteration()
         self.iterables.append(iter(iterable))
 
-    def appendleft(self, iterable):
+    def appendleft(self, iterable: typing.Iterable[T]) -> None:
         """prepend an iterable to the chain to be consumed"""
         if self.iterables is None:
             raise StopIteration()
         self.iterables.appendleft(iter(iterable))
 
-    def extend(self, iterables):
+    def extend(self, iterables: typing.Iterable[typing.Iterable[T]]) -> None:
         """extend multiple iterables to the chain to be consumed"""
         if self.iterables is None:
             raise StopIteration()
         self.iterables.extend(iter(x) for x in iterables)
 
-    def extendleft(self, iterables):
+    def extendleft(self, iterables: typing.Iterable[typing.Iterable[T]]):
         """prepend multiple iterables to the chain to be consumed"""
         if self.iterables is None:
             raise StopIteration()
