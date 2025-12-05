@@ -172,7 +172,7 @@ def iflatten_func(
         skipped due to a True result from skip_func)
     """
     if skip_func(iterable):  # pyright: ignore[reportArgumentType]
-        yield iterable
+        yield iterable  # pyright: ignore[reportReturnType]
         return
     iters = expandable_chain[T](iterable)  # pyright: ignore[reportArgumentType]
     try:
