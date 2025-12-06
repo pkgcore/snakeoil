@@ -1,3 +1,5 @@
+import abc
+import inspect
 import re
 import sys
 from functools import partial
@@ -612,29 +614,26 @@ class TestGenericEquality:
         del obj2.x
         assert obj1 == obj2, ".x is missing on both, they should be equal"
 
-        # validate disabling logic.
-        try:
+    def test_compare_slots(self):
+        class kls1(klass.GenericEquality, compare_slots=True):
+            __slots__ = ("a",)
 
-            class broken(kls):
-                __attr_comparison__ = None
+        with pytest.raises(TypeError):
 
-            pytest.fail(
-                "__attr_comparison__ was disabled, but __eq__ method is still GenericEquality.__eq__"
-            )
-        except TypeError:
-            pass
+            class kls2(kls1, compare_slots=True): ...
 
-        class subclass_disabling_must_be_allowed(kls):
-            __attr_comparison__ = None
+        class kls3(kls1, compare_slots=True):
+            __slots__ = ()
 
-            # we've overridden __eq__.  The subclass check must allow this.
-            def __eq__(self, other):
-                return False
+        assert ("a",) == kls3.__attr_comparison__
 
-        assert (
-            subclass_disabling_must_be_allowed.__annotations__["__attr_comparison__"]
-            is None
-        ), "annotations weren't updated"
+        class kls4(kls3):
+            __slots__ = ("c",)
+
+        class kls5(kls4, compare_slots=True):
+            __slots__ = "b"
+
+        assert ("b", "c", "a") == kls5.__attr_comparison__
 
 
 class TestGenericRichComparison:
@@ -675,3 +674,24 @@ class TestGenericRichComparison:
         assert obj1 <= obj2
         assert not (obj1 > obj2)
         assert not (obj1 >= obj2)
+
+
+def test_abstractclassvar():
+    class kls1(abc.ABC): ...
+
+    assert not inspect.isabstract(kls1)  # nothing abstract in it, despite the base
+
+    class kls2(kls1):
+        blah = klass.abstractclassvar(str)
+
+    assert inspect.isabstract(kls2)  # no abstract bits on it
+
+    class kls3(kls2):  # validate extending to subclasses
+        ...
+
+    assert inspect.isabstract(kls3)
+
+    class kls4(kls3):
+        blah = "asdf"
+
+    assert not inspect.isabstract(kls4)

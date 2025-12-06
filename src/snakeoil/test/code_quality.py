@@ -7,7 +7,8 @@ from types import ModuleType
 
 import pytest
 
-from snakeoil.klass.util import (
+from snakeoil.klass import (
+    abstractclassvar,
     get_slot_of,
     get_slots_of,
     get_subclasses_of,
@@ -17,27 +18,13 @@ from snakeoil.python_namespaces import get_submodules_of
 T = typing.TypeVar("T")
 
 
-class _abstractvar:
-    __slots__ = ()
-    __isabstractmethod__ = True
-
-
-def abstractvar(_: type[T]) -> T:
-    """
-    mechanism to use with ClassVars to force abc.ABC to block creation if the subclass hasn't set it.
-
-    The mechanism currently is janky; you must pass in the type definition since it's the
-    only way to attach this information to the returned object, lieing to the type system
-    that the value is type compatible while carrying the marker abc.ABC needs.
-    """
-    return typing.cast(T, _abstractvar())
-
-
 class ParameterizeBase(typing.Generic[T], abc.ABC):
-    namespaces: typing.ClassVar[tuple[str]] = abstractvar(tuple[str])
+    namespaces: typing.ClassVar[tuple[str]] = abstractclassvar(tuple[str])
     namespace_ignores: tuple[str, ...] = ()
     strict: tuple[str] | bool = False
-    tests_to_parameterize: typing.ClassVar[tuple[str, ...]] = abstractvar(tuple[str])
+    tests_to_parameterize: typing.ClassVar[tuple[str, ...]] = abstractclassvar(
+        tuple[str]
+    )
 
     @classmethod
     @abc.abstractmethod

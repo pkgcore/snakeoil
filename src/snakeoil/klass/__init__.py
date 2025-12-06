@@ -7,6 +7,7 @@ involved in writing classes.
 """
 
 __all__ = (
+    "abstractclassvar",
     "combine_classes",
     "generic_equality",
     "reflective_hash",
@@ -37,10 +38,13 @@ __all__ = (
 )
 
 import abc
+import inspect
+import typing
 from collections import deque
 from operator import attrgetter
 
 from snakeoil.deprecation import deprecated as warn_deprecated
+from snakeoil.sequences import unique_stable
 
 from ..caching import WeakInstMeta
 from .deprecated import (
@@ -72,6 +76,8 @@ from .util import (
 )
 
 sentinel = object()
+
+T = typing.TypeVar("T")
 
 
 def GetAttrProxy(target):
@@ -129,6 +135,38 @@ def reflective_hash(attr):
     return __hash__
 
 
+class _abstractclassvar:
+    __slots__ = ()
+    __isabstractmethod__ = True
+
+
+def abstractclassvar(_: type[T]) -> T:
+    """
+    mechanism to use with ClassVars to force abc.ABC to block creation if the subclass hasn't set it.
+
+    This can be used like thus:
+    >>> from typing import ClassVar
+    >>> class foon(abc.ABC):
+    ...     required_class_var: ClassVar[str] = abstractclassvar(str)
+    ...
+    >>>
+    >>> foon()
+    Traceback (most recent call last):
+        File "<python-input-8>", line 1, in <module>
+        foon()
+        ~~~~^^
+    TypeError: Can't instantiate abstract class foon without an implementation for abstract method 'required_class_var'
+
+    The error message implies a method when it's not, but that  is a limitation of abc.ABC.  The point of this is to allow forcing that derivatives create
+    the cvar, thus the trade off.
+
+    The mechanism currently is janky; you must pass in the type definition since it's the
+    only way to attach this information to the returned object, lieing to the type system
+    that the value is type compatible while carrying the marker abc.ABC needs.
+    """
+    return typing.cast(T, _abstractclassvar())
+
+
 class GenericEquality(abc.ABC):
     """
     implement simple __eq__/__ne__ comparison via a list of attributes to compare
@@ -147,28 +185,18 @@ class GenericEquality(abc.ABC):
     >>>
     >>> assert kls() == foo()
     >>> assert foo(3, 2, 1) != foo()
+
+    :cvar __attr_comparison__: tuple[str,...] that is the ordered sequence of comparison to perform.  For performance you should order this as the attributes
+    with the highest cardinality and cheap comparisons.
     """
 
     __slots__ = ()
 
-    # The pyright disable is since we're shoving in annotations in a weird way.
-    # ABC is used to ensure this gets changed, but the actual class value in the non virtual
-    # class must be tuple.
-    @property
-    @abc.abstractmethod
-    def __attr_comparison__(self) -> tuple[str, ...]:  # pyright: ignore[reportRedeclaration]
-        """list of attributes to compare.
+    __attr_comparison__: typing.ClassVar[tuple[str, ...]] = abstractclassvar(
+        tuple[str, ...]
+    )
 
-        This should be replaced with a tuple in derivative classes unless dynamic
-        behavior is needed for discerning what attributes to compare.
-
-        The only reason to do this is if you're inheriting from something that is GenericEquality,
-        and you fully have overridden the comparison logic and wish to document for any
-        consumers __attr_comparison__ is no longer relevant.
-        """
-        pass
-
-    __attr_comparison__: tuple[str, ...]
+    __attr_comparison__: typing.ClassVar[tuple[str, ...]]
 
     def __eq__(
         self, value, /, attr_comparison_override: tuple[str, ...] | None = None
@@ -189,21 +217,32 @@ class GenericEquality(abc.ABC):
                 return False
         return True
 
-    def __init_subclass__(cls) -> None:
-        if cls.__attr_comparison__ is None:
-            # __ne__ is just a reflection of __eq__, so just check that one.
-            if cls.__eq__ is GenericEquality.__eq__:
-                raise TypeError(
-                    "__attr_comparison__ was set to None, but __eq__ is still GenericEquality.__eq__"
-                )
-            # If this is the first disabling, update the annotations
+    def __init_subclass__(cls, compare_slots=False, **kwargs) -> None:
+        slotting = list(get_slots_of(cls))
+        if compare_slots:
             if "__attr_comparison__" in cls.__dict__:
-                cls.__annotations__["__attr_comparison__"] = None
+                raise TypeError(
+                    "compare_slots=True makes no sense when __attr_comparison__ is explicitly set in the class directly"
+                )
+
+            all_slots = []
+            for slot in slotting:
+                if slot.slots is None:
+                    raise TypeError(
+                        f"compare_slots cannot be used: MRO chain has class {slot.cls} which lacks slotting.  Set __attr_comparison__ manually"
+                    )
+                all_slots.extend(slot.slots)
+            cls.__attr_comparison__ = tuple(unique_stable(all_slots))
+            return super().__init_subclass__(**kwargs)
+
+        if inspect.isabstract(cls):
+            return super().__init_subclass__(**kwargs)
+
         elif not isinstance(cls.__attr_comparison__, (tuple, property)):
             raise TypeError(
                 f"__attr_comparison__ must be a tuple, received {cls.__attr_comparison__!r}"
             )
-        return super().__init_subclass__()
+        return super().__init_subclass__(**kwargs)
 
 
 class GenericRichComparison(GenericEquality):
@@ -272,10 +311,11 @@ def generic_equality(
 
     metaclass generating __eq__/__ne__ methods from an attribute list
 
-    The consuming class must set a class attribute named __attr_comparison__
-    that is a sequence that lists the attributes to compare in determining
-    equality or a string naming the class attribute to pull the list of
-    attributes from (e.g. '__slots__').
+    The consuming class is abstract until a layer sets a class attribute
+    named `__attr_comparison__` which is the list of attributes to compare.
+
+    This can optionally derived via passing `compare_slots=True` in the class
+    creation.
 
     :raise: TypeError if __attr_comparison__ is incorrectly defined
 
