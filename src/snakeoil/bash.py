@@ -189,7 +189,7 @@ def read_dict(
     d = {}
     if not source_isiter:
         filename = bash_source
-        i = iter_read_bash(bash_source, allow_inline_comments=allow_inline_comments)
+        i = read_bash(bash_source, allow_inline_comments=allow_inline_comments)
     else:
         if filename is None:
             # XXX what to do?

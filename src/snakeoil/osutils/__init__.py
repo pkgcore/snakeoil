@@ -105,6 +105,7 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
         permissions, False if not.
     """
 
+    join = os.path.join
     try:
         st = os.stat(path)
     except OSError:
@@ -114,7 +115,7 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
             # if the dir perms would lack +wx, we have to force it
             force_temp_perms = (mode & 0o300) != 0o300
             resets = []
-            apath = normpath(os.path.abspath(path))
+            apath = os.path.normpath(os.path.abspath(path))
             sticky_parent = False
 
             for directory in apath.split(os.path.sep):
@@ -188,7 +189,7 @@ def abssymlink(path):
     if mylink[0] != "/":
         mydir = os.path.dirname(path)
         mylink = mydir + "/" + mylink
-    return normpath(mylink)
+    return os.path.normpath(mylink)
 
 
 def force_symlink(target, link):
@@ -228,7 +229,7 @@ def abspath(path):
         return path
 
 
-@deprecated("snakeoil.osutils.norpath is deprecated.  Us os.path.normpath")
+@deprecated("snakeoil.osutils.normpath is deprecated.  Us os.path.normpath")
 def normpath(mypath: str) -> str:
     """normalize path- //usr/bin becomes /usr/bin, /usr/../bin becomes /bin
 

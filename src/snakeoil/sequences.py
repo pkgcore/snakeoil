@@ -67,7 +67,6 @@ def unstable_unique(sequence):
             i += 1
         return t[:lasti]
 
-    # blah.  back to original portage.unique_array
     u = []
     for x in sequence:
         if x not in u:
@@ -204,7 +203,7 @@ def predicate_split(
 ): ...
 
 
-def predicate_split(func, stream, /, key=None) -> tuple[list[T], list[T]]:
+def predicate_split(func, stream: Iterable[T], /, key=None) -> tuple[list[T], list[T]]:
     """
     Given a stream and a function, split the stream into two sequences based on
     the results of the func for that item

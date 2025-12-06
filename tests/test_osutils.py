@@ -11,7 +11,7 @@ import pytest
 
 from snakeoil import osutils
 from snakeoil.contexts import Namespace
-from snakeoil.deprecation import suppress_deprecations
+from snakeoil.deprecation import suppress_deprecation_warning, suppress_deprecations
 from snakeoil.osutils import listdir_dirs, listdir_files, sizeof_fmt, supported_systems
 from snakeoil.osutils.mount import MNT_DETACH, MS_BIND, mount, umount
 
@@ -189,6 +189,7 @@ class TestAbsSymlink:
         assert osutils.abssymlink(linkname) == str(target)
 
 
+@suppress_deprecation_warning()
 class Test_Native_NormPath:
     func = staticmethod(osutils.normpath)
 
