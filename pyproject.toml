@@ -32,6 +32,8 @@ dependencies = []
 test = [
     "pytest >=6.0",
     "pytest-cov",
+    # remove this once pytest >= 9.0 is the default.
+    "pytest-subtests ~= 0.15.0",
     "sphinx",
 ]
 doc = ["sphinx"]

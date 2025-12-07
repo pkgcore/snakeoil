@@ -2,6 +2,13 @@
 Release Notes
 =============
 
+snakeoil 0.11.0
+---------------
+
+- lazy-object-proxy is no longer a dependency
+
+- pytest-subtests ~= 0.15.0 is now a dependency for tests.
+
 snakeoil 0.10.11 (2025-05-31)
 ----------------------------
 
