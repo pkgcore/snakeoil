@@ -1,6 +1,7 @@
 """Our unittest extensions."""
 
 __all__ = (
+    "AbstractTest",
     "coverage",
     "hide_imports",
     "Modules",
@@ -10,6 +11,7 @@ __all__ = (
     "Slots",
 )
 
+
 import os
 import random
 import string
@@ -17,6 +19,7 @@ import subprocess
 import sys
 from unittest.mock import patch
 
+from .abstract import AbstractTest
 from .code_quality import Modules, NamespaceCollector, Slots
 
 

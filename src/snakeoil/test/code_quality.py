@@ -1,5 +1,4 @@
 __all__ = ("NamespaceCollector", "Slots", "Modules")
-import abc
 import inspect
 import typing
 from types import ModuleType
@@ -13,6 +12,7 @@ from snakeoil.klass import (
     get_subclasses_of,
 )
 from snakeoil.python_namespaces import get_submodules_of
+from snakeoil.test import AbstractTest
 
 T = typing.TypeVar("T")
 
@@ -23,7 +23,7 @@ class maybe_strict_tests(list):
         return thing
 
 
-class NamespaceCollector(typing.Generic[T], abc.ABC):
+class NamespaceCollector(typing.Generic[T], AbstractTest):
     namespaces: tuple[str] = abstractclassvar(tuple[str])
     namespace_ignores: tuple[str, ...] = ()
 
@@ -50,7 +50,7 @@ class NamespaceCollector(typing.Generic[T], abc.ABC):
             )
 
 
-class Slots(NamespaceCollector[type]):
+class Slots(NamespaceCollector[type], still_abstract=True):
     disable_str: typing.Final = "__slotting_intentionally_disabled__"
     ignored_subclasses: tuple[type, ...] = (
         Exception,
@@ -97,7 +97,7 @@ class Slots(NamespaceCollector[type]):
                         )
 
 
-class Modules(NamespaceCollector[ModuleType]):
+class Modules(NamespaceCollector[ModuleType], still_abstract=True):
     strict_configurable_tests = (
         "test_has__all__",
         "test_valid__all__",

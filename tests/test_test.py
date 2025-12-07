@@ -1,3 +1,5 @@
+import abc
+import inspect
 import os
 
 import pytest
@@ -48,3 +50,24 @@ class Test_protect_process:
             fail(pytestconfig=pytestconfig)  # pyright: ignore[reportCallIssue]
 
         assert unique_string in str(failed.value)
+
+
+def test_AbstractTest():
+    class base(test.AbstractTest):
+        @abc.abstractmethod
+        def f(self): ...
+
+    assert inspect.isabstract(base)
+
+    with pytest.raises(TypeError):
+
+        class must_be_explicitly_marked_abstract(base): ...
+
+    class still_abstract(base, still_abstract=True): ...
+
+    assert inspect.isabstract(still_abstract)
+
+    class not_abstract(still_abstract):
+        def f(self): ...
+
+    assert not inspect.isabstract(not_abstract)
