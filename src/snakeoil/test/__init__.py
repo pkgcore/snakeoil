@@ -10,7 +10,6 @@ __all__ = (
     "Slots",
 )
 
-import functools
 import os
 import random
 import string
@@ -51,19 +50,16 @@ def protect_process(
     extra_env: dict[str, str] | None = None,
 ):
     def wrapper(functor):
-        @functools.wraps(functor)
-        def _inner_run(self, *args, **kwargs):
-            # we're in the child.  Just run it.
-            if os.environ.get(marker_env_var, False):
-                return functor(self, *args, **kwargs)
+        if os.environ.get(marker_env_var, False):
+            functor.__protect_process_is_child__ = True
+            return functor
 
-            # we're in the parent.  if capsys is in there, we have
-            # to intercept it for the code below.
-            capsys = kwargs.get("capsys")
+        @staticmethod
+        def parent_runner(pytestconfig):
             env = os.environ.copy()
             if extra_env:
                 env.update(extra_env)
-            env[marker_env_var] = "disable"
+            env[marker_env_var] = "in_child"
             test = (
                 os.environ["PYTEST_CURRENT_TEST"]
                 if forced_test is None
@@ -72,24 +68,34 @@ def protect_process(
             # https://docs.pytest.org/en/latest/example/simple.html#pytest-current-test-environment-variable
             assert test.endswith(" (call)")
             test = test[: -len(" (call)")]
-            args = [sys.executable, "-m", "pytest", "-v", test]
+            # pytestconfig.rootpath is used so that if someone has cd'd within the tests directory, the test
+            # can still be found.  PYTEST_CURRENT_TEST is rooted against the root, thus this requirement
+            args = [
+                sys.executable,
+                "-m",
+                "pytest",
+                "-v",
+                f"{pytestconfig.rootpath}/{test}",
+            ]
             p = subprocess.Popen(
                 args,
                 env=env,
-                stdout=None if capsys else subprocess.PIPE,
-                stderr=None if capsys else subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
             )
 
             stdout, stderr = p.communicate()
-            if capsys:
-                result = capsys.readouterr()
-                stdout, stderr = result.out, result.err
-            ret = p.wait()
-            assert ret == 0, (
-                f"subprocess run: {args!r}\nnon zero exit: {ret}\nstdout:\n{stdout.decode()}'n\nstderr:\n{stderr.decode()}"
+            exit_code = p.wait()
+            assert 0 == exit_code, (
+                f"subprocess run: {args!r}\nnon zero exit: {exit_code}\nstdout:\n{stdout.decode()}'n\nstderr:\n{stderr.decode()}"
             )
 
-        return _inner_run
+        # do not do a functools wraps; it'll stomp our pytestconfig signature.  Just do basic transfer.
+        for a in ("__name__", "__module__", "__qualname__"):
+            if (val := getattr(functor, a, None)) is not None:
+                setattr(parent_runner, a, val)
+        parent_runner.__protect_process_is_child__ = False
+        return parent_runner
 
     return wrapper
 
