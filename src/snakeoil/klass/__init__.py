@@ -296,7 +296,8 @@ class GenericRichComparison(GenericEquality):
 
 
 @deprecated(
-    "generic_equality metaclass usage is deprecated; inherit from snakeoil.klass.GenericEquality instead."
+    "generic_equality metaclass usage is deprecated; inherit from snakeoil.klass.GenericEquality instead.",
+    removal_in=(0, 12, 0),
 )
 def generic_equality(
     name,
@@ -345,7 +346,8 @@ def generic_equality(
 
 
 @deprecated(
-    "snakeoil.klass.chained_getter is deprecated.  Use operator.attrgetter instead."
+    "snakeoil.klass.chained_getter is deprecated.  Use operator.attrgetter instead.",
+    removal_in=(0, 12, 0),
 )
 class chained_getter(
     GenericEquality, metaclass=combine_classes(WeakInstMeta, abc.ABCMeta)
@@ -379,7 +381,8 @@ class chained_getter(
 
 
 static_attrgetter = deprecated(
-    "snakeoil.klass.static_attrgetter is deprecated.  Use operator.attrgetter instead"
+    "snakeoil.klass.static_attrgetter is deprecated.  Use operator.attrgetter instead",
+    removal_in=(0, 13, 0),
 )(chained_getter)
 
 

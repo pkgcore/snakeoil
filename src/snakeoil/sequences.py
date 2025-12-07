@@ -33,7 +33,8 @@ H = TypeVar("H", bound=Hashable)
 
 
 @deprecated(
-    """snakeoil.klass.unstable_unique is deprecated.  Use set() instead, it will have superior performance characteristics albeit will allocate more than this implementationd which sorted the sequence"""
+    """snakeoil.klass.unstable_unique is deprecated.  Use set() instead, it will have superior performance characteristics albeit will allocate more than this implementationd which sorted the sequence""",
+    removal_in=(1, 0, 0),
 )
 def unstable_unique(sequence):
     """Given a sequence, return a list of the unique items without preserving ordering."""
@@ -75,7 +76,8 @@ def unstable_unique(sequence):
 
 
 @deprecated(
-    "snakeoil.sequence.stable_unique is deprecated.  Use snakeoil.sequence.unique_stable but be aware it now requires all items be hashable"
+    "snakeoil.sequence.stable_unique is deprecated.  Use snakeoil.sequence.unique_stable but be aware it now requires all items be hashable",
+    removal_in=(0, 13, 0),
 )
 def stable_unique(iterable: Iterable[T]) -> list[T]:
     """Given a sequence, return a list of the unique items while preserving ordering.
@@ -88,7 +90,8 @@ def stable_unique(iterable: Iterable[T]) -> list[T]:
 
 
 @deprecated(
-    "snakeoil.sequence.iter_stable_unique is deprecated.  Use snakeoil.sequence.unique_stable but be aware it now requires all items be hashable"
+    "snakeoil.sequence.iter_stable_unique is deprecated.  Use snakeoil.sequence.unique_stable but be aware it now requires all items be hashable",
+    removal_in=(0, 12, 0),
 )
 def iter_stable_unique(iterable: Iterable[T]) -> Iterator[T]:
     """Given a sequence, yield unique items while preserving ordering.

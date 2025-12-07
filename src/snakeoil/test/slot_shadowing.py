@@ -111,7 +111,7 @@ class KlassWalker(_classWalker):
                 yield node
 
 
-@deprecated("use snakeoil.code_quality.Slots instead")
+@deprecated("use snakeoil.code_quality.Slots instead", removal_in=(0, 12, 0))
 class SlotShadowing(TargetedNamespaceWalker, SubclassWalker):
     target_namespace = "snakeoil"
     err_if_slots_is_str = True

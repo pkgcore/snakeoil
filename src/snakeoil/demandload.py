@@ -8,7 +8,10 @@ from snakeoil._internals import deprecated
 from .delayed import regexp
 
 
-@deprecated("snakeoil.klass.demand_compile_regexp has moved to snakeoil.delayed.regexp")
+@deprecated(
+    "snakeoil.klass.demand_compile_regexp has moved to snakeoil.delayed.regexp",
+    removal_in=(0, 12, 0),
+)
 def demand_compile_regexp(
     name: str, pattern: str, flags=0, /, scope: dict[str, typing.Any] | None = None
 ) -> None:

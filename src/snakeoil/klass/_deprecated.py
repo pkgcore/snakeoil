@@ -22,7 +22,9 @@ def immutable_instance(
     return real_type(name, bases, scope)
 
 
-@deprecated("Use snakeoil.klass.meta.Immutable* metaclasses instead")
+@deprecated(
+    "Use snakeoil.klass.meta.Immutable* metaclasses instead", removal_in=(0, 12, 0)
+)
 class ImmutableInstance:
     """Class that disables surface-level attribute modifications."""
 
@@ -41,7 +43,9 @@ class ImmutableInstance:
             object.__setattr__(self, k, v)
 
 
-@deprecated("Use snakeoil.klass.meta.Immutable* metaclasses instead")
+@deprecated(
+    "Use snakeoil.klass.meta.Immutable* metaclasses instead", removal_in=(0, 12, 0)
+)
 def inject_immutable_instance(scope: dict[str, typing.Any]):
     """inject immutable __setattr__ and __delattr__ implementations
 
@@ -85,7 +89,8 @@ def __generic_gt(self, other):
 
 
 @deprecated(
-    "inject_richcmp_methods_from_cmp is deprecated, migrate to functools.total_ordering instead."
+    "inject_richcmp_methods_from_cmp is deprecated, migrate to functools.total_ordering instead.",
+    removal_in=(0, 12, 0),
 )
 def inject_richcmp_methods_from_cmp(scope):
     """
@@ -137,7 +142,10 @@ def inject_richcmp_methods_from_cmp(scope):
         scope.setdefault(key, func)
 
 
-@deprecated("snakeoil.klass.steal_docs is deprecated; use functools.wraps")
+@deprecated(
+    "snakeoil.klass.steal_docs is deprecated; use functools.wraps",
+    removal_in=(0, 12, 0),
+)
 def steal_docs(target, ignore_missing=False, name=None):
     """
         decorator to steal __doc__ off of a target class or function

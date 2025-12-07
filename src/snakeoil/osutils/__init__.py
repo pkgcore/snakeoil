@@ -27,9 +27,9 @@ from stat import (
 
 from snakeoil._internals import deprecated
 
-listdir = deprecated("snakeoil.osutils.listdir is deprecated.  Use os.listdir")(
-    lambda *a, **kw: os.listdir(*a, **kw)
-)
+listdir = deprecated(
+    "snakeoil.osutils.listdir is deprecated.  Use os.listdir", removal_in=(0, 12, 0)
+)(lambda *a, **kw: os.listdir(*a, **kw))
 
 
 def supported_systems(*systems):
@@ -176,7 +176,7 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
     return True
 
 
-@deprecated("snakeoil.osutils.absyymlink is deprecated")
+@deprecated("snakeoil.osutils.absyymlink is deprecated", removal_in=(1, 0, 0))
 def abssymlink(path):
     """Return the absolute path of a symlink
 
@@ -208,7 +208,9 @@ def force_symlink(target, link):
             raise
 
 
-@deprecated("snakeoil.osutils.abspath is deprecated.  Us os.path.abspath")
+@deprecated(
+    "snakeoil.osutils.abspath is deprecated.  Us os.path.abspath", removal_in=(1, 0, 0)
+)
 def abspath(path):
     """resolve a path absolutely, including symlink resolving.
 
@@ -229,7 +231,10 @@ def abspath(path):
         return path
 
 
-@deprecated("snakeoil.osutils.normpath is deprecated.  Us os.path.normpath")
+@deprecated(
+    "snakeoil.osutils.normpath is deprecated.  Us os.path.normpath",
+    removal_in=(1, 0, 0),
+)
 def normpath(mypath: str) -> str:
     """normalize path- //usr/bin becomes /usr/bin, /usr/../bin becomes /bin
 
@@ -244,12 +249,12 @@ def normpath(mypath: str) -> str:
 
 
 # convenience.  importing join into a namespace is ugly, pjoin less so
-pjoin = deprecated("snakeoil.osutils.pjoin is deprecated.  Use os.path.join")(
-    lambda *a, **kw: os.path.join(*a, **kw)
-)
-join = deprecated("snakeoil.osutils.join is deprecated.  Use os.path.join")(
-    lambda *a, **kw: os.path.join(*a, **kw)
-)
+pjoin = deprecated(
+    "snakeoil.osutils.pjoin is deprecated.  Use os.path.join", removal_in=(0, 13, 0)
+)(lambda *a, **kw: os.path.join(*a, **kw))
+join = deprecated(
+    "snakeoil.osutils.join is deprecated.  Use os.path.join", removal_in=(0, 13, 0)
+)(lambda *a, **kw: os.path.join(*a, **kw))
 
 
 def unlink_if_exists(path):
