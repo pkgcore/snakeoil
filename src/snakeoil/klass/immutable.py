@@ -48,7 +48,7 @@ class Simple:
     __immutable_methods_to_autowrap__ = (
         "__init__",
         "__setstate__",
-        # Note, due to the mecahnism relying on id(self), the decorator __del__ can't-
+        # Note, due to the mechanism relying on id(self), the decorator __del__ can't-
         # even during exception an exception of the mutable block- pin the reference
         # forcing it to stay alive.
         "__del__",
