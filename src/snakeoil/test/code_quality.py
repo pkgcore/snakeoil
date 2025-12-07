@@ -1,6 +1,5 @@
 __all__ = ("NamespaceCollector", "Slots", "Modules")
 import inspect
-import sys
 import typing
 from types import ModuleType
 
@@ -131,10 +130,11 @@ class ExpiredDeprecations(NamespaceCollector, still_abstract=True):
 
     def test_has_expired_deprecations(self, subtests):
         # force full namespace load to ensure all deprecations get registry.
-        for _ in self.collect_modules():
-            pass
-        for deprecated in self.registry.expired_deprecations(
-            self.version, self.python_minimum_version
-        ):
-            with subtests.test(deprecated=str(deprecated)):
-                pytest.fail(f"deprecation has expired: {deprecated}")
+        with deprecation.suppress_deprecations():
+            for _ in self.collect_modules():
+                pass
+            for deprecated in self.registry.expired_deprecations(
+                self.version, self.python_minimum_version
+            ):
+                with subtests.test(deprecated=str(deprecated)):
+                    pytest.fail(f"deprecation has expired: {deprecated}")

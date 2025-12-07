@@ -90,9 +90,6 @@ class Registry:
     is_enabled: typing.ClassVar[bool] = sys.version_info >= (3, 13, 0)
     _deprecated_callable: typing.Callable | None
 
-    # Certain nasty python code that is deprecated lookups up the stack to do
-    # scope manipulation; document the number of frames we add if we're interposed
-    # between their target scope and their execution.
     stacklevel: typing.ClassVar[int] = 1 if is_enabled else 0
 
     if is_enabled:
@@ -119,7 +116,12 @@ class Registry:
         stacklevel=1,
         **kwargs,
     ):
-        """Decorate a callable with a deprecation notice, registering it in the internal list of deprecations"""
+        """Decorate a callable with a deprecation notice, registering it in the internal list of deprecations
+
+        :param stacklevel: Unlike warnings.deprecated, we account for our own internal stack additions.
+           Whatever you pass for this value will be adjusted for our internal frames.  If you need to reach
+           one frame up, just pass 1, else 0.
+        """
 
         def f(functor):
             if not self.is_enabled:
