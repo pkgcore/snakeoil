@@ -47,7 +47,7 @@ from snakeoil.deprecation import deprecated as warn_deprecated
 from snakeoil.sequences import unique_stable
 
 from ..caching import WeakInstMeta
-from .deprecated import (
+from ._deprecated import (
     ImmutableInstance,
     immutable_instance,
     inject_immutable_instance,
