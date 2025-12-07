@@ -4,7 +4,7 @@ import warnings
 
 import pytest
 
-from snakeoil.deprecation import Record, Registry, suppress_deprecations
+from snakeoil.deprecation import Record, RecordCallable, Registry, suppress_deprecations
 
 requires_enabled = pytest.mark.skipif(
     not Registry.is_enabled, reason="requires python >=3.13.0"
@@ -20,14 +20,17 @@ class TestRegistry:
         r = Registry("tests")
         assert "tests" == r.project
         assert [] == list(r)
+        assert not r
 
         def f(x: int) -> int:
             return x + 1
 
-        f2 = r("test1")(f)
+        f2 = r("test1", qualname="asdf")(f)
         assert f2 is not f
         assert 1 == len(list(r))
-        assert Record(f, "test1", None, None, DeprecationWarning) == list(r)[0]
+        assert 1 == len(r)
+        assert r
+        assert RecordCallable("test1", qualname="asdf") == list(r)[0]
 
         with r.suppress_deprecations():
             assert 2 == f2(1)
@@ -35,17 +38,23 @@ class TestRegistry:
             with pytest.deprecated_call():
                 assert 2 == f2(1)
 
-        r("test2", removal_in=(5, 3, 0))(f)
-        assert 2 == len(list(r))
-        assert Record(f, "test2", (5, 3, 0), None, DeprecationWarning) == list(r)[-1]
+        r("test2", removal_in=(5, 3, 0), qualname="blah")(f)
+        assert 2 == len(r)
+        assert (
+            RecordCallable("test2", qualname="blah", removal_in=(5, 3, 0))
+            == list(r)[-1]
+        )
 
-        r("test3", removal_in_py=(4, 0))(f)
-        assert (Record(f, "test3", None, (4, 0), DeprecationWarning)) == list(r)[-1]
+        r("test3", removal_in_py=(4, 0, 0), qualname="test3")(f)
+        assert (
+            RecordCallable("test3", qualname="test3", removal_in_py=(4, 0, 0))
+        ) == list(r)[-1]
 
         class MyDeprecation(DeprecationWarning): ...
 
-        r("test4", category=MyDeprecation)(f)
-        assert (Record(f, "test4", None, None, MyDeprecation)) == list(r)[-1]
+        # just confirm it accepts it.  Post py3.13 add a mock here, should we be truly anal.
+        r("test4", category=MyDeprecation, qualname="test4")(f)
+        assert (RecordCallable("test4", qualname="test4")) == list(r)[-1]
 
     @pytest.mark.skipif(
         Registry.is_enabled, reason="test is only for python 3.12 and lower"
@@ -56,7 +65,7 @@ class TestRegistry:
         def f(): ...
 
         assert f is r("asdf")(f)
-        assert [] == list(r)
+        assert not r, f"r should be empty; contents were {r._deprecations}"
 
     def test_suppress_deprecations(self):
         # assert the convienence function and that we're just reusing the existing.
@@ -78,10 +87,10 @@ class TestRegistry:
     @requires_enabled
     def test_subclassing(self):
         # just assert record class can be extended- so downstream can add more metadata.
-        assert Record is Registry("asdf").record_class
+        assert RecordCallable is Registry("asdf").record_class
 
         @dataclasses.dataclass(slots=True, frozen=True, kw_only=True)
-        class MyRecord(Record):
+        class MyRecord(RecordCallable):
             extra_val1: int = 1
             extra_val2: int = 2
 
@@ -89,17 +98,73 @@ class TestRegistry:
 
         r = Registry("test", record_class=MyRecord)
 
-        r("asdf", extra_val1=3, extra_val2=4)(f)
-        assert 1 == len(list(r))
+        r("asdf", extra_val1=3, extra_val2=4, qualname="myrecord")(f)
+        assert 1 == len(r)
         assert (
             MyRecord(
-                f,
                 "asdf",
-                None,
-                None,
-                DeprecationWarning,
+                qualname="myrecord",
                 extra_val1=3,
                 extra_val2=4,
             )
             == list(r)[0]
         )
+
+    def test_expired_deprecations(self):
+        r = Registry("asdf")
+
+        def f(): ...
+
+        r("python", removal_in_py=(1, 0, 0))(f)
+        r("project", removal_in=(1, 0, 0))(f)
+        r(
+            "combined",
+            removal_in_py=(
+                2,
+                0,
+                0,
+            ),
+            removal_in=(2, 0, 0),
+        )(f)
+
+        assert 3 == len(r)
+        assert [] == list(r.expired_deprecations((0, 0, 0), (0, 0, 0)))
+        assert ["python"] == [
+            x.msg for x in r.expired_deprecations((0, 0, 0), python_version=(1, 0, 0))
+        ]
+        assert ["project"] == [
+            x.msg for x in r.expired_deprecations((1, 0, 0), python_version=(0, 0, 0))
+        ]
+        assert ["combined", "project", "python"] == list(
+            sorted(
+                x.msg
+                for x in r.expired_deprecations((2, 0, 0), python_version=(2, 0, 0))
+            )
+        )
+
+    def test_code_directive(self):
+        r = Registry("test")
+        assert None is r.code_directive(
+            "asdf", removal_in=(1, 0, 0), removal_in_py=(2, 0, 0)
+        )
+        assert 1 == len(r)
+        assert (
+            Record("asdf", removal_in=(1, 0, 0), removal_in_py=(2, 0, 0)) == list(r)[0]
+        )
+
+
+def test_Record_str():
+    assert "removal in version=1.0.2, removal in python=3.0.2, reason: blah" == str(
+        Record("blah", removal_in=(1, 0, 2), removal_in_py=(3, 0, 2))
+    )
+
+
+def test_RecordCallable_str():
+    assert (
+        "qualname='snakeoil.blah.foon', removal in version=2.0.3, reason: I said so"
+        == str(
+            RecordCallable(
+                "I said so", qualname="snakeoil.blah.foon", removal_in=(2, 0, 3)
+            )
+        )
+    )

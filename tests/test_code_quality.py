@@ -1,3 +1,5 @@
+import snakeoil
+import snakeoil._internals
 from snakeoil.test import code_quality
 
 
@@ -34,3 +36,10 @@ class TestModules(code_quality.Modules):
         "snakeoil.test.mixins",
         "snakeoil.test.slot_shadowing",
     )
+
+
+class TestExpiredDeprecations(code_quality.ExpiredDeprecations):
+    namespaces = ("snakeoil",)
+    registry = snakeoil._internals.deprecated
+    version = snakeoil.__version_info__
+    python_minimum_version = snakeoil.__python_mininum_version__

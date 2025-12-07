@@ -1,10 +1,12 @@
 __all__ = ("NamespaceCollector", "Slots", "Modules")
 import inspect
+import sys
 import typing
 from types import ModuleType
 
 import pytest
 
+from snakeoil import deprecation
 from snakeoil.klass import (
     abstractclassvar,
     get_slot_of,
@@ -23,7 +25,7 @@ class maybe_strict_tests(list):
         return thing
 
 
-class NamespaceCollector(typing.Generic[T], AbstractTest):
+class NamespaceCollector(AbstractTest):
     namespaces: tuple[str] = abstractclassvar(tuple[str])
     namespace_ignores: tuple[str, ...] = ()
 
@@ -50,7 +52,7 @@ class NamespaceCollector(typing.Generic[T], AbstractTest):
             )
 
 
-class Slots(NamespaceCollector[type], still_abstract=True):
+class Slots(NamespaceCollector, still_abstract=True):
     disable_str: typing.Final = "__slotting_intentionally_disabled__"
     ignored_subclasses: tuple[type, ...] = (
         Exception,
@@ -97,7 +99,7 @@ class Slots(NamespaceCollector[type], still_abstract=True):
                         )
 
 
-class Modules(NamespaceCollector[ModuleType], still_abstract=True):
+class Modules(NamespaceCollector, still_abstract=True):
     strict_configurable_tests = (
         "test_has__all__",
         "test_valid__all__",
@@ -117,3 +119,22 @@ class Modules(NamespaceCollector[ModuleType], still_abstract=True):
                     assert not missing, (
                         f"__all__ refers to exports that don't exist: {missing!r}"
                     )
+
+
+class ExpiredDeprecations(NamespaceCollector, still_abstract=True):
+    strict_configurable_tests = ("test_has_expired_deprecations",)
+    strict = ("test_has_expired_deprecations",)
+
+    registry: deprecation.Registry = abstractclassvar(deprecation.Registry)
+    version: deprecation.Version = abstractclassvar(deprecation.Version)
+    python_minimum_version: deprecation.Version = abstractclassvar(deprecation.Version)
+
+    def test_has_expired_deprecations(self, subtests):
+        # force full namespace load to ensure all deprecations get registry.
+        for _ in self.collect_modules():
+            pass
+        for deprecated in self.registry.expired_deprecations(
+            self.version, self.python_minimum_version
+        ):
+            with subtests.test(deprecated=str(deprecated)):
+                pytest.fail(f"deprecation has expired: {deprecated}")
