@@ -120,21 +120,22 @@ class test_python_namespaces:
 
 
 def test_remove_py_extension():
-    # no need to mock, python standards intersect.
-    cpy = [
-        x
-        for x in machinery.all_suffixes()
-        if x.startswith(".cpython") or x.startswith(".pypy")
-    ]
-    assert cpy, (
-        f"couldn't find an extension of .cpython per PEP3147.  Is this pypy?  Known extensions to this python install: {machinery.all_suffixes()}"
-    )
-    cpy = cpy[0]
-    suffix = f".{cpy.rsplit('.')[-1]}"
-    assert suffix in machinery.all_suffixes()  # confirm .so or .dylib is in there
-    assert "blah" == remove_py_extension(f"blah{cpy}")
-    assert "blah" == remove_py_extension(f"blah{suffix}")
-    assert f"blah{suffix}" == remove_py_extension(f"blah{suffix}.py"), (
+    """Test to verify remove_py_extension strips the longest suffix."""
+    conflict_long = None
+    for ext in (suffixes := machinery.all_suffixes()):
+        # remember, ext is '.py' or similar. Thus 2- ['', 'py']
+        if len(chunked := ext.split(".")) > 2:
+            if (conflict_short := f".{chunked[-1]}") in suffixes:
+                conflict_long = ext
+                break
+    else:
+        pytest.skip(
+            "The interpretter has no self-conflicting python source extensions."
+        )
+
+    assert "blah" == remove_py_extension(f"blah{conflict_long}")
+    assert "blah" == remove_py_extension(f"blah{conflict_short}")
+    assert f"blah{conflict_short}" == remove_py_extension(f"blah{conflict_short}.py"), (
         "the code is double stripping suffixes"
     )
     assert None is remove_py_extension("asdf")
