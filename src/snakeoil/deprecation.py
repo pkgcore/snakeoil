@@ -116,12 +116,7 @@ class Registry:
         stacklevel=1,
         **kwargs,
     ):
-        """Decorate a callable with a deprecation notice, registering it in the internal list of deprecations
-
-        :param stacklevel: Unlike warnings.deprecated, we account for our own internal stack additions.
-           Whatever you pass for this value will be adjusted for our internal frames.  If you need to reach
-           one frame up, just pass 1, else 0.
-        """
+        """Decorate a callable with a deprecation notice, registering it in the internal list of deprecations"""
 
         def f(functor):
             if not self.is_enabled:
