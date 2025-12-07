@@ -10,7 +10,7 @@ libtool .la files that are bash compatible, but non-executable.
 
 from shlex import shlex
 
-from snakeoil.deprecation import deprecated
+from snakeoil._internals import deprecated
 
 from .delayed import regexp
 from .fileutils import readlines

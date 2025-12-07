@@ -6,7 +6,7 @@ __all__ = ("FailedImport", "load_attribute", "load_any")
 
 from importlib import import_module
 
-from snakeoil.deprecation import deprecated
+from snakeoil._internals import deprecated
 
 
 class FailedImport(ImportError):

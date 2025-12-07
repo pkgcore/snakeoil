@@ -43,7 +43,7 @@ import typing
 from collections import deque
 from operator import attrgetter
 
-from snakeoil.deprecation import deprecated as warn_deprecated
+from snakeoil._internals import deprecated
 from snakeoil.sequences import unique_stable
 
 from ..caching import WeakInstMeta
@@ -295,7 +295,7 @@ class GenericRichComparison(GenericEquality):
         return not self.__lt__(value, attr_comparison_override=attr_comparison_override)
 
 
-@warn_deprecated(
+@deprecated(
     "generic_equality metaclass usage is deprecated; inherit from snakeoil.klass.GenericEquality instead."
 )
 def generic_equality(
@@ -344,7 +344,7 @@ def generic_equality(
     return real_type(name, bases, scope)
 
 
-@warn_deprecated(
+@deprecated(
     "snakeoil.klass.chained_getter is deprecated.  Use operator.attrgetter instead."
 )
 class chained_getter(
@@ -378,7 +378,7 @@ class chained_getter(
         return self.getter(obj)
 
 
-static_attrgetter = warn_deprecated(
+static_attrgetter = deprecated(
     "snakeoil.klass.static_attrgetter is deprecated.  Use operator.attrgetter instead"
 )(chained_getter)
 

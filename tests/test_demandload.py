@@ -7,7 +7,7 @@ from snakeoil import demandload, deprecation
 
 class TestDemandCompileRegexp:
     def test_demand_compile_regexp(self):
-        with deprecation.suppress_deprecation_warning():
+        with deprecation.suppress_deprecations():
             scope = {}
             demandload.demand_compile_regexp("foo", "frob", scope=scope)
             assert list(scope.keys()) == ["foo"]

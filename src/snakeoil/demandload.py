@@ -3,8 +3,9 @@ __all__ = ("demand_compile_regexp",)
 import sys
 import typing
 
+from snakeoil._internals import deprecated
+
 from .delayed import regexp
-from .deprecation import deprecated, deprecation_frame_depth
 
 
 @deprecated("snakeoil.klass.demand_compile_regexp has moved to snakeoil.delayed.regexp")
@@ -16,6 +17,6 @@ def demand_compile_regexp(
     The mechanism of injecting into the scope is deprecated; move to snakeoil.delayed.regexp.
     """
     if scope is None:
-        scope = sys._getframe(deprecation_frame_depth).f_globals
+        scope = sys._getframe(deprecated.stacklevel + 1).f_globals
     delayed = regexp(pattern, flags)
     scope[name] = delayed

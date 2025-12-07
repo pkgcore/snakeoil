@@ -5,7 +5,7 @@ import warnings
 
 import pytest
 
-from snakeoil import deprecation
+from snakeoil._internals import deprecated
 from snakeoil.test.mixins import PythonNamespaceWalker
 
 
@@ -111,7 +111,7 @@ class KlassWalker(_classWalker):
                 yield node
 
 
-@deprecation.deprecated("use snakeoil.code_quality.Slots instead")
+@deprecated("use snakeoil.code_quality.Slots instead")
 class SlotShadowing(TargetedNamespaceWalker, SubclassWalker):
     target_namespace = "snakeoil"
     err_if_slots_is_str = True

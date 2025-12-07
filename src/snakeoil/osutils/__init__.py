@@ -25,7 +25,7 @@ from stat import (
     S_ISREG,
 )
 
-from snakeoil.deprecation import deprecated
+from snakeoil._internals import deprecated
 
 listdir = deprecated("snakeoil.osutils.listdir is deprecated.  Use os.listdir")(
     lambda *a, **kw: os.listdir(*a, **kw)

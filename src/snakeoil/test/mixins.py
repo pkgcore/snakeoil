@@ -3,8 +3,8 @@ import os
 import stat
 import sys
 
+from snakeoil._internals import deprecated
 from snakeoil.compatibility import IGNORED_EXCEPTIONS
-from snakeoil.deprecation import deprecated
 
 
 @deprecated(

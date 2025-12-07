@@ -1,6 +1,6 @@
 __all__ = ("Test",)
 
-from ..deprecation import deprecated
+from snakeoil._internals import deprecated
 
 
 @deprecated(

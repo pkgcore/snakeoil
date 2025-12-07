@@ -24,7 +24,7 @@ from typing import (
     overload,
 )
 
-from snakeoil.deprecation import deprecated, suppress_deprecation_warning
+from snakeoil._internals import deprecated
 
 from .iterables import expandable_chain
 
@@ -43,7 +43,7 @@ def unstable_unique(sequence):
     except TypeError:
         # if it doesn't support len, assume it's an iterable
         # and fallback to the slower stable_unique
-        with suppress_deprecation_warning():
+        with deprecated.suppress_deprecations():
             return stable_unique(sequence)
     # assume all elements are hashable, if so, it's linear
     try:
@@ -83,7 +83,7 @@ def stable_unique(iterable: Iterable[T]) -> list[T]:
     For performance reasons, only use this if you really do need to preserve
     the ordering.
     """
-    with suppress_deprecation_warning():
+    with deprecated.suppress_deprecations():
         return list(iter_stable_unique(iterable))
 
 

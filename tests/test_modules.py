@@ -34,7 +34,7 @@ class TestModules:
         sys.modules.pop("mod_horked", None)
         sys.modules.pop("mod_testpack.mod_horked", None)
 
-    @suppress_deprecations
+    @suppress_deprecations()
     def test_load_attribute(self):
         # already imported
         assert modules.load_attribute("sys.path") is sys.path
@@ -60,7 +60,7 @@ class TestModules:
         with pytest.raises(modules.FailedImport):
             modules.load_attribute("mod_testpack.mod_test3")
 
-    @suppress_deprecations
+    @suppress_deprecations()
     def test_load_any(self):
         # import an already-imported module
         assert modules.load_any("snakeoil.modules") is modules
@@ -89,7 +89,7 @@ class TestModules:
         with pytest.raises(modules.FailedImport):
             modules.load_any("mod_testpack.mod_test3")
 
-    @suppress_deprecations
+    @suppress_deprecations()
     def test_broken_module(self):
         for func in [modules.load_any]:
             with pytest.raises(modules.FailedImport):
