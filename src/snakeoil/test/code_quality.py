@@ -1,6 +1,5 @@
-__all__ = ("ParameterizeBase", "Slots", "Modules")
+__all__ = ("NamespaceCollector", "Slots", "Modules")
 import abc
-import functools
 import inspect
 import typing
 from types import ModuleType
@@ -18,56 +17,28 @@ from snakeoil.python_namespaces import get_submodules_of
 T = typing.TypeVar("T")
 
 
-class ParameterizeBase(typing.Generic[T], abc.ABC):
-    namespaces: typing.ClassVar[tuple[str]] = abstractclassvar(tuple[str])
+class maybe_strict_tests(list):
+    def register(self, thing):
+        self.append(thing)
+        return thing
+
+
+class NamespaceCollector(typing.Generic[T], abc.ABC):
+    namespaces: tuple[str] = abstractclassvar(tuple[str])
     namespace_ignores: tuple[str, ...] = ()
-    strict: tuple[str] | bool = False
-    tests_to_parameterize: typing.ClassVar[tuple[str, ...]] = abstractclassvar(
-        tuple[str]
-    )
 
-    @classmethod
-    @abc.abstractmethod
-    def make_id(cls, /, param: T) -> str: ...
+    strict_configurable_tests: typing.ClassVar[tuple[str, ...]] = ()
+    strict: typing.ClassVar[typing.Literal[True] | tuple[str, ...]] = ()
 
-    @classmethod
-    @abc.abstractmethod
-    def collect_parameters(cls, modules: set[ModuleType]) -> typing.Iterable[T]: ...
+    def __init_subclass__(cls, **kwargs) -> None:
+        if not inspect.isabstract(cls):
+            targets = cls.strict_configurable_tests
+            strict = targets if cls.strict is True else cls.strict
+            for test_name in cls.strict_configurable_tests:
+                if test_name not in strict:
+                    setattr(cls, test_name, pytest.mark.xfail(getattr(cls, test_name)))
 
-    def __init_subclass__(cls) -> None:
-        super().__init_subclass__()
-
-        if inspect.isabstract(cls):
-            return
-
-        # Inject the parameterization
-        targets = list(
-            sorted(cls.collect_parameters(set(cls.collect_modules())), key=cls.make_id)
-        )
-
-        for test in cls.tests_to_parameterize:
-            original = getattr(cls, test)
-
-            @pytest.mark.parametrize(
-                "param",
-                targets,
-                ids=cls.make_id,
-            )
-            @functools.wraps(original)
-            def do_it(self, param: T, original=original):
-                return original(self, param)
-
-            if not cls.is_strict_test(test):
-                do_it = pytest.mark.xfail(strict=False)(do_it)
-            setattr(cls, test, do_it)
-
-        super().__init_subclass__()
-
-    @classmethod
-    def is_strict_test(cls, test_name: str) -> bool:
-        if isinstance(cls.strict, bool):
-            return cls.strict
-        return test_name in cls.strict
+        return super().__init_subclass__(**kwargs)
 
     @classmethod
     def collect_modules(cls) -> typing.Iterable[ModuleType]:
@@ -79,79 +50,70 @@ class ParameterizeBase(typing.Generic[T], abc.ABC):
             )
 
 
-class Slots(ParameterizeBase[type]):
+class Slots(NamespaceCollector[type]):
     disable_str: typing.Final = "__slotting_intentionally_disabled__"
     ignored_subclasses: tuple[type, ...] = (
         Exception,
         typing.Protocol,  # pyright: ignore[reportAssignmentType]
     )
 
-    tests_to_parameterize = (
+    strict_configurable_tests = (
         "test_shadowing",
         "test_slots_mandatory",
     )
 
     @classmethod
-    def make_id(cls, param: type) -> str:
-        return f"{param.__module__}.{param.__qualname__}"
-
-    @classmethod
-    def collect_parameters(cls, modules) -> typing.Iterable[type]:
-        modules = set(x.__name__ for x in modules)
+    def collect_classes(cls) -> typing.Iterable[type]:
+        modules = set(x.__name__ for x in cls.collect_modules())
         for target in get_subclasses_of(object):
-            if not cls.ignore_module(target, modules) and not cls.ignore_class(target):
+            if cls.__module__ in modules and not cls.ignore_class(target):
                 yield target
-
-    @classmethod
-    def ignore_module(cls, target: type, collected_modules: typing.Container[str]):
-        """Override if you need custom logic for the module filter of classes"""
-        return target.__module__ not in collected_modules
 
     @classmethod
     def ignore_class(cls, target: type) -> bool:
         """Override this if you need dynamic suppression of which classes to ignore"""
         return issubclass(target, cls.ignored_subclasses)
 
-    def test_slots_mandatory(self, param: type):
-        assert get_slot_of(param).slots is not None or getattr(
-            param, self.disable_str, False
-        ), f"class has no slots nor is {self.disable_str} set to True"
+    def test_slots_mandatory(self, subtests):
+        for target in self.collect_classes():
+            with subtests.test(cls=target):
+                assert get_slot_of(target).slots is not None or getattr(
+                    target, self.disable_str, False
+                ), f"class has no slots nor is {self.disable_str} set to True"
 
-    def test_shadowing(self, param: type):
-        if (slots := get_slot_of(param).slots) is None:
-            return
-        assert isinstance(slots, tuple), "__slots__ must be a tuple"
-        slots = set(slots)
-        for slotting in get_slots_of(param):
-            if slotting.cls is param:
-                continue
-            if slotting.slots is not None:
-                assert set() == slots.intersection(slotting.slots), (
-                    f"has slots that shadow {param}"
-                )
+    def test_shadowing(self, subtests):
+        for target in self.collect_classes():
+            if (slots := get_slot_of(target).slots) is None:
+                return
+            with subtests.test(cls=target):
+                assert isinstance(slots, tuple), "__slots__ must be a tuple"
+                slots = set(slots)
+                for slotting in get_slots_of(target):
+                    if slotting.cls is target:
+                        continue
+                    if slotting.slots is not None:
+                        assert set() == slots.intersection(slotting.slots), (
+                            f"has slots that shadow {target}"
+                        )
 
 
-class Modules(ParameterizeBase[ModuleType]):
-    tests_to_parameterize = (
+class Modules(NamespaceCollector[ModuleType]):
+    strict_configurable_tests = (
         "test_has__all__",
         "test_valid__all__",
     )
     strict = ("test_valid__all__",)
 
-    @classmethod
-    def make_id(cls, /, param: ModuleType) -> str:
-        return param.__name__
+    def test_has__all__(self, subtests):
+        for module in self.collect_modules():
+            with subtests.test(module=module.__name__):
+                assert hasattr(module, "__all__"), "__all__ is missing but should exist"
 
-    @classmethod
-    def collect_parameters(cls, modules) -> typing.Iterable[ModuleType]:
-        return modules
-
-    def test_has__all__(self, param: ModuleType):
-        assert hasattr(param, "__all__"), "__all__ is missing but should exist"
-
-    def test_valid__all__(self, param: ModuleType):
-        if attrs := getattr(param, "__all__", ()):
-            missing = {attr for attr in attrs if not hasattr(param, attr)}
-            assert not missing, (
-                f"__all__ refers to exports that don't exist: {missing!r}"
-            )
+    def test_valid__all__(self, subtests):
+        for module in self.collect_modules():
+            with subtests.test(module=module.__name__):
+                if attrs := getattr(module, "__all__", ()):
+                    missing = {attr for attr in attrs if not hasattr(module, attr)}
+                    assert not missing, (
+                        f"__all__ refers to exports that don't exist: {missing!r}"
+                    )

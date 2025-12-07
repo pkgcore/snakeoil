@@ -4,7 +4,7 @@ __all__ = (
     "coverage",
     "hide_imports",
     "Modules",
-    "ParameterizeBase",
+    "NamespaceCollector",
     "protect_process",
     "random_str",
     "Slots",
@@ -18,7 +18,7 @@ import subprocess
 import sys
 from unittest.mock import patch
 
-from .code_quality import Modules, ParameterizeBase, Slots
+from .code_quality import Modules, NamespaceCollector, Slots
 
 
 def random_str(length):
