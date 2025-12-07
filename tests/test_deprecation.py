@@ -110,6 +110,7 @@ class TestRegistry:
             == list(r)[0]
         )
 
+    @requires_enabled
     def test_expired_deprecations(self):
         r = Registry("asdf")
 
@@ -142,6 +143,8 @@ class TestRegistry:
             )
         )
 
+    # this is the seul registry functionality which still will test validly in <py3.13.  We flex
+    # it solely to confirm we're not causing runtime issues in those environments.
     def test_code_directive(self):
         r = Registry("test")
         assert None is r.code_directive(
