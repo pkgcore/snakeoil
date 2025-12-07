@@ -121,7 +121,11 @@ class test_python_namespaces:
 
 def test_remove_py_extension():
     # no need to mock, python standards intersect.
-    cpy = [x for x in machinery.all_suffixes() if x.startswith(".cpython")]
+    cpy = [
+        x
+        for x in machinery.all_suffixes()
+        if x.startswith(".cpython") or x.startswith(".pypy")
+    ]
     assert cpy, (
         f"couldn't find an extension of .cpython per PEP3147.  Is this pypy?  Known extensions to this python install: {machinery.all_suffixes()}"
     )
