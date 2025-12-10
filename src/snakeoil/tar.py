@@ -9,6 +9,7 @@ from snakeoil.python_namespaces import protect_imports
 deprecated.module(
     "This is fully deprecated.  Use pkgcore.fs.tar functionality",
     qualname="snakeoil.tar",
+    removal_in=(0, 12, 0),
 )
 
 
