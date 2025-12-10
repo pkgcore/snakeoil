@@ -64,6 +64,15 @@ class RecordCallable(Record):
         yield from super(RecordCallable, self)._collect_strings()
 
 
+@dataclasses.dataclass(slots=True, frozen=True, kw_only=True)
+class RecordModule(Record):
+    qualname: str
+
+    def _collect_strings(self) -> typing.Iterator[str]:
+        yield f"module={self.qualname!r}"
+        yield from super(RecordModule, self)._collect_strings()
+
+
 # When py3.13 is the min, add a defaulted generic of Record in this, and
 # deprecated the init record_class argument.
 class Registry:
@@ -93,7 +102,7 @@ class Registry:
     stacklevel: typing.ClassVar[int] = 1 if is_enabled else 0
 
     if is_enabled:
-        from warnings import deprecated as _deprecated_callable
+        _deprecated_callable = warnings.deprecated
 
     def __init__(
         self, project: str, /, *, record_class: type[RecordCallable] = RecordCallable
@@ -159,6 +168,30 @@ class Registry:
         """Add a directive in the code that if invoked, records the deprecation"""
         self._deprecations.append(
             Record(msg=msg, removal_in=removal_in, removal_in_py=removal_in_py)
+        )
+
+    def module(
+        self,
+        msg: str,
+        qualname: str,
+        removal_in: Version | None = None,
+        removal_in_py: Version | None = None,
+    ) -> None:
+        """Deprecation notice that fires for the first import of this module."""
+        if not self.is_enabled:
+            return
+        self._deprecations.append(
+            r := RecordModule(
+                msg,
+                qualname=qualname,
+                removal_in=removal_in,
+                removal_in_py=removal_in_py,
+            )
+        )
+        # fire the warning; we're triggering it a frame deep from the actual issue (the module itself), thus adjust the stack level
+        # to skip us, the module defining the deprecation, and hit the import directly.
+        warnings.warn(
+            str(r), category=DeprecationWarning, stacklevel=self.stacklevel + 2
         )
 
     @staticmethod

@@ -1,10 +1,19 @@
 import dataclasses
 import sys
 import warnings
+from pathlib import Path
+from textwrap import dedent
 
 import pytest
 
-from snakeoil.deprecation import Record, RecordCallable, Registry, suppress_deprecations
+from snakeoil.deprecation import (
+    Record,
+    RecordCallable,
+    RecordModule,
+    Registry,
+    suppress_deprecations,
+)
+from snakeoil.python_namespaces import protect_imports
 
 requires_enabled = pytest.mark.skipif(
     not Registry.is_enabled, reason="requires python >=3.13.0"
@@ -154,6 +163,37 @@ class TestRegistry:
         assert (
             Record("asdf", removal_in=(1, 0, 0), removal_in_py=(2, 0, 0)) == list(r)[0]
         )
+
+    @requires_enabled
+    def test_module(self, tmpdir):
+        with (tmpdir / "deprecated_import.py").open("w") as f:
+            f.write("import this_is_deprecated")
+        with (tmpdir / "this_is_deprecated.py").open("w") as f:
+            f.write(
+                dedent(
+                    """
+            from snakeoil.deprecation import Registry
+            Registry("test").module('deprecation test', 'this_is_deprecated')
+            """
+                )
+            )
+
+        with protect_imports() as (paths, _):
+            paths.append(str(tmpdir))
+            with pytest.warns() as captures:
+                import deprecated_import  # pyright: ignore[reportMissingImports]
+
+        assert 1 == len(captures)
+        w = captures[0]
+        assert "deprecation test" in str(w)
+        assert w.filename.endswith("/deprecated_import.py")
+        assert 1 == w.lineno
+
+
+def test_RecordModule_str():
+    assert "module='foon.blah', removal in python=3.0.2, reason: why not" == str(
+        RecordModule("why not", qualname="foon.blah", removal_in_py=(3, 0, 2))
+    )
 
 
 def test_Record_str():
