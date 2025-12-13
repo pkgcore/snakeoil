@@ -40,7 +40,7 @@ class test_python_namespaces:
             sys.modules = modules
             invalidate_caches()
 
-    def test_it(self, tmp_path):
+    def test_get_submodules_of(self, tmp_path):
         write_tree(
             tmp_path,
             "_ns_test/__init__.py",
@@ -50,15 +50,17 @@ class test_python_namespaces:
             "_ns_test/real/extra.py",
         )
 
-        def get_it(target, *args, **kwargs):
-            target = import_module(target)
+        def get_it(target, *args, force_string=False, **kwargs):
+            if not force_string:
+                target = import_module(target)
             return list(
                 sorted(x.__name__ for x in get_submodules_of(target, *args, **kwargs))
             )
 
         with self.protect_modules(tmp_path):
             assert ["_ns_test.blah", "_ns_test.real", "_ns_test.real.extra"] == get_it(
-                "_ns_test"
+                "_ns_test",
+                force_string=False,  # flex that it also takes strings, not just a module
             )
             assert "_ns_test" in sys.modules
 

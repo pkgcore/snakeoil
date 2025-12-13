@@ -140,17 +140,27 @@ class TestRegistry:
         )(f)
 
         assert 3 == len(r)
-        assert [] == list(r.expired_deprecations((0, 0, 0), (0, 0, 0)))
+        assert [] == list(
+            r.expired_deprecations((0, 0, 0), (0, 0, 0), force_load=False)
+        )
         assert ["python"] == [
-            x.msg for x in r.expired_deprecations((0, 0, 0), python_version=(1, 0, 0))
+            x.msg
+            for x in r.expired_deprecations(
+                (0, 0, 0), python_version=(1, 0, 0), force_load=False
+            )
         ]
         assert ["project"] == [
-            x.msg for x in r.expired_deprecations((1, 0, 0), python_version=(0, 0, 0))
+            x.msg
+            for x in r.expired_deprecations(
+                (1, 0, 0), python_version=(0, 0, 0), force_load=False
+            )
         ]
         assert ["combined", "project", "python"] == list(
             sorted(
                 x.msg
-                for x in r.expired_deprecations((2, 0, 0), python_version=(2, 0, 0))
+                for x in r.expired_deprecations(
+                    (2, 0, 0), python_version=(2, 0, 0), force_load=False
+                )
             )
         )
 

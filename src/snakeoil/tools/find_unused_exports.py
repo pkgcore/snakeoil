@@ -8,7 +8,6 @@ import ast
 import logging
 import sys
 from collections import defaultdict
-from importlib import import_module
 from pathlib import Path
 from textwrap import dedent
 from typing import NamedTuple, Optional, Self, cast
@@ -270,7 +269,7 @@ def main(options, out, err) -> int:
     ast_sources = {}
     # pre-initialize the module tree of what we care about.
     for target in tuple(options.targets) + (options.source,):
-        for module in get_submodules_of(import_module(target), include_root=True):
+        for module in get_submodules_of(target, include_root=True):
             obj = root.create(module.__name__.split("."))
             obj.alls = getattr(module, "__all__", None)
             p = Path(cast(str, module.__file__))

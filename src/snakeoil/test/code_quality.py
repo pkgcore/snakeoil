@@ -39,7 +39,7 @@ class NamespaceCollector(AbstractTest):
     def collect_modules(cls) -> typing.Iterable[ModuleType]:
         for namespace in cls.namespaces:
             yield from get_submodules_of(
-                __import__(namespace),
+                namespace,
                 dont_import=cls.namespace_ignores,
                 include_root=True,
             )

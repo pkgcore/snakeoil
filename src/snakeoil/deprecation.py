@@ -24,6 +24,8 @@ import sys
 import typing
 import warnings
 
+from snakeoil.python_namespaces import get_submodules_of
+
 T = typing.TypeVar("T")
 P = typing.ParamSpec("P")
 
@@ -203,7 +205,13 @@ class Registry:
       Any subclasses that override __call__ must adjust this value.
     """
 
-    __slots__ = ("project", "_deprecations", "record_class")
+    __slots__ = (
+        "project",
+        "_deprecations",
+        "record_class",
+        "_qualname",
+        "_qualname_suppressions",
+    )
 
     record_class: type[RecordCallable]
 
@@ -218,9 +226,17 @@ class Registry:
         _deprecated_callable = warnings.deprecated
 
     def __init__(
-        self, project: str, /, *, record_class: type[RecordCallable] = RecordCallable
+        self,
+        project: str,
+        /,
+        *,
+        qualname: str | None = None,
+        record_class: type[RecordCallable] = RecordCallable,
+        qualname_suppressions: typing.Sequence[str] = (),
     ):
         self.project = project
+        self._qualname = qualname if qualname is not None else project
+        self._qualname_suppressions = tuple(qualname_suppressions)
         # TODO: py3.13, change this to T per the cvar comments
         self.record_class = record_class
         self._deprecations: list[Record | RecordCallable] = []
@@ -323,7 +339,13 @@ class Registry:
         self,
         project_version: Version,
         python_version: Version,
+        force_load=True,
     ) -> typing.Iterator[Record]:
+        if force_load:
+            for _ in get_submodules_of(
+                self._qualname, dont_import=self._qualname_suppressions
+            ):
+                pass
         for deprecation in self:
             if (
                 deprecation.removal_in is not None

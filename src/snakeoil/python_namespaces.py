@@ -13,7 +13,7 @@ T_class_filter = typing.Callable[[str], bool]
 
 
 def get_submodules_of(
-    root: types.ModuleType,
+    root: types.ModuleType | str,
     /,
     dont_import: T_class_filter | typing.Container[str] | None = None,
     ignore_import_failures: T_class_filter | typing.Container[str] | bool = False,
@@ -28,6 +28,9 @@ def get_submodules_of(
     :param ignore_import_failures: filter of what modules are known to potentially raise an
       ImportError, and to tolerate those if it occurs.  Defaults to tolerating none.
     """
+
+    if isinstance(root, str):
+        root = import_module(root)
 
     if dont_import is None:
         dont_import = lambda _: False  # noqa: E731
