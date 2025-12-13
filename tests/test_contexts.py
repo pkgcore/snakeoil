@@ -8,11 +8,11 @@ from contextlib import chdir
 
 import pytest
 
+from snakeoil._internals import deprecated
 from snakeoil.contexts import Namespace, SplitExec, syspath
-from snakeoil.deprecation import suppress_deprecations
 
 
-@suppress_deprecations()
+@deprecated.suppress_deprecations()
 def test_chdir(tmpdir):
     orig_cwd = os.getcwd()
 

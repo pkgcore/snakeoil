@@ -2,12 +2,13 @@ import re
 
 import pytest
 
-from snakeoil import demandload, deprecation
+from snakeoil import demandload
+from snakeoil._internals import deprecated
 
 
 class TestDemandCompileRegexp:
     def test_demand_compile_regexp(self):
-        with deprecation.suppress_deprecations():
+        with deprecated.suppress_deprecations():
             scope = {}
             demandload.demand_compile_regexp("foo", "frob", scope=scope)
             assert list(scope.keys()) == ["foo"]

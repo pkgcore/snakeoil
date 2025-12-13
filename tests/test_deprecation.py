@@ -2,8 +2,6 @@ import dataclasses
 import inspect
 import sys
 import warnings
-from logging import warning
-from pathlib import Path
 from textwrap import dedent
 
 import pytest

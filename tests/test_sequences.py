@@ -5,7 +5,7 @@ from operator import itemgetter
 import pytest
 
 from snakeoil import sequences
-from snakeoil.deprecation import suppress_deprecations
+from snakeoil._internals import deprecated
 from snakeoil.sequences import (
     iter_stable_unique,
     split_elements,
@@ -19,7 +19,7 @@ class UnhashableComplex(complex):
         raise TypeError
 
 
-@suppress_deprecations()
+@deprecated.suppress_deprecations()
 class TestStableUnique:
     def common_check(self, func):
         # silly

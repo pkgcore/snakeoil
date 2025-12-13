@@ -10,8 +10,8 @@ from unittest import mock
 import pytest
 
 from snakeoil import osutils
+from snakeoil._internals import deprecated
 from snakeoil.contexts import Namespace
-from snakeoil.deprecation import suppress_deprecations
 from snakeoil.osutils import listdir_dirs, listdir_files, sizeof_fmt, supported_systems
 from snakeoil.osutils.mount import MNT_DETACH, MS_BIND, mount, umount
 
@@ -180,7 +180,7 @@ class TestEnsureDirs:
 
 
 class TestAbsSymlink:
-    @suppress_deprecations()
+    @deprecated.suppress_deprecations()
     def test_abssymlink(self, tmp_path):
         target = tmp_path / "target"
         linkname = tmp_path / "link"
@@ -189,7 +189,7 @@ class TestAbsSymlink:
         assert osutils.abssymlink(linkname) == str(target)
 
 
-@suppress_deprecations()
+@deprecated.suppress_deprecations()
 class Test_Native_NormPath:
     func = staticmethod(osutils.normpath)
 
