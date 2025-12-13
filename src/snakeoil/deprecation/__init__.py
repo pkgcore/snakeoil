@@ -149,13 +149,13 @@ warning_category: typing.TypeAlias = type[Warning]
 class Record:
     msg: str
     removal_in: Version | None = None
-    removal_in_py: Version | None = None
+    removal_in_python: Version | None = None
 
     def _collect_strings(self) -> typing.Iterator[str]:
         if self.removal_in:
             yield "removal in version=" + (".".join(map(str, self.removal_in)))
-        if self.removal_in_py:
-            yield "removal in python=" + (".".join(map(str, self.removal_in_py)))
+        if self.removal_in_python:
+            yield "removal in python=" + (".".join(map(str, self.removal_in_python)))
         yield f"reason: {self.msg}"
 
     def __str__(self) -> str:
@@ -211,6 +211,8 @@ class Registry:
         "record_class",
         "_qualname",
         "_qualname_suppressions",
+        "version",
+        "python_mininum_version",
     )
 
     record_class: type[RecordCallable]
@@ -230,6 +232,8 @@ class Registry:
         project: str,
         /,
         *,
+        version: Version,
+        python_mininum_version: Version,
         qualname: str | None = None,
         record_class: type[RecordCallable] = RecordCallable,
         qualname_suppressions: typing.Sequence[str] = (),
@@ -237,6 +241,8 @@ class Registry:
         self.project = project
         self._qualname = qualname if qualname is not None else project
         self._qualname_suppressions = tuple(qualname_suppressions)
+        self.version = version
+        self.python_mininum_version = python_mininum_version
         # TODO: py3.13, change this to T per the cvar comments
         self.record_class = record_class
         self._deprecations: list[Record | RecordCallable] = []
@@ -248,7 +254,7 @@ class Registry:
         /,
         *,
         removal_in: Version | None = None,
-        removal_in_py: Version | None = None,
+        removal_in_python: Version | None = None,
         qualname: str | None = None,
         category=DeprecationWarning,
         stacklevel=1,
@@ -269,7 +275,7 @@ class Registry:
                 r = self.record_class(
                     msg,
                     removal_in=removal_in,
-                    removal_in_py=removal_in_py,
+                    removal_in_python=removal_in_python,
                     qualname=qualname,
                     **kwargs,
                 )
@@ -278,7 +284,7 @@ class Registry:
                     functor,
                     msg,
                     removal_in=removal_in,
-                    removal_in_py=removal_in_py,
+                    removal_in_python=removal_in_python,
                     **kwargs,
                 )
             self._deprecations.append(r)
@@ -290,13 +296,13 @@ class Registry:
         self,
         msg: str,
         removal_in: Version | None = None,
-        removal_in_py: Version | None = None,
+        removal_in_python: Version | None = None,
     ) -> None:
-        if not removal_in and not removal_in_py:
-            raise ValueError("either removal_in or removal_in_py must be set")
+        if not removal_in and not removal_in_python:
+            raise ValueError("either removal_in or removal_in_python must be set")
         """Add a directive in the code that if invoked, records the deprecation"""
         self._deprecations.append(
-            Record(msg=msg, removal_in=removal_in, removal_in_py=removal_in_py)
+            Record(msg=msg, removal_in=removal_in, removal_in_python=removal_in_python)
         )
 
     def module(
@@ -304,7 +310,7 @@ class Registry:
         msg: str,
         qualname: str,
         removal_in: Version | None = None,
-        removal_in_py: Version | None = None,
+        removal_in_python: Version | None = None,
     ) -> None:
         """Deprecation notice that fires for the first import of this module."""
         if not self.is_enabled:
@@ -314,7 +320,7 @@ class Registry:
                 msg,
                 qualname=qualname,
                 removal_in=removal_in,
-                removal_in_py=removal_in_py,
+                removal_in_python=removal_in_python,
             )
         )
         # fire the warning; we're triggering it a frame deep from the actual issue (the module itself), thus adjust the stack level
@@ -337,10 +343,20 @@ class Registry:
 
     def expired_deprecations(
         self,
-        project_version: Version,
-        python_version: Version,
+        /,
         force_load=True,
+        project_version: Version | None = None,
+        python_version: Version | None = None,
     ) -> typing.Iterator[Record]:
+        """Enumerate the deprecations that exceed the minimum versions
+
+        By default it uses the registries configured norms, but for evaluation of things
+        to resolve for upcoming releases, you can override the versioning used.
+        """
+        project_version = self.version if project_version is None else project_version
+        python_version = (
+            self.python_mininum_version if python_version is None else python_version
+        )
         if force_load:
             for _ in get_submodules_of(
                 self._qualname, dont_import=self._qualname_suppressions
@@ -353,7 +369,7 @@ class Registry:
             ):
                 yield deprecation
             elif (
-                deprecation.removal_in_py is not None
-                and python_version >= deprecation.removal_in_py
+                deprecation.removal_in_python is not None
+                and python_version >= deprecation.removal_in_python
             ):
                 yield deprecation

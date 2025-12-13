@@ -41,5 +41,3 @@ class TestModules(code_quality.Modules):
 class TestExpiredDeprecations(code_quality.ExpiredDeprecations):
     namespaces = ("snakeoil",)
     registry = snakeoil._internals.deprecated
-    version = snakeoil.__version_info__
-    python_minimum_version = snakeoil.__python_mininum_version__

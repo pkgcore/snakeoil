@@ -21,12 +21,14 @@ requires_enabled = pytest.mark.skipif(
 
 
 class TestRegistry:
+    default_versions = dict(version=(10, 0, 0), python_mininum_version=(10, 0, 0))
+
     def test_is_enabled(self):
         assert (sys.version_info >= (3, 13, 0)) == Registry.is_enabled
 
     @requires_enabled
     def test_it(self):
-        r = Registry("tests")
+        r = Registry("tests", **self.default_versions)
         assert "tests" == r.project
         assert [] == list(r)
         assert not r
@@ -54,9 +56,9 @@ class TestRegistry:
             == list(r)[-1]
         )
 
-        r("test3", removal_in_py=(4, 0, 0), qualname="test3")(f)
+        r("test3", removal_in_python=(4, 0, 0), qualname="test3")(f)
         assert (
-            RecordCallable("test3", qualname="test3", removal_in_py=(4, 0, 0))
+            RecordCallable("test3", qualname="test3", removal_in_python=(4, 0, 0))
         ) == list(r)[-1]
 
         class MyDeprecation(DeprecationWarning): ...
@@ -69,7 +71,7 @@ class TestRegistry:
         Registry.is_enabled, reason="test is only for python 3.12 and lower"
     )
     def test_disabled(self):
-        r = Registry("tests")
+        r = Registry("tests", **self.default_versions)
 
         def f(): ...
 
@@ -96,7 +98,7 @@ class TestRegistry:
     @requires_enabled
     def test_subclassing(self):
         # just assert record class can be extended- so downstream can add more metadata.
-        assert RecordCallable is Registry("asdf").record_class
+        assert RecordCallable is Registry("asdf", **self.default_versions).record_class
 
         @dataclasses.dataclass(slots=True, frozen=True, kw_only=True)
         class MyRecord(RecordCallable):
@@ -105,7 +107,7 @@ class TestRegistry:
 
         def f(): ...
 
-        r = Registry("test", record_class=MyRecord)
+        r = Registry("test", record_class=MyRecord, **self.default_versions)
 
         r("asdf", extra_val1=3, extra_val2=4, qualname="myrecord")(f)
         assert 1 == len(r)
@@ -121,15 +123,15 @@ class TestRegistry:
 
     @requires_enabled
     def test_expired_deprecations(self):
-        r = Registry("asdf")
+        r = Registry("asdf", **self.default_versions)
 
         def f(): ...
 
-        r("python", removal_in_py=(1, 0, 0))(f)
+        r("python", removal_in_python=(1, 0, 0))(f)
         r("project", removal_in=(1, 0, 0))(f)
         r(
             "combined",
-            removal_in_py=(
+            removal_in_python=(
                 2,
                 0,
                 0,
@@ -139,25 +141,29 @@ class TestRegistry:
 
         assert 3 == len(r)
         assert [] == list(
-            r.expired_deprecations((0, 0, 0), (0, 0, 0), force_load=False)
+            r.expired_deprecations(
+                python_version=(0, 0, 0), project_version=(0, 0, 0), force_load=False
+            )
         )
         assert ["python"] == [
             x.msg
             for x in r.expired_deprecations(
-                (0, 0, 0), python_version=(1, 0, 0), force_load=False
+                project_version=(0, 0, 0), python_version=(1, 0, 0), force_load=False
             )
         ]
         assert ["project"] == [
             x.msg
             for x in r.expired_deprecations(
-                (1, 0, 0), python_version=(0, 0, 0), force_load=False
+                project_version=(1, 0, 0), python_version=(0, 0, 0), force_load=False
             )
         ]
         assert ["combined", "project", "python"] == list(
             sorted(
                 x.msg
                 for x in r.expired_deprecations(
-                    (2, 0, 0), python_version=(2, 0, 0), force_load=False
+                    project_version=(2, 0, 0),
+                    python_version=(2, 0, 0),
+                    force_load=False,
                 )
             )
         )
@@ -165,13 +171,14 @@ class TestRegistry:
     # this is the seul registry functionality which still will test validly in <py3.13.  We flex
     # it solely to confirm we're not causing runtime issues in those environments.
     def test_code_directive(self):
-        r = Registry("test")
+        r = Registry("test", **self.default_versions)
         assert None is r.code_directive(
-            "asdf", removal_in=(1, 0, 0), removal_in_py=(2, 0, 0)
+            "asdf", removal_in=(1, 0, 0), removal_in_python=(2, 0, 0)
         )
         assert 1 == len(r)
         assert (
-            Record("asdf", removal_in=(1, 0, 0), removal_in_py=(2, 0, 0)) == list(r)[0]
+            Record("asdf", removal_in=(1, 0, 0), removal_in_python=(2, 0, 0))
+            == list(r)[0]
         )
 
     @requires_enabled
@@ -183,7 +190,7 @@ class TestRegistry:
                 dedent(
                     """
             from snakeoil.deprecation import Registry
-            Registry("test").module('deprecation test', 'this_is_deprecated')
+            Registry("test", version=(0,0,0), python_mininum_version=(1,0,0)).module('deprecation test', 'this_is_deprecated', removal_in_python=(1,0,0))
             """
                 )
             )
@@ -290,13 +297,13 @@ class TestRegistry:
 
 def test_RecordModule_str():
     assert "module='foon.blah', removal in python=3.0.2, reason: why not" == str(
-        RecordModule("why not", qualname="foon.blah", removal_in_py=(3, 0, 2))
+        RecordModule("why not", qualname="foon.blah", removal_in_python=(3, 0, 2))
     )
 
 
 def test_Record_str():
     assert "removal in version=1.0.2, removal in python=3.0.2, reason: blah" == str(
-        Record("blah", removal_in=(1, 0, 2), removal_in_py=(3, 0, 2))
+        Record("blah", removal_in=(1, 0, 2), removal_in_python=(3, 0, 2))
     )
 
 

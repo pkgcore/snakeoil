@@ -119,16 +119,12 @@ class ExpiredDeprecations(NamespaceCollector, still_abstract=True):
     strict = ("test_has_expired_deprecations",)
 
     registry: deprecation.Registry = abstractclassvar(deprecation.Registry)
-    version: deprecation.Version = abstractclassvar(deprecation.Version)
-    python_minimum_version: deprecation.Version = abstractclassvar(deprecation.Version)
 
     def test_has_expired_deprecations(self, subtests):
         # force full namespace load to ensure all deprecations get registry.
         with deprecation.suppress_deprecations():
             for _ in self.collect_modules():
                 pass
-            for deprecated in self.registry.expired_deprecations(
-                self.version, self.python_minimum_version
-            ):
+            for deprecated in self.registry.expired_deprecations():
                 with subtests.test(deprecated=str(deprecated)):
                     pytest.fail(f"deprecation has expired: {deprecated}")
