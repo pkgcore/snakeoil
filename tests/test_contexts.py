@@ -4,12 +4,15 @@ import platform
 import random
 import socket
 import sys
+from contextlib import chdir
 
 import pytest
 
-from snakeoil.contexts import Namespace, SplitExec, chdir, syspath
+from snakeoil.contexts import Namespace, SplitExec, syspath
+from snakeoil.deprecation import suppress_deprecations
 
 
+@suppress_deprecations()
 def test_chdir(tmpdir):
     orig_cwd = os.getcwd()
 

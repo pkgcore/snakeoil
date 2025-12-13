@@ -1,5 +1,6 @@
 """Various with-statement context utilities."""
 
+import contextlib
 import errno
 import inspect
 import os
@@ -10,8 +11,11 @@ import sys
 import threading
 import traceback
 from contextlib import AbstractContextManager, contextmanager
+from contextlib import chdir as _contextlib_chdir
 from importlib import import_module
 from multiprocessing.connection import Pipe
+
+from snakeoil._internals import deprecated
 
 from .cli.exceptions import UserException
 from .process import namespaces
@@ -356,21 +360,12 @@ class GitStash(AbstractContextManager):
                 raise UserException(f"git failed applying stash: {error}")
 
 
-@contextmanager
-def chdir(path):
-    """Context manager that changes the current working directory.
-
-    On exiting the context, the current working directory is switched back to
-    its original value.
-
-    :param path: The directory path to change the working directory to.
-    """
-    orig_cwd = os.getcwd()
-    os.chdir(path)
-    try:
-        yield
-    finally:
-        os.chdir(orig_cwd)
+@deprecated(
+    "snakeoil.contexts.chdir is deprecated.  Use contextlib.chdir instead",
+    removal_in=(0, 12, 0),
+)
+def chdir(path: str) -> contextlib.chdir:
+    return _contextlib_chdir(path)
 
 
 @contextmanager

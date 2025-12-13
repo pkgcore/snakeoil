@@ -1,9 +1,10 @@
 import os
 import signal
+from contextlib import chdir
 
 import pytest
+
 from snakeoil import process
-from snakeoil.contexts import chdir
 from snakeoil.process import spawn
 
 BASH_BINARY = process.find_binary("bash", fallback="")

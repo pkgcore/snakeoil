@@ -1,10 +1,11 @@
 import shutil
 import subprocess
 import sys
+from contextlib import chdir
 
 import pytest
+
 from snakeoil.compression import ArComp, ArCompError, _TarBZ2
-from snakeoil.contexts import chdir
 
 from . import hide_binary
 
