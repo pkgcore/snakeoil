@@ -1,6 +1,8 @@
 import dataclasses
+import inspect
 import sys
 import warnings
+from logging import warning
 from pathlib import Path
 from textwrap import dedent
 
@@ -188,6 +190,94 @@ class TestRegistry:
         assert "deprecation test" in str(w)
         assert w.filename.endswith("/deprecated_import.py")
         assert 1 == w.lineno
+
+    def test_suppress_warnings_generators(self):
+        # See the docstring of suppress_warnings.  This asserts that the python
+        # implementation's generator state mutates the local context, rather than
+        # carrying it's only 'subcontext'.  IE, what it does will bleed out the
+        # warning suppression.
+
+        # assert no warning filters are going to screw up this test requirements
+        with pytest.warns():
+            warnings.warn("must be caught", DeprecationWarning)
+
+        # warnings.catch_warnings() cannot be used for these tests since they reset the filters to
+        # what the state of it's __enter__.  Meaning any warnings mutations within that block of the generator
+        # get undone if you do this:
+        # >>> with warnings.catch_warnings():
+        # ...   next(f) # it added it's suppressions
+        # ... blah # the suppressions from f() got undone by the __exit__ of catch_warnings
+        warnings_filters = warnings.filters[:]
+
+        def f():
+            with suppress_deprecations():
+                warnings.warn("will be caught", DeprecationWarning)
+                yield
+                warnings.warn(
+                    "may not be caught depending on context of resumption",
+                    category=DeprecationWarning,
+                )
+
+        i = f()
+        next(i)
+        assert warnings_filters != warnings.filters, (
+            f"generator context modifications were limited to the generator frame.  Is this pypi?  a python version >3.15?  See test for assumption notes.  Expected {warnings_filters}, got {warnings.filters}"
+        )
+        # exhaust it to exit the generators suppression block.
+        for _ in i:
+            ...
+        assert warnings.filters == warnings_filters
+
+        # ... cool.  Now we've asserted the python behavior which is *why* we have a generator specific
+        # protection built into it.  Now to validate that works.
+
+        # simple case.  Just yields, not a coroutine
+        @suppress_deprecations()
+        def iterable():
+            warnings.warn("suppressed #1", DeprecationWarning)
+            yield 1
+            warnings.warn("not suppressed", UserWarning)
+            warnings.warn("suppressed #2", DeprecationWarning)
+            yield 2
+            warnings.warn("suppress #3", DeprecationWarning)
+
+        with warnings.catch_warnings(record=True) as w:
+            i = iterable()
+            assert 1 == next(i)
+
+            assert 0 == len(w)
+            with pytest.warns(UserWarning):
+                assert 2 == next(i)
+            assert 0 == len(w)
+            with pytest.raises(StopIteration):
+                next(i)
+        assert 0 == len(w)
+
+        # test coroutines.
+        @suppress_deprecations()
+        def coro():
+            warnings.warn("not suppressed", UserWarning)
+            warnings.warn("suppress #2", DeprecationWarning)
+
+            received = yield 1
+            assert "a1" == received
+            warnings.warn("suppress #3", DeprecationWarning)
+            received = yield 2
+            assert "a2" == received
+            warnings.warn("suppress #3", DeprecationWarning)
+            warnings.warn("not suppressed", UserWarning)
+
+        with warnings.catch_warnings(record=True) as w:
+            gen = coro()
+            assert 0 == len(w)  # shouldn't be started by that action alone
+            assert inspect.GEN_CREATED == inspect.getgeneratorstate(gen)
+            with pytest.warns(UserWarning):
+                assert 1 == next(gen)  # start it.
+            assert 2 == gen.send("a1")
+            with pytest.warns(UserWarning):
+                with pytest.raises(StopIteration):
+                    gen.send("a2")
+        assert 0 == len(w)
 
 
 def test_RecordModule_str():
