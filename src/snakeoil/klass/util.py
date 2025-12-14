@@ -56,11 +56,10 @@ def get_attrs_of(
     _sentinel=object(),
 ) -> typing.Iterable[tuple[str, typing.Any]]:
     """
-    yield the attributes of a given instance.
+    A version of `vars()` that actually returns slotted attributes.  Use this instead of `vars()`.
 
-    This handles both slotted and non slotted classes- slotted
-    classes do not have __dict__.  It also handles mixed derivations,
-    a non slotted class that inherited from a slotted class.
+    This handles both slotted and non slotted classes.  `vars()` only returns what is in `__dict__`,
+    it will *not* return any slotted attributed.  This will return both.
 
     For an ordered __dict__ class, the ordering is *not* honored in what
     this yields.
