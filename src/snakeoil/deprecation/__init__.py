@@ -159,7 +159,10 @@ class Record:
             yield "removal in python=" + (".".join(map(str, self.removal_in_python)))
 
     def __str__(self) -> str:
-        return ", ".join(self._collect_strings())
+        i = self._collect_strings()
+        thing = next(i)
+        rest = ", ".join(i)
+        return f"{thing}: {rest}"
 
 
 class RecordNote(Record):

@@ -10,6 +10,7 @@ from snakeoil.deprecation import (
     Record,
     RecordCallable,
     RecordModule,
+    RecordNote,
     Registry,
     suppress_deprecations,
 )
@@ -177,7 +178,7 @@ class TestRegistry:
         )
         assert 1 == len(r)
         assert (
-            Record("asdf", removal_in=(1, 0, 0), removal_in_python=(2, 0, 0))
+            RecordNote("asdf", removal_in=(1, 0, 0), removal_in_python=(2, 0, 0))
             == list(r)[0]
         )
 
@@ -296,23 +297,18 @@ class TestRegistry:
 
 
 def test_RecordModule_str():
-    assert "module='foon.blah', removal in python=3.0.2, reason: why not" == str(
+    assert "foon.blah: why not, removal in python=3.0.2" == str(
         RecordModule("why not", qualname="foon.blah", removal_in_python=(3, 0, 2))
     )
 
 
 def test_Record_str():
-    assert "removal in version=1.0.2, removal in python=3.0.2, reason: blah" == str(
+    assert "blah: removal in version=1.0.2, removal in python=3.0.2" == str(
         Record("blah", removal_in=(1, 0, 2), removal_in_python=(3, 0, 2))
     )
 
 
 def test_RecordCallable_str():
-    assert (
-        "qualname='snakeoil.blah.foon', removal in version=2.0.3, reason: I said so"
-        == str(
-            RecordCallable(
-                "I said so", qualname="snakeoil.blah.foon", removal_in=(2, 0, 3)
-            )
-        )
+    assert "snakeoil.blah.foon: I said so, removal in version=2.0.3" == str(
+        RecordCallable("I said so", qualname="snakeoil.blah.foon", removal_in=(2, 0, 3))
     )
