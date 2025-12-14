@@ -105,13 +105,14 @@ class Modules(NamespaceCollector, still_abstract=True):
                 assert hasattr(module, "__all__"), "__all__ is missing but should exist"
 
     def test_valid__all__(self, subtests):
-        for module in self.collect_modules():
-            with subtests.test(module=module.__name__):
-                if attrs := getattr(module, "__all__", ()):
-                    missing = {attr for attr in attrs if not hasattr(module, attr)}
-                    assert not missing, (
-                        f"__all__ refers to exports that don't exist: {missing!r}"
-                    )
+        with deprecation.suppress_deprecations():
+            for module in self.collect_modules():
+                with subtests.test(module=module.__name__):
+                    if attrs := getattr(module, "__all__", ()):
+                        missing = {attr for attr in attrs if not hasattr(module, attr)}
+                        assert not missing, (
+                            f"__all__ refers to exports that don't exist: {missing!r}"
+                        )
 
 
 class ExpiredDeprecations(NamespaceCollector, still_abstract=True):
