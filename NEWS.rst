@@ -9,6 +9,79 @@ snakeoil 0.11.0 (unreleased)
 
 - pytest-subtests ~= 0.15.0 is now a dependency for tests.
 
+Features
+~~~~~~~~~
+
+- ``snakeoil.delayed.regexp``: modern replacement for `demand_compile_regexp`.
+  This takes the standard re.compile arguments and delays creation of the regex until it's
+  accessed.
+
+- ``snakeoil.klass.abstractclassvar``: mechanism to force python's ``abc.ABC`` to treat a subclass as still abstract if a class variable hasn't been set.
+  The usage is unfortunately not purely an annotation due to how ``abc.ABC`` is implemented, but can be used like this:: python
+
+    class Base(abc.ABC):
+      must_be_defined: ClassVar[str] = abstractclassvar(str)
+
+    class StillABC(Base):
+      "this class is still abstract, thus cannot be instantiatied until must_be_defined"
+      pass
+
+    class NoLongerABC(StillABC):
+      "Do to the class var definition, this class can now be instantiated"
+      must_be_defined = "now defined"
+
+- ``snakeoil.klass.combine_metaclasses``: mildly esoteric functionality for combining two metaclasses into one inherited chain of types.
+  This is a convenience function; for example, it's used for combining ``abc.ABC`` with ``WeakInstMeta``.
+
+- ``snakeoil.klass.copy_class_docs``: given a source class, transfer the documentation from that to the target class.
+  This is a convenience tool for when implementing non trivial 'shape' of another class that you can't inherit from.
+
+  Use this when you're implementing the shape of a class, but for whatever reason, cannot inherit from it.  Multiple implementations
+  in ``snakeoil.sequences`` and ``snakeoil.mappings`` implement the same api as things like ``set``- this is used for just transferring
+  the better documentation from the source class and injecting it into the target class.
+
+- ``snakeoil.klass.copy_docs``: this is for transferring the documentation between functions.
+  This may seem like duplication of ``functools.wraps``, but ``wraps`` does further mutations to the function that other tooling is
+  aware of.  ``copy_docs`` shouldn't be used for wrapping; it's for when you're implementing the same function in a different way, but
+  matching the API exactly.
+
+- ``snakeoil.klass.get_attrs_of``: Slots aware tool to do what ``vars()`` should.
+  Python's ``vars()`` only uses the `__dict__` of the object; it *cannot* return any slotted attribute unless something incorrect has occurred like a slot shadowing.
+
+  TL;dr: use this instead of `vars()`.  The only scenario it cannot find an attribute to return is if a class defined it's `__slots__` with a raw iterator, which is a misfeature of python and should never be used.
+
+- ``snakeoil.klass.get_instances_of``: Find every visitable instance of a given class.
+  This should be mostly used in tests, or in very specific scenarios where a registry pattern exists, but a proper registry hasn't been implemented.
+  For example in pkgcheck, there is no registry of checks- it has to scan for any derivative of a class to find it.  This is the instance version of that.
+
+  Note: this is a walk of the GC.  It's not cheap.  It cannot see instances only exist in `intern()`, nor can it see instances that are held by compiled extensions that do not participate in visit protocol.  Those extensions are broke, as a general rule.
+
+- ``snakeoil.klass.get_slot_of``: Helper function to extract slotting information of a class- just that layer of the class.
+- ``snakeoil.klass.get_slots_of``: Helper function to extract slotting information of the entire MRO of that class.
+- ``snakeoil.klass.get_subclasses_of``: Helper function to find all subclasses of a given class whilst optionally filtering out ``abc.ABC``.
+  The main usage of this is for pseudo registry implementations (which should implement the registry pattern instead), and for tests asserting certain code standards against a codebase.
+
+- ``snakeoil.klass.is_metaclass``: This is a version of ``isinstance(something, type)`` that is able to see through ``proxy`` style objects that try to lie about what class they actually are.
+
+- ``snakeoil.python_namespaces.get_submodules_of``: Given a python import path or module, this will import and return all modules beneath that point in the namespace.
+  Use this rather than trying to implement it yourself; this accounts for all python extensions.
+
+- ``snakeoil.python_namespaces.import_module_from_path``: As it sounds, import python source from a given path returning that module.
+  The typical pattern people use is to manipulate ``sys.path`` temporarily which is *not* thread safe, and it pollutes ``sys.modules``.  This is the correct way to do an arbitrary import of something that isn't in a proper python namespace.
+
+- ``snakeoil.python_namespaces.import_submodules_of``: Convience function built around ``get_submodules_of``.  If you need to ensure some given python namespace has been imported- everything possible in it- this will do it in a one shot.
+- ``snakeoil.python_namespaces.protect_imports``:  None thread safe context manager allowing temporary ``sys.path`` and ``sys.modules`` manipulation, restoring it when it exits the context.
+  Do not use this in anything other than tests.  If you must import arbitrary source that isn't a python namespace during runtime, use ``import_module_from_path``
+
+- ``snakeoil.python_namespaces.remove_py_extension``: Function to strip the suffix off a python source filename whilst accounting for issues of PEP3147.
+  Cpython allows both ``lib.cpython-311.so`` and ``lib.so`` as importable.  This uses will properly strip either down to ``lib``.
+
+- ``snakeoil.sequences.unique_stable``.  This is a modernized ``snakeoil.sequences.stable_unique``.
+  This requires all items to be hashable.  Given an iterable, it will remove duplicates while preserving the ordering items were first seen.
+
+  Via requiring items be hashable, this removes the quadratic fallback of ``stable_unique`` for non hashable items.
+
+
 API deprecations
 ~~~~~~~~~~~~~~~~~~~
 - snakeoil.bash.iter_read_bash: Will be removed in 0.12.0
@@ -111,7 +184,7 @@ API removals
 - class.sequences.ChainedLists
 - class snakeoil.tar.TarInfo
 - module snakeoil.weakrefs
-
+ 
 snakeoil 0.10.11 (2025-05-31)
 -----------------------------
 
