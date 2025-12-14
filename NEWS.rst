@@ -5,12 +5,91 @@ Release Notes
 snakeoil 0.11.0 (unreleased)
 -----------------------------
 
-- lazy-object-proxy is no longer a dependency
+Snakeoil's codebase is being modernized and dropping all historical patterns or shims that addressed python <3.11.
 
-- pytest-subtests ~= 0.15.0 is now a dependency for tests.
+Snakeoil's roots map as far back to py2.2, and the code evolved to bridge py2k old style and new style classes, and the py3k changes.  Three different object bases, and all the complications and pain that induced.  This is now both unnecessarilyy causing a maintenance burden, but worse it induces downstream users to continue patterns no longer modern.
+
+That is being removed or rewritten so they're using modern python patterns that have evolved over the last 2 decades.
+
+This release is the first main batch of deprecations amd refactoring, but 0.11.x will introduce more deprecations, and modernized alternatives when doing so provides value.
+
 
 Features
 ~~~~~~~~~
+
+- Snakeoil classes- all that aren't deprecated- are again fully slotted.  This is both for the performance that slots bring, and for the robustness it brings- it's impossible to accidentally assigned to the wrong attribute since slotting prevents that.
+
+  Consumers of snakeoil aren't required to slot their derivatives- it is advised however, for the reasons snakeoil does so.  With the exception of classes explicitly marked with ``__slotting_intentionally_disabled__`` and what was deprecated in this release, snakeoil classes will be slotted going forward.  Tests have been written to enforce this requirement in addition.
+
+- Snakeoil is not *yet* fully typed, but this has been drastically increased, and will be increased going forward.  Until we drop py3.11 support, generic functions will be a known gap.  However due to python typing limitations, and Snakeoil doing some fairly intrinsic things at times, not everything may be able to be fully typed.  What can be typed, will be typed.
+
+  This typing for the duration of 0.11.x should be treated as mostly stable.  The underlying API is bound by semver rules, but the typing will need to be iterated on as we extend these changes through the pkgcore ecosystem and fully identify what corner cases downstream consumers rely on, vs how the API was thought to be used.
+
+- Where snakeoil returns multiple objects in a tuple, these are being converted to ``NamedTuples``.  ``snakeoil.sequences.split_negations`` for example, returns ``(negated, positives)``.  That is now a NamedTuple that is both maintaining the previous API, but allowing one to do this far more maintainable code:: python
+
+    # previously, this encoded assumptions of the tuple return order.  This is a known fragile pattern since any semver change can break it.
+    negatives, positives = split_negations(something)
+
+    # Now, the previous still works, and this works.
+    results = split_negations(something)
+    print(results.negatives)
+    print(results.positives)
+
+- class ``snakeoil.test.AbstractTest``: Base ABC class you should use for tests
+  PyTest silently drops collection of all abstract test classes; this is good, exempting when the intention was that it *be* concrete, but it's still ABC due unintentionally reasons.
+  PyTest will not try to instantiate it, so you have no visibility of this problem; the test just silently drops out of the collection.
+
+  Inherit from this instead of ``abc.ABC`` directly.  This has subclass checks to detect this situation and fail the derivation unless you've explicitly marked the derivation as intentionally continuing to be abstract.  That requirement is annoying, but it is the only way ot prevent this issue with PyTest.
+
+- class ``snakeoil.klass.GenericEquality``: This replaces ``snakeoil.klass.generic_equality`` written as a metaclass.
+  This has the same basic behaviour- it relies on ``__attr_comparison__`` lists, but can optionally also use the slotting information of a class to generate ``__attr_comparison__``.  Migrate to this, ``generic_equality`` will be removed in 0.12.0.
+
+- class ``snakeoil.GenericRichComparison``: This is an ``__attr_comparison__`` based implementation providing total ordering.  This derives from ``GenericEquality``, thus has the same convience directives.
+
+- class ``snakeoil.test.Modules``: ABC test class you can inherit for doing code quality enforcement of your codebase.  Currently it just checks for ``__all__`` and verifies that ``__all__`` is accurate.  This is usable both as strict test failures, and as xfails.
+
+- class ``snakeoil.test.NamespaceCollector``: ABC base class you can use for working against all modules in a given python namespace.  ``snakeoil.test.Modules`` uses this for example, for collecting all modules to enforce it's assertions against.
+
+- class ``snakeoil.test.Slots``: ABC test class that you can inherit and use for code quality checks of your codebase for slotting.  This includes both requiring slotting (if you wish), and detecting questionable slotting settings.
+
+- class ``snakeoil.klass.immutable.Simple``: Replacement of ``snakeoil.klass.ImmutableInstance`` that is significantly more ergonomic.  Previous code had to do this:: python
+
+    class protected(ImmutableInstance):
+      def __init__(self, val1, val2, val3):
+        object.__setattr__(self, 'val1', val1)
+        object.__setattr__(self, 'val2', val2)
+        self._subinit(val3)
+
+      def _subinit(self, val3):
+        object.__setattr__(self, 'val3', val3)
+
+      def mutating_func(self, val2):
+        object.__setattr__(self, 'val2', val2)
+
+  This was necessary as a way to bypass the ``__setattr__`` and ``__delattr__`` protections.  This is still possible, but there are better ways now.:: python
+
+    class protected(Simple):
+      def __init__(self, val1, val2, val3):
+        self.val1 = val1
+        self.val2 = val2
+        self._subinit(val3)
+
+      def _subinit(self, val3):
+        self.val3 = val3
+
+      @Simple.__allow_mutation__
+      def mutatingb_func(self, val2):
+        self.val2 = val2
+
+  ``__init__`` and ``__setstate__`` are automatically wrapped with ``__allow_mutation__``; any method that has mutation allowed, anything it calls, can also mutate.  This is thread and async safe.
+
+  The mechanism for this is more ergonomic, but *less* performant than just invoking ``object.__setattr__`` directly.  For hot paths methods it's recommended to continue using ``object.__setattr__``.  The performance delta will be addressed in a later release with an extension.
+
+  Using this allows code flow analysis tools to actually make sense of these classes, so it's strongly recommended you use this over ``Strict`` if you can.
+
+- class ``snakeoil.klass.immutable.Strict``: This is the equivalent of what ``snakeoil.klass.ImmutableInstance`` was.  You can migrate to it directly without any code change required.
+
+- class ``snakeoil.suppress_deprecations``: Context manager to suppress all deprecation warnings raised within the given context.  Deprecation warnings are not exposed at runtime (CLI invocations), so do not use it there.  It's actively harmful to do so.
 
 - ``snakeoil.delayed.regexp``: modern replacement for `demand_compile_regexp`.
   This takes the standard re.compile arguments and delays creation of the regex until it's
@@ -80,6 +159,8 @@ Features
   This requires all items to be hashable.  Given an iterable, it will remove duplicates while preserving the ordering items were first seen.
 
   Via requiring items be hashable, this removes the quadratic fallback of ``stable_unique`` for non hashable items.
+
+- ``python -m snakeoil.tools.find_unused_exports`` can be used to analysis the ``__all__`` of a given python namespaces modules against other namespaces to identify if what is exported, is in fact in use.  This tool *will* provide both false positives ane negatives.  Use it as tool for investigating refactoring and deprecation options.  This tool was written and leveraged for identify what could be removed from snakeoil outright in 0.11.0.
 
 
 API deprecations
@@ -184,7 +265,14 @@ API removals
 - class.sequences.ChainedLists
 - class snakeoil.tar.TarInfo
 - module snakeoil.weakrefs
- 
+
+Packaging
+~~~~~~~~~~~~~~
+- lazy-object-proxy is no longer a dependency
+
+- pytest-subtests ~= 0.15.0 is now a dependency for tests.
+
+
 snakeoil 0.10.11 (2025-05-31)
 -----------------------------
 
