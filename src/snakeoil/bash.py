@@ -33,7 +33,9 @@ __all__ = (
 
 
 iter_read_bash = deprecated(
-    "snakeoil.bash.iter_read_bash has been renamed to read_bash", removal_in=(0, 12, 0)
+    "This has been renamed to read_bash",
+    removal_in=(0, 12, 0),
+    qualname="snakeoil.bash.iter_read_bash",
 )(lambda *a, **kw: read_bash(*a, **kw))
 
 

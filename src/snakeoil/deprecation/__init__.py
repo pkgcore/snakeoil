@@ -152,14 +152,18 @@ class Record:
     removal_in_python: Version | None = None
 
     def _collect_strings(self) -> typing.Iterator[str]:
+        yield self.msg
         if self.removal_in:
             yield "removal in version=" + (".".join(map(str, self.removal_in)))
         if self.removal_in_python:
             yield "removal in python=" + (".".join(map(str, self.removal_in_python)))
-        yield f"reason: {self.msg}"
 
     def __str__(self) -> str:
         return ", ".join(self._collect_strings())
+
+
+class RecordNote(Record):
+    __slots__ = ()
 
 
 @dataclasses.dataclass(slots=True, frozen=True, kw_only=True)
@@ -172,10 +176,10 @@ class RecordCallable(Record):
             raise ValueError(
                 f"functor {thing!r} has .locals() in it; you need to provide the actual qualname"
             )
-        return cls(*args, qualname=thing.__qualname__, **kwargs)
+        return cls(*args, qualname=f"{thing.__module__}.{thing.__qualname__}", **kwargs)
 
     def _collect_strings(self) -> typing.Iterator[str]:
-        yield f"qualname={self.qualname!r}"
+        yield self.qualname
         yield from super(RecordCallable, self)._collect_strings()
 
 
@@ -184,7 +188,7 @@ class RecordModule(Record):
     qualname: str
 
     def _collect_strings(self) -> typing.Iterator[str]:
-        yield f"module={self.qualname!r}"
+        yield self.qualname
         yield from super(RecordModule, self)._collect_strings()
 
 
@@ -302,7 +306,9 @@ class Registry:
             raise ValueError("either removal_in or removal_in_python must be set")
         """Add a directive in the code that if invoked, records the deprecation"""
         self._deprecations.append(
-            Record(msg=msg, removal_in=removal_in, removal_in_python=removal_in_python)
+            RecordNote(
+                msg=msg, removal_in=removal_in, removal_in_python=removal_in_python
+            )
         )
 
     def module(
@@ -347,6 +353,7 @@ class Registry:
         force_load=True,
         project_version: Version | None = None,
         python_version: Version | None = None,
+        with_notes=True,
     ) -> typing.Iterator[Record]:
         """Enumerate the deprecations that exceed the minimum versions
 
@@ -363,6 +370,8 @@ class Registry:
             ):
                 pass
         for deprecation in self:
+            if not with_notes and isinstance(deprecation, RecordNote):
+                continue
             if (
                 deprecation.removal_in is not None
                 and project_version >= deprecation.removal_in

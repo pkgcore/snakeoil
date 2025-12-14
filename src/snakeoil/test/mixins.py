@@ -8,7 +8,7 @@ from snakeoil.compatibility import IGNORED_EXCEPTIONS
 
 
 @deprecated(
-    "snakeoil.test.mixins.PythonNamespaceWalker is deprecated, instead use snakeoil.python_namespaces.submodules_of",
+    "Use snakeoil.python_namespaces.submodules_of, or derive from snakeoil.code_quality.NamespaceWalker for tests",
     removal_in=(0, 12, 0),
 )
 class PythonNamespaceWalker:

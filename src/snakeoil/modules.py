@@ -20,8 +20,8 @@ class FailedImport(ImportError):
 
 
 @deprecated(
-    "snakeoil.modules.load_attribute is deprecated.  Use importlib.import_module's package argument",
-    removal_in=(0, 13, 0),
+    "Use importlib.import_module's package argument",
+    removal_in=(0, 12, 0),
 )
 def load_attribute(name):
     """load an attribute from a module
@@ -47,8 +47,8 @@ def load_attribute(name):
 
 
 @deprecated(
-    "snakeoil.modules.load_any is deprecated.  Use importlib.import_module's package argument",
-    removal_in=(0, 13, 0),
+    "Use importlib.import_module's package argument",
+    removal_in=(0, 12, 0),
 )
 def load_any(name):
     """

@@ -9,7 +9,7 @@ from .delayed import regexp
 
 
 @deprecated(
-    "snakeoil.klass.demand_compile_regexp has moved to snakeoil.delayed.regexp",
+    "Use snakeoil.delayed.regexp which no longer relies on scope trickery",
     removal_in=(0, 12, 0),
 )
 def demand_compile_regexp(

@@ -361,7 +361,7 @@ class GitStash(AbstractContextManager):
 
 
 @deprecated(
-    "snakeoil.contexts.chdir is deprecated.  Use contextlib.chdir instead",
+    "Use contextlib.chdir instead",
     removal_in=(0, 12, 0),
 )
 def chdir(path: str) -> contextlib.chdir:

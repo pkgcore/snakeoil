@@ -3,7 +3,7 @@ from snakeoil._internals import deprecated
 
 
 @deprecated(
-    "ExportedModules does nothing.  Use snakeoil.test.code_quality.Modules",
+    "This was broken and accidentally disabled long ago, and is a no-op.  Use snakeoil.test.code_quality.Modules",
     removal_in=(0, 12, 0),
 )
 class ExportedModules:

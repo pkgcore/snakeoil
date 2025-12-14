@@ -29,7 +29,7 @@ def main(options, out, _err) -> int:
     registry = typing.cast(Registry, options.registry)
     for deprecation in sorted(
         registry.expired_deprecations(
-            python_version=(1000, 0, 0), project_version=(1000, 0, 0)
+            python_version=(1000, 0, 0), project_version=(1000, 0, 0), with_notes=False
         ),
         key=lambda x: str(x),
     ):

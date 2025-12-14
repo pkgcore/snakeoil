@@ -8,7 +8,10 @@ import typing
 from snakeoil._internals import deprecated
 
 
-@deprecated("Use snakeoil.klass.meta.Immutable* metaclasses instead")
+@deprecated(
+    "Use snakeoil.klass.meta.Immutable* metaclasses instead",
+    qualname="snakeoil.klass.immutable_instance",
+)
 def immutable_instance(
     name: str, bases: tuple[type], scope: dict[str, typing.Any], real_type=type
 ) -> type:
@@ -23,7 +26,9 @@ def immutable_instance(
 
 
 @deprecated(
-    "Use snakeoil.klass.meta.Immutable* metaclasses instead", removal_in=(0, 12, 0)
+    "Use snakeoil.klass.meta.Immutable* metaclasses instead",
+    removal_in=(0, 12, 0),
+    qualname="snakeoil.klass.ImmutableInstance*",
 )
 class ImmutableInstance:
     """Class that disables surface-level attribute modifications."""
@@ -44,7 +49,9 @@ class ImmutableInstance:
 
 
 @deprecated(
-    "Use snakeoil.klass.meta.Immutable* metaclasses instead", removal_in=(0, 12, 0)
+    "Use snakeoil.klass.meta.Immutable* metaclasses instead",
+    removal_in=(0, 12, 0),
+    qualname="snakeoil.klass.inject_immutable_instance",
 )
 def inject_immutable_instance(scope: dict[str, typing.Any]):
     """inject immutable __setattr__ and __delattr__ implementations
@@ -89,8 +96,9 @@ def __generic_gt(self, other):
 
 
 @deprecated(
-    "inject_richcmp_methods_from_cmp is deprecated, migrate to functools.total_ordering instead.",
+    "Use functools.total_ordering instead",
     removal_in=(0, 12, 0),
+    qualname="snakeoil.klass.inject_richcmp_methods_from_cmp",
 )
 def inject_richcmp_methods_from_cmp(scope):
     """
@@ -143,8 +151,9 @@ def inject_richcmp_methods_from_cmp(scope):
 
 
 @deprecated(
-    "snakeoil.klass.steal_docs is deprecated; use functools.wraps",
+    "Use functools.wraps",
     removal_in=(0, 12, 0),
+    qualname="snakeoil.klass.steal_docs",
 )
 def steal_docs(target, ignore_missing=False, name=None):
     """
