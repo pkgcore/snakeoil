@@ -28,7 +28,7 @@ from stat import (
 from snakeoil._internals import deprecated
 
 listdir = deprecated(
-    "snakeoil.osutils.listdir is deprecated.  Use os.listdir",
+    "Use os.listdir",
     removal_in=(0, 12, 0),
     qualname="snakeoil.osutils.listdir",
 )(lambda *a, **kw: os.listdir(*a, **kw))
@@ -179,7 +179,7 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
 
 
 @deprecated(
-    "Use os.path.* functions instead.  Be mindful that this protected against //, which os.path.* doesn't, but pathlib should.",
+    "Use os.path.* functions instead.  Be mindful that this protected against //, which os.path.* doesn't, but pathlib should",
     removal_in=(0, 12, 0),
 )
 def abssymlink(path):

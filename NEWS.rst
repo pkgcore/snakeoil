@@ -2,15 +2,120 @@
 Release Notes
 =============
 
-snakeoil 0.11.0
----------------
+snakeoil 0.11.0 (unreleased)
+-----------------------------
 
 - lazy-object-proxy is no longer a dependency
 
 - pytest-subtests ~= 0.15.0 is now a dependency for tests.
 
+API deprecations
+~~~~~~~~~~~~~~~~~~~
+- snakeoil.bash.iter_read_bash: Will be removed in 0.12.0
+  This has been renamed to ``read_bash``.
+
+- snakeoil.contexts.chdir: Will be removed in 0.12.0
+  Use ``contextlib.chdir`` instead.
+
+- snakeoil.demandload.demand_compile_regexp: Will be removed in 0.12.0
+  Use ``snakeoil.delayed.regexp`` which no longer relies on scope trickery.
+
+- snakeoil.klass.ImmutableInstance*: Will be removed in 0.12.0
+  Use ``snakeoil.klass.meta.Immutable*`` metaclasses instead.
+
+- snakeoil.klass.chained_getter: Will be removed in 0.12.0
+  Use ``operator.attrgetter`` instead.
+
+- snakeoil.klass.chained_getter: Will be removed in 0.12.0
+  Use ``operator.attrgetter`` instead.
+
+- snakeoil.klass.generic_equality: Will be removed in 0.12.0
+  inherit from ``snakeoil.klass.GenericEquality`` instead.
+
+- snakeoil.klass.inject_immutable_instance: Will be removed in 0.12.0
+  Use ``snakeoil.klass.meta.Immutable*`` metaclasses instead.
+
+- snakeoil.klass.inject_richcmp_methods_from_cmp: Will be removed in 0.12.0
+  Use ``functools.total_ordering`` instead.
+
+- snakeoil.klass.steal_docs: Will be removed in 0.12.0
+  Use ``functools.wraps``.
+
+- snakeoil.modules.load_any: Will be removed in 0.12.0
+  Use ``importlib.import_module`` package argument.
+
+- snakeoil.modules.load_attribute: Will be removed in 0.12.0
+  Use ``importlib.import_module`` package argument.
+
+- snakeoil.osutils.abspath: Will be removed in 0.12.0
+  Use ``os.path.abspath``.
+
+- snakeoil.osutils.abssymlink: Will be removed in 0.12.0
+  Use ``os.path.*`` functions instead.  Be mindful that this protected against //, which ``os.path.*`` doesn't, but ``pathlib`` should.
+
+- snakeoil.osutils.join: Will be removed in 0.12.0
+  Use ``os.path.join``.
+
+- snakeoil.osutils.listdir: Will be removed in 0.12.0
+  ``snakeoil.osutils.listdir`` is deprecated.  Use os.listdir.
+
+- snakeoil.osutils.normpath: Will be removed in 0.12.0
+  Use ``os.path.normpath`` or ``pathlib``.  Be aware that os.path doesn't strip prefix // into /.
+
+- snakeoil.osutils.pjoin: Will be removed in 0.12.0
+  Use ``os.path.join.
+
+- snakeoil.sequences.iter_stable_unique: Will be removed in 0.13.0
+  Use ``snakeoil.sequence.unique_stable`` but be aware it now requires all items be hashable.
+
+- snakeoil.sequences.stable_unique: Will be removed in 0.13.0
+  Use ``snakeoil.sequence.unique_stable`` but be aware it now requires all items be hashable.
+
+- snakeoil.sequences.unstable_unique: Will be removed in 0.12.0
+  Use ``set()`` instead, it will have superior performance characteristics albeit will allocate more than this implementationd which sorted the sequence.
+
+- snakeoil.tar: Will be removed in 0.12.0
+  This is fully deprecated.  Use ``pkgcore.fs.tar`` functionality.
+
+- snakeoil.test.eq_hash_inheritance.Test: Will be removed in 0.12.0
+  This was broken thus disabled long ago.  It's a noop, remove it from your tests.
+
+- snakeoil.test.mixins.PythonNamespaceWalker: Will be removed in 0.12.0
+  Use ``snakeoil.python_namespaces.submodules_of``, or derive from ``snakeoil.code_quality.NamespaceWalker`` for tests.
+
+- snakeoil.test.modules.ExportedModules: Will be removed in 0.12.0
+  This was broken and accidentally disabled long ago, and is a no-op.  Use ``snakeoil.test.code_quality.Modules``.
+
+- snakeoil.test.slot_shadowing.SlotShadowing: Will be removed in 0.12.0
+  Use ``snakeoil.code_quality.Slots`` instead.
+
+
+API removals
+~~~~~~~~~~~~~~~~~
+- module snakeoil.demandimport
+- function snakeoil.klass.aliased
+- function snakeoil.klass.generic_attr_eq
+- function snakeoil.klass.generic_attr_ne
+- function snakeoil.klass.generic_eq
+- function snakeoil.klass.generic_ge
+- function snakeoil.klass.generic_gt
+- function snakeoil.klass.generic_le
+- function snakeoil.klass.generic_lt
+- function snakeoil.klass.generic_ne
+- function snakeoil.klass.patch
+- function snakeoil.modules.load_module
+- function snakeoil.obj.popattr
+- function snakeoil.osutils.access
+- function snakeoil.osutils.readdir
+- function snakeoil.osutils.stat_swallow_enoent
+- function snakeoil.osutils.alias
+- module snakeoil.pickling
+- class.sequences.ChainedLists
+- class snakeoil.tar.TarInfo
+- module snakeoil.weakrefs
+
 snakeoil 0.10.11 (2025-05-31)
-----------------------------
+-----------------------------
 
 - Fix compatibility with python 3.14 (Michał Górny, #105)
 
@@ -19,7 +124,7 @@ snakeoil 0.10.11 (2025-05-31)
 - Use ruff for code formatting (Arthur Zamarin)
 
 snakeoil 0.10.10 (2024-12-04)
-----------------------------
+-----------------------------
 
 - arghparse: fix compatibility with Python 3.12.8 (Michał Górny)
 

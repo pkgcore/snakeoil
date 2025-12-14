@@ -381,7 +381,7 @@ class chained_getter(
 
 
 static_attrgetter = deprecated(
-    "snakeoil.klass.static_attrgetter is deprecated.  Use operator.attrgetter instead",
+    "Use operator.attrgetter instead",
     removal_in=(0, 12, 0),
 )(chained_getter)
 
