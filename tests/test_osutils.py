@@ -186,7 +186,7 @@ class TestAbsSymlink:
         linkname = tmp_path / "link"
         target.mkdir()
         linkname.symlink_to("target")
-        assert osutils.abssymlink(linkname) == str(target)
+        assert osutils._abssymlink(linkname) == str(target)
 
 
 @deprecated.suppress_deprecations()

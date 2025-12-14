@@ -50,9 +50,6 @@ API deprecations
 - snakeoil.osutils.abspath: Will be removed in 0.12.0
   Use ``os.path.abspath``.
 
-- snakeoil.osutils.abssymlink: Will be removed in 0.12.0
-  Use ``os.path.*`` functions instead.  Be mindful that this protected against //, which ``os.path.*`` doesn't, but ``pathlib`` should.
-
 - snakeoil.osutils.join: Will be removed in 0.12.0
   Use ``os.path.join``.
 
@@ -106,6 +103,7 @@ API removals
 - function snakeoil.modules.load_module
 - function snakeoil.obj.popattr
 - function snakeoil.osutils.access
+- function snakeoil.osutils.abssymlink
 - function snakeoil.osutils.readdir
 - function snakeoil.osutils.stat_swallow_enoent
 - function snakeoil.osutils.alias

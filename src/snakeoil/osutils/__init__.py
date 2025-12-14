@@ -4,7 +4,6 @@ OS related functionality
 
 __all__ = (
     "abspath",
-    "abssymlink",
     "ensure_dirs",
     "join",
     "pjoin",
@@ -178,11 +177,7 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
     return True
 
 
-@deprecated(
-    "Use os.path.* functions instead.  Be mindful that this protected against //, which os.path.* doesn't, but pathlib should",
-    removal_in=(0, 12, 0),
-)
-def abssymlink(path):
+def _abssymlink(path):
     """Return the absolute path of a symlink
 
     :param path: filepath to resolve
@@ -227,7 +222,7 @@ def abspath(path):
     """
     path = os.path.abspath(path)
     try:
-        return abssymlink(path)
+        return _abssymlink(path)
     except EnvironmentError as e:
         if e.errno not in (errno.ENOENT, errno.EINVAL):
             raise
