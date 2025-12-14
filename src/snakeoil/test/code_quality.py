@@ -18,12 +18,6 @@ from snakeoil.test import AbstractTest
 T = typing.TypeVar("T")
 
 
-class maybe_strict_tests(list):
-    def register(self, thing):
-        self.append(thing)
-        return thing
-
-
 class NamespaceCollector(AbstractTest):
     namespaces: tuple[str] = abstractclassvar(tuple[str])
     namespace_ignores: tuple[str, ...] = ()
