@@ -8,7 +8,7 @@ import pytest
 
 from snakeoil.klass.util import (
     ClassSlotting,
-    combine_classes,
+    combine_metaclasses,
     get_attrs_of,
     get_instances_of,
     get_slots_of,
@@ -103,7 +103,7 @@ def test_slots_of():
     ] == list(get_slots_of(kls4))
 
 
-def test_combine_classes():
+def test_combine_metaclasses():
     class kls1(type):
         pass
 
@@ -114,20 +114,22 @@ def test_combine_classes():
         pass
 
     # assert it requires at least one arg
-    pytest.raises(TypeError, combine_classes)
+    pytest.raises(TypeError, combine_metaclasses)
 
-    assert combine_classes(kls1) is kls1, "unneeded derivative metaclass was created"
+    assert combine_metaclasses(kls1) is kls1, (
+        "unneeded derivative metaclass was created"
+    )
 
     # assert that it refuses duplicats
-    pytest.raises(TypeError, combine_classes, kls1, kls1)
+    pytest.raises(TypeError, combine_metaclasses, kls1, kls1)
 
     # there is caching, thus also do identity check whilst checking the MRO chain
-    kls = combine_classes(kls1, kls2, kls3)
-    assert kls is combine_classes(kls1, kls2, kls3), (
+    kls = combine_metaclasses(kls1, kls2, kls3)
+    assert kls is combine_metaclasses(kls1, kls2, kls3), (
         "combine_metaclass uses lru_cache to avoid generating duplicate classes, however this didn't cache"
     )
 
-    combined = combine_classes(kls1, kls2)
+    combined = combine_metaclasses(kls1, kls2)
     assert [combined, kls1, kls2, type, object] == list(combined.__mro__)
 
 

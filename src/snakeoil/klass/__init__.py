@@ -8,7 +8,7 @@ involved in writing classes.
 
 __all__ = (
     "abstractclassvar",
-    "combine_classes",
+    "combine_metaclasses",
     "generic_equality",
     "reflective_hash",
     "inject_richcmp_methods_from_cmp",
@@ -66,7 +66,7 @@ from .properties import (
     jit_attr_none,
 )
 from .util import (
-    combine_classes,
+    combine_metaclasses,
     copy_docs,
     get_attrs_of,
     get_slot_of,
@@ -350,7 +350,7 @@ def generic_equality(
     removal_in=(0, 12, 0),
 )
 class chained_getter(
-    GenericEquality, metaclass=combine_classes(WeakInstMeta, abc.ABCMeta)
+    GenericEquality, metaclass=combine_metaclasses(WeakInstMeta, abc.ABCMeta)
 ):
     """
     Deprecated.  Use operator.attrgetter instead.

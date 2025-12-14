@@ -5,7 +5,7 @@ __all__ = (
     "get_slots_of",
     "get_subclasses_of",
     "is_metaclass",
-    "combine_classes",
+    "combine_metaclasses",
     "copy_class_docs",
     "copy_docs",
     "ClassSlotting",
@@ -162,7 +162,7 @@ def get_instances_of(cls: type, getattribute=False) -> list[type]:
 
 
 @functools.lru_cache
-def combine_classes(kls: type, *extra: type) -> type:
+def combine_metaclasses(kls: type, *extra: type) -> type:
     """Given a set of classes, combine this as if one had wrote the class by hand
 
     This is primarily for composing metaclasses on the fly; this:
