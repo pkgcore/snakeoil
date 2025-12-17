@@ -6,7 +6,7 @@ from textwrap import dedent
 
 import pytest
 
-from snakeoil.deprecation import (
+from snakeoil.deprecation.registry import (
     Record,
     RecordCallable,
     RecordModule,
