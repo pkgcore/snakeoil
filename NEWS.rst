@@ -3,31 +3,61 @@ Release Notes
 =============
 
 snakeoil 0.11.0 (unreleased)
------------------------------
+----------------------------
 
-Snakeoil's codebase is being modernized and dropping all historical patterns or shims that addressed python <3.11.
+Snakeoil's codebase is being modernized and dropping all historical patterns or
+shims that addressed python <3.11.
 
-Snakeoil's roots map as far back to py2.2, and the code evolved to bridge py2k old style and new style classes, and the py3k changes.  Three different object bases, and all the complications and pain that induced.  This is now both unnecessarilyy causing a maintenance burden, but worse it induces downstream users to continue patterns no longer modern.
+Snakeoil's roots map as far back to py2.2, and the code evolved to bridge py2k
+old style and new style classes, and the py3k changes.  Three different object
+bases, and all the complications and pain that induced.  This is now both
+unnecessarily causing a maintenance burden, but worse it induces downstream
+users to continue patterns no longer modern.
 
-That is being removed or rewritten so they're using modern python patterns that have evolved over the last 2 decades.
+That is being removed or rewritten so they're using modern python patterns that
+have evolved over the last 2 decades.
 
-This release is the first main batch of deprecations amd refactoring, but 0.11.x will introduce more deprecations, and modernized alternatives when doing so provides value.
+This release is the first main batch of deprecations amd refactoring, but
+0.11.x will introduce more deprecations, and modernized alternatives when doing
+so provides value.
 
 
 Features
-~~~~~~~~~
+~~~~~~~~
 
-- Snakeoil classes- all that aren't deprecated- are again fully slotted.  This is both for the performance that slots bring, and for the robustness it brings- it's impossible to accidentally assigned to the wrong attribute since slotting prevents that.
+- Snakeoil classes, all that aren't deprecated, are again fully slotted.  This
+  is both for the performance that slots bring, and for the robustness it
+  brings - it's impossible to accidentally assigned to the wrong attribute
+  since slotting prevents that.
 
-  Consumers of snakeoil aren't required to slot their derivatives- it is advised however, for the reasons snakeoil does so.  With the exception of classes explicitly marked with ``__slotting_intentionally_disabled__`` and what was deprecated in this release, snakeoil classes will be slotted going forward.  Tests have been written to enforce this requirement in addition.
+  Consumers of snakeoil aren't required to slot their derivatives - it is
+  advised however, for the reasons snakeoil does so.  With the exception of
+  classes explicitly marked with ``__slotting_intentionally_disabled__`` and
+  what was deprecated in this release, snakeoil classes will be slotted going
+  forward.  Tests have been written to enforce this requirement in addition.
 
-- Snakeoil is not *yet* fully typed, but this has been drastically increased, and will be increased going forward.  Until we drop py3.11 support, generic functions will be a known gap.  However due to python typing limitations, and Snakeoil doing some fairly intrinsic things at times, not everything may be able to be fully typed.  What can be typed, will be typed.
+- Snakeoil is not *yet* fully typed, but this has been drastically increased,
+  and will be increased going forward.  Until we drop py3.11 support, generic
+  functions will be a known gap.  However due to python typing limitations, and
+  snakeoil doing some fairly intrinsic things at times, not everything may be
+  able to be fully typed.  What can be typed, will be typed.
 
-  This typing for the duration of 0.11.x should be treated as mostly stable.  The underlying API is bound by semver rules, but the typing will need to be iterated on as we extend these changes through the pkgcore ecosystem and fully identify what corner cases downstream consumers rely on, vs how the API was thought to be used.
+  This typing for the duration of 0.11.x should be treated as mostly stable.
+  The underlying API is bound by semver rules, but the typing will need to be
+  iterated on as we extend these changes through the pkgcore ecosystem and
+  fully identify what corner cases downstream consumers rely on, vs how the API
+  was thought to be used.
 
-- Where snakeoil returns multiple objects in a tuple, these are being converted to ``NamedTuples``.  ``snakeoil.sequences.split_negations`` for example, returns ``(negated, positives)``.  That is now a NamedTuple that is both maintaining the previous API, but allowing one to do this far more maintainable code:: python
+- Where snakeoil returns multiple objects in a tuple, these are being converted
+  to ``NamedTuples``.  ``snakeoil.sequences.split_negations`` for example,
+  returns ``(negated, positives)``.  That is now a NamedTuple that is both
+  maintaining the previous API, but allowing one to do this far more
+  maintainable code.
 
-    # previously, this encoded assumptions of the tuple return order.  This is a known fragile pattern since any semver change can break it.
+  .. code:: python
+
+    # previously, this encoded assumptions of the tuple return order.  This is
+    # a known fragile pattern since any semver change can break it.
     negatives, positives = split_negations(something)
 
     # Now, the previous still works, and this works.
@@ -36,23 +66,48 @@ Features
     print(results.positives)
 
 - class ``snakeoil.test.AbstractTest``: Base ABC class you should use for tests
-  PyTest silently drops collection of all abstract test classes; this is good, exempting when the intention was that it *be* concrete, but it's still ABC due unintentionally reasons.
-  PyTest will not try to instantiate it, so you have no visibility of this problem; the test just silently drops out of the collection.
+  PyTest silently drops collection of all abstract test classes; this is good,
+  exempting when the intention was that it *be* concrete, but it's still ABC
+  due unintentionally reasons. PyTest will not try to instantiate it, so you
+  have no visibility of this problem; the test just silently drops out of the
+  collection.
 
-  Inherit from this instead of ``abc.ABC`` directly.  This has subclass checks to detect this situation and fail the derivation unless you've explicitly marked the derivation as intentionally continuing to be abstract.  That requirement is annoying, but it is the only way ot prevent this issue with PyTest.
+  Inherit from this instead of ``abc.ABC`` directly.  This has subclass checks
+  to detect this situation and fail the derivation unless you've explicitly
+  marked the derivation as intentionally continuing to be abstract.  That
+  requirement is annoying, but it is the only way ot prevent this issue with
+  PyTest.
 
-- class ``snakeoil.klass.GenericEquality``: This replaces ``snakeoil.klass.generic_equality`` written as a metaclass.
-  This has the same basic behaviour- it relies on ``__attr_comparison__`` lists, but can optionally also use the slotting information of a class to generate ``__attr_comparison__``.  Migrate to this, ``generic_equality`` will be removed in 0.12.0.
+- class ``snakeoil.klass.GenericEquality``: This replaces
+  ``snakeoil.klass.generic_equality`` written as a metaclass. This has the same
+  basic behavior - it relies on ``__attr_comparison__`` lists, but can
+  optionally also use the slotting information of a class to generate
+  ``__attr_comparison__``.  Migrate to this, ``generic_equality`` will be
+  removed in 0.12.0.
 
-- class ``snakeoil.GenericRichComparison``: This is an ``__attr_comparison__`` based implementation providing total ordering.  This derives from ``GenericEquality``, thus has the same convience directives.
+- class ``snakeoil.GenericRichComparison``: This is an ``__attr_comparison__``
+  based implementation providing total ordering.  This derives from
+  ``GenericEquality``, thus has the same convenience directives.
 
-- class ``snakeoil.test.Modules``: ABC test class you can inherit for doing code quality enforcement of your codebase.  Currently it just checks for ``__all__`` and verifies that ``__all__`` is accurate.  This is usable both as strict test failures, and as xfails.
+- class ``snakeoil.test.Modules``: ABC test class you can inherit for doing
+  code quality enforcement of your codebase.  Currently it just checks for
+  ``__all__`` and verifies that ``__all__`` is accurate.  This is usable both
+  as strict test failures, and as xfails.
 
-- class ``snakeoil.test.NamespaceCollector``: ABC base class you can use for working against all modules in a given python namespace.  ``snakeoil.test.Modules`` uses this for example, for collecting all modules to enforce it's assertions against.
+- class ``snakeoil.test.NamespaceCollector``: ABC base class you can use for
+  working against all modules in a given python namespace.
+  ``snakeoil.test.Modules`` uses this for example, for collecting all modules
+  to enforce it's assertions against.
 
-- class ``snakeoil.test.Slots``: ABC test class that you can inherit and use for code quality checks of your codebase for slotting.  This includes both requiring slotting (if you wish), and detecting questionable slotting settings.
+- class ``snakeoil.test.Slots``: ABC test class that you can inherit and use
+  for code quality checks of your codebase for slotting.  This includes both
+  requiring slotting (if you wish), and detecting questionable slotting settings.
 
-- class ``snakeoil.klass.immutable.Simple``: Replacement of ``snakeoil.klass.ImmutableInstance`` that is significantly more ergonomic.  Previous code had to do this:: python
+- class ``snakeoil.klass.immutable.Simple``: Replacement of
+  ``snakeoil.klass.ImmutableInstance`` that is significantly more ergonomic.
+  Previous code had to do this:
+
+  .. code:: python
 
     class protected(ImmutableInstance):
       def __init__(self, val1, val2, val3):
@@ -66,7 +121,10 @@ Features
       def mutating_func(self, val2):
         object.__setattr__(self, 'val2', val2)
 
-  This was necessary as a way to bypass the ``__setattr__`` and ``__delattr__`` protections.  This is still possible, but there are better ways now.:: python
+  This was necessary as a way to bypass the ``__setattr__`` and ``__delattr__``
+  protections.  This is still possible, but there are better ways now.
+
+  .. code:: python
 
     class protected(Simple):
       def __init__(self, val1, val2, val3):
@@ -81,22 +139,37 @@ Features
       def mutatingb_func(self, val2):
         self.val2 = val2
 
-  ``__init__`` and ``__setstate__`` are automatically wrapped with ``__allow_mutation__``; any method that has mutation allowed, anything it calls, can also mutate.  This is thread and async safe.
+  ``__init__`` and ``__setstate__`` are automatically wrapped with
+  ``__allow_mutation__``; any method that has mutation allowed, anything it
+  calls, can also mutate.  This is thread and async safe.
 
-  The mechanism for this is more ergonomic, but *less* performant than just invoking ``object.__setattr__`` directly.  For hot paths methods it's recommended to continue using ``object.__setattr__``.  The performance delta will be addressed in a later release with an extension.
+  The mechanism for this is more ergonomic, but *less* performant than just
+  invoking ``object.__setattr__`` directly.  For hot paths methods it's
+  recommended to continue using ``object.__setattr__``.  The performance delta
+  will be addressed in a later release with an extension.
 
-  Using this allows code flow analysis tools to actually make sense of these classes, so it's strongly recommended you use this over ``Strict`` if you can.
+  Using this allows code flow analysis tools to actually make sense of these
+  classes, so it's strongly recommended you use this over ``Strict`` if you can.
 
-- class ``snakeoil.klass.immutable.Strict``: This is the equivalent of what ``snakeoil.klass.ImmutableInstance`` was.  You can migrate to it directly without any code change required.
+- class ``snakeoil.klass.immutable.Strict``: This is the equivalent of what
+  ``snakeoil.klass.ImmutableInstance`` was.  You can migrate to it directly
+  without any code change required.
 
-- class ``snakeoil.suppress_deprecations``: Context manager to suppress all deprecation warnings raised within the given context.  Deprecation warnings are not exposed at runtime (CLI invocations), so do not use it there.  It's actively harmful to do so.
+- class ``snakeoil.suppress_deprecations``: Context manager to suppress all
+  deprecation warnings raised within the given context.  Deprecation warnings
+  are not exposed at runtime (CLI invocations), so do not use it there.  It's
+  actively harmful to do so.
 
 - ``snakeoil.delayed.regexp``: modern replacement for `demand_compile_regexp`.
-  This takes the standard re.compile arguments and delays creation of the regex until it's
-  accessed.
+  This takes the standard re.compile arguments and delays creation of the regex
+  until it's accessed.
 
-- ``snakeoil.klass.abstractclassvar``: mechanism to force python's ``abc.ABC`` to treat a subclass as still abstract if a class variable hasn't been set.
-  The usage is unfortunately not purely an annotation due to how ``abc.ABC`` is implemented, but can be used like this:: python
+- ``snakeoil.klass.abstractclassvar``: mechanism to force python's ``abc.ABC``
+  to treat a subclass as still abstract if a class variable hasn't been set.
+  The usage is unfortunately not purely an annotation due to how ``abc.ABC`` is
+  implemented, but can be used like this:
+
+  .. code:: python
 
     class Base(abc.ABC):
       must_be_defined: ClassVar[str] = abstractclassvar(str)
@@ -109,38 +182,63 @@ Features
       "Do to the class var definition, this class can now be instantiated"
       must_be_defined = "now defined"
 
-- ``snakeoil.klass.combine_metaclasses``: mildly esoteric functionality for combining two metaclasses into one inherited chain of types.
-  This is a convenience function; for example, it's used for combining ``abc.ABC`` with ``WeakInstMeta``.
+- ``snakeoil.klass.combine_metaclasses``: mildly esoteric functionality for
+  combining two metaclasses into one inherited chain of types. This is a
+  convenience function; for example, it's used for combining ``abc.ABC`` with
+  ``WeakInstMeta``.
 
-- ``snakeoil.klass.copy_class_docs``: given a source class, transfer the documentation from that to the target class.
-  This is a convenience tool for when implementing non trivial 'shape' of another class that you can't inherit from.
+- ``snakeoil.klass.copy_class_docs``: given a source class, transfer the
+  documentation from that to the target class. This is a convenience tool for
+  when implementing non trivial 'shape' of another class that you can't inherit
+  from.
 
-  Use this when you're implementing the shape of a class, but for whatever reason, cannot inherit from it.  Multiple implementations
-  in ``snakeoil.sequences`` and ``snakeoil.mappings`` implement the same api as things like ``set``- this is used for just transferring
-  the better documentation from the source class and injecting it into the target class.
+  Use this when you're implementing the shape of a class, but for whatever
+  reason, cannot inherit from it.  Multiple implementations in
+  ``snakeoil.sequences`` and ``snakeoil.mappings`` implement the same api as
+  things like ``set``- this is used for just transferring the better
+  documentation from the source class and injecting it into the target class.
 
-- ``snakeoil.klass.copy_docs``: this is for transferring the documentation between functions.
-  This may seem like duplication of ``functools.wraps``, but ``wraps`` does further mutations to the function that other tooling is
-  aware of.  ``copy_docs`` shouldn't be used for wrapping; it's for when you're implementing the same function in a different way, but
-  matching the API exactly.
+- ``snakeoil.klass.copy_docs``: this is for transferring the documentation
+  between functions. This may seem like duplication of ``functools.wraps``, but
+  ``wraps`` does further mutations to the function that other tooling is aware
+  of.  ``copy_docs`` shouldn't be used for wrapping; it's for when you're
+  implementing the same function in a different way, but matching the API exactly.
 
-- ``snakeoil.klass.get_attrs_of``: Slots aware tool to do what ``vars()`` should.
-  Python's ``vars()`` only uses the `__dict__` of the object; it *cannot* return any slotted attribute unless something incorrect has occurred like a slot shadowing.
+- ``snakeoil.klass.get_attrs_of``: Slots aware tool to do what ``vars()``
+  should. Python's ``vars()`` only uses the ``__dict__`` of the object; it
+  *cannot* return any slotted attribute unless something incorrect has occurred
+  like a slot shadowing.
 
-  TL;dr: use this instead of `vars()`.  The only scenario it cannot find an attribute to return is if a class defined it's `__slots__` with a raw iterator, which is a misfeature of python and should never be used.
+  TL;dr: use this instead of ``vars()``.  The only scenario it cannot find an
+  attribute to return is if a class defined it's ``__slots__`` with a raw
+  iterator, which is a misfeature of python and should never be used.
 
-- ``snakeoil.klass.get_instances_of``: Find every visitable instance of a given class.
-  This should be mostly used in tests, or in very specific scenarios where a registry pattern exists, but a proper registry hasn't been implemented.
-  For example in pkgcheck, there is no registry of checks- it has to scan for any derivative of a class to find it.  This is the instance version of that.
+- ``snakeoil.klass.get_instances_of``: Find every visitable instance of a given
+  class.  This should be mostly used in tests, or in very specific scenarios
+  where a registry pattern exists, but a proper registry hasn't been
+  implemented. For example in pkgcheck, there is no registry of checks, it has
+  to scan for any derivative of a class to find it.  This is the instance
+  version of that.
 
-  Note: this is a walk of the GC.  It's not cheap.  It cannot see instances only exist in `intern()`, nor can it see instances that are held by compiled extensions that do not participate in visit protocol.  Those extensions are broke, as a general rule.
+  Note: this is a walk of the GC.  It's not cheap.  It cannot see instances
+  only exist in ``intern()``, nor can it see instances that are held by
+  compiled extensions that do not participate in visit protocol.  Those
+  extensions are broke, as a general rule.
 
-- ``snakeoil.klass.get_slot_of``: Helper function to extract slotting information of a class- just that layer of the class.
-- ``snakeoil.klass.get_slots_of``: Helper function to extract slotting information of the entire MRO of that class.
-- ``snakeoil.klass.get_subclasses_of``: Helper function to find all subclasses of a given class whilst optionally filtering out ``abc.ABC``.
-  The main usage of this is for pseudo registry implementations (which should implement the registry pattern instead), and for tests asserting certain code standards against a codebase.
+- ``snakeoil.klass.get_slot_of``: Helper function to extract slotting
+  information of a class - just that layer of the class.
 
-- ``snakeoil.klass.is_metaclass``: This is a version of ``isinstance(something, type)`` that is able to see through ``proxy`` style objects that try to lie about what class they actually are.
+- ``snakeoil.klass.get_slots_of``: Helper function to extract slotting
+  information of the entire MRO of that class.
+- ``snakeoil.klass.get_subclasses_of``: Helper function to find all subclasses
+  of a given class whilst optionally filtering out ``abc.ABC``.  The main usage
+  of this is for pseudo registry implementations (which should implement the
+  registry pattern instead), and for tests asserting certain code standards
+  against a codebase.
+
+- ``snakeoil.klass.is_metaclass``: This is a version of
+  ``isinstance(something, type)`` that is able to see through ``proxy`` style
+  objects that try to lie about what class they actually are.
 
 - ``snakeoil.python_namespaces.get_submodules_of``: Given a python import path or module, this will import and return all modules beneath that point in the namespace.
   Use this rather than trying to implement it yourself; this accounts for all python extensions.
@@ -163,114 +261,124 @@ Features
 - ``python -m snakeoil.tools.find_unused_exports`` can be used to analysis the ``__all__`` of a given python namespaces modules against other namespaces to identify if what is exported, is in fact in use.  This tool *will* provide both false positives ane negatives.  Use it as tool for investigating refactoring and deprecation options.  This tool was written and leveraged for identify what could be removed from snakeoil outright in 0.11.0.
 
 
-API deprecations
-~~~~~~~~~~~~~~~~~~~
-- snakeoil.bash.iter_read_bash: Will be removed in 0.12.0
+API deprecations (Will be removed in 0.12.0)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- ``snakeoil.bash.iter_read_bash``:
   This has been renamed to ``read_bash``.
 
-- snakeoil.contexts.chdir: Will be removed in 0.12.0
+- ``snakeoil.contexts.chdir``:
   Use ``contextlib.chdir`` instead.
 
-- snakeoil.demandload.demand_compile_regexp: Will be removed in 0.12.0
+- ``snakeoil.demandload.demand_compile_regexp``:
   Use ``snakeoil.delayed.regexp`` which no longer relies on scope trickery.
 
-- snakeoil.klass.ImmutableInstance*: Will be removed in 0.12.0
+
+- ``snakeoil.klass.ImmutableInstance*``:
   Use ``snakeoil.klass.meta.Immutable*`` metaclasses instead.
 
-- snakeoil.klass.chained_getter: Will be removed in 0.12.0
+- ``snakeoil.klass.chained_getter``:
   Use ``operator.attrgetter`` instead.
 
-- snakeoil.klass.chained_getter: Will be removed in 0.12.0
-  Use ``operator.attrgetter`` instead.
-
-- snakeoil.klass.generic_equality: Will be removed in 0.12.0
+- ``snakeoil.klass.generic_equality``:
   inherit from ``snakeoil.klass.GenericEquality`` instead.
 
-- snakeoil.klass.inject_immutable_instance: Will be removed in 0.12.0
+- ``snakeoil.klass.inject_immutable_instance``:
   Use ``snakeoil.klass.meta.Immutable*`` metaclasses instead.
 
-- snakeoil.klass.inject_richcmp_methods_from_cmp: Will be removed in 0.12.0
+- ``snakeoil.klass.inject_richcmp_methods_from_cmp``
   Use ``functools.total_ordering`` instead.
 
-- snakeoil.klass.steal_docs: Will be removed in 0.12.0
+- ``snakeoil.klass.steal_docs``
   Use ``functools.wraps``.
 
-- snakeoil.modules.load_any: Will be removed in 0.12.0
+- ``snakeoil.modules.load_any``
   Use ``importlib.import_module`` package argument.
 
-- snakeoil.modules.load_attribute: Will be removed in 0.12.0
+- ``snakeoil.modules.load_attribute``
   Use ``importlib.import_module`` package argument.
 
-- snakeoil.osutils.abspath: Will be removed in 0.12.0
+- ``snakeoil.osutils.abspath``
   Use ``os.path.abspath``.
 
-- snakeoil.osutils.join: Will be removed in 0.12.0
+- ``snakeoil.osutils.join``
   Use ``os.path.join``.
 
-- snakeoil.osutils.listdir: Will be removed in 0.12.0
-  ``snakeoil.osutils.listdir`` is deprecated.  Use os.listdir.
+- ``snakeoil.osutils.listdir``:
+  Use ``os.listdir``.
 
-- snakeoil.osutils.normpath: Will be removed in 0.12.0
-  Use ``os.path.normpath`` or ``pathlib``.  Be aware that os.path doesn't strip prefix // into /.
+- ``snakeoil.osutils.normpath``:
+  Use ``os.path.normpath`` or ``pathlib``.  Be aware that ``os.path`` doesn't
+  strip prefix ``//`` into ``/``.
 
-- snakeoil.osutils.pjoin: Will be removed in 0.12.0
-  Use ``os.path.join.
+- ``snakeoil.osutils.pjoin``:
+  Use ``os.path.join``.
 
-- snakeoil.sequences.iter_stable_unique: Will be removed in 0.13.0
-  Use ``snakeoil.sequence.unique_stable`` but be aware it now requires all items be hashable.
+- ``snakeoil.sequences.unstable_unique``:
+  Use ``set()`` instead, it will have superior performance characteristics
+  albeit will allocate more than this implementation which sorted the sequence.
 
-- snakeoil.sequences.stable_unique: Will be removed in 0.13.0
-  Use ``snakeoil.sequence.unique_stable`` but be aware it now requires all items be hashable.
-
-- snakeoil.sequences.unstable_unique: Will be removed in 0.12.0
-  Use ``set()`` instead, it will have superior performance characteristics albeit will allocate more than this implementationd which sorted the sequence.
-
-- snakeoil.tar: Will be removed in 0.12.0
+- ``snakeoil.tar``:
   This is fully deprecated.  Use ``pkgcore.fs.tar`` functionality.
 
-- snakeoil.test.eq_hash_inheritance.Test: Will be removed in 0.12.0
+- ``snakeoil.test.eq_hash_inheritance.Test``:
   This was broken thus disabled long ago.  It's a noop, remove it from your tests.
 
-- snakeoil.test.mixins.PythonNamespaceWalker: Will be removed in 0.12.0
-  Use ``snakeoil.python_namespaces.submodules_of``, or derive from ``snakeoil.code_quality.NamespaceWalker`` for tests.
+- ``snakeoil.test.mixins.PythonNamespaceWalker``:
+  Use ``snakeoil.python_namespaces.submodules_of``, or derive from
+  ``snakeoil.code_quality.NamespaceWalker`` for tests.
 
-- snakeoil.test.modules.ExportedModules: Will be removed in 0.12.0
-  This was broken and accidentally disabled long ago, and is a no-op.  Use ``snakeoil.test.code_quality.Modules``.
+- ``snakeoil.test.modules.ExportedModules``:
+  This was broken and accidentally disabled long ago, and is a no-op.
+  Use ``snakeoil.test.code_quality.Modules``.
 
-- snakeoil.test.slot_shadowing.SlotShadowing: Will be removed in 0.12.0
+- ``snakeoil.test.slot_shadowing.SlotShadowing``:
   Use ``snakeoil.code_quality.Slots`` instead.
+
+API deprecations (Will be removed in 0.13.0)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- ``snakeoil.sequences.iter_stable_unique``:
+  Use ``snakeoil.sequence.unique_stable`` but be aware it now requires all
+  items be hashable.
+
+- ``snakeoil.sequences.stable_unique``:
+  Use ``snakeoil.sequence.unique_stable`` but be aware it now requires all
+  items be hashable.
 
 
 API removals
-~~~~~~~~~~~~~~~~~
-- module snakeoil.demandimport
-- function snakeoil.klass.aliased
-- function snakeoil.klass.generic_attr_eq
-- function snakeoil.klass.generic_attr_ne
-- function snakeoil.klass.generic_eq
-- function snakeoil.klass.generic_ge
-- function snakeoil.klass.generic_gt
-- function snakeoil.klass.generic_le
-- function snakeoil.klass.generic_lt
-- function snakeoil.klass.generic_ne
-- function snakeoil.klass.patch
-- function snakeoil.modules.load_module
-- function snakeoil.obj.popattr
-- function snakeoil.osutils.access
-- function snakeoil.osutils.abssymlink
-- function snakeoil.osutils.readdir
-- function snakeoil.osutils.stat_swallow_enoent
-- function snakeoil.osutils.alias
-- module snakeoil.pickling
-- class.sequences.ChainedLists
-- class snakeoil.tar.TarInfo
-- module snakeoil.weakrefs
+~~~~~~~~~~~~
+
+- module ``snakeoil.demandimport``
+- module ``snakeoil.pickling``
+- module ``snakeoil.weakrefs``
+- class ``sequences.ChainedLists``
+- class ``snakeoil.tar.TarInfo``
+- function ``snakeoil.klass.aliased``
+- function ``snakeoil.klass.generic_attr_eq``
+- function ``snakeoil.klass.generic_attr_ne``
+- function ``snakeoil.klass.generic_eq``
+- function ``snakeoil.klass.generic_ge``
+- function ``snakeoil.klass.generic_gt``
+- function ``snakeoil.klass.generic_le``
+- function ``snakeoil.klass.generic_lt``
+- function ``snakeoil.klass.generic_ne``
+- function ``snakeoil.klass.patch``
+- function ``snakeoil.modules.load_module``
+- function ``snakeoil.obj.popattr``
+- function ``snakeoil.osutils.abssymlink``
+- function ``snakeoil.osutils.access``
+- function ``snakeoil.osutils.alias``
+- function ``snakeoil.osutils.readdir``
+- function ``snakeoil.osutils.stat_swallow_enoent``
 
 Packaging
-~~~~~~~~~~~~~~
-- lazy-object-proxy is no longer a dependency
+~~~~~~~~~
 
-- pytest-subtests ~= 0.15.0 is now a dependency for tests.
+- ``lazy-object-proxy`` is no longer a dependency
+
+- ``pytest-subtests ~= 0.15.0`` is now a dependency for tests.
 
 
 snakeoil 0.10.11 (2025-05-31)
