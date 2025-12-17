@@ -2,7 +2,7 @@
 Release Notes
 =============
 
-snakeoil 0.11.0 (unreleased)
+snakeoil 0.11.0 (2025-12-17)
 ----------------------------
 
 This whole release was a result of massive refactoring done by Brian Harring.
