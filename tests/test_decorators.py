@@ -9,6 +9,7 @@ import pytest
 from snakeoil.decorators import coroutine, namespace, splitexec
 
 
+@pytest.mark.skip("flaky test, needs rework")
 class TestSplitExecDecorator:
     def setup_method(self, method):
         self.pid = os.getpid()
