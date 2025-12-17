@@ -67,8 +67,8 @@ Features
     print(results.negatives)
     print(results.positives)
 
-- class ``snakeoil.test.AbstractTest``: Base ABC class you should use for tests
-  PyTest silently drops collection of all abstract test classes; this is good,
+- class ``snakeoil.test.AbstractTest``: Base ABC class you should use for tests.
+  PyTest silently skips collection of all abstract test classes; this is good,
   exempting when the intention was that it *be* concrete, but it's still ABC
   due unintentionally reasons. PyTest will not try to instantiate it, so you
   have no visibility of this problem; the test just silently drops out of the
@@ -99,7 +99,7 @@ Features
 - class ``snakeoil.test.NamespaceCollector``: ABC base class you can use for
   working against all modules in a given python namespace.
   ``snakeoil.test.Modules`` uses this for example, for collecting all modules
-  to enforce it's assertions against.
+  to enforce its assertions against.
 
 - class ``snakeoil.test.Slots``: ABC test class that you can inherit and use
   for code quality checks of your codebase for slotting.  This includes both
@@ -163,7 +163,7 @@ Features
   actively harmful to do so.
 
 - ``snakeoil.delayed.regexp``: modern replacement for `demand_compile_regexp`.
-  This takes the standard re.compile arguments and delays creation of the regex
+  This takes the standard `re.compile` arguments and delays creation of the regex
   until it's accessed.
 
 - ``snakeoil.klass.abstractclassvar``: mechanism to force python's ``abc.ABC``
@@ -176,7 +176,7 @@ Features
     class Base(abc.ABC):
       must_be_defined: ClassVar[str] = abstractclassvar(str)
 
-    class StillABC(Base):
+    class StillABC(Base, still_abstract=True):
       "this class is still abstract, thus cannot be instantiatied until must_be_defined"
       pass
 
@@ -209,7 +209,7 @@ Features
 - ``snakeoil.klass.get_attrs_of``: Slots aware tool to do what ``vars()``
   should. Python's ``vars()`` only uses the ``__dict__`` of the object; it
   *cannot* return any slotted attribute unless something incorrect has occurred
-  like a slot shadowing.
+  like a slot shadowing where the value is in the `__dict__` (which should never happen).
 
   TL;dr: use this instead of ``vars()``.  The only scenario it cannot find an
   attribute to return is if a class defined it's ``__slots__`` with a raw
@@ -223,9 +223,9 @@ Features
   version of that.
 
   Note: this is a walk of the GC.  It's not cheap.  It cannot see instances
-  only exist in ``intern()``, nor can it see instances that are held by
-  compiled extensions that do not participate in visit protocol.  Those
-  extensions are broke, as a general rule.
+  that only exist in ``intern()``, nor can it see instances that are held by
+  compiled extensions that do not participate in visit protocol.  However, those
+  extensions are broken in effectively all scenarios according to python GC requirements.
 
 - ``snakeoil.klass.get_slot_of``: Helper function to extract slotting
   information of a class - just that layer of the class.
@@ -249,18 +249,18 @@ Features
   The typical pattern people use is to manipulate ``sys.path`` temporarily which is *not* thread safe, and it pollutes ``sys.modules``.  This is the correct way to do an arbitrary import of something that isn't in a proper python namespace.
 
 - ``snakeoil.python_namespaces.import_submodules_of``: Convience function built around ``get_submodules_of``.  If you need to ensure some given python namespace has been imported- everything possible in it- this will do it in a one shot.
-- ``snakeoil.python_namespaces.protect_imports``:  None thread safe context manager allowing temporary ``sys.path`` and ``sys.modules`` manipulation, restoring it when it exits the context.
+- ``snakeoil.python_namespaces.protect_imports``:  Non safe context manager allowing temporary ``sys.path`` and ``sys.modules`` manipulation, restoring it when it exits the context.
   Do not use this in anything other than tests.  If you must import arbitrary source that isn't a python namespace during runtime, use ``import_module_from_path``
 
 - ``snakeoil.python_namespaces.remove_py_extension``: Function to strip the suffix off a python source filename whilst accounting for issues of PEP3147.
-  Cpython allows both ``lib.cpython-311.so`` and ``lib.so`` as importable.  This uses will properly strip either down to ``lib``.
+  Cpython allows both ``lib.cpython-311.so`` and ``lib.so`` as importable.  This will properly strip either down to ``lib``.
 
 - ``snakeoil.sequences.unique_stable``.  This is a modernized ``snakeoil.sequences.stable_unique``.
   This requires all items to be hashable.  Given an iterable, it will remove duplicates while preserving the ordering items were first seen.
 
   Via requiring items be hashable, this removes the quadratic fallback of ``stable_unique`` for non hashable items.
 
-- ``python -m snakeoil.tools.find_unused_exports`` can be used to analysis the ``__all__`` of a given python namespaces modules against other namespaces to identify if what is exported, is in fact in use.  This tool *will* provide both false positives ane negatives.  Use it as tool for investigating refactoring and deprecation options.  This tool was written and leveraged for identify what could be removed from snakeoil outright in 0.11.0.
+- ``python -m snakeoil.tools.find_unused_exports`` can be used to analysis the ``__all__`` of a given python namespaces modules against other namespaces to identify if what is exported, is in fact in use.  This tool *will* provide both false positives ane negatives.  Use it as tool for investigating refactoring and deprecation options.  This tool was written and leveraged for identification what could be removed from snakeoil outright in 0.11.0.
 
 
 API deprecations (Will be removed in 0.12.0)
@@ -276,7 +276,7 @@ API deprecations (Will be removed in 0.12.0)
   Use ``snakeoil.delayed.regexp`` which no longer relies on scope trickery.
 
 
-- ``snakeoil.klass.ImmutableInstance*``:
+- ``snakeoil.klass.ImmutableInstance``:
   Use ``snakeoil.klass.meta.Immutable*`` metaclasses instead.
 
 - ``snakeoil.klass.chained_getter``:
