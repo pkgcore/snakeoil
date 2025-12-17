@@ -77,7 +77,7 @@ __all__ = ("DelayedInstantiation", "make_kls")
 
 import typing
 
-from . import klass
+from .klass.properties import alias_method
 
 # For our proxy, we have two sets of descriptors-
 # common, "always there" descriptors that come from
@@ -158,7 +158,7 @@ class BaseDelayedObject:
 
     # special case the normal descriptors
     for x in base_kls_descriptors:
-        locals()[x] = klass.alias_method(
+        locals()[x] = alias_method(
             "__obj__.%s" % (x,), doc=getattr(getattr(object, x), "__doc__", None)
         )
     # pylint: disable=undefined-loop-variable
@@ -258,7 +258,7 @@ kls_descriptors = frozenset(
 
 
 kls_descriptors = kls_descriptors.difference(base_kls_descriptors)
-descriptor_overrides = {k: klass.alias_method(f"__obj__.{k}") for k in kls_descriptors}
+descriptor_overrides = {k: alias_method(f"__obj__.{k}") for k in kls_descriptors}
 
 _method_cache = {}
 
