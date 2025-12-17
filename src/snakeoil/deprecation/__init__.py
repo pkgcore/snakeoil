@@ -70,13 +70,15 @@ class suppress_deprecations:
     __slots__ = (
         "_warning_ctx",
         "kwargs",
+        "wraps_generators",
     )
     _warnings_ctx: None | warnings.catch_warnings
 
-    def __init__(self, category=DeprecationWarning, **kwargs):
+    def __init__(self, category=DeprecationWarning, wrap_generators=True, **kwargs):
         kwargs.setdefault("action", "ignore")
         kwargs.setdefault("category", DeprecationWarning)
         self.kwargs = kwargs
+        self.wraps_generators = wrap_generators
         self._warning_ctx = None
 
     def __enter__(self):
@@ -100,7 +102,7 @@ class suppress_deprecations:
             # instantiate a new instance.  The callable may result in re-entrancy.
             with (ctx := self.__class__(**self.kwargs)):
                 result = thing(*args, **kwargs)
-            if inspect.isgenerator(result):
+            if inspect.isgenerator(result) and self.wraps_generators:
                 return _GeneratorProxy(result, ctx)  # pyright: ignore[reportReturnType]
             return result
 
