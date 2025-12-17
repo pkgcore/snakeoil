@@ -22,6 +22,7 @@ def test_chdir(tmpdir):
     assert orig_cwd == os.getcwd()
 
 
+@deprecated.suppress_deprecations()
 def test_syspath(tmpdir):
     orig_syspath = tuple(sys.path)
 

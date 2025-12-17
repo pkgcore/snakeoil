@@ -16,6 +16,7 @@ from importlib import import_module
 from multiprocessing.connection import Pipe
 
 from snakeoil._internals import deprecated
+from snakeoil.python_namespaces import protect_imports
 
 from .cli.exceptions import UserException
 from .process import namespaces
@@ -368,6 +369,9 @@ def chdir(path: str) -> contextlib.chdir:
     return _contextlib_chdir(path)
 
 
+@deprecated(
+    "This is not threadsafe.  For runtime use `snakeoil.python_namespaces.import_module_from_path`.  *Strictly* for tests, use `protect_imports`."
+)
 @contextmanager
 def syspath(path: str, condition: bool = True, position: int = 0):
     """Context manager that mangles ``sys.path`` and then reverts on exit.
@@ -378,13 +382,10 @@ def syspath(path: str, condition: bool = True, position: int = 0):
     :param position: Optional integer that is the place where the path is inserted
         in ``sys.path``, defaults to prepending.
     """
-    syspath = sys.path[:]
-    if condition:
-        sys.path.insert(position, path)
-    try:
+    with protect_imports() as (paths, _):
+        if condition:
+            paths.insert(position, path)
         yield
-    finally:
-        sys.path = syspath
 
 
 @contextmanager
