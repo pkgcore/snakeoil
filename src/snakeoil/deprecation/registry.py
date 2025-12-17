@@ -3,9 +3,10 @@ import sys
 import typing
 import warnings
 
-from snakeoil import python_namespaces
-
+from ..delayed import import_module
 from .util import suppress_deprecations
+
+python_namespaces = import_module("snakeoil.python_namespaces")
 
 Version: typing.TypeAlias = tuple[int, int, int]
 warning_category: typing.TypeAlias = type[Warning]
