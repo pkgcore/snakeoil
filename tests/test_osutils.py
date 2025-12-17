@@ -11,9 +11,8 @@ import pytest
 
 from snakeoil import osutils
 from snakeoil._internals import deprecated
-from snakeoil.contexts import Namespace
 from snakeoil.osutils import listdir_dirs, listdir_files, sizeof_fmt, supported_systems
-from snakeoil.osutils.mount import MNT_DETACH, MS_BIND, mount, umount
+from snakeoil.osutils.mount import MS_BIND, mount, umount
 
 
 class ReaddirCommon:
@@ -327,62 +326,11 @@ class TestMount:
             umount(str(target))
         assert cm.value.errno in (errno.EPERM, errno.EINVAL)
 
-    @pytest.mark.skipif(
-        not (
-            os.path.exists("/proc/self/ns/mnt") and os.path.exists("/proc/self/ns/user")
-        ),
-        reason="user and mount namespace support required",
-    )
-    def test_bind_mount(self, source, target):
-        src_file = source / "file"
-        bind_file = target / "file"
-        src_file.touch()
+    @pytest.mark.skip("test must be rewritten due to reliance on SplitExec")
+    def test_bind_mount(self): ...
 
-        try:
-            with Namespace(user=True, mount=True):
-                assert not bind_file.exists()
-                mount(str(source), str(target), None, MS_BIND)
-                assert bind_file.exists()
-                umount(str(target))
-                assert not bind_file.exists()
-        except PermissionError:
-            pytest.skip("No permission to use user and mount namespace")
-
-    @pytest.mark.skipif(
-        not (
-            os.path.exists("/proc/self/ns/mnt") and os.path.exists("/proc/self/ns/user")
-        ),
-        reason="user and mount namespace support required",
-    )
-    def test_lazy_unmount(self, source, target):
-        src_file = source / "file"
-        bind_file = target / "file"
-        src_file.touch()
-        src_file.write_text("foo")
-
-        try:
-            with Namespace(user=True, mount=True):
-                mount(str(source), str(target), None, MS_BIND)
-                assert bind_file.exists()
-
-                with bind_file.open() as f:
-                    # can't unmount the target due to the open file
-                    with pytest.raises(OSError) as cm:
-                        umount(str(target))
-                    assert cm.value.errno == errno.EBUSY
-                    # lazily unmount instead
-                    umount(str(target), MNT_DETACH)
-                    # confirm the file doesn't exist in the bind mount anymore
-                    assert not bind_file.exists()
-                    # but the file is still accessible to the process
-                    assert f.read() == "foo"
-
-                # trying to reopen causes IOError
-                with pytest.raises(IOError) as cm:
-                    f = bind_file.open()
-                assert cm.value.errno == errno.ENOENT
-        except PermissionError:
-            pytest.skip("No permission to use user and mount namespace")
+    @pytest.mark.skip("test must be rewritten due to reliance on SplitExec")
+    def test_lazy_unmount(self): ...
 
 
 class TestSizeofFmt:
