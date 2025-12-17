@@ -5,6 +5,8 @@ Release Notes
 snakeoil 0.11.0 (unreleased)
 ----------------------------
 
+This whole release was a result of massive refactoring done by Brian Harring.
+
 Snakeoil's codebase is being modernized and dropping all historical patterns or
 shims that addressed python <3.11.
 
