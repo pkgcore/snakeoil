@@ -84,6 +84,9 @@ jobs:
         artifact-id: ${{ inputs.release-artifact-id }}
         path: snakeoil
 
+    - name: Install bash 5.3
+      uses: pkgcore/gh-actions/bash-5.3@main
+
     - name: Find last ${{ matrix.repo }} release
       run: |
         versions=$(git ls-remote -q --refs https://github.com/pkgcore/${{ matrix.repo }}  | \
