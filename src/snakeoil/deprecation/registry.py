@@ -3,7 +3,7 @@ import sys
 import typing
 import warnings
 
-from ..delayed import import_module
+from ..delayed import import_module, is_delayed
 from .util import suppress_deprecations
 
 python_namespaces = import_module("snakeoil.python_namespaces")
@@ -137,6 +137,13 @@ class Registry:
         """Decorate a callable with a deprecation notice, registering it in the internal list of deprecations"""
 
         def f(functor):
+            # Catch mistakes that force proxy objects to realize immediately
+            if is_delayed(functor):
+                raise ValueError(
+                    "deprecation of lazy instantiation objects (`snakeoil.obj.DelayedInstantation` for example) are not possible.  `warnings.deprecated` will immediately reify them.  "
+                    "You must interpose a *real* functor that internally invokes the delayed object when accessed; this is the only way to shield the delayed object `from warnings.deprecated` triggering it."
+                )
+
             if not self.is_enabled:
                 return functor
 

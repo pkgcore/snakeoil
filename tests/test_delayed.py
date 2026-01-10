@@ -27,3 +27,8 @@ def test_import_module(tmp_path):
         assert "blah" in modules
         assert 1 == f.x
         assert modules["blah"] is not f
+
+        shortcircuited = delayed.import_module("blah")
+        assert modules["blah"] is shortcircuited, (
+            "import_module must return the module if it already is in sys.modules rather than a proxy"
+        )

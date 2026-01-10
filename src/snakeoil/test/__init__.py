@@ -7,16 +7,21 @@ __all__ = (
     "Modules",
     "NamespaceCollector",
     "protect_process",
+    "protect_imports",
     "random_str",
     "Slots",
 )
 
 
+import contextlib
 import os
 import random
 import string
 import subprocess
 import sys
+import types
+import typing
+from importlib import invalidate_caches
 from unittest.mock import patch
 
 from .abstract import AbstractTest
@@ -113,3 +118,31 @@ def hide_imports(*import_names: str):
         return orig_import(name, *args, **kwargs)
 
     return patch("builtins.__import__", side_effect=mock_import)
+
+
+@contextlib.contextmanager
+def protect_imports() -> typing.Generator[
+    tuple[list[str], dict[str, types.ModuleType]], None, None
+]:
+    """
+    Non threadsafe mock.patch of internal imports to allow revision
+
+    This should used in tests or very select scenarios.  Assume that underlying
+    c extensions that hold internal static state (curse module) will reimport, but
+    will not be 'clean'.  Any changes an import inflicts on the other modules in
+    memory, etc, this cannot block that.  Nor is this intended to do so; it's
+    for controlled tests or very specific usages.
+    """
+    # Do not change this code without changing python_namespaces.protect_imports.  We have two implementations due to cycle issues.
+    orig_content = sys.path[:]
+    orig_modules = sys.modules.copy()
+    with contextlib.nullcontext():
+        yield sys.path, sys.modules
+
+    sys.path[:] = orig_content
+    # This is explicitly not thread safe, but manipulating sys.path fundamentally isn't thus this context
+    # isn't thread safe.  TL;dr: nuke it, and restore, it's the only way to be sure (to paraphrase)
+    sys.modules.clear()
+    sys.modules.update(orig_modules)
+    # Out of paranoia, force loaders to reset their caches.
+    invalidate_caches()

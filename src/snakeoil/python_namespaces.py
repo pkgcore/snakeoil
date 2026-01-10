@@ -1,15 +1,31 @@
 __all__ = ("import_submodules_of", "get_submodules_of")
 
-import contextlib
 import os
-import sys
 import types
 import typing
-from importlib import import_module, invalidate_caches, machinery
+from importlib import import_module, machinery
 from importlib import util as import_util
 from pathlib import Path
 
+from . import delayed
+from ._internals import deprecated
+
 T_class_filter = typing.Callable[[str], bool]
+
+# Delayed to avoid triggering all test crap- pytest for example- and cycle breaking
+# while the deprecation is being moved out.  There is a cycle for all of this
+# that is due to klass needing the deprecated registry whilst having it's own deprecations.
+_test = delayed.import_module("snakeoil.test")
+
+
+@deprecated(
+    "use `snakeoil.tests.protect_imports`; this should only be used for tests.  Runtime usage should use `import_module_from_path`",
+    removal_in=(0, 12, 0),
+    qualname="snakeoil.python_namespaces.protect_imports",
+)
+def protect_imports():
+    # isolate the access so only when this is invoked, does _test reify.
+    return _test.protect_imports()
 
 
 def get_submodules_of(
@@ -109,33 +125,6 @@ def remove_py_extension(path: Path | str) -> str | None:
         if name.endswith(ext):
             return name[: -len(ext)]
     return None
-
-
-@contextlib.contextmanager
-def protect_imports() -> typing.Generator[
-    tuple[list[str], dict[str, types.ModuleType]], None, None
-]:
-    """
-    Non threadsafe mock.patch of internal imports to allow revision
-
-    This should used in tests or very select scenarios.  Assume that underlying
-    c extensions that hold internal static state (curse module) will reimport, but
-    will not be 'clean'.  Any changes an import inflicts on the other modules in
-    memory, etc, this cannot block that.  Nor is this intended to do so; it's
-    for controlled tests or very specific usages.
-    """
-    orig_content = sys.path[:]
-    orig_modules = sys.modules.copy()
-    with contextlib.nullcontext():
-        yield sys.path, sys.modules
-
-    sys.path[:] = orig_content
-    # This is explicitly not thread safe, but manipulating sys.path fundamentally isn't thus this context
-    # isn't thread safe.  TL;dr: nuke it, and restore, it's the only way to be sure (to paraphrase)
-    sys.modules.clear()
-    sys.modules.update(orig_modules)
-    # Out of paranoia, force loaders to reset their caches.
-    invalidate_caches()
 
 
 def import_module_from_path(
