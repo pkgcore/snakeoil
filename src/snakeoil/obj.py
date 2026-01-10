@@ -77,7 +77,7 @@ __all__ = ("DelayedInstantiation", "make_kls")
 
 import typing
 
-from .klass.properties import alias_method
+from ._klass import alias_method
 
 # For our proxy, we have two sets of descriptors-
 # common, "always there" descriptors that come from

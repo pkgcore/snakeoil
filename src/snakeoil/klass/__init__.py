@@ -46,6 +46,7 @@ from operator import attrgetter
 from snakeoil._internals import deprecated
 from snakeoil.sequences import unique_stable
 
+from .._klass import alias_method
 from ..caching import WeakInstMeta
 from ._deprecated import (
     ImmutableInstance,
@@ -57,7 +58,6 @@ from ._deprecated import (
 from .properties import (
     _uncached_singleton,  # noqa: F401 .  This exists purely due to a stupid usage of pkgcore.ebuild.profile which is being removed.
     alias_attr,
-    alias_method,
     cached_property,
     cached_property_named,
     jit_attr,
