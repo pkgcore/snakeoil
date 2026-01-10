@@ -3,7 +3,6 @@
 __all__ = ("main",)
 
 
-import argparse
 import ast
 import logging
 import sys
@@ -12,11 +11,9 @@ from pathlib import Path
 from textwrap import dedent
 from typing import NamedTuple, Optional, Self, cast
 
+from snakeoil.cli import arghparse
+from snakeoil.cli.tool import Tool
 from snakeoil.python_namespaces import get_submodules_of
-
-# Generally hard requirement- avoid relying on snakeoil here.  At somepoint this
-# should be able to be pointed right back at snakeoil for finding components internally
-# that are unused.
 
 logger = logging.getLogger(__name__)
 
@@ -150,14 +147,14 @@ class ImportCollector(ast.NodeVisitor):
         # just rewrite into absolute pathing
         base: list[str]
         if node.level:
-            base = self.current.qualname.split(".")
+            base = self.current.qualname.split(".")  # pyright: ignore[reportAssignmentType]
             level = node.level - self.level_adjustment
             if level:
                 base = base[:-level]
             if node.module:
                 base.extend(node.module.split("."))
         else:
-            base = node.module.split(".")
+            base = node.module.split(".")  # pyright: ignore[reportOptionalMemberAccess]
         for alias in node.names:
             asname = self.get_asname(alias)
             self.update_must_reprocess(asname)
@@ -197,16 +194,13 @@ class AttributeCollector(ast.NodeVisitor):
                     # terminus.  This node won't have attr.
                     lookup.append(last)
                     break
-                lookup.append(value.attr)
-                node = node.value
+                lookup.append(value.attr)  # pyright: ignore[reportAttributeAccessIssue]
+                node = node.value  # pyright: ignore[reportAttributeAccessIssue]
 
         except Exception as e:
             print(
                 f"ast traversal bug in {self.current.qualname} for original {type(node)}={node} sub-value {type(value)}={value}"
             )
-            import pdb
-
-            pdb.set_trace()
             raise e
 
         lookup.reverse()
@@ -229,8 +223,15 @@ class AttributeCollector(ast.NodeVisitor):
             mod.accessed_by[parts[0]].add(self.current)
 
 
-parser = argparse.ArgumentParser(
-    __name__.rsplit(".", 1)[-1],
+parser = arghparse.ArgumentParser(
+    prog=__name__.rsplit(".", 1)[-1],
+)
+
+subparsers = parser.add_subparsers(description="commands")
+
+unused = subparsers.add_parser(
+    "unused",
+    help="tooling for finding used __all__ exports",
     description=dedent(
         """\
         Tool for finding potentially dead code
@@ -248,35 +249,33 @@ parser = argparse.ArgumentParser(
         """
     ),
 )
-parser.add_argument(
-    "source",
+unused.add_argument(
+    "target",
     action="store",
     type=str,
     help="the python module to import and scan recursively, using __all__ to find things only used within that codebase.",
 )
-parser.add_argument(
-    "targets", type=str, nargs="+", help="python namespaces to scan for usage."
-)
-parser.add_argument(
-    "-v", action="store_true", default=False, dest="verbose", help="Increase verbosity"
+unused.add_argument(
+    "consumers", type=str, nargs="+", help="python namespaces to scan for usage."
 )
 
 
+@unused.bind_main_func
 def main(options, out, err) -> int:
     root = ModuleImport(None, None, "")
 
-    source_modules: list[ModuleImport] = []
+    target_modules: set[ModuleImport] = set()
     ast_sources = {}
     # pre-initialize the module tree of what we care about.
-    for target in tuple(options.targets) + (options.source,):
+    for target in tuple(options.consumers) + (options.target,):
         for module in get_submodules_of(target, include_root=True):
             obj = root.create(module.__name__.split("."))
             obj.alls = getattr(module, "__all__", None)
             p = Path(cast(str, module.__file__))
             with p.open("r") as f:
                 ast_sources[obj] = (p, ast.parse(f.read(), str(p)))
-            if target == options.source:
-                source_modules.append(obj)
+            if target == options.target:
+                target_modules.add(obj)
 
     # collect and finalize imports, then run analysis based on attribute access.
 
@@ -305,12 +304,12 @@ def main(options, out, err) -> int:
         AttributeCollector(root, mod).visit(tree)
 
     results = []
-    for mod in source_modules:
+    for mod in sorted(target_modules, key=lambda x: x.qualname):
         results.append(result := [mod.qualname])
         if mod.alls is None:
             result.append(f"{mod.qualname} has no __all__.  Not analyzing")
             continue
-        if options.verbose:
+        if options.verbosity:
             result.append("__all__ = (" + ", ".join(sorted(mod.alls)) + ")")
 
         missing = list(sorted(set(mod.alls).difference(mod.accessed_by)))
@@ -326,7 +325,7 @@ def main(options, out, err) -> int:
 
     first = ""
     for block in sorted(results, key=lambda l: l[0]):
-        if len(block) == 1 and not options.verbose:
+        if len(block) == 1 and not options.verbosity:
             continue
         out.write(f"{first}{block[0]}\n")
         first = "\n"
@@ -341,5 +340,4 @@ def main(options, out, err) -> int:
 
 
 if __name__ == "__main__":
-    options = parser.parse_args()
-    sys.exit(main(options, sys.stdout, sys.stderr))
+    sys.exit(Tool(parser)())
