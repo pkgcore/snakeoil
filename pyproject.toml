@@ -35,6 +35,7 @@ test = [
     # remove this once pytest >= 9.0 is the default.
     "pytest-subtests ~= 0.15.0",
     "sphinx",
+    "vulture >= 2.14"
 ]
 doc = ["sphinx"]
 
