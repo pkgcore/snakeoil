@@ -2,6 +2,16 @@
 Release Notes
 =============
 
+snakeoil 0.11.1 (unreleased)
+--------------------------------
+
+Packaging
+~~~~~~~~~~
+
+- ``pytest >= 9.0`` is now a dependency for tests
+- ``pytest-subtests`` is no longer a dependency.
+
+
 snakeoil 0.11.0 (2025-12-17)
 ----------------------------
 

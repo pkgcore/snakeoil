@@ -13,9 +13,11 @@ authors = [
 	{name = "Brian Harring", email = "ferringb@gmail.com"},
 	{name = "Arthur Zamarin", email = "arthurzam@gentoo.org"},
 ]
+
 maintainers = [
     {name = "Arthur Zamarin", email = "arthurzam@gentoo.org"},
 ]
+
 classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: BSD License",
@@ -24,16 +26,14 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
 ]
-dynamic = ["version"]
 
+dynamic = ["version"]
 dependencies = []
 
 [project.optional-dependencies]
 test = [
-    "pytest >=6.0",
+    "pytest >=9.0",
     "pytest-cov",
-    # remove this once pytest >= 9.0 is the default.
-    "pytest-subtests ~= 0.15.0",
     "sphinx",
     "vulture >= 2.14"
 ]
