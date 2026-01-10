@@ -1,7 +1,5 @@
-__all__ = ("NamespaceCollector", "Slots", "Modules")
-import inspect
+__all__ = ("Slots", "Modules")
 import typing
-from types import ModuleType
 
 import pytest
 
