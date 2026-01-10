@@ -4,6 +4,7 @@ __all__ = ("main",)
 
 
 import ast
+import functools
 import logging
 import sys
 from collections import defaultdict
@@ -26,7 +27,16 @@ class CtxAccess(NamedTuple):
 # This classes are effectively a tree that can be walked backwards as
 # we recurse into the import pathways where they reference back down the pathways.
 # It is cyclic as all hell.
+@functools.total_ordering
 class ModuleImport(dict[str, "ModuleImport"]):
+    """
+    Usage notes:
+
+    Be aware that .accessed_by records *all* access- whether it be an attribute in this module,
+    or if it's an access of a submodule of this given node.  accessed_by isn't a list
+    of attributes, use .attrs if you want that (which filters out all known submodules)
+    """
+
     def __init__(self, root: Self | None, parent: Self | None, name: str) -> None:
         self.root = self if root is None else root  # oh yeah, cyclic baby.
         self.parent = self.root if parent is None else parent
@@ -43,7 +53,10 @@ class ModuleImport(dict[str, "ModuleImport"]):
         return hash(self.qualname)
 
     def __eq__(self, other):
-        return self is other
+        return self is other or self.qualname == other.qualname
+
+    def __lt__(self, other):
+        return self.qualname < other.qualname
 
     @property
     def qualname(self):
@@ -53,6 +66,10 @@ class ModuleImport(dict[str, "ModuleImport"]):
             l.append(current.name)
             current = current.parent
         return ".".join(reversed(l))
+
+    @property
+    def known_attrs(self):
+        return tuple(name for name in self.accessed_by if name not in self)
 
     def create(self, chunks: list[str]) -> "ModuleImport":
         assert len(chunks)
@@ -88,7 +105,7 @@ class ModuleImport(dict[str, "ModuleImport"]):
         return (parts, current)
 
     def __str__(self) -> str:
-        return f"{self.qualname}: access={self.accessed_by!r} unscoped={self.unscoped_accessers!r} known ctx={list(sorted(self.ctx_imports.keys()))!r}"
+        return f"{self.qualname}: access={'{'}{', '.join(self.accessed_by)}{'}'} unscoped={self.unscoped_accessers!r} known ctx={list(sorted(self.ctx_imports.keys()))!r}"
 
     def __repr__(self):
         return str(self)
@@ -232,7 +249,10 @@ class ModuleCollector:
         self.root = ModuleImport(None, None, "")
         self.ast_sources = {}
 
-    def add_namespace(self, namespace: str) -> list[ModuleImport]:
+    def add_namespace(
+        self,
+        namespace: str,
+    ) -> list[ModuleImport]:
         collected = []
         # pre-initialize the module tree of what we care about.
         for module in get_submodules_of(namespace, include_root=True):
@@ -315,13 +335,14 @@ unused.add_argument(
 
 @unused.bind_main_func
 def main(options, out, err) -> int:
-    collecter = ModuleCollector()
-    target_modules = collecter.add_namespace(options.target)
+    collector = ModuleCollector()
+    target_modules = sorted(collector.add_namespace(options.target))
     for consumer in options.consumers:
-        collecter.add_namespace(consumer)
+        collector.add_namespace(consumer)
+    collector.finalize()
 
     results = []
-    for mod in sorted(target_modules, key=lambda x: x.qualname):
+    for mod in target_modules:
         results.append(result := [mod.qualname])
         if mod.alls is None:
             result.append(f"{mod.qualname} has no __all__.  Not analyzing")
@@ -352,6 +373,51 @@ def main(options, out, err) -> int:
 
         for lines in block[1:]:
             out.write(f"  {lines}\n")
+
+    return 0
+
+
+used = subparsers.add_parser(
+    "used", help="analyze a namespace consumers for potential __all_ modifications"
+)
+used.add_argument(
+    "target",
+    action="store",
+    type=str,
+    help="the python module to import and scan recursively, using __all__ to find things only used within that codebase.",
+)
+used.add_argument(
+    "consumers", type=str, nargs="+", help="python namespaces to scan for usage."
+)
+
+
+@used.bind_main_func
+def used_main(options, out, err) -> int:
+    collector = ModuleCollector()
+    target_modules = sorted(collector.add_namespace(options.target))
+    for consumer in options.consumers:
+        collector.add_namespace(consumer)
+    collector.finalize()
+
+    prefix = "  "
+    for mod in target_modules:
+        out.write(mod.qualname, ":")
+        accessed = set(mod.known_attrs)
+        if mod.alls is not None:
+            out.write(prefix, "existing __all__ = (", ", ".join(mod.alls), "}")
+            accessed.difference_update(mod.alls)
+        else:
+            out.write(prefix, "no __all__ is defined")
+        if mod.unscoped_accessers:
+            out.write(prefix, "unscoped access exists, results will be incomplete")
+        if not accessed:
+            out.write(prefix, "no accesses found beyond existing __all__")
+        else:
+            for thing in sorted(accessed):
+                out.write(prefix, thing, " is accessed by:")
+                for accessor in mod.accessed_by[thing]:
+                    out.write(prefix, prefix, accessor.qualname)
+        out.write()
 
     return 0
 
