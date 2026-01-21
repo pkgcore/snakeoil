@@ -48,7 +48,7 @@ def supported_systems(*systems):
     ...     return True
     >>>
     >>> if sys.platform.startswith(('linux', 'darwin')):
-    >>>     assert func() == True
+    >>>     assert func() is True
 
     ``NotImplementedError`` is raised on platforms that aren't supported.
 

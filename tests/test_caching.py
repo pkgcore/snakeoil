@@ -184,7 +184,7 @@ class TestWeakInstMeta:
         new_call = c.__class__.__call__
         # ensure it's not mutating the reference functools passes.
         assert new_call.__annotations__ is not f.__annotations__
-        assert new_call.__annotations__["disable_inst_caching"] == bool
+        assert new_call.__annotations__["disable_inst_caching"] is bool
         a = new_call.__annotations__.copy()
         a.pop("disable_inst_caching")
         assert a == f.__annotations__

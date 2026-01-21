@@ -47,8 +47,8 @@ class TestDictMixin:
         d = MutableDict(baz="cat")
         assert d.setdefault("baz") == "cat"
         assert d.setdefault("baz", "foon") == "cat"
-        assert d.setdefault("foo") == None
-        assert d["foo"] == None
+        assert d.setdefault("foo") is None
+        assert d["foo"] is None
         assert d.setdefault("spork", "cat") == "cat"
         assert d["spork"] == "cat"
 
@@ -59,7 +59,7 @@ class TestDictMixin:
         assert d.pop("foo") == "bar"
         assert d.popitem(), "baz" == "cat"
         pytest.raises(KeyError, d.popitem)
-        assert d.pop("nonexistent", None) == None
+        assert d.pop("nonexistent", None) is None
 
     def test_init(self):
         d = MutableDict((("foo", "bar"), ("spork", "foon")), baz="cat")
@@ -480,17 +480,17 @@ class TestIndeterminantDict:
             lambda key: False, starter_dict={}.fromkeys(range(100), True)
         )
         for x in range(100):
-            assert d[x] == True
+            assert d[x] is True
         for x in range(100, 110):
-            assert d[x] == False
+            assert d[x] is False
 
     def test_behaviour(self):
         val = []
         d = mappings.IndeterminantDict(
             lambda key: val.append(key), {}.fromkeys(range(10), True)
         )
-        assert d[0] == True
-        assert d[11] == None
+        assert d[0] is True
+        assert d[11] is None
         assert val == [11]
 
         def func(*a):
@@ -508,9 +508,9 @@ class TestIndeterminantDict:
         d = mappings.IndeterminantDict(func, {1: 1})
         assert d.get(1, 1) == 1
         assert d.get(1, 2) == 1
-        assert d.get(2) == None
+        assert d.get(2) is None
         assert d.get(2, 2) == 2
-        assert d.get(3) == True
+        assert d.get(3) is True
 
 
 class TestFoldingDict:

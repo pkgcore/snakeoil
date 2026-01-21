@@ -23,12 +23,12 @@ class TestUserQuery:
 
     def test_default_answer(self, mocked_input):
         mocked_input.return_value = ""
-        assert self.query("foo") == True
+        assert self.query("foo") is True
 
     def test_tuple_prompt(self, mocked_input):
         mocked_input.return_value = ""
         prompt = "perhaps a tuple"
-        assert self.query(tuple(prompt.split())) == True
+        assert self.query(tuple(prompt.split())) is True
         output = "".join(prompt.split())
         assert (
             self.out.get_text_stream().strip().split("\n")[0][: len(output)] == output
@@ -41,7 +41,7 @@ class TestUserQuery:
         }
         # no default answer returns None for empty input
         mocked_input.return_value = ""
-        assert self.query("foo", responses=responses) == None
+        assert self.query("foo", responses=responses) is None
         mocked_input.return_value = "a"
         assert self.query("foo", responses=responses) == "z"
         mocked_input.return_value = "b"
@@ -80,7 +80,7 @@ class TestUserQuery:
 
     def test_custom_default_answer(self, mocked_input):
         mocked_input.return_value = ""
-        assert self.query("foo", default_answer=False) == False
+        assert self.query("foo", default_answer=False) is False
 
     def test_eof_nochoice(self, mocked_input):
         # user hits ctrl-d
