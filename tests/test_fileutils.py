@@ -5,8 +5,6 @@ import os
 import time
 from unittest import mock
 
-pjoin = os.path.join
-
 import pytest
 
 from snakeoil import _fileutils, fileutils
