@@ -35,7 +35,6 @@ test = [
     "pytest >=9.0",
     "pytest-cov",
     "sphinx",
-    "vulture >= 2.14"
 ]
 doc = ["sphinx"]
 
