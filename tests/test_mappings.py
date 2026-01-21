@@ -242,7 +242,7 @@ class TestImmutableDict:
     def test_init_dictmixin(self):
         d = MutableDict(baz="cat")
         e = mappings.ImmutableDict(d)
-        assert dict(d) == {"baz": "cat"}
+        assert dict(e) == {"baz": "cat"}
 
     def test_init_bad_data(self):
         for data in (range(10), list(range(10)), [([], 1)]):
