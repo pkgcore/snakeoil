@@ -119,7 +119,8 @@ def run_exitfuncs():
             func(*targs, **kargs)
         except SystemExit:
             exc_info = sys.exc_info()
-        except:
+        # This is the last ditch exit cleanup; a bare except is fine here.
+        except:  # noqa: E722
             exc_info = sys.exc_info()
 
     if exc_info is not None:
