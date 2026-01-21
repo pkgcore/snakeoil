@@ -52,5 +52,14 @@ minversion = "6.0"
 addopts = "-vv -ra -l"
 testpaths = ["tests"]
 
+[tool.ruff]
+target-version = "py311"
+
+[tool.ruff.lint]
+extend-select = ["I"]
+ignore = [
+	"E741",  # ambiguous variable name
+]
+
 [tool.vulture]
 paths = ["src/snakeoil/"]
