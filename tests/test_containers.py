@@ -1,6 +1,7 @@
 from itertools import chain
 
 import pytest
+
 from snakeoil import containers
 
 

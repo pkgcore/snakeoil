@@ -1,4 +1,5 @@
 import pytest
+
 from snakeoil.strings import doc_dedent, pluralism
 
 

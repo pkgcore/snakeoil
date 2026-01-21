@@ -24,7 +24,9 @@ bz2_path = process.find_binary("bzip2")
 
 
 try:
-    from bz2 import BZ2File, compress as _compress_data, decompress as _decompress_data
+    from bz2 import BZ2File
+    from bz2 import compress as _compress_data
+    from bz2 import decompress as _decompress_data
 
     native = True
 except ImportError:

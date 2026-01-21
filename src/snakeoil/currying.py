@@ -31,7 +31,6 @@ while :py:func:`pre_curry` is python you should use :py:func:`functools.partial`
 if possible.
 """
 
-import sys
 from functools import partial
 
 from .compatibility import IGNORED_EXCEPTIONS

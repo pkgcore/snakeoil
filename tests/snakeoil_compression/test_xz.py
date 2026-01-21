@@ -2,6 +2,7 @@ import importlib
 from lzma import decompress
 
 import pytest
+
 from snakeoil.compression import _xz
 from snakeoil.process import CommandNotFound, find_binary
 from snakeoil.test import hide_imports

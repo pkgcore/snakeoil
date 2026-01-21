@@ -2,6 +2,7 @@ import importlib
 from bz2 import decompress
 
 import pytest
+
 from snakeoil.compression import _bzip2
 from snakeoil.process import CommandNotFound, find_binary
 from snakeoil.test import hide_imports

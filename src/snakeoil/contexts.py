@@ -3,7 +3,6 @@
 import contextlib
 import os
 import subprocess
-import sys
 from contextlib import AbstractContextManager, contextmanager
 from contextlib import chdir as _contextlib_chdir
 from importlib import import_module

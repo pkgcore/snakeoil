@@ -1,5 +1,4 @@
 import abc
-import gc
 import operator
 import weakref
 from typing import Any

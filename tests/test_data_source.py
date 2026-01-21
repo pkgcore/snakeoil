@@ -1,6 +1,7 @@
 from functools import partial
 
 import pytest
+
 from snakeoil import compression, data_source
 
 

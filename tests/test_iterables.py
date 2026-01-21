@@ -1,6 +1,7 @@
 import operator
 
 import pytest
+
 from snakeoil.iterables import caching_iter, expandable_chain, iter_sort, partition
 
 

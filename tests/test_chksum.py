@@ -1,4 +1,5 @@
 import pytest
+
 from snakeoil import chksum
 
 

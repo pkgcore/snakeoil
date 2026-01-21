@@ -9,7 +9,7 @@ pjoin = os.path.join
 
 import pytest
 
-from snakeoil import _fileutils, currying, fileutils
+from snakeoil import _fileutils, fileutils
 from snakeoil.fileutils import AtomicWriteFile
 from snakeoil.test import random_str
 

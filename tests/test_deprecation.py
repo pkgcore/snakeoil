@@ -199,7 +199,7 @@ class TestRegistry:
         with protect_imports() as (paths, _):
             paths.append(str(tmpdir))
             with pytest.warns() as captures:
-                import deprecated_import  # pyright: ignore[reportMissingImports]
+                import deprecated_import  # pyright: ignore[reportMissingImports] # noqa: F401
 
         assert 1 == len(captures)
         w = captures[0]
