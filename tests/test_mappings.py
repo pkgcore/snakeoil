@@ -247,7 +247,7 @@ class TestImmutableDict:
     def test_init_bad_data(self):
         for data in (range(10), list(range(10)), [([], 1)]):
             with pytest.raises(TypeError):
-                d = mappings.ImmutableDict(data)
+                mappings.ImmutableDict(data)
 
     def test_str(self):
         d = {1: 1, 2: 2}

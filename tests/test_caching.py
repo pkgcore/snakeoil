@@ -167,7 +167,8 @@ class TestWeakInstMeta:
         _myid = id(o)
         del o
         gc.collect()
-        o = weak_inst(unique)
+        # This *must* be pinned, thus the empty assign.
+        o = weak_inst(unique)  # noqa: F841
         assert weak_inst.counter == 2
 
     def test_function_metadata(self):

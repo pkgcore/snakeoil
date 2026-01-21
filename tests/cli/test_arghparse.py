@@ -175,7 +175,7 @@ class TestArgumentParser(TestCsvActionsParser, TestOptionalsParser):
 
         # ensure the option isn't there if disabled
         with pytest.raises(argparse_helpers.Error):
-            namespace = parser.parse_args(["--debug"])
+            parser.parse_args(["--debug"])
 
         namespace = parser.parse_args([])
         # parser attribute still exists
@@ -212,7 +212,7 @@ class TestArgumentParser(TestCsvActionsParser, TestOptionalsParser):
         # ensure the options aren't there if disabled
         for args in ("-q", "--quiet", "-v", "--verbose"):
             with pytest.raises(argparse_helpers.Error):
-                namespace = parser.parse_args([args])
+                parser.parse_args([args])
 
         namespace = parser.parse_args([])
         # parser attribute still exists
@@ -269,7 +269,7 @@ class ParseStdinTest(BaseArgparseOptions):
         # stdin is an interactive tty
         with mock.patch("sys.stdin.isatty", return_value=True):
             with pytest.raises(argparse_helpers.Error) as excinfo:
-                namespace = self.parser.parse_args(["-"])
+                self.parser.parse_args(["-"])
             assert "only valid when piping data in" in str(excinfo.value)
 
         # fake piping data in
@@ -353,7 +353,7 @@ class TestCommaSeparatedNegationsAction(TestCommaSeparatedValuesAction):
         self.parser.add_argument("--testing", action=self.action)
         for arg in self.bad_args:
             with pytest.raises(argparse.ArgumentTypeError) as excinfo:
-                namespace = self.parser.parse_args(["--testing=" + arg])
+                self.parser.parse_args(["--testing=" + arg])
             assert "without a token" in str(excinfo.value)
 
 
@@ -477,7 +477,7 @@ class TestManHelpAction:
         with mock.patch("subprocess.Popen") as popen:
             # --help long option tries man page first before falling back to help output
             with pytest.raises(argparse_helpers.Exit):
-                namespace = parser.parse_args(["--help"])
+                parser.parse_args(["--help"])
             popen.assert_called_once()
             assert popen.call_args[0][0][0] == "man"
             captured = capsys.readouterr()
@@ -486,7 +486,7 @@ class TestManHelpAction:
 
             # -h short option just displays the regular help output
             with pytest.raises(argparse_helpers.Exit):
-                namespace = parser.parse_args(["-h"])
+                parser.parse_args(["-h"])
             popen.assert_not_called()
             captured = capsys.readouterr()
             assert captured.out.strip().startswith("usage: ")
