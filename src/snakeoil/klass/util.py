@@ -180,7 +180,7 @@ def combine_metaclasses(kls: type, *extra: type) -> type:
         return kls
 
     class combined(*klses):
-        pass
+        __slots__ = ()
 
     combined.__name__ = f"combined_{'_'.join(kls.__qualname__ for kls in klses)}"
     return combined
