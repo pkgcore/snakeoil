@@ -73,14 +73,14 @@ class Simple:
         f.__disable_mutation_autowrapping__ = True  # pyright: ignore[reportAttributeAccessIssue] # it's already wrapped.
         return f
 
-    def __init_subclass__(cls, *args, **kwargs) -> None:
+    def __init_subclass__(cls, **kwargs) -> None:
         """Modify the subclass allowing mutation for default allowed methods"""
         for name in cls.__immutable_methods_to_autowrap__:
             if (method := getattr(cls, name, None)) is not None:
                 # is it wrapped already or was marked to disable wrapping?
                 if not getattr(method, "__disable_mutation_autowrapping__", False):
                     setattr(cls, name, cls.__allow_mutation_wrapper__(method))
-        return super().__init_subclass__(*args, **kwargs)
+        return super().__init_subclass__(**kwargs)
 
     def __setattr__(self, name, value):
         if id(self) != _immutable_allow_mutations.get():
