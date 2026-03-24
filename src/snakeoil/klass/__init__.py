@@ -198,9 +198,7 @@ class GenericEquality(abc.ABC):
 
     __attr_comparison__: typing.ClassVar[tuple[str, ...]]
 
-    def __eq__(
-        self, value, /, attr_comparison_override: tuple[str, ...] | None = None
-    ) -> bool:
+    def __eq__(self, value) -> bool:
         """
         Comparison is down via comparing attributes listed in self.__attr_comparison__,
         or via the passed in attr_comparison_override.  That exists specifically to
@@ -208,18 +206,18 @@ class GenericEquality(abc.ABC):
         """
         if self is value:
             return True
-        for attr in (
-            self.__attr_comparison__
-            if attr_comparison_override is None
-            else attr_comparison_override
-        ):
+        for attr in self.__attr_comparison__:
             if getattr(self, attr, sentinel) != getattr(value, attr, sentinel):
                 return False
         return True
 
-    def __init_subclass__(cls, compare_slots=False, **kwargs) -> None:
-        slotting = list(get_slots_of(cls))
+    def __init_subclass__(
+        cls,
+        compare_slots=False,
+        **kwargs,
+    ) -> None:
         if compare_slots:
+            slotting = list(get_slots_of(cls))
             if "__attr_comparison__" in cls.__dict__:
                 raise TypeError(
                     "compare_slots=True makes no sense when __attr_comparison__ is explicitly set in the class directly"
