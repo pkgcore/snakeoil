@@ -133,7 +133,8 @@ def protect_imports() -> typing.Generator[
     memory, etc, this cannot block that.  Nor is this intended to do so; it's
     for controlled tests or very specific usages.
     """
-    # Do not change this code without changing python_namespaces.protect_imports.  We have two implementations due to cycle issues.
+    # Do not change this code without changing python_namespaces .
+    # There are two versions due to deprecation and cyclic reasons.
     orig_content = sys.path[:]
     orig_modules = sys.modules.copy()
     with contextlib.nullcontext():
