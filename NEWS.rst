@@ -5,6 +5,17 @@ Release Notes
 snakeoil 0.11.1 (unreleased)
 --------------------------------
 
+Features
+~~~~~~~~
+
+* `snakeoil.klass.memoize` contains a modern rewrite of `snakeoil.caching.WeakInstMeta`.
+  To migrate, just switch from setting the metaclass to the old, and inherit
+  `memoize.WeaklyCached`.  If this is ABC, inherit `WeaklyCachedABC`.  This version now
+  supports inheritance of toleration of uncachable arguments, defaulting to cache enabled or
+  disabled based on the parent, and passing directives via the now standard class inherit
+  approach of `class foon(blah, x=1, y=2)`.
+
+
 API deprecations
 ~~~~~~~~~~~~~~~~
 
