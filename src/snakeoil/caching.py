@@ -59,7 +59,13 @@ import typing
 import warnings
 from weakref import WeakValueDictionary
 
+from snakeoil._internals import deprecated
 
+
+@deprecated(
+    "WeakInstMeta has been replaced by snakeoil.klass.memoize.WeaklyCachedMeta, however you should instead just inherit the non-meta snakeoil.klass.memoize.WeaklyCached",
+    removal_in=(0, 12, 0),
+)
 class WeakInstMeta(type):
     """Metaclass for instance caching, resulting in reuse of unique instances.
 

@@ -19,6 +19,8 @@ Features
 API deprecations
 ~~~~~~~~~~~~~~~~
 
+* `snakeoil.caching`.  Please migrate to `snakeoil.klass.memoize.WeaklyCached` instead.
+  Removal in `0.12.0`.
 * `snakeoil.sequences.predicate_split`.  `snakeoil.iterables.partition` is
   the iterable equivalent.  Use that instead.  Removal in `0.12.0`.
 * `snakeoil.contexts.patch`.  Use `unittest.mock.patch` instead.  Removal in `0.12.0`.
