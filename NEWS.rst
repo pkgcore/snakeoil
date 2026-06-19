@@ -2,8 +2,8 @@
 Release Notes
 =============
 
-snakeoil 0.11.1 (unreleased)
---------------------------------
+snakeoil 0.11.1 (2026-06-19)
+----------------------------
 
 Features
 ~~~~~~~~
@@ -24,6 +24,27 @@ API deprecations
 * `snakeoil.sequences.predicate_split`.  `snakeoil.iterables.partition` is
   the iterable equivalent.  Use that instead.  Removal in `0.12.0`.
 * `snakeoil.contexts.patch`.  Use `unittest.mock.patch` instead.  Removal in `0.12.0`.
+* `snakeoil.contexts.syspath`.  Use `snakeoil.modules.import_module_from_path` for
+  runtime usage, or `snakeoil.test.python_namespace.protect_imports` in tests.
+  Removal in `0.12.0`.
+
+
+API removals
+~~~~~~~~~~~~
+
+* ``snakeoil.contexts.SplitExec``: Removed due to deep coupling with CPython internals
+  that proved fragile across environments.  No maintained replacement is provided;
+  use a subprocess if isolated execution is needed.
+* ``snakeoil.contexts.Namespace``: Removed alongside ``SplitExec`` which it depended on.
+
+
+Changes
+~~~~~~~
+
+* ``snakeoil.tools.find_unused_exports`` has been renamed to ``snakeoil.tools.imports``
+  and now uses subcommands.  The previous ``find_unused_exports`` behavior is available
+  as ``snakeoil-imports find-unused-exports``.
+
 
 Packaging
 ~~~~~~~~~~
