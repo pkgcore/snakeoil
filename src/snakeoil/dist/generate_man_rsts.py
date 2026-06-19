@@ -6,8 +6,8 @@ import sys
 from functools import partial
 from importlib import import_module
 from string import capwords
+from unittest.mock import patch
 
-from ..contexts import patch
 from ..osutils import force_symlink
 from ..strings import doc_dedent
 
