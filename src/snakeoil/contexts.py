@@ -12,7 +12,7 @@ from snakeoil._internals import deprecated
 from snakeoil.python_namespaces import protect_imports
 
 from .cli.exceptions import UserException
-from .sequences import predicate_split
+from .iterables import partition
 
 
 class GitStash(AbstractContextManager):
@@ -45,7 +45,8 @@ class GitStash(AbstractContextManager):
             raise ValueError(f"not a git repo: {self.path}")
 
         # split file changes into unstaged vs staged
-        unstaged, staged = predicate_split(lambda x: x[1] == " ", p.stdout.splitlines())
+        unstaged, _staged = partition(p.stdout.splitlines(), lambda x: x[1] == " ")
+        unstaged = list(unstaged)
 
         # don't stash when no relevant changes exist
         if self._staged:
