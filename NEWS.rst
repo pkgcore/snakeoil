@@ -2,7 +2,7 @@
 Release Notes
 =============
 
-snakeoil 0.11.2 (unreleased)
+snakeoil 0.11.2 (2026-07-23)
 ----------------------------
 
 Fixes
