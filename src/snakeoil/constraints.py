@@ -146,7 +146,7 @@ class Problem:
         return True
 
     def __iter__(self):
-        for constraint, variables in self.constraints:
+        for constraint, variables in self.constraints[:]:
             if len(variables) == 1:
                 variable, *_ = variables
                 domain = self.variables[variable]
@@ -190,7 +190,7 @@ class Problem:
                 if not values:
                     # no, go back to last variable, if there's one
                     while queue:
-                        del assignments[variable]
+                        assignments.pop(variable, None)
                         variable, values, push_domains = queue.pop()
                         for domain in push_domains:
                             domain.pop_state()

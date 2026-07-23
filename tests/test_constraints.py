@@ -62,6 +62,32 @@ def test_no_solution():
     assert not tuple(p)
 
 
+def test_no_solution_after_unary_pruned_domain():
+    p = Problem()
+    p.add_variable((True, False), "a")
+    p.add_variable((True, False), "c")
+    p.add_variable((True,), "systemd")
+    p.add_constraint(lambda a: a, ("a",))
+    p.add_constraint(lambda a, c: a == c, ("a", "c"))
+    p.add_constraint(lambda systemd: not systemd, ("systemd",))
+    assert not tuple(p)
+
+
+def test_unary_constraints_all_applied():
+    p = Problem()
+    p.add_variable((1, 2, 3), "a", "b", "c", "d")
+    p.add_constraint(lambda a: a == 1, ("a",))
+    p.add_constraint(lambda b: b == 2, ("b",))
+    p.add_constraint(lambda c: c == 3, ("c",))
+    p.add_constraint(lambda d: d == 1, ("d",))
+    next(iter(p), None)
+    assert p.constraints == []
+    assert p.variables["a"] == [1]
+    assert p.variables["b"] == [2]
+    assert p.variables["c"] == [3]
+    assert p.variables["d"] == [1]
+
+
 def test_forward_check():
     p = Problem()
     p.add_variable(range(2, 10), "x", "y", "z")

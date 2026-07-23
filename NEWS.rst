@@ -2,6 +2,20 @@
 Release Notes
 =============
 
+snakeoil 0.11.2 (unreleased)
+----------------------------
+
+Fixes
+~~~~~
+
+- ``snakeoil.constraints.Problem``: fix a ``KeyError`` during backtracking
+  when a variable's domain was pruned to empty by a unary constraint and
+  only reached after other variables were already assigned (Arthur Zamarin)
+- ``snakeoil.constraints.Problem``: fix ``self.constraints`` being mutated
+  while iterated over during unary constraint pre-processing, which silently
+  skipped every other unary constraint's domain pruning (Arthur Zamarin)
+
+
 snakeoil 0.11.1 (2026-06-19)
 ----------------------------
 
