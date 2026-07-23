@@ -13,6 +13,6 @@ This library is a bit of a grabbag of the following:
 __title__ = "snakeoil"
 # TODO: wire these all against py_build rendered values, or against git.  Don't hardcode it here.
 # Once that's done, extend it to the rest of the ecosystem.
-__version__ = "0.11.2"
-__version_info__ = (0, 11, 2)
+__version__ = "0.11.3.dev0"
+__version_info__ = (0, 11, 3, "dev0")
 __python_mininum_version__ = (3, 11, 0)
