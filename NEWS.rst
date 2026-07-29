@@ -17,6 +17,8 @@ Changes
 
 - ``snakeoil.constraints.Problem``: select the next variable without ordering
   all of them first (Arthur Zamarin)
+- ``snakeoil.constraints.Problem``: check constraints without rebuilding the
+  assignment dict for each one (Arthur Zamarin)
 
 
 snakeoil 0.11.2 (2026-07-23)

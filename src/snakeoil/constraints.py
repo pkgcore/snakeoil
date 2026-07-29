@@ -130,18 +130,31 @@ class Problem:
         variables: frozenset[str],
         assignments: dict[str, Any],
     ) -> bool:
-        assignments = {k: v for k, v in assignments.items() if k in variables}
-        unassigned = variables - assignments.keys()
-        if not unassigned:
-            return constraint(**assignments)
-        if len(unassigned) == 1:
-            var = next(iter(unassigned))
-            if domain := self.variables[var]:
-                for value in domain[:]:
-                    assignments[var] = value
-                    if not constraint(**assignments):
-                        domain.hide_value(value)
-                del assignments[var]
+        known: dict[str, Any] = {}
+        var = None
+        for name in variables:
+            if name in assignments:
+                known[name] = assignments[name]
+            elif var is None:
+                var = name
+            else:
+                return True
+
+        if var is None:
+            return constraint(**known)
+
+        if domain := self.variables[var]:
+            # collect first, so the domain isn't modified while iterating
+            hidden = None
+            for value in domain:
+                known[var] = value
+                if not constraint(**known):
+                    if hidden is None:
+                        hidden = []
+                    hidden.append(value)
+            if hidden:
+                for value in hidden:
+                    domain.hide_value(value)
                 return bool(domain)
         return True
 
