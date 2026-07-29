@@ -73,6 +73,27 @@ def test_no_solution_after_unary_pruned_domain():
     assert not tuple(p)
 
 
+def test_empty_domain_after_unary_skips_the_search():
+    """An empty domain settles the problem without exploring anything"""
+    calls = []
+
+    p = Problem()
+    p.add_variable((False,), "needed")
+    p.add_constraint(lambda needed: needed, ("needed",))
+
+    free = [f"f{i}" for i in range(8)]
+    p.add_variable((True, False), *free)
+
+    def counted(**kwargs):
+        calls.append(kwargs)
+        return any(kwargs.values())
+
+    p.add_constraint(counted, frozenset(free))
+
+    assert tuple(p) == ()
+    assert calls == []
+
+
 def test_unary_constraints_all_applied():
     p = Problem()
     p.add_variable((1, 2, 3), "a", "b", "c", "d")

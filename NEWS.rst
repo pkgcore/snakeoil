@@ -2,6 +2,16 @@
 Release Notes
 =============
 
+snakeoil 0.11.3 (unreleased)
+----------------------------
+
+Fixes
+~~~~~
+
+- ``snakeoil.constraints.Problem``: return immediately when a unary constraint
+  prunes a domain to empty (Arthur Zamarin)
+
+
 snakeoil 0.11.2 (2026-07-23)
 ----------------------------
 

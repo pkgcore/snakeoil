@@ -156,6 +156,9 @@ class Problem:
                 self.constraints.remove((constraint, variables))
                 self.vconstraints[variable].remove((constraint, variables))
 
+        if not all(self.variables.values()):
+            return
+
         assignments: dict[str, Any] = {}
         queue: list[tuple[str, _Domain, tuple[_Domain, ...]]] = []
 
