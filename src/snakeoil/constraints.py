@@ -162,22 +162,30 @@ class Problem:
         assignments: dict[str, Any] = {}
         queue: list[tuple[str, _Domain, tuple[_Domain, ...]]] = []
 
+        # constraints are fixed during the search, so degrees are too
+        degrees = {
+            name: -len(self.vconstraints.get(name, ())) for name in self.variables
+        }
+
         while True:
             # mix the Degree and Minimum Remaining Values (MRV) heuristics
-            lst = sorted(
-                (-len(self.vconstraints[name]), len(domain), name)
-                for name, domain in self.variables.items()
+            best = min(
+                (
+                    (degrees[name], len(domain), name)
+                    for name, domain in self.variables.items()
+                    if name not in assignments
+                ),
+                default=None,
             )
-            for _, _, variable in lst:
-                if variable not in assignments:
-                    values = self.variables[variable][:]
+            if best is not None:
+                variable = best[2]
+                values = self.variables[variable][:]
 
-                    push_domains = tuple(
-                        domain
-                        for name, domain in self.variables.items()
-                        if name != variable and name not in assignments
-                    )
-                    break
+                push_domains = tuple(
+                    domain
+                    for name, domain in self.variables.items()
+                    if name != variable and name not in assignments
+                )
             else:
                 # no unassigned variables, we've got a solution.
                 yield assignments.copy()

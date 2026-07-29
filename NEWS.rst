@@ -12,6 +12,13 @@ Fixes
   prunes a domain to empty (Arthur Zamarin)
 
 
+Changes
+~~~~~~~
+
+- ``snakeoil.constraints.Problem``: select the next variable without ordering
+  all of them first (Arthur Zamarin)
+
+
 snakeoil 0.11.2 (2026-07-23)
 ----------------------------
 
