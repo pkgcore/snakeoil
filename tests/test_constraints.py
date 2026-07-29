@@ -100,3 +100,40 @@ def test_forward_check():
         {"x": 3, "y": 5, "z": 9},
         {"x": 3, "y": 3, "z": 9},
     )
+
+
+def test_variable_order_prefers_degree_over_domain_size():
+    """The order variables are assigned in, which decides solution order."""
+    p = Problem()
+    p.add_variable((1, 2, 3), "wide")
+    p.add_variable((7, 8), "narrow", "other")
+    p.add_constraint(lambda wide, narrow: wide != narrow - 6, ("wide", "narrow"))
+    p.add_constraint(lambda wide, other: wide != other - 6, ("wide", "other"))
+
+    solutions = tuple(p)
+    assert solutions == (
+        {"wide": 3, "narrow": 8, "other": 8},
+        {"wide": 3, "narrow": 8, "other": 7},
+        {"wide": 3, "narrow": 7, "other": 8},
+        {"wide": 3, "narrow": 7, "other": 7},
+        {"wide": 2, "narrow": 7, "other": 7},
+        {"wide": 1, "narrow": 8, "other": 8},
+    )
+    # dict equality ignores key order
+    assert tuple(solutions[0]) == ("wide", "narrow", "other")
+
+
+def test_solution_order_follows_domain_order_per_variable():
+    """Each variable's own domain order decides which solutions come first"""
+    p = Problem()
+    p.add_variable((False, True), "x", "y")
+    p.add_variable((True, False), "z")
+    p.add_constraint(lambda x, y: x or y, ("x", "y"))
+    p.add_constraint(lambda y, z: not (y and z), ("y", "z"))
+
+    assert tuple(p) == (
+        {"y": True, "z": False, "x": True},
+        {"y": True, "z": False, "x": False},
+        {"y": False, "x": True, "z": True},
+        {"y": False, "x": True, "z": False},
+    )
