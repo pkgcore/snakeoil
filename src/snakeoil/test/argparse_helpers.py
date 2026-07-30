@@ -3,14 +3,14 @@ __all__ = (
     "Bold",
     "Color",
     "FakeStreamFormatter",
-    "mangle_parser",
     "Reset",
+    "mangle_parser",
 )
 import difflib
 from copy import copy
 
-from ..caching import WeakInstMeta
 from ..formatters import PlainTextFormatter
+from ..klass.memoize import WeaklyCached
 
 
 class Exit(Exception):
@@ -49,7 +49,7 @@ def mangle_parser(parser):
     return parser
 
 
-class FormatterObject(metaclass=WeakInstMeta):
+class FormatterObject(WeaklyCached):
     __inst_caching__ = True
 
     def __call__(self, formatter):
@@ -124,7 +124,7 @@ class FakeStreamFormatter(PlainTextFormatter):
 
     def get_text_stream(self):
         return b"".join(
-            (x for x in self.stream if not isinstance(x, FormatterObject))
+            x for x in self.stream if not isinstance(x, FormatterObject)
         ).decode("ascii")
 
 
