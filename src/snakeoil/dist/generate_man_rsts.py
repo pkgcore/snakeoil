@@ -3,7 +3,6 @@ import errno
 import os
 import re
 import sys
-from functools import partial
 from importlib import import_module
 from string import capwords
 from unittest.mock import patch
@@ -43,7 +42,6 @@ class ManConverter:
     """Convert argparse help docs into rST man pages."""
 
     positional_re = re.compile(r'^([^: \t]+)')
-    positional_re = partial(positional_re.sub, r':\g<1>:')
 
     arg_enumeration_re = re.compile(r'{([^}]+)}')
 
@@ -139,7 +137,7 @@ class ManConverter:
             l.extend(_rst_header(self.header_char, action_group.title))
             if action_group.description:
                 l.extend(doc_dedent(action_group.description).split("\n"))
-            l.extend(self.positional_re(x) for x in data.split("\n"))
+            l.extend(self.positional_re.sub(r':\g<1>:', x) for x in data.split("\n"))
             l.append('')
         return l
 

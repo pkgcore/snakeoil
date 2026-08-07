@@ -2,6 +2,15 @@
 Release Notes
 =============
 
+snakeoil 0.11.4 (unreleased)
+----------------------------
+
+- ``snakeoil.dist.generate_man_rsts``: fix man page generation failing under
+  Python 3.14 with ``TypeError: 'str' object cannot be interpreted as an
+  integer``, caused by ``functools.partial`` becoming a method descriptor
+  (Arthur Zamarin, https://bugs.gentoo.org/957993)
+
+
 snakeoil 0.11.3 (2026-07-30)
 ----------------------------
 
