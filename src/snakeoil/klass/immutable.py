@@ -122,8 +122,13 @@ class Simple:
     def __allow_mutation_wrapper__(cls, functor):
         @functools.wraps(functor)
         def f(instance, *args, **kwargs):
-            with cls.__allow_mutation__(instance):
+            # __allow_mutation__ inlined; building and driving it's generator is
+            # the dominant cost of creating small immutable instances.
+            last = _immutable_allow_mutations.set(id(instance))
+            try:
                 return functor(instance, *args, **kwargs)
+            finally:
+                _immutable_allow_mutations.reset(last)
 
         f.__disable_mutation_autowrapping__ = True  # pyright: ignore[reportAttributeAccessIssue] # it's already wrapped.
         return f

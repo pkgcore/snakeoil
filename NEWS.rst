@@ -23,6 +23,10 @@ snakeoil 0.11.4 (unreleased)
   serialization.  Dropping it makes serializing slotted objects ~4x faster
   (Arthur Zamarin, #117)
 
+- ``snakeoil.klass.immutable.Simple``: methods auto wrapped in a mutation block
+  no longer build and drive a ``@contextmanager`` generator per call.  Creating
+  small immutable instances is up to 1.5x faster (Arthur Zamarin)
+
 
 snakeoil 0.11.3 (2026-07-30)
 ----------------------------
