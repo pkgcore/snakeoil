@@ -420,8 +420,19 @@ def cached_hash(
     return __hash__
 
 
+@deprecated(
+    "python pickles __slots__ natively; inherit snakeoil.klass.immutable.Simple or "
+    "Strict if you need mutation protected classes to unpickle",
+    removal_in=(0, 12, 0),
+    qualname="snakeoil.klass.SlotsPicklingMixin",
+)
 class SlotsPicklingMixin:
-    """Default pickling support for classes that use __slots__."""
+    """Deprecated.  Python pickles __slots__ natively.
+
+    For classes that block mutation, inherit `snakeoil.klass.immutable.Simple`
+    or `snakeoil.klass.immutable.Strict`; they carry the __setstate__ needed to
+    restore state past those protections.
+    """
 
     __slots__ = ()
 

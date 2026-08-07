@@ -1,4 +1,6 @@
 import contextvars
+import copy
+import pickle
 from functools import partial, wraps
 
 import pytest
@@ -178,3 +180,112 @@ class TestStrict:
     def test_basics(self):
         self._common()
         self._common(slotted=True)
+
+
+class _slotted(immutable.Simple):
+    __slots__ = ("__weakref__", "x", "y")
+
+    def __init__(self, x, y=None):
+        self.x = x
+        if y is not None:
+            self.y = y
+
+
+class _strict_slotted(immutable.Strict):
+    __slots__ = ("x",)
+
+    def __init__(self, x):
+        object.__setattr__(self, "x", x)
+
+
+class _mangled(immutable.Simple):
+    __slots__ = ("__priv",)
+
+    def __init__(self, value):
+        self.__priv = value
+
+    @property
+    def priv(self):
+        return self.__priv
+
+
+class _dicted(immutable.Simple):
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            object.__setattr__(self, k, v)
+
+
+class _mixed(_dicted):
+    __slots__ = ("x",)
+
+    def __init__(self, x, **kwargs):
+        super().__init__(**kwargs)
+        self.x = x
+
+
+class TestMarshalling(metaclass=inject_context_protection):
+    """Instances must survive pickle/copy despite the mutation protections"""
+
+    def roundtrips(self, obj):
+        yield copy.copy(obj)
+        yield copy.deepcopy(obj)
+        for protocol in (2, pickle.HIGHEST_PROTOCOL):
+            yield pickle.loads(pickle.dumps(obj, protocol))
+
+    def test_slotted(self):
+        for obj in self.roundtrips(_slotted(1, 2)):
+            assert (obj.x, obj.y) == (1, 2)
+
+    def test_strict(self):
+        for obj in self.roundtrips(_strict_slotted(1)):
+            assert obj.x == 1
+
+    def test_unset_slot_stays_unset(self):
+        for obj in self.roundtrips(_slotted(1)):
+            assert obj.x == 1
+            assert not hasattr(obj, "y")
+
+    def test_weakref_is_not_state(self):
+        _, slots = _slotted(1, 2).__getstate__()  # pyright: ignore[reportGeneralTypeIssues]
+        assert "__weakref__" not in slots
+
+    def test_mangled_slot(self):
+        for obj in self.roundtrips(_mangled("dar")):
+            assert obj.priv == "dar"
+
+    def test_dicted(self):
+        for obj in self.roundtrips(_dicted(a=1, b=2)):
+            assert obj.a == 1 and obj.b == 2
+
+    def test_dict_and_slots(self):
+        for obj in self.roundtrips(_mixed(1, a=2)):
+            assert (obj.x, obj.a) == (1, 2)
+
+    def test_flat_slot_mapping(self):
+        """state written by the deprecated klass.SlotsPicklingMixin is a flat mapping"""
+        obj = _slotted.__new__(_slotted)
+        obj.__setstate__({"x": 1, "y": 2})
+        assert (obj.x, obj.y) == (1, 2)
+
+    def test_foreign_state_is_rejected(self):
+        """a custom __getstate__ two tuple must not be mistaken for (__dict__, slots)"""
+        obj = _slotted.__new__(_slotted)
+        with pytest.raises(TypeError):
+            obj.__setstate__((1, "not-a-slot-mapping"))
+
+    def test_setstate_is_not_autowrapped(self):
+        for kls in (_slotted, _strict_slotted):
+            assert kls.__setstate__.__disable_mutation_autowrapping__  # pyright: ignore[reportFunctionMemberAccess]
+
+    def test_setstate_only_injected_where_needed(self):
+        """a __setstate__ costs a python frame per instance; only slotting needs it"""
+        assert getattr(_dicted, "__setstate__", None) is None
+        assert _mixed.__setstate__ is not None
+
+        class custom(_slotted):
+            __slots__ = ()
+
+            def __setstate__(self, state):
+                raise AssertionError(state)
+
+        assert custom.__setstate__ is not _slotted.__setstate__

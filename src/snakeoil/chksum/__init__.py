@@ -145,8 +145,9 @@ class LazilyHashedPath(Simple):
 
     @Simple.__allow_mutation_wrapper__
     def __getattr__(self, attr):
-        if not attr.islower():
-            # Disallow sHa1.
+        if not attr.islower() or attr.startswith("__"):
+            # Disallow sHa1.  Dunders must be rejected outright; protocol probes
+            # like __setstate__ land here before .path is set, else we recurse.
             raise AttributeError(attr)
         elif attr == "mtime":
             val = osutils.stat_mtime_long(self.path)
@@ -163,9 +164,3 @@ class LazilyHashedPath(Simple):
         for key in get_handlers():
             if hasattr(self, key):
                 delattr(self, key)
-
-    def __getstate__(self):
-        return self.__dict__.copy()
-
-    def __setstate__(self, data):
-        self.__dict__.update(data)

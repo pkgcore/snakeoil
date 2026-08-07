@@ -1,5 +1,6 @@
 import abc
 import inspect
+import pickle
 import re
 import sys
 from functools import partial
@@ -8,6 +9,7 @@ from time import time
 import pytest
 
 from snakeoil import klass
+from snakeoil._internals import deprecated
 from snakeoil.klass.properties import _internal_jit_attr, _uncached_singleton
 
 if sys.version_info >= (3, 13):
@@ -36,7 +38,7 @@ class Test_GetAttrProxy:
         o2 = foo2()
         o = foo1(o2)
         with pytest.raises(AttributeError):
-            getattr(o, "blah")
+            _ = o.blah
         assert o.obj == o2
         o2.foon = "dar"
         assert o.foon == "dar"
@@ -368,7 +370,7 @@ class Test_jit_attr:
         base.attr = self.jit_attr_ext_method("f1", "_attr", use_cls_setattr=True)
         o = base()
         with pytest.raises(TypeError):
-            getattr(o, "attr")
+            _ = o.attr
         base._setattr_allowed = True
         assert o.attr == now
 
@@ -382,7 +384,7 @@ class Test_jit_attr:
         o = base()
         # no func...
         with pytest.raises(AttributeError):
-            getattr(o, "attr")
+            _ = o.attr
         base.func = base.f1
         assert o.attr == now
         assert o._attr2 == now
@@ -414,11 +416,11 @@ class Test_jit_attr:
         obj.attr
 
     def test_cached_property(self):
-        l = []  # noqa: E741
+        l = []
 
         class foo:
             @klass.cached_property
-            def blah(self, l=l, i=iter(range(5))):  # noqa: E741
+            def blah(self, l=l, i=iter(range(5))):
                 l.append(None)
                 return next(i)
 
@@ -441,11 +443,11 @@ class Test_aliased_attr:
 
         o = cls()
         with pytest.raises(AttributeError):
-            getattr(o, "attr")
+            _ = o.attr
         o.dar = "foon"
 
         with pytest.raises(AttributeError):
-            getattr(o, "attr")
+            _ = o.attr
         o.dar = o
         o.blah = "monkey"
 
@@ -536,7 +538,7 @@ class TestImmutableInstance:
 
         o = kls()
         with pytest.raises(AttributeError):
-            setattr(o, "dar", "foon")
+            o.dar = "foon"
         with pytest.raises(AttributeError):
             delattr(o, "dar")
 
@@ -554,9 +556,28 @@ class TestImmutableInstance:
 
         o = kls()
         with pytest.raises(TypeError):
-            setattr(o, "dar", "foon")
+            o.dar = "foon"
         with pytest.raises(AttributeError):
             delattr(o, "dar")
+
+
+with deprecated.suppress_deprecations():
+
+    class _slots_pickling_consumer(klass.SlotsPicklingMixin):
+        __slots__ = ("x",)
+
+
+class TestSlotsPicklingMixin:
+    def test_deprecated_on_subclassing(self):
+        with deprecated_call():
+
+            class kls(klass.SlotsPicklingMixin):
+                __slots__ = ("x",)
+
+    def test_still_functional(self):
+        obj = _slots_pickling_consumer()
+        obj.x = 1
+        assert pickle.loads(pickle.dumps(obj)).x == 1
 
 
 class TestAliasMethod:
@@ -564,7 +585,7 @@ class TestAliasMethod:
 
     def test_alias_method(self):
         class kls:
-            __len__ = lambda s: 3  # noqa: E731
+            __len__ = lambda s: 3
             lfunc = self.func("__len__")
 
         c = kls()

@@ -10,6 +10,19 @@ snakeoil 0.11.4 (unreleased)
   integer``, caused by ``functools.partial`` becoming a method descriptor
   (Arthur Zamarin, https://bugs.gentoo.org/957993)
 
+- ``snakeoil.klass.immutable.Simple``/``Strict``: slotted subclasses are now
+  picklable and copyable directly; a ``__setstate__`` restoring state past the
+  mutation protections is injected for them.  Classes without slotting are left
+  alone, keeping python's C level state restoration (Arthur Zamarin, #117)
+
+- ``snakeoil.klass.immutable.Simple``/``Strict``: fix state of name mangled
+  private slots being silently dropped when pickling (Arthur Zamarin)
+
+- ``snakeoil.klass.SlotsPicklingMixin``: deprecated, removal in 0.12.0.  Python
+  pickles ``__slots__`` natively; the mixin only added an uncached MRO walk per
+  serialization.  Dropping it makes serializing slotted objects ~4x faster
+  (Arthur Zamarin, #117)
+
 
 snakeoil 0.11.3 (2026-07-30)
 ----------------------------

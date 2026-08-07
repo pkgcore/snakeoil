@@ -3,12 +3,67 @@ __all__ = ("Simple", "Strict")
 import functools
 from contextlib import contextmanager
 from contextvars import ContextVar
+from copyreg import _slotnames  # pyright: ignore[reportAttributeAccessIssue]
 
 _immutable_allow_mutations = ContextVar(
     "immutable_instance_allow_mutation",
     # no object's pointer will ever be zero, so this is safe.
     default=0,
 )
+
+
+def _is_state_pair(state) -> bool:
+    """Is this the (__dict__, slots) two tuple `object.__getstate__` produces?"""
+    return (
+        isinstance(state, tuple)
+        and len(state) == 2
+        and (state[0] is None or isinstance(state[0], dict))
+        and isinstance(state[1], dict)
+    )
+
+
+def _restore_state(self, state):
+    """Restore marshalled state, sidestepping the mutation protections.
+
+    Marshalling is a lower level than runtime manipulation of objects, thus this
+    doesn't go through __setattr__.  Every shape `object.__getstate__` produces is
+    handled: None, a bare __dict__, or the (__dict__, slots) two tuple.
+
+    Note: a subclass overriding __getstate__ to return anything else must supply
+    it's own __setstate__.
+    """
+    if state is None:
+        return
+    if isinstance(state, dict):
+        # a __dict__ only class, or a flat slot mapping from an older snakeoil.
+        slots = state
+    elif _is_state_pair(state):
+        state, slots = state
+        if state:
+            self.__dict__.update(state)
+    else:
+        raise TypeError(
+            f"{self.__class__.__qualname__} has a custom __getstate__ returning "
+            f"{state!r}; it must supply a matching __setstate__"
+        )
+    if slots:
+        setter = object.__setattr__
+        for k, v in slots.items():
+            setter(self, k, v)
+
+
+_restore_state.__disable_mutation_autowrapping__ = True  # pyright: ignore[reportFunctionMemberAccess]
+
+
+def _inject_state_restoration(cls) -> None:
+    """Take over state restoration, but only for classes that need it.
+
+    Python restores __dict__ state directly, but slotted state via setattr- which
+    these classes block.  Only intercede for the latter; a __setstate__ costs a
+    python frame per instance that classes w/out slotting shouldn't pay.
+    """
+    if _slotnames(cls) and getattr(cls, "__setstate__", None) is None:
+        cls.__setstate__ = _restore_state
 
 
 class Simple:
@@ -80,6 +135,7 @@ class Simple:
                 # is it wrapped already or was marked to disable wrapping?
                 if not getattr(method, "__disable_mutation_autowrapping__", False):
                     setattr(cls, name, cls.__allow_mutation_wrapper__(method))
+        _inject_state_restoration(cls)
         return super().__init_subclass__(**kwargs)
 
     def __setattr__(self, name, value):
@@ -106,6 +162,10 @@ class Strict:
     """
 
     __slots__ = ()
+
+    def __init_subclass__(cls, **kwargs) -> None:
+        _inject_state_restoration(cls)
+        return super().__init_subclass__(**kwargs)
 
     def __setattr__(self, attr, _value):
         raise AttributeError(self, attr)

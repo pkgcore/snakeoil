@@ -1,3 +1,5 @@
+import pickle
+
 import pytest
 
 from snakeoil import chksum
@@ -43,3 +45,10 @@ class Test_funcs:
         assert chksum.get_handler("x") == 1
         assert chksum.get_handler("y") == 2
         assert self._inited_count == 1
+
+
+class TestLazilyHashedPath:
+    def test_pickling(self):
+        obj = chksum.LazilyHashedPath("/dev/null", size=0, md5="deadbeef")
+        new = pickle.loads(pickle.dumps(obj))
+        assert (new.path, new.size, new.md5) == ("/dev/null", 0, "deadbeef")
