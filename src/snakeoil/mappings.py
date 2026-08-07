@@ -3,17 +3,17 @@ Miscellaneous mapping related classes and functionality
 """
 
 __all__ = (
+    "AttrAccessible",
     "DictMixin",
-    "LazyValDict",
-    "LazyFullValLoadDict",
-    "ProtectedDict",
     "ImmutableDict",
     "IndeterminantDict",
-    "defaultdictkey",
-    "AttrAccessible",
-    "StackedDict",
-    "make_SlottedDict_kls",
+    "LazyFullValLoadDict",
+    "LazyValDict",
+    "ProtectedDict",
     "ProxiedAttrs",
+    "StackedDict",
+    "defaultdictkey",
+    "make_SlottedDict_kls",
 )
 
 import operator
@@ -83,17 +83,12 @@ class DictMixin:
     __contains__ = contains
 
     def __eq__(self, other):
+        if not isinstance(other, (DictMixin, Mapping)):
+            return NotImplemented
         if len(self) != len(other):
             return False
-        for k1, k2 in zip(sorted(self), sorted(other)):
-            if k1 != k2:
-                return False
-            if self[k1] != other[k2]:
-                return False
-        return True
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
+        get = other.get
+        return all(v == get(k, sentinel) for k, v in self.items())
 
     def pop(self, key, default=sentinel):
         if not self.__externally_mutable__:
@@ -166,7 +161,7 @@ class LazyValDict(DictMixin):
     lazily load key definitions and values as requested
     """
 
-    __slots__ = ("_keys", "_keys_func", "_vals", "_val_func")
+    __slots__ = ("_keys", "_keys_func", "_val_func", "_vals")
     __externally_mutable__ = False
 
     def __init__(self, get_keys_func, get_val_func):
@@ -240,10 +235,9 @@ class LazyFullValLoadDict(LazyValDict):
             self._keys_func = None
         if key in self._vals:
             return self._vals[key]
-        if key in self._keys:
-            if self._val_func is not None:
-                self._vals.update(self._val_func(self._keys))
-                return self._vals[key]
+        if key in self._keys and self._val_func is not None:
+            self._vals.update(self._val_func(self._keys))
+            return self._vals[key]
         raise KeyError(key)
 
 
@@ -254,7 +248,7 @@ class ProtectedDict(DictMixin):
     mapping from changes.
     """
 
-    __slots__ = ("orig", "new", "blacklist")
+    __slots__ = ("blacklist", "new", "orig")
 
     def __init__(self, orig):
         """
@@ -290,7 +284,7 @@ class ProtectedDict(DictMixin):
     def keys(self):
         for k in self.new:
             yield k
-        for k in self.orig.keys():
+        for k in self.orig:
             if k not in self.blacklist and k not in self.new:
                 yield k
 
@@ -304,7 +298,7 @@ class ImmutableDict(Mapping):
     Because this is immutable, it's hashable.
     """
 
-    __slots__ = ("_dict", "__weakref__")
+    __slots__ = ("__weakref__", "_dict")
 
     def __init__(self, data=None):
         if isinstance(data, ImmutableDict):
