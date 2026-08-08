@@ -1,7 +1,6 @@
 import argparse
 import errno
 import os
-import re
 import sys
 from importlib import import_module
 from string import capwords
@@ -20,56 +19,19 @@ def _rst_header(char, text, leading=False, capitalize=True):
     return [text, s, '']
 
 
-class RawTextFormatter(argparse.RawTextHelpFormatter):
-    """Workaround man page generation issues with default rST output formatting."""
+class RstFormatter(argparse.RawTextHelpFormatter):
+    """Render argparse actions as rST option directives for sphinx's std domain."""
 
     def _format_action(self, action):
-        if action.help is not None:
-            # Force help docs to be on a separate line from the options. Sphinx man page
-            # generation sometimes messes up formatting without this, e.g. for options with
-            # explicit choices the first line of the help docs is often on the same line as
-            # the argument and choices instead of matching the indentation level of other
-            # arguments.
-            action.help = '\n' + action.help.strip()
-        return super()._format_action(action)
-
-    def _format_action_invocation(self, action):
-        text = super()._format_action_invocation(action)
-        return f':option:`{text}`'
+        lines = [f'.. option:: {self._format_action_invocation(action)}', '']
+        if action.help and (help_text := self._expand_help(action).strip()):
+            lines.extend(f'   {x}'.rstrip() for x in help_text.split('\n'))
+            lines.append('')
+        return "\n".join(lines) + "\n"
 
 
 class ManConverter:
     """Convert argparse help docs into rST man pages."""
-
-    positional_re = re.compile(r'^([^: \t]+)')
-
-    arg_enumeration_re = re.compile(r'{([^}]+)}')
-
-    def _rewrite_option(self, text):
-        def f(match):
-            string = match.group(1)
-            string = string.replace(',', '|')
-            array = [x.strip() for x in string.split('|')]
-            # Specifically return '|' w/out spaces; later code is
-            # space sensitive. We do the appropriate replacement as
-            # the last step.
-            return fr"<{'|'.join(array)}>"
-        text = self.arg_enumeration_re.sub(f, text)
-        # Now that we've convert {x,y} style options, we need to next
-        # convert multi-argument options into a form that is parsable
-        # as a two item tuple.
-        l = []
-        for chunk in text.split(','):
-            chunk = chunk.split()
-            if len(chunk) > 2:
-                chunk[1:] = [f"<{' '.join(chunk[1:])}>"]
-            if not chunk[0].startswith('-'):
-                chunk[0] = f':{chunk[0]}:'
-            l.append(' '.join(chunk))
-        # Recompose the options into one text field.
-        text = ', '.join(l)
-        # Finally, touch up <x|a> into <x | a>
-        return text.replace('|', ' | ')
 
     @classmethod
     def regen_if_needed(cls, base_path, src, out_name=None, force=False):
@@ -126,20 +88,7 @@ class ManConverter:
 
     @staticmethod
     def _get_formatter(parser, name):
-        return RawTextFormatter(name, width=1000, max_help_position=1000)
-
-    def process_positional(self, parser, name, action_group):
-        l = []
-        h = self._get_formatter(parser, name)
-        h.add_arguments(action_group._group_actions)
-        data = h.format_help().strip()
-        if data:
-            l.extend(_rst_header(self.header_char, action_group.title))
-            if action_group.description:
-                l.extend(doc_dedent(action_group.description).split("\n"))
-            l.extend(self.positional_re.sub(r':\g<1>:', x) for x in data.split("\n"))
-            l.append('')
-        return l
+        return RstFormatter(name, width=1000, max_help_position=1000)
 
     def process_subcommands(self, parser, name, action_group):
         l = []
@@ -168,10 +117,6 @@ class ManConverter:
         l = []
         subcmds = []
         for action_group in parser._action_groups:
-            if getattr(action_group, 'marker', '') == 'positional' or \
-                    action_group.title == 'positional arguments':
-                l.extend(self.process_positional(parser, name, action_group))
-                continue
             if any(isinstance(x, argparse._SubParsersAction) for x in action_group._group_actions):
                 assert len(action_group._group_actions) == 1
                 lines, subcmds = self.process_subcommands(parser, name, action_group)
@@ -179,19 +124,15 @@ class ManConverter:
                 continue
             h = self._get_formatter(parser, name)
             h.add_arguments(action_group._group_actions)
-            data = h.format_help()
+            data = h.format_help().strip()
             if not data:
                 continue
             l.extend(_rst_header(self.header_char, action_group.title))
             if action_group.description:
                 l.extend(doc_dedent(action_group.description).split("\n"))
                 l.append('')
-            options = data.split('\n')
-            for i, opt in enumerate(options):
-                l.append(opt)
-                if i < len(options)-1 and re.match(r'\S+', options[i+1]) is not None:
-                    # add empty line between options to avoid formatting issues
-                    l.append('')
+            l.extend(data.split('\n'))
+            l.append('')
         return l, subcmds
 
     def generate_usage(self, parser, name):
@@ -249,7 +190,9 @@ class ManConverter:
             with open(rst_path, 'w') as f:
                 f.write(rst)
 
-        synopsis = _rst_header(self.header_char, "synopsis")
+        # scope the option directives to this command; synopsis is included first
+        synopsis = [f'.. program:: {name}', '']
+        synopsis.extend(_rst_header(self.header_char, "synopsis"))
         synopsis.extend(self.generate_usage(parser, name))
         description = []
         docs = getattr(parser, '_docs', None)

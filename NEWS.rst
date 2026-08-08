@@ -15,6 +15,12 @@ snakeoil 0.11.4 (unreleased)
   integer``, caused by ``functools.partial`` becoming a method descriptor
   (Arthur Zamarin, https://bugs.gentoo.org/957993)
 
+- ``snakeoil.dist.generate_man_rsts``: emit arguments as ``.. option::``
+  directives scoped by ``.. program::`` instead of wrapping them in the
+  ``:option:`` *reference* role, which made sphinx warn ``unknown option`` for
+  every single argument.  Options are now properly rendered, indexed and
+  cross-referenceable (Arthur Zamarin)
+
 - ``snakeoil.klass.immutable.Simple``/``Strict``: slotted subclasses are now
   picklable and copyable directly; a ``__setstate__`` restoring state past the
   mutation protections is injected for them.  Classes without slotting are left
