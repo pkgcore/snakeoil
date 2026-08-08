@@ -2,7 +2,7 @@
 Release Notes
 =============
 
-snakeoil 0.11.4 (unreleased)
+snakeoil 0.11.4 (2026-08-08)
 ----------------------------
 
 - ``snakeoil.cli.arghparse.ArgumentParser``: options now accept space-separated
