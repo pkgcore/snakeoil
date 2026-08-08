@@ -21,6 +21,11 @@ snakeoil 0.11.4 (unreleased)
   every single argument.  Options are now properly rendered, indexed and
   cross-referenceable (Arthur Zamarin)
 
+- ``snakeoil.dist.generate_man_rsts``: the synopsis is no longer emitted as one
+  long line, and its continuation lines are no longer misaligned by the width
+  of the stripped ``usage:`` prefix. It is now wrapped to fit an 80 column man
+  page and kept as a literal block (Arthur Zamarin)
+
 - ``snakeoil.klass.immutable.Simple``/``Strict``: slotted subclasses are now
   picklable and copyable directly; a ``__setstate__`` restoring state past the
   mutation protections is injected for them.  Classes without slotting are left

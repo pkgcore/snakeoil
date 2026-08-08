@@ -40,6 +40,7 @@ class ManConverter:
         out_path = os.path.join(base_path, out_name)
         script_time = int(os.stat(__file__).st_mtime)
         module = import_module(src)
+        assert module.__file__ is not None
         cur_time = int(os.stat(module.__file__).st_mtime)
         cur_time = max([cur_time, script_time])
         try:
@@ -88,7 +89,8 @@ class ManConverter:
 
     @staticmethod
     def _get_formatter(parser, name):
-        return RstFormatter(name, width=1000, max_help_position=1000)
+        # width only affects the usage; option docs are rendered as directives
+        return RstFormatter(name, width=70)
 
     def process_subcommands(self, parser, name, action_group):
         l = []
@@ -137,11 +139,9 @@ class ManConverter:
 
     def generate_usage(self, parser, name):
         h = self._get_formatter(parser, name)
-        h.add_usage(parser.usage, parser._actions, parser._mutually_exclusive_groups)
-        text = h.format_help()
-        if text.startswith("usage:"):
-            text = text[len("usage:"):].lstrip()
-        return (x for x in text.split('\n') if x)
+        h.add_usage(parser.usage, parser._actions, parser._mutually_exclusive_groups, prefix='')
+        # literal block, else troff reflows and justifies the usage into mush
+        return ['::', ''] + [f'   {x}' for x in h.format_help().split('\n') if x]
 
     def process_parser(self, parser, name):
         # forcibly run pre-parse functionality as extra arguments may be added
