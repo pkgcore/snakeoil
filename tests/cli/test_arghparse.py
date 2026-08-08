@@ -201,8 +201,21 @@ class TestArgumentParser(TestCsvActionsParser, TestOptionalsParser):
                     arghparse.ArgumentParser(quiet=True, verbose=True)
                 )
                 namespace = parser.parse_args(args)
-                assert parser.verbosity == val, "{} failed".format(args)
-                assert namespace.verbosity == val, "{} failed".format(args)
+                assert parser.verbosity == val, f"{args} failed"
+                assert namespace.verbosity == val, f"{args} failed"
+
+    def test_dashed_value(self):
+        # options should accept space-separated values starting with a single dash
+        parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser())
+        parser.add_argument("-c", "--checks", action="csv_negations")
+
+        for args in (["--checks", "-a,b"], ["-c", "-a,b"], ["--checks=-a,b"]):
+            namespace = parser.parse_args(args)
+            assert namespace.checks == (["a"], ["b"]), f"{args} failed"
+
+        # unknown double-dash options are still reported as errors
+        with pytest.raises(argparse_helpers.Error):
+            parser.parse_args(["--typo"])
 
     def test_verbosity_disabled(self):
         parser = argparse_helpers.mangle_parser(

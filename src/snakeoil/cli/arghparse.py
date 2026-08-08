@@ -1224,6 +1224,22 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
                 for subcmd in subcmd_modules:
                     subparsers.add_command(subcmd)
 
+    def _parse_optional(self, arg_string):
+        """Treat unknown single-dash tokens as values rather than options."""
+        result = super()._parse_optional(arg_string)
+        if result is None:
+            return result
+        option_tuples = result if isinstance(result, list) else [result]
+        # the "unknown optional" fallthrough is a lone tuple whose action is None
+        if (
+            len(option_tuples) == 1
+            and option_tuples[0][0] is None
+            and len(arg_string) >= 2
+            and arg_string[1] not in self.prefix_chars
+        ):
+            return None
+        return result
+
     def _update_desc(self, description=None, docs=None):
         """Extract the description to use.
 
@@ -1516,7 +1532,7 @@ def existent_path(value):
         raise argparse.ArgumentTypeError(f"nonexistent path: {value!r}")
     try:
         return os.path.realpath(value)
-    except EnvironmentError as e:
+    except OSError as e:
         raise ValueError(
             f"while resolving path {value!r}, encountered error: {e}"
         ) from e
@@ -1530,7 +1546,7 @@ def existent_dir(value):
         raise argparse.ArgumentTypeError(f"file already exists: {value!r}")
     try:
         return os.path.realpath(value)
-    except EnvironmentError as e:
+    except OSError as e:
         raise ValueError(
             f"while resolving path {value!r}, encountered error: {e}"
         ) from e
@@ -1543,7 +1559,7 @@ def create_dir(value):
         os.makedirs(path, exist_ok=True)
     except FileExistsError:
         raise argparse.ArgumentTypeError(f"file already exists: {value!r}")
-    except IOError as e:
+    except OSError as e:
         raise argparse.ArgumentTypeError(f"failed creating dir: {e}")
     return path
 

@@ -5,6 +5,11 @@ Release Notes
 snakeoil 0.11.4 (unreleased)
 ----------------------------
 
+- ``snakeoil.cli.arghparse.ArgumentParser``: options now accept space-separated
+  values that start with a single dash (e.g. ``--checks -VisibilityCheck``),
+  matching the previously required ``--checks=-VisibilityCheck`` form.  Unknown
+  ``--`` options keep reporting as unrecognized arguments (Arthur Zamarin, #97)
+
 - ``snakeoil.dist.generate_man_rsts``: fix man page generation failing under
   Python 3.14 with ``TypeError: 'str' object cannot be interpreted as an
   integer``, caused by ``functools.partial`` becoming a method descriptor
