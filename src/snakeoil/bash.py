@@ -8,7 +8,9 @@ Its primary usage is for reading things like gentoo make.conf's, or
 libtool .la files that are bash compatible, but non-executable.
 """
 
+from collections.abc import Generator
 from shlex import shlex
+from typing import Literal, overload
 
 from snakeoil._internals import deprecated
 
@@ -24,11 +26,11 @@ backslash_find = regexp(r"\\.")
 ansi_escape_re = regexp(r"(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]")
 
 __all__ = (
+    "BashParseError",
     "iter_read_bash",
     "read_bash",
-    "read_dict",
     "read_bash_dict",
-    "BashParseError",
+    "read_dict",
 )
 
 
@@ -39,8 +41,28 @@ iter_read_bash = deprecated(
 )(lambda *a, **kw: read_bash(*a, **kw))
 
 
+@overload
 def read_bash(
-    bash_source, allow_inline_comments=True, allow_line_cont=False, enum_line=False
+    bash_source,
+    *,
+    allow_inline_comments=True,
+    allow_line_cont=False,
+    enum_line: Literal[False] = False,
+) -> Generator[str, None, None]: ...
+
+
+@overload
+def read_bash(
+    bash_source,
+    *,
+    allow_inline_comments=True,
+    allow_line_cont=False,
+    enum_line: Literal[True],
+) -> Generator[tuple[int, str], None, None]: ...
+
+
+def read_bash(
+    bash_source, *, allow_inline_comments=True, allow_line_cont=False, enum_line=False
 ):
     """Iterate over a file honoring bash commenting rules and line continuations.
 
@@ -68,11 +90,11 @@ def read_bash(
 
         if s:
             if s[0] != "#":
-                if allow_inline_comments:
-                    if not allow_line_cont or (
-                        allow_line_cont and inline_comment_regexp.match(line)
-                    ):
-                        s = s.split("#", 1)[0].rstrip()
+                if allow_inline_comments and (
+                    not allow_line_cont
+                    or (allow_line_cont and inline_comment_regexp.match(line))
+                ):
+                    s = s.split("#", 1)[0].rstrip()
                 if allow_line_cont and line_cont_regexp.match(line):
                     s = s.rstrip("\\\n")
                     continue
@@ -140,7 +162,7 @@ def read_bash_dict(bash_source, vars_dict=None, sourcing_command=None):
                 eq = s.get_token()
                 if eq != "=":
                     raise BashParseError(
-                        bash_source, s.lineno, "got token %r, was expecting '='" % eq
+                        bash_source, s.lineno, f"got token {eq!r}, was expecting '='"
                     )
                 val = s.get_token()
                 if val is None:
@@ -273,7 +295,7 @@ class bash_parser(shlex):
     def sourcehook(self, newfile):
         try:
             return super().sourcehook(newfile)
-        except IOError as e:
+        except OSError as e:
             raise BashParseError(newfile, 0, str(e)) from e
 
     def read_token(self):

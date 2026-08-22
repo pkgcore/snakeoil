@@ -20,6 +20,9 @@ class TestBashCommentStripping:
         output = read_bash(StringIO("inline # comment "), allow_inline_comments=False)
         assert list(output) == ["inline # comment"]
 
+        output = read_bash(StringIO("inline # comment "), enum_line=True)
+        assert list(output) == [(1, "inline")]
+
     def test_read_bash_line_cont(self):
         output = read_bash(
             StringIO(
