@@ -31,4 +31,4 @@ def import_module(target: str, force_proxy=False) -> types.ModuleType:
 # Convert this to a type guard when py3.14 is min.
 def is_delayed(obj: typing.Any) -> bool:
     cls = object.__getattribute__(obj, "__class__")
-    return isinstance(cls, BaseDelayedObject)
+    return issubclass(cls, BaseDelayedObject)

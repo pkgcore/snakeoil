@@ -8,6 +8,8 @@ snakeoil 0.11.5 (unreleased)
 - ``snakeoil.obj.DelayedInstantiation``: fix ``AttributeError: __delayed__``
   when several threads first touch the same proxy at once (Arthur Zamarin)
 
+- ``snakeoil.delayed.is_delayed``: fix always returning False (Arthur Zamarin)
+
 
 snakeoil 0.11.4 (2026-08-08)
 ----------------------------

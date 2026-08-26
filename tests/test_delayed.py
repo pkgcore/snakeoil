@@ -32,3 +32,12 @@ def test_import_module(tmp_path):
         assert modules["blah"] is shortcircuited, (
             "import_module must return the module if it already is in sys.modules rather than a proxy"
         )
+
+
+def test_is_delayed():
+    d = delayed.regexp("asdf")
+    assert delayed.is_delayed(d)
+    assert not delayed.is_delayed(re.compile("asdf"))
+    assert not delayed.is_delayed(re.Pattern)
+    assert not delayed.is_delayed(42)
+    assert object.__getattribute__(d, "__obj__") is None
