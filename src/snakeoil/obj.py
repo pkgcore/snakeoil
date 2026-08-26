@@ -136,13 +136,17 @@ class BaseDelayedObject:
     def __getattribute__(self, attr):
         obj = object.__getattribute__(self, "__obj__")
         if obj is None:
-            if attr == "__class__":
-                return object.__getattribute__(self, "__delayed__")[0]
-            elif attr == "__doc__":
-                kls = object.__getattribute__(self, "__delayed__")[0]
-                return getattr(kls, "__doc__", None)
-
-            obj = object.__getattribute__(self, "__instantiate_proxy_instance__")()
+            if attr == "__class__" or attr == "__doc__":
+                try:
+                    kls = object.__getattribute__(self, "__delayed__")[0]
+                except AttributeError:
+                    obj = object.__getattribute__(self, "__obj__")
+                else:
+                    if attr == "__class__":
+                        return kls
+                    return getattr(kls, "__doc__", None)
+            else:
+                obj = object.__getattribute__(self, "__instantiate_proxy_instance__")()
 
         if attr == "__obj__":
             # special casing for klass.alias_method
@@ -150,10 +154,16 @@ class BaseDelayedObject:
         return getattr(obj, attr)
 
     def __instantiate_proxy_instance__(self):
-        delayed = object.__getattribute__(self, "__delayed__")
+        try:
+            delayed = object.__getattribute__(self, "__delayed__")
+        except AttributeError:
+            return object.__getattribute__(self, "__obj__")
         obj = delayed[1](*delayed[2], **delayed[3])
         object.__setattr__(self, "__obj__", obj)
-        object.__delattr__(self, "__delayed__")
+        try:
+            object.__delattr__(self, "__delayed__")
+        except AttributeError:
+            pass
         return obj
 
     # special case the normal descriptors
@@ -305,7 +315,8 @@ def DelayedInstantiation(
 
     The returned object can be passed around without triggering
     initialization. The first time it is actually used (an attribute
-    is accessed) it is initialized once.
+    is accessed) it is initialized; concurrent first use can run func more
+    than once, thus it must be idempotent.
 
     The returned "fake" object cannot completely reliably mimic a
     builtin type at the C level of python.

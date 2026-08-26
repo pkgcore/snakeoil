@@ -1,3 +1,5 @@
+import threading
+
 from snakeoil import obj
 
 # sorry, but the name is good, just too long for these tests
@@ -127,3 +129,54 @@ class TestDelayedInstantiation:
             "this is a class level attribute, thus shouldn't "
             "trigger instantiation"
         )
+
+    def test_race_loser_reuses_published_object(self):
+        class foon:
+            attr = "asdf"
+
+        o = make_DI(foon, foon)
+        instantiate = object.__getattribute__(o, "__instantiate_proxy_instance__")
+        assert o.attr == "asdf"
+        published = object.__getattribute__(o, "__obj__")
+        assert instantiate() is published, (
+            "a thread that loses the instantiation race must fall back to the "
+            "published object rather than trip over the dropped __delayed__ slot"
+        )
+
+    def test_concurrent_instantiation(self):
+        class foon:
+            attr = "asdf"
+
+        entered, release = threading.Event(), threading.Event()
+        calls, failures, results = [], [], {}
+
+        def func():
+            calls.append(None)
+            if len(calls) == 1:
+                # hold the first thread inside the callable until the second
+                # has published its own object and dropped __delayed__.
+                entered.set()
+                release.wait(30)
+            return foon()
+
+        o = make_DI(foon, func)
+
+        def loser():
+            try:
+                results["loser"] = o.attr
+            except Exception as e:
+                failures.append(e)
+
+        thread = threading.Thread(target=loser)
+        thread.start()
+        try:
+            assert entered.wait(30), "thread never reached the delayed callable"
+            results["winner"] = o.attr
+        finally:
+            release.set()
+        thread.join(30)
+
+        assert not thread.is_alive(), "racing thread never finished"
+        assert not failures, f"racing thread failed: {failures[0]!r}"
+        assert results["loser"] == "asdf"
+        assert results["winner"] == "asdf"
