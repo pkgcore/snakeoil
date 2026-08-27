@@ -174,7 +174,7 @@ class ForcedDepends(type):
 
         obj.__unwrap_stage_dependencies__()
         obj.__wrap_stage_dependencies__()
-        if not hasattr(obj, "__force_stage_state__"):
+        if not hasattr(obj, "__set_stage_state__"):
             obj.__set_stage_state__ = __set_stage_state__
         if not hasattr(obj, "__stage_step_callback__"):
             obj.__stage_step_callback__ = __stage_step_callback__

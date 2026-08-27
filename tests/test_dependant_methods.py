@@ -57,6 +57,27 @@ class TestDependantMethods:
         assert results == [0, 1, 2, 2]
         assert l == ["2"]
 
+    def test_custom_set_stage_state(self):
+        recorded = []
+
+        class Class(metaclass=dm.ForcedDepends):
+            stage_depends = {"finish": "start"}
+
+            def start(self):
+                return True
+
+            def finish(self):
+                return True
+
+            def __set_stage_state__(self, state):
+                recorded.append(state)
+                self._stage_state = set(state)
+
+        o = Class()
+        o.__set_stage_state__(["start"])
+        assert [["start"]] == recorded
+        assert {"start"} == o._stage_state
+
     def test_stage_depends(self):
         results = []
         methods = {str(x): currying.post_curry(func, results, x) for x in range(10)}

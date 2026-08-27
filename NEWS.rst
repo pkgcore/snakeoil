@@ -82,6 +82,10 @@ snakeoil 0.11.5 (unreleased)
 - ``snakeoil.process.spawn.spawn_get_output``: raise ``TypeError`` instead of the
   ``ExecutionFailure`` when the spawn function returns no pids (Arthur Zamarin)
 
+- ``snakeoil.dependant_methods.ForcedDepends``: fix a class defining its own
+  ``__set_stage_state__`` having it silently replaced by the default one
+  (Arthur Zamarin)
+
 
 snakeoil 0.11.4 (2026-08-08)
 ----------------------------
