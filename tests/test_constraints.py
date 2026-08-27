@@ -158,3 +158,34 @@ def test_solution_order_follows_domain_order_per_variable():
         {"y": False, "x": True, "z": True},
         {"y": False, "x": True, "z": False},
     )
+
+
+def test_abandoned_iteration():
+    def build():
+        p = Problem()
+        p.add_variable(range(2, 6), "x", "y", "z")
+        p.add_constraint(lambda x, y: x % y == 0, frozenset({"x", "y"}))
+        p.add_constraint(lambda x, z: x > z, frozenset({"z", "x"}))
+        return p
+
+    def solutions(problem):
+        return sorted(tuple(sorted(s.items())) for s in problem)
+
+    expected = solutions(build())
+    assert expected
+
+    # forward checking hides values in the domains as the search descends; a
+    # consumer that stops early must not be left with a pruned problem.
+    p = build()
+    next(iter(p))
+    assert expected == solutions(p)
+
+    p = build()
+    for _ in p:
+        break
+    assert expected == solutions(p)
+
+    # ... and finishing normally is still repeatable
+    p = build()
+    assert expected == solutions(p)
+    assert expected == solutions(p)

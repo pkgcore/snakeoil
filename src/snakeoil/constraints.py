@@ -57,6 +57,11 @@ class _Domain(list):
             self.extend(self._hidden[-diff:])
             del self._hidden[-diff:]
 
+    def unwind_states(self):
+        """pop every outstanding state, restoring the values they hid"""
+        while self._states:
+            self.pop_state()
+
 
 class Problem:
     """
@@ -180,6 +185,16 @@ class Problem:
             name: -len(self.vconstraints.get(name, ())) for name in self.variables
         }
 
+        try:
+            yield from self.__solve(assignments, queue, degrees)
+        finally:
+            # a consumer is free to stop early, and forward checking hides
+            # values in the domains as it goes; unwind whatever is outstanding
+            # the way finishing the search would have.
+            for domain in self.variables.values():
+                domain.unwind_states()
+
+    def __solve(self, assignments, queue, degrees):
         while True:
             # mix the Degree and Minimum Remaining Values (MRV) heuristics
             best = min(

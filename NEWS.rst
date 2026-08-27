@@ -64,6 +64,10 @@ snakeoil 0.11.5 (unreleased)
   themselves.  Iterables that tie are now ordered by the order they were passed
   in (Arthur Zamarin)
 
+- ``snakeoil.constraints.Problem``: fix a consumer that stops iterating early
+  leaving the variable domains pruned, so a later iteration of the same problem
+  silently returned an incomplete set of solutions (Arthur Zamarin)
+
 
 snakeoil 0.11.4 (2026-08-08)
 ----------------------------
