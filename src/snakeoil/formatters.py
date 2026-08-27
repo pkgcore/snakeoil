@@ -231,6 +231,10 @@ class PlainTextFormatter(Formatter):
             if later_prefixes is not None:
                 raise TypeError("do not pass both later_prefix and later_prefixes")
             later_prefixes = (later_prefix,)
+        # note the lengths, rather than trimming by how much was added on the
+        # way out; for an empty sequence that is a slice of [:-0], IE [:0].
+        first_prefix_len = len(self.first_prefix)
+        later_prefix_len = len(self.later_prefix)
         if first_prefixes is not None:
             self.first_prefix.extend(first_prefixes)
         if later_prefixes is not None:
@@ -302,9 +306,9 @@ class PlainTextFormatter(Formatter):
             raise
         finally:
             if first_prefixes is not None:
-                self.first_prefix = self.first_prefix[: -len(first_prefixes)]
+                del self.first_prefix[first_prefix_len:]
             if later_prefixes is not None:
-                self.later_prefix = self.later_prefix[: -len(later_prefixes)]
+                del self.later_prefix[later_prefix_len:]
 
     def fg(self, color=None):
         """change fg color

@@ -56,6 +56,19 @@ class TestPlainTextFormatter:
             formatter.write(autoline=False, wrap=True, first_prefix="foon:", *inputs)
             assert output.encode() == stream.getvalue()
 
+    def test_prefixes_are_restored(self):
+        stream = BytesIO()
+        formatter = self.kls(stream, encoding="ascii")
+        formatter.first_prefix = ["standing:"]
+        formatter.later_prefix = ["later:"]
+
+        for prefixes in ((), ("temporary:",)):
+            formatter.write("line", prefixes=prefixes)
+            assert ["standing:"] == formatter.first_prefix
+            assert ["later:"] == formatter.later_prefix
+
+        assert b"standing:line\nstanding:temporary:line\n" == stream.getvalue()
+
     def test_later_prefix(self):
         for inputs, output in [
             (("\N{SNOWMAN}",), "?"),

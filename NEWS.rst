@@ -55,6 +55,10 @@ snakeoil 0.11.5 (unreleased)
   raising ``TypeError: a bytes-like object is required, not 'str'`` (Arthur
   Zamarin)
 
+- ``snakeoil.formatters.Formatter.write``: fix passing an empty ``prefixes``,
+  ``first_prefixes`` or ``later_prefixes`` sequence discarding the prefixes
+  already standing on the formatter (Arthur Zamarin)
+
 
 snakeoil 0.11.4 (2026-08-08)
 ----------------------------
