@@ -15,4 +15,4 @@ __title__ = "snakeoil"
 # Once that's done, extend it to the rest of the ecosystem.
 __version__ = "0.11.5.dev0"
 __version_info__ = (0, 11, 5, "dev0")
-__python_mininum_version__ = (3, 11, 0)
+__python_mininum_version__ = (3, 12, 0)

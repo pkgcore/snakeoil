@@ -2,7 +2,7 @@
 Collection of functionality to make using iterators transparently easier
 """
 
-__all__ = ("partition", "expandable_chain", "caching_iter", "iter_sort")
+__all__ = ("caching_iter", "expandable_chain", "iter_sort", "partition")
 
 import itertools
 import typing
@@ -11,7 +11,7 @@ from collections import deque
 T = typing.TypeVar("T")
 
 
-def partition(
+def partition[T](
     iterable: typing.Iterable[T],
     predicate: typing.Callable[[T], bool] = bool,
 ) -> tuple[typing.Iterator[T], typing.Iterator[T]]:
@@ -29,7 +29,7 @@ def partition(
     return ((x for pred, x in a if not pred), (x for pred, x in b if pred))
 
 
-class expandable_chain(typing.Generic[T]):
+class expandable_chain[T]:
     """
     chained iterables, with the ability to add new iterables to the chain
     as long as the instance hasn't raised ``StopIteration`` already.  This is
@@ -51,7 +51,7 @@ class expandable_chain(typing.Generic[T]):
     2
     """
 
-    __slots__ = ("iterables", "__weakref__")
+    __slots__ = ("__weakref__", "iterables")
 
     def __init__(self, *iterables: typing.Iterable[T]) -> None:
         """
@@ -98,7 +98,7 @@ class expandable_chain(typing.Generic[T]):
         self.iterables.extendleft(iter(x) for x in iterables)
 
 
-class caching_iter(typing.Generic[T]):
+class caching_iter[T]:
     """
     On demand consumes from an iterable so as to appear like a tuple
 
@@ -114,7 +114,7 @@ class caching_iter(typing.Generic[T]):
 
     """
 
-    __slots__ = ("iterable", "__weakref__", "cached_list", "sorter")
+    __slots__ = ("__weakref__", "cached_list", "iterable", "sorter")
 
     def __init__(
         self,
@@ -250,7 +250,7 @@ class caching_iter(typing.Generic[T]):
         return "iterable(%s), cached: %s" % (self.iterable, str(self.cached_list))
 
 
-class _tiebreak_iter(typing.Generic[T]):
+class _tiebreak_iter[T]:
     """Iterator that orders against its peers by arrival, for iter_sort"""
 
     __slots__ = ("_index", "_iter")

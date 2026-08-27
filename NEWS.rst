@@ -5,6 +5,9 @@ Release Notes
 snakeoil 0.11.5 (unreleased)
 ----------------------------
 
+- Drop support for python 3.11 and pypy3.11; python 3.12 is the new minimum
+  version.  Python 3.15 was added to CI (Arthur Zamarin)
+
 - ``snakeoil.obj.DelayedInstantiation``: fix ``AttributeError: __delayed__``
   when several threads first touch the same proxy at once (Arthur Zamarin)
 

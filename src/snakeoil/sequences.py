@@ -1,31 +1,20 @@
 """sequence related operations and classes"""
 
 __all__ = (
-    "unstable_unique",
-    "stable_unique",
-    "iter_stable_unique",
-    "iflatten_instance",
     "iflatten_func",
+    "iflatten_instance",
+    "iter_stable_unique",
     "predicate_split",
-    "split_negations",
     "split_elements",
+    "split_negations",
+    "stable_unique",
+    "unstable_unique",
 )
 
-from typing import (
-    Callable,
-    Generic,
-    Hashable,
-    Iterable,
-    Iterator,
-    Literal,
-    NamedTuple,
-    TypeAlias,
-    TypeVar,
-    overload,
-)
+from collections.abc import Callable, Hashable, Iterable, Iterator
+from typing import NamedTuple, TypeVar, overload
 
-from snakeoil._internals import deprecated
-
+from ._internals import deprecated
 from .iterables import expandable_chain
 
 T = TypeVar("T")
@@ -79,7 +68,7 @@ def unstable_unique(sequence):
     "Use snakeoil.sequence.unique_stable but be aware it now requires all items be hashable",
     removal_in=(0, 13, 0),
 )
-def stable_unique(iterable: Iterable[T]) -> list[T]:
+def stable_unique[T](iterable: Iterable[T]) -> list[T]:
     """Given a sequence, return a list of the unique items while preserving ordering.
 
     For performance reasons, only use this if you really do need to preserve
@@ -93,7 +82,7 @@ def stable_unique(iterable: Iterable[T]) -> list[T]:
     "Use snakeoil.sequence.unique_stable but be aware it now requires all items be hashable",
     removal_in=(0, 13, 0),
 )
-def iter_stable_unique(iterable: Iterable[T]) -> Iterator[T]:
+def iter_stable_unique[T](iterable: Iterable[T]) -> Iterator[T]:
     """Given a sequence, yield unique items while preserving ordering.
 
     For performance reasons, only use this if you really do need to preserve
@@ -126,7 +115,7 @@ def iter_stable_unique(iterable: Iterable[T]) -> Iterator[T]:
         break
 
 
-def unique_stable(iterable: Iterable[H]) -> Iterator[H]:
+def unique_stable[H: Hashable](iterable: Iterable[H]) -> Iterator[H]:
     """Given an iterator, normalize it yielding items in stable ordering, removing duplicates"""
     s: set[H] = set()
     for thing in iterable:
@@ -135,14 +124,13 @@ def unique_stable(iterable: Iterable[H]) -> Iterator[H]:
             s.add(thing)
 
 
-# in py3.11 it's impossible to represent this recursive typing of iterable, thus
-# the typing is wrong.  When py3.12 is the min, change T_recursive to this.
-# T_recursive = TypeAliasType("T_recursive", Iterable["T_recursive[T]"] | T, type_params=(T,))
-T_recursive: TypeAlias = Iterable[T]
+type T_recursive[T] = Iterable["T_recursive[T]"] | T
 
 
-def iflatten_instance(
-    iterable: T_recursive, skip_flattening: tuple[type, ...] | type = (str, bytes), /
+def iflatten_instance[T](
+    iterable: T_recursive[T],
+    skip_flattening: tuple[type, ...] | type = (str, bytes),
+    /,
 ) -> Iterable[T | str | bytes]:
     """collapse [[1],2] into [1,2]
 
@@ -162,9 +150,8 @@ def iflatten_instance(
     return iflatten_func(iterable, f)
 
 
-# Like iflatten instance, this is impossible to properly type in 3.11
-def iflatten_func(
-    iterable: T_recursive | T, skip_func: Callable[[T], bool], /
+def iflatten_func[T](
+    iterable: T_recursive[T], skip_func: Callable[[T], bool], /
 ) -> Iterable[T]:
     """collapse [[1],2] into [1,2]
 
@@ -192,13 +179,13 @@ T2 = TypeVar("T2")
 
 
 @overload
-def predicate_split(
-    func: Callable[[T], bool], stream: Iterable[T], /, key: Literal[None] = None
+def predicate_split[T](
+    func: Callable[[T], bool], stream: Iterable[T], /, key: None = None
 ) -> tuple[list[T], list[T]]: ...
 
 
 @overload
-def predicate_split(
+def predicate_split[T2, T](
     func: Callable[[T2], bool],
     stream: Iterable[T],
     /,
@@ -207,7 +194,9 @@ def predicate_split(
 
 
 @deprecated("use snakeoil.iterables.partition instead", removal_in=(0, 12, 0))
-def predicate_split(func, stream: Iterable[T], /, key=None) -> tuple[list[T], list[T]]:
+def predicate_split[T](
+    func, stream: Iterable[T], /, key=None
+) -> tuple[list[T], list[T]]:
     """
     Given a stream and a function, split the stream into two sequences based on
     the results of the func for that item
@@ -246,12 +235,12 @@ def predicate_split(func, stream: Iterable[T], /, key=None) -> tuple[list[T], li
     return false_l, true_l
 
 
-class BoolSplitResults(Generic[T], NamedTuple):
+class BoolSplitResults[T](NamedTuple):
     negative: tuple[T]
     positive: tuple[T]
 
 
-def split_negations(
+def split_negations[T](
     iterable: Iterable[str], func: Callable[[str], T] = str
 ) -> BoolSplitResults[T]:
     """Split an iterable into negative and positive elements.
@@ -276,13 +265,13 @@ def split_negations(
     return BoolSplitResults[T](tuple(neg), tuple(pos))
 
 
-class BoolTernaryResults(Generic[T], NamedTuple):
+class BoolTernaryResults[T](NamedTuple):
     negative: tuple[T]
     neutral: tuple[T]
     positive: tuple[T]
 
 
-def split_elements(
+def split_elements[T](
     iterable: Iterable[str], func: Callable[[str], T] = str
 ) -> BoolTernaryResults[T]:
     """ "Split an iterable into negative, neutral, and positive elements.
@@ -297,7 +286,7 @@ def split_elements(
     for token in iterable:
         if token[0] in token_map:
             if len(token) == 1:
-                raise ValueError("%r without a token" % (token[0],))
+                raise ValueError(f"{token[0]!r} without a token")
             l = token_map[token[0]]
             token = token[1:]
         else:

@@ -1,6 +1,6 @@
 """small sphinx extension to generate docs from argparse scripts"""
 
-import sys
+import tomllib
 from importlib import import_module
 from pathlib import Path
 
@@ -10,11 +10,6 @@ from sphinx.ext.apidoc import main as sphinx_apidoc
 from .generate_docs import _generate_custom
 from .generate_man_rsts import ManConverter
 from .utilities import module_version
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
 
 
 def prepare_scripts_man(repo_dir: Path, man_pages: list[tuple]):

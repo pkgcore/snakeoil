@@ -6,7 +6,7 @@ build-backend = "flit_core.buildapi"
 name = "snakeoil"
 description = "misc common functionality and useful optimizations"
 readme = "README.rst"
-requires-python = "~=3.11"
+requires-python = "~=3.12"
 # alphabetical by surname
 authors = [
 	{name = "Tim Harder", email = "radhermit@gmail.com"},
@@ -21,10 +21,10 @@ maintainers = [
 classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: BSD License",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
 ]
 
 dynamic = ["version"]
@@ -53,7 +53,7 @@ addopts = "-vv -ra -l"
 testpaths = ["tests"]
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py312"
 
 [tool.ruff.lint]
 extend-select = ["I"]
