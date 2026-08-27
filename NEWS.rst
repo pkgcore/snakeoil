@@ -43,6 +43,10 @@ snakeoil 0.11.5 (unreleased)
 - ``snakeoil.version.get_version``: fix the result being memoized in a single
   global with no regard for which project was asked (Arthur Zamarin)
 
+- ``snakeoil.compression.ArComp``: fix unpacking of ``.tar.lzma``, which always
+  failed with ``no compression binary found from the following choices: l``
+  (Arthur Zamarin)
+
 
 snakeoil 0.11.4 (2026-08-08)
 ----------------------------

@@ -188,7 +188,7 @@ class _TarBZ2(_Tar):
 
 class _TarLZMA(_Tar):
     exts = frozenset([".tar.lzma"])
-    compress_binary = ("lzma",)
+    compress_binary = (("lzma",),)
 
 
 class _TarXZ(_Tar):

@@ -5,7 +5,7 @@ from contextlib import chdir
 
 import pytest
 
-from snakeoil.compression import ArComp, ArCompError, _TarBZ2
+from snakeoil.compression import ArComp, ArCompError, _TarBZ2, _TarLZMA
 
 from . import hide_binary
 
@@ -33,6 +33,11 @@ class TestArComp:
         new_path = tar_bz2_file.replace(".tar.bz2", ".tbz2")
         shutil.copyfile(tar_bz2_file, new_path)
         return new_path
+
+    @pytest.fixture(scope="class")
+    def tar_lzma_file(self, tar_file):
+        subprocess.run(["lzma", "-z", "-k", tar_file], check=True)
+        return tar_file + ".lzma"
 
     @pytest.fixture(scope="class")
     def lzma_file(self, tmp_path_factory):
@@ -80,6 +85,17 @@ class TestArComp:
         with hide_binary(*next(zip(*_TarBZ2.compress_binary))), chdir(tmp_path):
             with pytest.raises(ArCompError, match="no compression binary"):
                 ArComp(tbz2_file, ext=".tbz2").unpack(dest=tmp_path)
+
+    def test_tar_lzma(self, tmp_path, tar_lzma_file):
+        with chdir(tmp_path):
+            ArComp(tar_lzma_file, ext=".tar.lzma").unpack(dest=tmp_path)
+        assert (tmp_path / "file1").read_text() == "Hello world"
+        assert (tmp_path / "file2").read_text() == "Larry the Cow"
+
+    def test_no_fallback_tar_lzma(self, tmp_path, tar_lzma_file):
+        with hide_binary(*next(zip(*_TarLZMA.compress_binary))), chdir(tmp_path):
+            with pytest.raises(ArCompError, match="no compression binary"):
+                ArComp(tar_lzma_file, ext=".tar.lzma").unpack(dest=tmp_path)
 
     def test_lzma(self, tmp_path, lzma_file):
         dest = tmp_path / "file"
