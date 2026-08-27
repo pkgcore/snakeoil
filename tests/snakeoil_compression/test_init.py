@@ -1,3 +1,4 @@
+import os
 import shutil
 import subprocess
 import sys
@@ -5,7 +6,7 @@ from contextlib import chdir
 
 import pytest
 
-from snakeoil.compression import ArComp, ArCompError, _TarBZ2, _TarLZMA
+from snakeoil.compression import ArComp, ArCompError, _Archive, _TarBZ2, _TarLZMA
 
 from . import hide_binary
 
@@ -45,6 +46,35 @@ class TestArComp:
         with data.open("wb") as f:
             subprocess.run(["lzma"], check=True, input=b"Hello world", stdout=f)
         return str(data)
+
+    @pytest.mark.parametrize(
+        "attrs",
+        (
+            pytest.param({"binary": None}, id="binary"),
+            pytest.param({"default_unpack_cmd": None}, id="default_unpack_cmd"),
+            pytest.param({"exts": frozenset()}, id="exts"),
+        ),
+    )
+    def test_subclass_missing_attrs(self, attrs):
+        namespace = {
+            "binary": ("nonexistent",),
+            "default_unpack_cmd": "{binary}",
+            "exts": frozenset([".test-missing-attrs"]),
+            **attrs,
+        }
+        with pytest.raises(ValueError, match="missing required attrs"):
+            type("Broken", (_Archive, ArComp), namespace)
+
+    def test_subclass_missing_streams(self):
+        # ArComp has to precede the mixin in the bases to hit this
+        namespace = {
+            "binary": ("nonexistent",),
+            "default_unpack_cmd": "{binary}",
+            "exts": frozenset([".test-missing-streams"]),
+        }
+        with pytest.raises(ValueError, match="does not implement _streams"):
+            type("Broken", (ArComp, _Archive), namespace)
+        assert ".test-missing-streams" not in ArComp.known_exts
 
     def test_unknown_extenstion(self, tmp_path):
         file = tmp_path / "test.file"
@@ -111,3 +141,38 @@ class TestArComp:
         with chdir(tmp_path):
             ArComp(str(path), ext=".tar").unpack(dest=tmp_path)
         assert (tmp_path / "file1").read_text() == "Hello world"
+
+    def test_failure_reports_stderr(self, tmp_path):
+        path = tmp_path / "corrupt.tar"
+        path.write_text("this is not a tar archive")
+        with chdir(tmp_path), pytest.raises(ArCompError) as excinfo:
+            ArComp(str(path), ext=".tar").unpack(dest=tmp_path)
+        # the message is the command's stderr, not the generic fallback
+        assert "unpacking failed" not in str(excinfo.value)
+        assert str(excinfo.value).strip() == str(excinfo.value)
+        assert excinfo.value.code > 0
+
+    def test_rejects_spawn_kwargs(self, tmp_path, tar_file):
+        # the old spawn kwargs pass-through is gone, uid/gid are now the
+        # subprocess spelled user/group
+        with chdir(tmp_path), pytest.raises(TypeError):
+            ArComp(tar_file, ext=".tar").unpack(dest=tmp_path, uid=os.getuid())
+
+    def test_user_group(self, tmp_path, tar_file):
+        # use the current ids so the test needs no privileges of its own
+        with chdir(tmp_path):
+            ArComp(tar_file, ext=".tar").unpack(
+                dest=tmp_path, user=os.getuid(), group=os.getgid()
+            )
+        assert (tmp_path / "file1").read_text() == "Hello world"
+
+    def test_missing_binary_leaves_no_dest(self, tmp_path, lzma_file):
+        # the command is resolved before dest is opened
+        dest = tmp_path / "file"
+        with (
+            hide_binary("lzma"),
+            chdir(tmp_path),
+            pytest.raises(ArCompError, match="required binary not found"),
+        ):
+            ArComp(lzma_file, ext=".lzma").unpack(dest=dest)
+        assert not dest.exists()

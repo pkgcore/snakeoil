@@ -1,11 +1,12 @@
 import multiprocessing
 import shlex
+import subprocess
+from contextlib import contextmanager
 from functools import cached_property
 from importlib import import_module
 
 from .. import process
 from ..cli.exceptions import UserException
-from ..process.spawn import spawn_get_output
 
 
 class _transform_source:
@@ -60,25 +61,37 @@ class ArCompError(UserException):
         self.code = code
 
 
+def _exit_code(returncode: int) -> int:
+    """Normalize a :py:mod:`subprocess` return code into a shell exit status."""
+    if returncode < 0:
+        # died from a signal, which subprocess reports as its negation; use the
+        # shell's 128+signal convention so the code stays a positive status
+        return 128 - returncode
+    return returncode
+
+
 class ArComp:
     """Generic archive and compressed file format support."""
 
-    binary = None
-    default_unpack_cmd = None
+    binary: tuple[str, ...]
+    default_unpack_cmd: str
+    exts: frozenset[str] = frozenset()
     known_exts = {}
 
     def __new__(cls, *args, ext, **kwargs):
         try:
             cls = cls.known_exts[ext]
-            return super(ArComp, cls).__new__(cls)
+            return super().__new__(cls)
         except KeyError:
             raise ArCompError(f"unknown compression file extension: {ext!r}")
 
     def __init_subclass__(cls, **kwargs):
         """Initialize result subclasses and register archive extensions."""
         super().__init_subclass__(**kwargs)
-        if not all((cls.binary, cls.default_unpack_cmd, cls.exts)):  # pragma: no cover
+        if not all((cls.binary, cls.default_unpack_cmd, cls.exts)):
             raise ValueError(f"class missing required attrs: {cls!r}")
+        if cls._streams is ArComp._streams:
+            raise ValueError(f"class does not implement _streams: {cls!r}")
         for ext in cls.exts:
             cls.known_exts[ext] = cls
 
@@ -101,59 +114,72 @@ class ArComp:
         cmd = self.default_unpack_cmd.format(binary=binary, path=self.path)
         return cmd
 
-    def unpack(self, dest=None, **kwargs):
+    @contextmanager
+    def _streams(self, dest):
+        """Yield the (stdin, stdout) the unpack command runs with."""
         raise NotImplementedError
+
+    def unpack(self, dest=None, *, user=None, group=None):
+        """Unpack :py:attr:`path`.
+
+        :param dest: where the decompressed data lands; archive formats ignore
+            it and unpack into the current directory.
+        :param user: run the unpack command as this user, see
+            :py:class:`subprocess.Popen`.
+        :param group: run the unpack command as this group.
+        :raise ArCompError: if the unpack command is unavailable or fails.
+        """
+        # resolve the command first; a missing binary must not leave an empty
+        # dest behind
+        cmd = shlex.split(self._unpack_cmd)
+        with self._streams(dest) as (stdin, stdout):
+            ret = subprocess.run(
+                cmd,
+                stdin=stdin,
+                stdout=stdout,
+                stderr=subprocess.PIPE,
+                user=user,
+                group=group,
+                check=False,
+            )
+        if ret.returncode:
+            msg = (ret.stderr or b"").decode("utf-8", "replace").strip()
+            raise ArCompError(
+                msg or f"unpacking failed: {self.path!r}",
+                code=_exit_code(ret.returncode),
+            )
 
 
 class _Archive:
     """Generic archive format support."""
 
-    def unpack(self, dest=None, **kwargs):
-        cmd = shlex.split(self._unpack_cmd)
-        ret, output = spawn_get_output(cmd, collect_fds=(2,), **kwargs)
-        if ret:
-            msg = "\n".join(output) if output else f"unpacking failed: {self.path!r}"
-            raise ArCompError(msg, code=ret)
+    @contextmanager
+    def _streams(self, dest):
+        yield None, subprocess.DEVNULL
 
 
 class _CompressedFile:
     """Single compressed file."""
 
-    def unpack(self, dest=None, **kwargs):
-        cmd = shlex.split(self._unpack_cmd)
+    @contextmanager
+    def _streams(self, dest):
         with open(dest, "wb") as f:
-            ret, output = spawn_get_output(
-                cmd, collect_fds=(2,), fd_pipes={1: f.fileno()}, **kwargs
-            )
-        if ret:
-            msg = "\n".join(output) if output else f"unpacking failed: {self.path!r}"
-            raise ArCompError(msg, code=ret)
+            yield subprocess.DEVNULL, f
 
 
 class _CompressedStdin:
     """Compressed data from stdin."""
 
-    def unpack(self, dest=None, **kwargs):
-        cmd = shlex.split(self._unpack_cmd)
+    @contextmanager
+    def _streams(self, dest):
         with open(self.path, "rb") as src, open(dest, "wb") as f:
-            ret, output = spawn_get_output(
-                cmd,
-                collect_fds=(2,),
-                fd_pipes={0: src.fileno(), 1: f.fileno()},
-                **kwargs,
-            )
-        if ret:
-            msg = "\n".join(output) if output else f"unpacking failed: {self.path!r}"
-            raise ArCompError(msg, code=ret)
+            yield src, f
 
 
 class _Tar(_Archive, ArComp):
     exts = frozenset([".tar"])
-    binary = (
-        "gtar",
-        "tar",
-    )
-    compress_binary = None
+    binary = ("gtar", "tar")
+    compress_binary: tuple[tuple[str, ...], ...] | None = None
     default_unpack_cmd = '{binary} xf "{path}"'
 
     @cached_property

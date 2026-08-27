@@ -15,6 +15,9 @@ snakeoil 0.11.5 (unreleased)
   boundary to a worker; the subtest is now identified by the class' qualified
   name, as the other checks in the module already were (Arthur Zamarin)
 
+- ``snakeoil.compression.ArComp.unpack``: reimplemented on top of
+  ``subprocess`` instead of ``snakeoil.process.spawn`` (Arthur Zamarin, #119)
+
 - ``snakeoil.obj.DelayedInstantiation``: fix ``AttributeError: __delayed__``
   when several threads first touch the same proxy at once (Arthur Zamarin)
 
