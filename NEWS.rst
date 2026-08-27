@@ -75,6 +75,10 @@ snakeoil 0.11.5 (unreleased)
 - ``snakeoil.test.protect_imports``: fix ``sys.path`` and ``sys.modules`` being
   left mangled when the body of the context raises (Arthur Zamarin)
 
+- ``snakeoil.fileutils.mmap_or_open_for_read``: fix a file that cannot be opened
+  reporting ``TypeError: 'NoneType' object cannot be interpreted as an integer``
+  instead of the actual ``OSError`` (Arthur Zamarin)
+
 
 snakeoil 0.11.4 (2026-08-08)
 ----------------------------

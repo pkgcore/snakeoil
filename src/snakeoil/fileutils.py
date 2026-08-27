@@ -35,9 +35,8 @@ def mmap_or_open_for_read(path: str):
     size = os.stat(path).st_size
     if size == 0:
         return (None, data_source.bytes_ro_StringIO(b""))
-    fd = None
+    fd = os.open(path, os.O_RDONLY)
     try:
-        fd = os.open(path, os.O_RDONLY)
         return (
             _fileutils.mmap_and_close(fd, size, mmap.MAP_SHARED, mmap.PROT_READ),
             None,

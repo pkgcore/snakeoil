@@ -293,6 +293,13 @@ class Test_mmap_or_open_for_read:
         m.close()
         assert f is None
 
+    @pytest.mark.skipif(os.getuid() == 0, reason="root can read anything")
+    def test_unopenable(self, tmp_path):
+        (path := tmp_path / "target").write_bytes(b"foonani")
+        path.chmod(0o000)
+        with pytest.raises(PermissionError):
+            self.func(path)
+
 
 class Test_mmap_and_close:
     def test_it(self, tmp_path):
