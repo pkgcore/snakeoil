@@ -50,7 +50,11 @@ class Slots(NamespaceCollector, still_abstract=True):
             if (slots := get_slot_of(target).slots) is None:
                 return
             with subtests.test(cls=target):
-                assert isinstance(slots, tuple), "__slots__ must be a tuple"
+                # get_slot_of normalizes the names, so this has to look at what
+                # the class definition actually wrote to enforce the style.
+                assert isinstance(target.__dict__.get("__slots__", ()), tuple), (
+                    "__slots__ must be a tuple"
+                )
                 slots = set(slots)
                 for slotting in get_slots_of(target):
                     if slotting.cls is target:

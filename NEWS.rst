@@ -16,6 +16,14 @@ snakeoil 0.11.5 (unreleased)
   made the instance the greater one, so ``kls(2, 1) < kls(1, 2)`` was True
   (Arthur Zamarin)
 
+- ``snakeoil.klass.get_slot_of``/``get_slots_of``: the slot names are now
+  normalized into a tuple.  ``__slots__ = "name"``, the single slot spelling
+  python allows, was handed back as the raw string, so consumers walked its
+  characters: ``get_attrs_of`` returned nothing for such an instance, which also
+  emptied ``SlotsPicklingMixin.__getstate__``, and ``GenericEquality`` with
+  ``compare_slots=True`` compared per character attributes that no instance has,
+  making every instance equal to every other (Arthur Zamarin)
+
 
 snakeoil 0.11.4 (2026-08-08)
 ----------------------------

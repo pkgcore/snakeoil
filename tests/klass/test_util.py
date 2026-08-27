@@ -10,6 +10,7 @@ from snakeoil.klass.util import (
     combine_metaclasses,
     get_attrs_of,
     get_instances_of,
+    get_slot_of,
     get_slots_of,
     get_subclasses_of,
     is_metaclass,
@@ -120,6 +121,30 @@ def test_slots_of():
         ClassSlotting(kls1, ("x",)),
         ClassSlotting(object, ()),
     ] == list(get_slots_of(kls4))
+
+
+@pytest.mark.parametrize(
+    "declared,expected",
+    (
+        pytest.param("value", ("value",), id="str"),
+        pytest.param(("value",), ("value",), id="tuple"),
+        pytest.param(["x", "y"], ("x", "y"), id="list"),
+        pytest.param({"x": "docs", "y": "docs"}, ("x", "y"), id="dict"),
+        pytest.param((), (), id="empty"),
+    ),
+)
+def test_slot_normalization(declared, expected):
+    # python accepts any iterable of names- including a bare string for a single
+    # slot- so the raw value can't be iterated for names.
+    class kls:
+        locals()["__slots__"] = declared
+
+    assert ClassSlotting(kls, expected) == get_slot_of(kls)
+
+    obj = kls()
+    for i, name in enumerate(expected):
+        object.__setattr__(obj, name, i)
+    assert dict(zip(expected, range(len(expected)))) == dict(get_attrs_of(obj))
 
 
 def test_combine_metaclasses():

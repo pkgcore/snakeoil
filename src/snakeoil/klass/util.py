@@ -25,7 +25,7 @@ _known_builtins = frozenset(
 
 class ClassSlotting(typing.NamedTuple):
     cls: type
-    slots: typing.Sequence[str] | None
+    slots: tuple[str, ...] | None
 
 
 def get_slots_of(kls: type) -> typing.Iterable[ClassSlotting]:
@@ -41,12 +41,14 @@ def get_slots_of(kls: type) -> typing.Iterable[ClassSlotting]:
 
 def get_slot_of(cls: type) -> ClassSlotting:
     """Return the non-inherited slotting from a class, IE specifically what that definition set."""
-    return ClassSlotting(
-        cls,
-        # class objects provide a proxy map so abuse that to look at the class
-        # directly.
-        cls.__dict__.get("__slots__", () if cls in _known_builtins else None),
-    )
+    # class objects provide a proxy map so abuse that to look at the class
+    # directly.
+    slots = cls.__dict__.get("__slots__", () if cls in _known_builtins else None)
+    if isinstance(slots, str):
+        slots = (slots,)
+    elif slots is not None:
+        slots = tuple(slots)
+    return ClassSlotting(cls, slots)
 
 
 def get_attrs_of(
