@@ -23,6 +23,7 @@ from functools import partial, wraps
 from itertools import chain, filterfalse, islice
 from typing import Any
 
+from ._internals import deprecated
 from .klass import contains, copy_docs, get, get_attrs_of, sentinel
 
 
@@ -756,55 +757,16 @@ class ProxiedAttrs(DictMixin):
 
 
 class _SlottedDict(DictMixin):
-    """A space efficient mapping class with a limited set of keys.
+    """Deprecated.  A mapping intended to be space efficient via a limited set of keys.
 
-    Specifically, this class has its __slots__ locked to the passed in keys-
-    this eliminates the allocation of a dict for the instance thus avoiding the
-    wasted memory common to dictionary overallocation- for small mappings that
-    waste is roughly 75%, for 100 item mappings it's roughly 95%, and for 1000
-    items it's roughly 84%.  Point is, it's sizable, consistently so.
+    See :py:func:`make_SlottedDict_kls`; this is deprecated because it never
+    delivered on any of that.  The generated classes have no slotting, thus no
+    memory savings, and no locked set of keys either.
 
-    The constraint of this is that the resultant mapping has a locked set of
-    keys- you cannot add a key that wasn't allowed up front.
-
-    This functionality is primarily useful when you'll be generating many
-    dict instances, all with a common set of allowed keys.
-
-    :param keys: iterable/sequence of keys to allow in the resultant mapping
-
-    Example usage:
-
-    >>> from snakeoil.mappings import make_SlottedDict_kls
-    >>> import sys
-    >>> my_kls = make_SlottedDict_kls(["key1", "key2", "key3"])
-    >>> items = (("key1", 1), ("key2", 2), ("key3",3))
-    >>> inst = dict(items)
-    >>> slotted_inst = my_kls(items)
-    >>> print(sys.getsizeof(inst))
-    280
-    >>> print(sys.getsizeof(slotted_inst))
-    72
-    >>> # and now for an extreme example:
-    >>> raw = {"attribute%i" % (x,): x for x in range(1000)}
-    >>> skls = make_SlottedDict_kls(raw.keys())
-    >>> print(sys.getsizeof(raw))
-    49432
-    >>> sraw = skls(raw.items())
-    >>> print(sys.getsizeof(sraw))
-    8048
-    >>> print(sraw["attribute2"], sraw["attribute3"])
-    2 3
-
-    Note that those stats are for a 64bit python 2.6.5 VM.  The stats may
-    differ for other python implementations or versions, although for cpython
-    the stats above should hold +/- a couple of bites.
-
-    Finally, it's worth noting that the stats above are the minimal savings-
-    via a side affect of the __slots__ the keys are automatically interned.
-
-    This means that if you have 100 instances floating around, for dict's
-    that costs you sizeof(key) * 100, for slotted dict instances you pay
-    sizeof(key) due to the interning.
+    Note that the mapping protocol here is driven off of ``__slots__``, so on a
+    generated class - which has a ``__dict__`` - a key outside of the declared
+    set can be set and read back, yet stays invisible to ``keys``, ``values``,
+    ``items``, ``__len__`` and ``clear``.  Use a plain dict.
     """
 
     __slots__ = ()
@@ -872,9 +834,16 @@ class _SlottedDict(DictMixin):
         return len(list(self.keys()))
 
 
+@deprecated(
+    "Use dict instead.  This has generated unslotted classes since 2019, so it "
+    "has neither the memory savings nor the locked keys it documents",
+    removal_in=(0, 12, 0),
+)
 def make_SlottedDict_kls(keys):
     """
-    Create a space efficient mapping class with a limited set of keys.
+    Deprecated.  Create a mapping class with a limited set of keys.
+
+    See :py:class:`_SlottedDict` for why this is deprecated; use a plain dict.
     """
     new_keys = tuple(sorted(keys))
     cls_name = f"SlottedDict_{hash(new_keys)}"

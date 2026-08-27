@@ -4,6 +4,7 @@ from itertools import chain
 import pytest
 
 from snakeoil import mappings
+from snakeoil._internals import deprecated
 
 
 def a_dozen():
@@ -658,6 +659,7 @@ class Test_ProxiedAttrs:
         del proxy["x"]
 
 
+@deprecated.suppress_deprecations()
 class TestSlottedDict:
     kls = staticmethod(mappings.make_SlottedDict_kls)
 

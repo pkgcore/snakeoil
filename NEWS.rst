@@ -31,6 +31,11 @@ snakeoil 0.11.5 (unreleased)
   classmethods, staticmethods and property accessors its body defines, and hands
   back the class itself (Arthur Zamarin)
 
+- ``snakeoil.mappings.make_SlottedDict_kls``: deprecated, removal in 0.12.0.
+  It has generated classes without any slotting since 2019, so it delivers
+  neither the memory savings nor the locked set of keys it documents, use a
+  plain dict (Arthur Zamarin)
+
 
 snakeoil 0.11.4 (2026-08-08)
 ----------------------------
