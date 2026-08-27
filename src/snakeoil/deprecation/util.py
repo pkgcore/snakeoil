@@ -42,6 +42,17 @@ class suppress_deprecations:
     ...   with suppress_deprecations():
     ...     another_value = invoke_deprecated()
     ...   yield another_value
+
+    Decorating a class suppresses deprecations within the methods, classmethods,
+    staticmethods and property accessors that the class body defines.  The class
+    itself is handed back- it is modified in place- so it stays a class:
+    >>> @suppress_deprecations()
+    ... class kls:
+    ...   def method(self):
+    ...     return invoke_deprecated()
+
+    Inherited methods are not touched; they belong to the class that defined
+    them.  Neither are nested classes, decorate those directly.
     """
 
     __slots__ = (
@@ -71,9 +82,43 @@ class suppress_deprecations:
         self._warning_ctx = None
         return ret
 
-    def __call__(self, thing: typing.Callable[P, T]) -> typing.Callable[P, T]:
-        # being used as a decorator.  We unfortunately need to see the actual call result
-        # to know if it's a generator requiring wrapping.
+    @typing.overload
+    def __call__(self, thing: type[T]) -> type[T]: ...
+
+    @typing.overload
+    def __call__(self, thing: typing.Callable[P, T]) -> typing.Callable[P, T]: ...
+
+    def __call__(self, thing):
+        # being used as a decorator.
+        if isinstance(thing, type):
+            return self.__decorate_class(thing)
+        return self.__decorate_callable(thing)
+
+    def __decorate_class(self, kls: type[T]) -> type[T]:
+        """Suppress deprecations within the callables a class defines"""
+        for name, value in list(vars(kls).items()):
+            if isinstance(value, (staticmethod, classmethod)):
+                value = type(value)(self.__decorate_callable(value.__func__))
+            elif isinstance(value, property):
+                value = property(
+                    *(
+                        None if accessor is None else self.__decorate_callable(accessor)
+                        for accessor in (value.fget, value.fset, value.fdel)
+                    ),
+                    value.__doc__,
+                )
+            elif inspect.isfunction(value):
+                value = self.__decorate_callable(value)
+            else:
+                continue
+            setattr(kls, name, value)
+        return kls
+
+    def __decorate_callable(
+        self, thing: typing.Callable[P, T]
+    ) -> typing.Callable[P, T]:
+        # We unfortunately need to see the actual call result to know if it's a
+        # generator requiring wrapping.
         @functools.wraps(thing)
         def inner(*args: P.args, **kwargs: P.kwargs) -> T:
             # instantiate a new instance.  The callable may result in re-entrancy.

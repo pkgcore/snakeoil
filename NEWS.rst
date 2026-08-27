@@ -24,6 +24,13 @@ snakeoil 0.11.5 (unreleased)
   ``compare_slots=True`` compared per character attributes that no instance has,
   making every instance equal to every other (Arthur Zamarin)
 
+- ``snakeoil.deprecation.suppress_deprecations``: fix decorating a class
+  replacing it with a function, which broke ``isinstance``, ``issubclass`` and
+  subclassing, and silently stopped pytest from collecting decorated test
+  classes.  Decorating a class now suppresses deprecations within the methods,
+  classmethods, staticmethods and property accessors its body defines, and hands
+  back the class itself (Arthur Zamarin)
+
 
 snakeoil 0.11.4 (2026-08-08)
 ----------------------------

@@ -96,6 +96,65 @@ class TestRegistry:
         assert 1 == len(capture.list)
         assert "deprecation warning was not suppressed" not in str(capture.list[0])
 
+    def test_suppress_deprecations_class_decoration(self):
+        def warn():
+            warnings.warn("deprecation warning was not suppressed", DeprecationWarning)
+
+        class base:
+            def inherited(self):
+                warn()
+
+        @suppress_deprecations()
+        class kls(base):
+            class nested:
+                def method(self):
+                    warn()
+
+            def method(self):
+                warn()
+
+            @classmethod
+            def as_classmethod(cls):
+                warn()
+
+            @staticmethod
+            def as_staticmethod():
+                warn()
+
+            @property
+            def as_property(self):
+                warn()
+                return 1
+
+            def generator(self):
+                warn()
+                yield 1
+                warn()
+                yield 2
+
+        # it must still be a class; wrapping it in a functor breaks isinstance,
+        # subclassing, and anything that collects classes- pytest included.
+        assert isinstance(kls, type)
+        assert issubclass(kls, base)
+        obj = kls()
+        assert isinstance(obj, kls)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            obj.method()
+            kls.as_classmethod()
+            kls.as_staticmethod()
+            assert 1 == obj.as_property
+            # the generator handling has to survive the class decoration too
+            assert [1, 2] == list(obj.generator())
+            assert [] == [str(x.message) for x in w]
+
+            # what the class inherits belongs to the class that defined it, and
+            # nested classes are left for the caller to decorate directly.
+            obj.inherited()
+            kls.nested().method()
+            assert 2 == len(w)
+
     @requires_enabled
     def test_subclassing(self):
         # just assert record class can be extended- so downstream can add more metadata.
