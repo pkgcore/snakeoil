@@ -1,4 +1,5 @@
 import operator
+from itertools import chain
 
 import pytest
 
@@ -148,3 +149,37 @@ class Test_iter_sort:
         result = list(iter_sort(f, *[iter(range(x, x + 10)) for x in (30, 20, 0, 10)]))
         expected = list(range(40))
         assert result == expected
+
+    @pytest.mark.parametrize(
+        "iterables",
+        (
+            pytest.param(([1, 2], [1, 3]), id="leading-element-ties"),
+            pytest.param(([1, 1], [1, 1], [1]), id="everything-ties"),
+            pytest.param(([1, 2, 3], [2, 3, 4], [3, 4, 5]), id="overlapping"),
+            pytest.param(([], [2, 3], []), id="empties"),
+            pytest.param(([3, 4],), id="single"),
+            pytest.param((), id="none"),
+        ),
+    )
+    def test_bare_sorted(self, iterables):
+        # the sorter needn't pull the element out itself; iterables that tie on
+        # it must not end up compared against each other.
+        assert sorted(chain(*iterables)) == list(iter_sort(sorted, *iterables))
+
+    def test_ties_keep_input_order(self):
+        class tied:
+            """every instance compares equal, so ordering falls to the iterable"""
+
+            def __init__(self, name):
+                self.name = name
+
+            def __eq__(self, other):
+                return isinstance(other, tied)
+
+            def __lt__(self, other):
+                return False
+
+        left, right = tied("left"), tied("right")
+        for order in ((left, right), (right, left)):
+            result = iter_sort(sorted, *([x] for x in order))
+            assert [x.name for x in order] == [x.name for x in result]

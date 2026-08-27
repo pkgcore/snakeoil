@@ -59,6 +59,11 @@ snakeoil 0.11.5 (unreleased)
   ``first_prefixes`` or ``later_prefixes`` sequence discarding the prefixes
   already standing on the formatter (Arthur Zamarin)
 
+- ``snakeoil.iterables.iter_sort``: fix ``TypeError`` when two of the iterables
+  yield equal leading elements, which left the sorter comparing the iterables
+  themselves.  Iterables that tie are now ordered by the order they were passed
+  in (Arthur Zamarin)
+
 
 snakeoil 0.11.4 (2026-08-08)
 ----------------------------

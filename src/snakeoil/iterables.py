@@ -250,11 +250,32 @@ class caching_iter(typing.Generic[T]):
         return "iterable(%s), cached: %s" % (self.iterable, str(self.cached_list))
 
 
+class _tiebreak_iter(typing.Generic[T]):
+    """Iterator that orders against its peers by arrival, for iter_sort"""
+
+    __slots__ = ("_index", "_iter")
+
+    def __init__(self, iterable: typing.Iterable[T], index: int) -> None:
+        self._iter = iter(iterable)
+        self._index = index
+
+    def __iter__(self) -> typing.Iterator[T]:
+        return self._iter
+
+    def __next__(self) -> T:
+        return next(self._iter)
+
+    def __lt__(self, other: "_tiebreak_iter[T]") -> bool:
+        return self._index < other._index
+
+
 def iter_sort(sorter, *iterables):
     """Merge a number of sorted iterables into a single sorted iterable.
 
     :type sorter: callable.
-    :param sorter: function, passed a list of [element, iterable].
+    :param sorter: function, passed a list of [element, iterable].  It may
+       order those solely by their element; iterables that tie on it are
+       ordered against each other by the order they were passed in.
     :param iterables: iterables to consume from.  It's **required**
        that each iterable to consume from is presorted already within
        that specific iterable.
@@ -272,9 +293,9 @@ def iter_sort(sorter, *iterables):
     [0, 1, 2, 3, 4, 5]
     """
     l = []
-    for x in iterables:
+    for index, x in enumerate(iterables):
         try:
-            x = iter(x)
+            x = _tiebreak_iter(x, index)
             l.append([next(x), x])
         except StopIteration:
             pass
