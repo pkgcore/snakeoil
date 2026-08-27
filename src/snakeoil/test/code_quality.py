@@ -15,6 +15,16 @@ from snakeoil.klass import (
 from .util import NamespaceCollector
 
 
+def _qualname(target: type) -> str:
+    """Name a class for a subtest id.
+
+    Subtest ids have to be a type execnet can serialize, else the report cannot
+    cross the boundary to an xdist worker and the run dies with a DumpError; a
+    class object is not one of them.
+    """
+    return f"{getattr(target, '__module__', '?')}.{target.__qualname__}"
+
+
 def _is_addressable(target: type) -> bool:
     """Is this class still reachable by name from the module it claims?
 
@@ -71,7 +81,7 @@ class Slots(NamespaceCollector, still_abstract=True):
 
     def test_slots_mandatory(self, subtests):
         for target in self.collect_classes():
-            with subtests.test(cls=target):
+            with subtests.test(cls=_qualname(target)):
                 assert get_slot_of(target).slots is not None or getattr(
                     target, self.disable_str, False
                 ), f"class has no slots nor is {self.disable_str} set to True"
@@ -80,7 +90,7 @@ class Slots(NamespaceCollector, still_abstract=True):
         for target in self.collect_classes():
             if (slots := get_slot_of(target).slots) is None:
                 continue
-            with subtests.test(cls=target):
+            with subtests.test(cls=_qualname(target)):
                 # get_slot_of normalizes the names, so this has to look at what
                 # the class definition actually wrote to enforce the style.
                 assert isinstance(target.__dict__.get("__slots__", ()), tuple), (

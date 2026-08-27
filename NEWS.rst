@@ -8,6 +8,13 @@ snakeoil 0.11.5 (unreleased)
 - Drop support for python 3.11 and pypy3.11; python 3.12 is the new minimum
   version.  Python 3.15 was added to CI (Arthur Zamarin)
 
+- ``snakeoil.test.code_quality.Slots``: fix ``test_slots_mandatory`` and
+  ``test_shadowing`` killing any run under ``pytest-xdist`` with
+  ``execnet.gateway_base.DumpError: can't serialize <class 'type'>``.  They
+  named their subtests with the class object itself, which cannot cross the
+  boundary to a worker; the subtest is now identified by the class' qualified
+  name, as the other checks in the module already were (Arthur Zamarin)
+
 - ``snakeoil.obj.DelayedInstantiation``: fix ``AttributeError: __delayed__``
   when several threads first touch the same proxy at once (Arthur Zamarin)
 
