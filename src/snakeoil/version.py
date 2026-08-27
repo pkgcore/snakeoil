@@ -6,7 +6,7 @@ import os
 import subprocess
 from importlib import import_module
 
-_ver = None
+_ver: dict[tuple[str, str, str | None], str] = {}
 
 
 def get_version(project, repo_file, api_version=None):
@@ -18,14 +18,17 @@ def get_version(project, repo_file, api_version=None):
     file (for packages using snakeoil's custom sdist phase) and if that fails
     assumes it's in a git repo and grabs the git info instead.
 
+    The result is memoized against the arguments; more than one project can be
+    asked in a single process.
+
     :param project: module name
     :param repo_file: file belonging to module
     :param api_version: version for the project, if not specified __version__
         is imported from the main project module
     :return: a string describing the project version
     """
-    global _ver  # pylint: disable=global-statement
-    if _ver is None:
+    key = (project, repo_file, api_version)
+    if (ver := _ver.get(key)) is None:
         version_info = None
         if api_version is None:
             try:
@@ -50,8 +53,8 @@ def get_version(project, repo_file, api_version=None):
             commits = f"-{commits}" if commits is not None else ""
             s = f"{commits}-g{rev} -- {date}"
 
-        _ver = f"{project} {api_version}{s}"
-    return _ver
+        _ver[key] = ver = f"{project} {api_version}{s}"
+    return ver
 
 
 def _run_git(path, cmd):

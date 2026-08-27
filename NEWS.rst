@@ -40,6 +40,9 @@ snakeoil 0.11.5 (unreleased)
   left ``test_slots_mandatory`` and ``test_shadowing`` passing while checking
   nothing (Arthur Zamarin)
 
+- ``snakeoil.version.get_version``: fix the result being memoized in a single
+  global with no regard for which project was asked (Arthur Zamarin)
+
 
 snakeoil 0.11.4 (2026-08-08)
 ----------------------------

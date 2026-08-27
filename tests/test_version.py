@@ -78,6 +78,20 @@ class TestVersion:
             v = version.get_version("snakeoil", __file__)
         assert not import_module.called
 
+    def test_get_version_caching_is_per_project(self):
+        # the cache is keyed, so a second project isn't answered with the
+        # version of whichever one asked first.
+        with (
+            mock.patch("snakeoil.version.import_module") as import_module,
+            mock.patch("snakeoil.version.get_git_version") as get_git_version,
+        ):
+            import_module.side_effect = ImportError
+            get_git_version.return_value = None
+            assert "snakeoil 1.2.3" == version.get_version(
+                "snakeoil", __file__, "1.2.3"
+            )
+            assert "other 4.5.6" == version.get_version("other", __file__, "4.5.6")
+
 
 class TestGitVersion:
     def test_get_git_version_not_available(self):
