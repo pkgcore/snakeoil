@@ -135,7 +135,7 @@ class _process_handle:
         # reallocating it continually; via this usage, we
         # only slice once the val is less than seek_size;
         # iow, two allocations worst case.
-        null_block = "\0" * seek_size
+        null_block = b"\0" * seek_size
         while val:
             self.write(null_block[:val])
             offset -= val

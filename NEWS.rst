@@ -51,6 +51,10 @@ snakeoil 0.11.5 (unreleased)
   failing with ``KeyError``, since the command was run through ``str.format``
   twice (Arthur Zamarin)
 
+- ``snakeoil.compression.compress_handle``: fix seeking a write handle forward
+  raising ``TypeError: a bytes-like object is required, not 'str'`` (Arthur
+  Zamarin)
+
 
 snakeoil 0.11.4 (2026-08-08)
 ----------------------------

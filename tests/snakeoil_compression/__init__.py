@@ -76,6 +76,26 @@ class Base(abc.ABC):
             )
 
     @pytest.mark.parametrize("parallelize", (True, False))
+    def test_compress_handle_forward_seek(self, tmp_path, parallelize):
+        path = tmp_path / f"test.{self.module}"
+
+        # a file object always routes to the subprocess backed handle, which is
+        # the implementation that supports seeking a write handle forward
+        with path.open("wb") as file:
+            stream = compression.compress_handle(
+                self.module, file, parallelize=parallelize
+            )
+            stream.write(self.decompressed_test_data)
+            assert len(self.decompressed_test_data) == stream.tell()
+            # the gap is padded with nulls
+            assert stream.tell() + 3 == stream.seek(stream.tell() + 3)
+            stream.close()
+        assert (
+            self.decompress(path.read_bytes())
+            == self.decompressed_test_data + b"\0" * 3
+        )
+
+    @pytest.mark.parametrize("parallelize", (True, False))
     def test_decompress_handle(self, tmp_path, parallelize):
         path = tmp_path / f"test.{self.module}"
         path.write_bytes(self.compressed_test_data)
