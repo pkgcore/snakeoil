@@ -1,4 +1,5 @@
 __all__ = ("Slots", "Modules")
+import sys
 import typing
 
 import pytest
@@ -12,6 +13,27 @@ from snakeoil.klass import (
 )
 
 from .util import NamespaceCollector
+
+
+def _is_addressable(target: type) -> bool:
+    """Is this class still reachable by name from the module it claims?
+
+    A class its module no longer exposes isn't part of the namespace under test,
+    and the shape it has is not the shape that namespace presents.  The usual
+    source is ``@dataclass(slots=True)``: that builds a *replacement* class, and
+    the original - which has none of the slotting the replacement gained - stays
+    registered in its base's ``__subclasses__`` for the life of the process.
+    """
+    if (module := sys.modules.get(getattr(target, "__module__", ""), None)) is None:
+        return False
+    obj: typing.Any = module
+    for attr in target.__qualname__.split("."):
+        if attr == "<locals>":
+            # defined inside a function, thus not addressable at all; take it.
+            return True
+        if (obj := getattr(obj, attr, None)) is None:
+            return False
+    return obj is target
 
 
 class Slots(NamespaceCollector, still_abstract=True):
@@ -30,13 +52,22 @@ class Slots(NamespaceCollector, still_abstract=True):
     def collect_classes(cls) -> typing.Iterable[type]:
         modules = set(x.__name__ for x in cls.collect_modules())
         for target in get_subclasses_of(object):
-            if cls.__module__ in modules and not cls.ignore_class(target):
+            if getattr(target, "__module__", None) not in modules:
+                continue
+            if _is_addressable(target) and not cls.ignore_class(target):
                 yield target
 
     @classmethod
     def ignore_class(cls, target: type) -> bool:
         """Override this if you need dynamic suppression of which classes to ignore"""
         return issubclass(target, cls.ignored_subclasses)
+
+    def test_classes_are_collected(self):
+        # everything below is a loop over collect_classes(); if that comes up
+        # empty they all pass while checking nothing.
+        assert list(self.collect_classes()), (
+            f"no classes were collected for namespaces {self.namespaces!r}"
+        )
 
     def test_slots_mandatory(self, subtests):
         for target in self.collect_classes():
@@ -48,7 +79,7 @@ class Slots(NamespaceCollector, still_abstract=True):
     def test_shadowing(self, subtests):
         for target in self.collect_classes():
             if (slots := get_slot_of(target).slots) is None:
-                return
+                continue
             with subtests.test(cls=target):
                 # get_slot_of normalizes the names, so this has to look at what
                 # the class definition actually wrote to enforce the style.

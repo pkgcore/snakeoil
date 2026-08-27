@@ -36,6 +36,10 @@ snakeoil 0.11.5 (unreleased)
   neither the memory savings nor the locked set of keys it documents, use a
   plain dict (Arthur Zamarin)
 
+- ``snakeoil.test.code_quality.Slots``: fix collecting no classes at all, which
+  left ``test_slots_mandatory`` and ``test_shadowing`` passing while checking
+  nothing (Arthur Zamarin)
+
 
 snakeoil 0.11.4 (2026-08-08)
 ----------------------------
