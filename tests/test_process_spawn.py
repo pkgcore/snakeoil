@@ -49,6 +49,16 @@ class TestSpawn:
             )
         os.unlink(fp)
 
+    def test_get_output_without_pids(self, tmp_path):
+        # a spawn_type that ignores returnpid leaves nothing to wait on
+        fp = self.generate_script(tmp_path, "spawn-nopids.sh", "echo dar\n")
+
+        def no_pids(*args, **kwargs):
+            return 0
+
+        with pytest.raises(spawn.ExecutionFailure, match="ignored returnpid"):
+            spawn.spawn_get_output(str(fp), spawn_type=no_pids)
+
     @pytest.mark.skipif(not spawn.is_sandbox_capable(), reason="missing sandbox binary")
     def test_sandbox(self, tmp_path):
         fp = self.generate_script(tmp_path, "spawn-sandbox.sh", "echo $LD_PRELOAD")

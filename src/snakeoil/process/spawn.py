@@ -402,7 +402,10 @@ def spawn_get_output(
         pw = None
 
         if not isinstance(mypid, (list, tuple)):
-            raise ExecutionFailure()
+            raise ExecutionFailure(
+                f"{spawn_type!r} ignored returnpid for {mycommand!r}; "
+                f"expected a sequence of pids, got {mypid!r}"
+            )
 
         fd = os.fdopen(pr, "r")
         try:

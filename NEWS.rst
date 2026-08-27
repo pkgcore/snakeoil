@@ -79,6 +79,9 @@ snakeoil 0.11.5 (unreleased)
   reporting ``TypeError: 'NoneType' object cannot be interpreted as an integer``
   instead of the actual ``OSError`` (Arthur Zamarin)
 
+- ``snakeoil.process.spawn.spawn_get_output``: raise ``TypeError`` instead of the
+  ``ExecutionFailure`` when the spawn function returns no pids (Arthur Zamarin)
+
 
 snakeoil 0.11.4 (2026-08-08)
 ----------------------------
