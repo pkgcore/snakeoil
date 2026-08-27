@@ -696,6 +696,79 @@ class TestGenericRichComparison:
         assert not (obj1 > obj2)
         assert not (obj1 >= obj2)
 
+    def test_ordering_is_lexicographic(self):
+        """the first attribute that differs must decide, and nothing after it"""
+
+        class kls(klass.GenericRichComparison):
+            __attr_comparison__ = ("x", "y")
+
+            def __init__(self, x, y):
+                self.x, self.y = x, y
+
+        # a greater leading attribute wins even when the trailing one is lesser
+        greater, lesser = kls(2, 1), kls(1, 2)
+        assert greater > lesser
+        assert greater >= lesser
+        assert not (greater < lesser)
+        assert not (greater <= lesser)
+        assert lesser < greater
+        assert lesser <= greater
+
+        # ... and a tie in the leading attribute defers to the trailing one
+        greater, lesser = kls(1, 5), kls(1, 2)
+        assert greater > lesser
+        assert greater >= lesser
+        assert not (greater < lesser)
+        assert not (greater <= lesser)
+        assert lesser < greater
+        assert lesser <= greater
+
+    def test_ordering_matches_tuple_ordering(self, subtests):
+        """the attribute list should order exactly like the tuple of its values"""
+
+        class kls(klass.GenericRichComparison):
+            __attr_comparison__ = ("x", "y", "z")
+
+            def __init__(self, x, y, z):
+                self.x, self.y, self.z = x, y, z
+
+        values = [(x, y, z) for x in range(3) for y in range(3) for z in range(3)]
+        for left in values:
+            for right in values:
+                with subtests.test(left=left, right=right):
+                    obj1, obj2 = kls(*left), kls(*right)
+                    assert (obj1 < obj2) == (left < right)
+                    assert (obj1 <= obj2) == (left <= right)
+                    assert (obj1 > obj2) == (left > right)
+                    assert (obj1 >= obj2) == (left >= right)
+                    assert (obj1 == obj2) == (left == right)
+
+    def test_sorting(self):
+        class kls(klass.GenericRichComparison):
+            __attr_comparison__ = ("x", "y")
+
+            def __init__(self, x, y):
+                self.x, self.y = x, y
+
+            def __repr__(self):
+                return f"kls({self.x}, {self.y})"
+
+        objs = [kls(2, 1), kls(1, 2), kls(2, 0), kls(1, 1)]
+        assert [(o.x, o.y) for o in sorted(objs)] == [(1, 1), (1, 2), (2, 0), (2, 1)]
+
+    def test_attr_comparison_override(self):
+        class kls(klass.GenericRichComparison):
+            __attr_comparison__ = ("x", "y")
+
+            def __init__(self, x, y):
+                self.x, self.y = x, y
+
+        obj1, obj2 = kls(2, 1), kls(1, 2)
+        assert obj1.__lt__(obj2, attr_comparison_override=("y",))
+        assert obj1.__le__(obj2, attr_comparison_override=("y",))
+        assert not obj1.__gt__(obj2, attr_comparison_override=("y",))
+        assert not obj1.__ge__(obj2, attr_comparison_override=("y",))
+
 
 def test_abstractclassvar():
     class kls1(abc.ABC): ...

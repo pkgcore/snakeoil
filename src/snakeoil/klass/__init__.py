@@ -243,7 +243,34 @@ class GenericEquality(abc.ABC):
         return super().__init_subclass__(**kwargs)
 
 
+def _cmp_attrs(inst, value, attrlist: tuple[str, ...]) -> int:
+    """three way comparison of two objects over an ordered sequence of attributes
+
+    The first attribute that differs decides the result; this is the same
+    lexicographic ordering a hand written ``__cmp__`` chain gives.  An attribute
+    missing from an object sorts before one that is present, mirroring
+    :py:class:`GenericEquality` treating absence as a value of its own.
+    """
+    for attr in attrlist:
+        obj1, obj2 = getattr(inst, attr, sentinel), getattr(value, attr, sentinel)
+        if obj1 is sentinel:
+            if obj2 is sentinel:
+                continue
+            return -1
+        elif obj2 is sentinel:
+            return 1
+        if obj1 != obj2:
+            return -1 if obj1 < obj2 else 1  # pyright: ignore[reportOperatorIssue]
+    return 0
+
+
 class GenericRichComparison(GenericEquality):
+    """Extend :py:class:`GenericEquality` with ordering off of the same attribute list
+
+    Ordering is lexicographic over ``__attr_comparison__``; order that sequence
+    the way you would write the comparisons by hand, most significant first.
+    """
+
     __slots__ = ()
 
     def __lt__(self, value, attr_comparison_override: tuple[str, ...] | None = None):
@@ -254,17 +281,7 @@ class GenericRichComparison(GenericEquality):
             if attr_comparison_override is None
             else attr_comparison_override
         )
-        for attr in attrlist:
-            obj1, obj2 = getattr(self, attr, sentinel), getattr(value, attr, sentinel)
-            if obj1 is sentinel:
-                if obj2 is sentinel:
-                    continue
-                return True
-            elif obj2 is sentinel:
-                return False
-            if not (obj1 >= obj2):  # pyright: ignore[reportOperatorIssue]
-                return True
-        return False
+        return _cmp_attrs(self, value, attrlist) < 0
 
     def __le__(self, value, attr_comparison_override: tuple[str, ...] | None = None):
         if self is value:
@@ -274,17 +291,7 @@ class GenericRichComparison(GenericEquality):
             if attr_comparison_override is None
             else attr_comparison_override
         )
-        for attr in attrlist:
-            obj1, obj2 = getattr(self, attr, sentinel), getattr(value, attr, sentinel)
-            if obj1 is sentinel:
-                if obj2 is sentinel:
-                    continue
-                return True
-            elif obj2 is sentinel:
-                return False
-            if not (obj1 > obj2):  # pyright: ignore[reportOperatorIssue]
-                return True
-        return False
+        return _cmp_attrs(self, value, attrlist) <= 0
 
     def __gt__(self, value, attr_comparison_override: tuple[str, ...] | None = None):
         return not self.__le__(value, attr_comparison_override=attr_comparison_override)
