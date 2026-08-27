@@ -102,3 +102,12 @@ class TestArComp:
         with chdir(tmp_path):
             ArComp(lzma_file, ext=".lzma").unpack(dest=dest)
         assert (dest).read_bytes() == b"Hello world"
+
+    def test_braces_in_path(self, tmp_path, tar_file):
+        # the path is interpolated into the command, it must not then be
+        # interpreted as a format string of its own
+        path = tmp_path / "{pkg}-1.0.tar"
+        shutil.copyfile(tar_file, path)
+        with chdir(tmp_path):
+            ArComp(str(path), ext=".tar").unpack(dest=tmp_path)
+        assert (tmp_path / "file1").read_text() == "Hello world"

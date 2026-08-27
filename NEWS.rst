@@ -47,6 +47,10 @@ snakeoil 0.11.5 (unreleased)
   failed with ``no compression binary found from the following choices: l``
   (Arthur Zamarin)
 
+- ``snakeoil.compression.ArComp``: fix unpacking a path containing ``{`` or ``}``
+  failing with ``KeyError``, since the command was run through ``str.format``
+  twice (Arthur Zamarin)
+
 
 snakeoil 0.11.4 (2026-08-08)
 ----------------------------

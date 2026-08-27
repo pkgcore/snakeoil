@@ -109,7 +109,7 @@ class _Archive:
     """Generic archive format support."""
 
     def unpack(self, dest=None, **kwargs):
-        cmd = shlex.split(self._unpack_cmd.format(path=self.path))
+        cmd = shlex.split(self._unpack_cmd)
         ret, output = spawn_get_output(cmd, collect_fds=(2,), **kwargs)
         if ret:
             msg = "\n".join(output) if output else f"unpacking failed: {self.path!r}"
@@ -120,7 +120,7 @@ class _CompressedFile:
     """Single compressed file."""
 
     def unpack(self, dest=None, **kwargs):
-        cmd = shlex.split(self._unpack_cmd.format(path=self.path))
+        cmd = shlex.split(self._unpack_cmd)
         with open(dest, "wb") as f:
             ret, output = spawn_get_output(
                 cmd, collect_fds=(2,), fd_pipes={1: f.fileno()}, **kwargs
