@@ -90,6 +90,11 @@ snakeoil 0.11.5 (unreleased)
   being accepted and then ignored, always suppressing ``DeprecationWarning``
   (Arthur Zamarin)
 
+- ``snakeoil.process.namespaces.create_utsns``: fix its errno handling being
+  inverted, so an unsupported UTS namespace raised while every other failure was
+  swallowed.  ``simple_unshare`` no longer swallows failures to unshare the IPC
+  namespace either (Arthur Zamarin)
+
 
 snakeoil 0.11.4 (2026-08-08)
 ----------------------------

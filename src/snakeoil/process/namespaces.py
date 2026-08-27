@@ -220,9 +220,10 @@ def create_utsns(hostname=None):
     try:
         unshare(CLONE_NEWUTS)
     except OSError as e:
-        if e.errno != errno.EINVAL:
+        if e.errno == errno.EINVAL:
             return
         else:
+            # For all other errors, abort.  They shouldn't happen.
             raise
 
     # hostname/domainname default to the parent namespace settings if unset
@@ -299,7 +300,8 @@ def simple_unshare(
             unshare(CLONE_NEWIPC)
         except OSError as e:
             if e.errno != errno.EINVAL:
-                pass
+                # For all other errors, abort.  They shouldn't happen.
+                raise
 
     if net:
         create_netns()
