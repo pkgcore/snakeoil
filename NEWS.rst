@@ -86,6 +86,10 @@ snakeoil 0.11.5 (unreleased)
   ``__set_stage_state__`` having it silently replaced by the default one
   (Arthur Zamarin)
 
+- ``snakeoil.deprecation.suppress_deprecations``: fix the ``category`` argument
+  being accepted and then ignored, always suppressing ``DeprecationWarning``
+  (Arthur Zamarin)
+
 
 snakeoil 0.11.4 (2026-08-08)
 ----------------------------

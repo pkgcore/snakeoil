@@ -96,6 +96,14 @@ class TestRegistry:
         assert 1 == len(capture.list)
         assert "deprecation warning was not suppressed" not in str(capture.list[0])
 
+    def test_suppress_deprecations_category(self):
+        with warnings.catch_warnings(record=True) as capture:
+            warnings.simplefilter("always")
+            with suppress_deprecations(category=UserWarning):
+                warnings.warn("suppressed", UserWarning)
+                warnings.warn("not suppressed", DeprecationWarning)
+        assert ["not suppressed"] == [str(x.message) for x in capture]
+
     def test_suppress_deprecations_class_decoration(self):
         def warn():
             warnings.warn("deprecation warning was not suppressed", DeprecationWarning)

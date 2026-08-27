@@ -64,7 +64,7 @@ class suppress_deprecations:
 
     def __init__(self, category=DeprecationWarning, wrap_generators=True, **kwargs):
         kwargs.setdefault("action", "ignore")
-        kwargs.setdefault("category", DeprecationWarning)
+        kwargs.setdefault("category", category)
         self.kwargs = kwargs
         self.wraps_generators = wrap_generators
         self._warning_ctx = None
