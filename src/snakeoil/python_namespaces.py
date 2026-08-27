@@ -36,16 +36,16 @@ def protect_imports() -> typing.Generator[
     # Do not change this code without changing python_namespaces.protect_imports.  We have two implementations due to cycle issues.
     orig_content = sys.path[:]
     orig_modules = sys.modules.copy()
-    with contextlib.nullcontext():
+    try:
         yield sys.path, sys.modules
-
-    sys.path[:] = orig_content
-    # This is explicitly not thread safe, but manipulating sys.path fundamentally isn't thus this context
-    # isn't thread safe.  TL;dr: nuke it, and restore, it's the only way to be sure (to paraphrase)
-    sys.modules.clear()
-    sys.modules.update(orig_modules)
-    # Out of paranoia, force loaders to reset their caches.
-    invalidate_caches()
+    finally:
+        sys.path[:] = orig_content
+        # This is explicitly not thread safe, but manipulating sys.path fundamentally isn't thus this context
+        # isn't thread safe.  TL;dr: nuke it, and restore, it's the only way to be sure (to paraphrase)
+        sys.modules.clear()
+        sys.modules.update(orig_modules)
+        # Out of paranoia, force loaders to reset their caches.
+        invalidate_caches()
 
 
 def get_submodules_of(

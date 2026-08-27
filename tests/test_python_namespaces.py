@@ -15,6 +15,7 @@ from snakeoil.python_namespaces import (
     protect_imports,
     remove_py_extension,
 )
+from snakeoil.test import protect_imports as test_protect_imports_impl
 
 
 def write_tree(base: pathlib.Path, *paths: str | pathlib.Path):
@@ -187,6 +188,35 @@ def test_protect_imports(tmp_path):
 
 
 class ShouldBeReachedOnlyInSuccess(Exception): ...
+
+
+@pytest.mark.parametrize(
+    "protect_imports",
+    (
+        pytest.param(protect_imports, id="python_namespaces"),
+        pytest.param(test_protect_imports_impl, id="snakeoil.test"),
+    ),
+)
+def test_protect_imports_restores_when_the_body_raises(tmp_path, protect_imports):
+    p = tmp_path / "_must_not_exist_2.py"
+    p.touch()
+
+    orig_modules_content = sys.modules.copy()
+    orig_path_content = sys.path[:]
+
+    with (
+        pytest.raises(ShouldBeReachedOnlyInSuccess),
+        protect_imports() as (path, _),
+    ):
+        path.append(str(tmp_path))
+        import_module(p.stem)
+        assert p.stem in sys.modules
+        raise ShouldBeReachedOnlyInSuccess
+
+    assert orig_path_content == sys.path, "sys.path wasn't reset"
+    assert not set(orig_modules_content).symmetric_difference(sys.modules), (
+        "sys.modules wasn't reset"
+    )
 
 
 class params(NamedTuple):

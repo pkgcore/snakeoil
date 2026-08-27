@@ -72,6 +72,9 @@ snakeoil 0.11.5 (unreleased)
   machine has a handler for, purely to discard them, which also made it raise
   ``FileNotFoundError`` for a path that had since been removed (Arthur Zamarin)
 
+- ``snakeoil.test.protect_imports``: fix ``sys.path`` and ``sys.modules`` being
+  left mangled when the body of the context raises (Arthur Zamarin)
+
 
 snakeoil 0.11.4 (2026-08-08)
 ----------------------------
