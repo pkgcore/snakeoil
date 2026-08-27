@@ -161,6 +161,8 @@ class LazilyHashedPath(Simple):
 
     @Simple.__allow_mutation_wrapper__
     def clear(self):
+        # hasattr() here would route through __getattr__ and compute every
+        # chksum the machine has a handler for, purely to throw it away.
         for key in get_handlers():
-            if hasattr(self, key):
+            if key in vars(self):
                 delattr(self, key)

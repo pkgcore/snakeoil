@@ -52,3 +52,19 @@ class TestLazilyHashedPath:
         obj = chksum.LazilyHashedPath("/dev/null", size=0, md5="deadbeef")
         new = pickle.loads(pickle.dumps(obj))
         assert (new.path, new.size, new.md5) == ("/dev/null", 0, "deadbeef")
+
+    def test_clear(self, tmp_path):
+        path = tmp_path / "file"
+        path.write_text("Hello world")
+        obj = chksum.LazilyHashedPath(str(path))
+
+        assert obj.md5
+        assert "md5" in vars(obj)
+        obj.clear()
+        assert "md5" not in vars(obj)
+        assert "path" in vars(obj)
+
+        # clearing must not compute anything, so it stays usable for a path
+        # that no longer exists
+        path.unlink()
+        obj.clear()

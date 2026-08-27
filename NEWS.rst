@@ -68,6 +68,10 @@ snakeoil 0.11.5 (unreleased)
   leaving the variable domains pruned, so a later iteration of the same problem
   silently returned an incomplete set of solutions (Arthur Zamarin)
 
+- ``snakeoil.chksum.LazilyHashedPath.clear``: fix computing every chksum the
+  machine has a handler for, purely to discard them, which also made it raise
+  ``FileNotFoundError`` for a path that had since been removed (Arthur Zamarin)
+
 
 snakeoil 0.11.4 (2026-08-08)
 ----------------------------
