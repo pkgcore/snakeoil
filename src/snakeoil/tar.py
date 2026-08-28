@@ -3,8 +3,9 @@
 This is deprecated.  Use the actual python tarfile module, what this fixed is now in upstream.
 """
 
+import tarfile
+
 from snakeoil._internals import deprecated
-from snakeoil.python_namespaces import protect_imports
 
 deprecated.module(
     "This is fully deprecated.  Use pkgcore.fs.tar functionality",
@@ -13,21 +14,17 @@ deprecated.module(
 )
 
 
-# force a fresh module import of tarfile that is ours to monkey patch.
-with protect_imports() as (_paths, modules):
-    modules.pop("tarfile", None)
-    tarfile = __import__("tarfile")
-
-
-# add in a tweaked ExFileObject that is usable by snakeoil.data_source
 class ExFileObject(tarfile.ExFileObject):
+    """:py:class:`tarfile.ExFileObject` carrying data_source's `exceptions` attribute.
+
+    This is inert and kept only until this module is removed.  It was meant to be
+    what :py:meth:`tarfile.TarFile.extractfile` handed back, but that reads
+    ``TarFile.fileobject`` -- a class attribute this was never wired into.
+    """
+
     __slots__ = ()
     exceptions = (EnvironmentError,)
 
 
-tarfile.fileobject = ExFileObject
-
-# finished monkey patching. now to lift things out of our tarfile
-# module into this scope so from/import behaves properly.
-
+# lift tarfile's exports into this scope so from/import behaves properly.
 locals().update((k, getattr(tarfile, k)) for k in tarfile.__all__)

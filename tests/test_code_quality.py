@@ -20,7 +20,6 @@ class TestSlots(code_quality.Slots):
         "snakeoil.process",
         "snakeoil.stringio",
         "snakeoil.struct_compat",
-        "snakeoil.tar",
         "snakeoil.test",
         "snakeoil.tools",  # this is CLI stuff which a lot of it intentionally avoids snakeoil internals
     )

@@ -9,6 +9,15 @@ snakeoil 0.11.6 (unreleased)
   which postdates it and covers everything it offered; the bash and sandbox
   helpers pkgcore needed now live in ``pkgcore.spawn`` (Arthur Zamarin, #119)
 
+- ``snakeoil.tar``: reduced to a plain re-export of ``tarfile``; removal in 0.12.0
+  is unchanged.  The ``__slots__`` savings this module was written for landed
+  upstream long ago, and the ``ExFileObject`` monkey patch it still carried was
+  inert -- ``TarFile.extractfile`` reads the ``TarFile.fileobject`` class
+  attribute, which the patch never touched.  All it did was import a second copy
+  of ``tarfile``, so ``snakeoil.tar.TarInfo`` and ``tarfile.TarInfo`` were
+  distinct classes and ``isinstance`` across the two failed; they are now the
+  same objects (Arthur Zamarin, #102)
+
 
 snakeoil 0.11.5 (2026-08-28)
 ----------------------------
