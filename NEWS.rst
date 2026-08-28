@@ -2,6 +2,14 @@
 Release Notes
 =============
 
+snakeoil 0.11.6 (unreleased)
+----------------------------
+
+- ``snakeoil.process.spawn``: deprecated, removal in 0.12.0.  Use ``subprocess``,
+  which postdates it and covers everything it offered; the bash and sandbox
+  helpers pkgcore needed now live in ``pkgcore.spawn`` (Arthur Zamarin, #119)
+
+
 snakeoil 0.11.5 (2026-08-28)
 ----------------------------
 

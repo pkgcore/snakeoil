@@ -5,7 +5,10 @@ from contextlib import chdir
 import pytest
 
 from snakeoil import process
-from snakeoil.process import spawn
+from snakeoil._internals import deprecated
+
+with deprecated.suppress_deprecations():
+    from snakeoil.process import spawn
 
 BASH_BINARY = process.find_binary("bash", fallback="")
 

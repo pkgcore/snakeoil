@@ -1,5 +1,8 @@
 """
 subprocess related functionality
+
+This is deprecated.  Use :py:mod:`subprocess`, which postdates this module and
+covers everything it offered.
 """
 
 __all__ = [
@@ -17,8 +20,15 @@ import signal
 import sys
 from typing import Iterable, Optional, Sequence, Union
 
+from .._internals import deprecated
 from ..mappings import ProtectedDict
 from . import find_binary
+
+deprecated.module(
+    "Use subprocess; the bash and sandbox helpers live in pkgcore.spawn",
+    qualname="snakeoil.process.spawn",
+    removal_in=(0, 12, 0),
+)
 
 BASH_BINARY = find_binary("bash", fallback="/bin/bash")
 SANDBOX_BINARY = find_binary("sandbox", fallback="/usr/bin/sandbox")
