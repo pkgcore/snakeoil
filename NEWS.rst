@@ -2,7 +2,7 @@
 Release Notes
 =============
 
-snakeoil 0.11.5 (unreleased)
+snakeoil 0.11.5 (2026-08-28)
 ----------------------------
 
 - Drop support for python 3.11 and pypy3.11; python 3.12 is the new minimum
