@@ -41,6 +41,10 @@ snakeoil 0.11.6 (unreleased)
   ``functools.partial``, which has been wrong since python 3.14 made partial a
   method descriptor (Arthur Zamarin)
 
+- ``snakeoil.contexts.GitStash``: new ``pending`` property, reporting whether
+  the working tree holds changes that entering the context manager would stash
+  (Arthur Zamarin)
+
 
 snakeoil 0.11.5 (2026-08-28)
 ----------------------------

@@ -12,7 +12,6 @@ from snakeoil._internals import deprecated
 from snakeoil.python_namespaces import protect_imports
 
 from .cli.exceptions import UserException
-from .iterables import partition
 
 
 class GitStash(AbstractContextManager):
@@ -29,8 +28,12 @@ class GitStash(AbstractContextManager):
         self._staged = ["--keep-index"] if staged else []
         self._stashed = False
 
-    def __enter__(self) -> None:
-        """Stash all untracked or modified files in working tree."""
+    @property
+    def pending(self) -> bool:
+        """Whether the working tree holds changes that would be stashed.
+
+        :raises ValueError: if the target path isn't a git repo.
+        """
         # check for untracked or modified/uncommitted files
         try:
             p = subprocess.run(
@@ -44,15 +47,16 @@ class GitStash(AbstractContextManager):
         except subprocess.CalledProcessError:
             raise ValueError(f"not a git repo: {self.path}")
 
-        # split file changes into unstaged vs staged
-        unstaged, _staged = partition(p.stdout.splitlines(), lambda x: x[1] == " ")
-        unstaged = list(unstaged)
-
-        # don't stash when no relevant changes exist
         if self._staged:
-            if not unstaged:
-                return
-        elif not p.stdout:
+            # only unstaged changes get stashed, so ignore the entries whose
+            # working tree status column is blank
+            return any(x[1] != " " for x in p.stdout.splitlines())
+        return bool(p.stdout)
+
+    def __enter__(self) -> None:
+        """Stash all untracked or modified files in working tree."""
+        # don't stash when no relevant changes exist
+        if not self.pending:
             return
 
         # stash all existing untracked or modified/uncommitted files
