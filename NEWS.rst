@@ -26,6 +26,9 @@ snakeoil 0.11.6 (unreleased)
   like the others, so a ``str`` reached ``mount(2)`` as ``wchar_t*`` and the
   filesystem options it held were garbage (Arthur Zamarin)
 
+- ``snakeoil.klass.generic_equality``: fix rejection message printing a
+  literal ``{attrlist!r}`` rather than what it was handed (Arthur Zamarin)
+
 
 snakeoil 0.11.5 (2026-08-28)
 ----------------------------

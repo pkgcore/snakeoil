@@ -341,7 +341,7 @@ def generic_equality(
         raise TypeError("__attr_comparison__ must be in the classes scope")
     elif isinstance(attrlist, str) or not all(isinstance(x, str) for x in attrlist):
         raise TypeError(
-            "__attr_comparison__ must be a sequence of strings, got {attrlist!r}"
+            f"__attr_comparison__ must be a sequence of strings, got {attrlist!r}"
         )
 
     scope["__attr_comparison__"] = tuple(attrlist)
