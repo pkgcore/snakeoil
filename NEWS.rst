@@ -2,7 +2,7 @@
 Release Notes
 =============
 
-snakeoil 0.11.6 (unreleased)
+snakeoil 0.11.6 (2026-09-05)
 ----------------------------
 
 - ``snakeoil.process.spawn``: deprecated, removal in 0.12.0.  Use ``subprocess``,
