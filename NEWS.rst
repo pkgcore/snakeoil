@@ -37,6 +37,10 @@ snakeoil 0.11.6 (unreleased)
   deprecated, removal in 0.12.0.  Write the ``try``/``except`` and ``raise ...
   from e`` yourself (Arthur Zamarin)
 
+- ``snakeoil.currying``: fix module docstring's comparison against
+  ``functools.partial``, which has been wrong since python 3.14 made partial a
+  method descriptor (Arthur Zamarin)
+
 
 snakeoil 0.11.5 (2026-08-28)
 ----------------------------

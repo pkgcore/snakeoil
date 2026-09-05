@@ -22,13 +22,19 @@ is this
 (True, <Test object>)
 >>> part()
 (True, None)
->>> Test().part()
-(True, None)
+>>> Test().part()   # (True, None) prior to python 3.14
+(True, <Test object>)
+
+Python 3.14 made :py:func:`functools.partial` a method descriptor, so it binds
+self in the same position and that difference no longer holds there.
 
 If your curried function is not used as a class attribute the results should be
 identical. Because :py:func:`functools.partial` has an implementation in C
 while :py:func:`pre_curry` is python you should use :py:func:`functools.partial`
 if possible.
+
+:py:func:`post_curry` has no counterpart in the stdlib; partial prefixes its
+args rather than appending them.
 """
 
 from functools import partial
@@ -48,7 +54,7 @@ P = ParamSpec("P")
 def pre_curry(func: Callable[..., T], *args: Any, **kwargs: Any) -> Callable[..., T]:
     """passed in args are prefixed, with further args appended
 
-    Unlike partial, this is usable as an instancemethod.
+    Unlike partial prior to python 3.14, this is usable as an instancemethod.
     """
 
     if not kwargs:
