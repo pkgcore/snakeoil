@@ -34,6 +34,8 @@ if possible.
 from functools import partial
 from typing import Any, Callable, ParamSpec, TypeVar
 
+from snakeoil._internals import deprecated
+
 from .compatibility import IGNORED_EXCEPTIONS
 
 __all__ = ("pre_curry", "post_curry", "pretty_docs")
@@ -124,8 +126,13 @@ def pretty_docs(
     return wrapped
 
 
+@deprecated(
+    "Write the try/except and `raise ... from e` yourself; there is no stdlib "
+    "equivalent, and a decorator wrapping functools.wraps covers the reusable case",
+    removal_in=(0, 12, 0),
+)
 def wrap_exception(recast_exception, *args, **kwds):
-    # set this here so that 2to3 will rewrite it.
+    """Deprecated.  Build a decorator recasting a functor's exceptions."""
     try:
         if not issubclass(recast_exception, Exception):
             raise ValueError(
@@ -139,9 +146,10 @@ def wrap_exception(recast_exception, *args, **kwds):
         )
     ignores = kwds.pop("ignores", (recast_exception,))
     pass_error = kwds.pop("pass_error", None)
-    return wrap_exception_complex(
-        partial(_simple_throw, recast_exception, args, kwds, pass_error), ignores
-    )
+    with deprecated.suppress_deprecations():
+        return wrap_exception_complex(
+            partial(_simple_throw, recast_exception, args, kwds, pass_error), ignores
+        )
 
 
 def _simple_throw(
@@ -159,7 +167,13 @@ def _simple_throw(
     return recast_exception(*recast_args, **recast_kwds)
 
 
+@deprecated(
+    "Write the try/except and `raise ... from e` yourself; there is no stdlib "
+    "equivalent, and a decorator wrapping functools.wraps covers the reusable case",
+    removal_in=(0, 12, 0),
+)
 def wrap_exception_complex(creation_func, ignores):
+    """Deprecated.  See :py:func:`wrap_exception`."""
     try:
         if (
             not hasattr(ignores, "__iter__")

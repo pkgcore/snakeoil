@@ -33,6 +33,10 @@ snakeoil 0.11.6 (unreleased)
   as a format string and a tuple of arguments, rather than the two combined
   (Arthur Zamarin)
 
+- ``snakeoil.currying.wrap_exception`` and ``wrap_exception_complex``:
+  deprecated, removal in 0.12.0.  Write the ``try``/``except`` and ``raise ...
+  from e`` yourself (Arthur Zamarin)
+
 
 snakeoil 0.11.5 (2026-08-28)
 ----------------------------

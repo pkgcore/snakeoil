@@ -1,6 +1,7 @@
 import pytest
 
 from snakeoil import currying
+from snakeoil.deprecation import suppress_deprecations
 
 
 def passthrough(*args, **kwargs):
@@ -114,6 +115,7 @@ class TestPostCurry:
         assert ((test, "test"), {}) == test.method()
 
 
+@suppress_deprecations()
 class Test_wrap_exception:
     def test_wrap_exception_complex(self):
         inner, outer = [], []
