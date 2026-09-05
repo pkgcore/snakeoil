@@ -29,6 +29,10 @@ snakeoil 0.11.6 (unreleased)
 - ``snakeoil.klass.generic_equality``: fix rejection message printing a
   literal ``{attrlist!r}`` rather than what it was handed (Arthur Zamarin)
 
+- ``snakeoil.currying.wrap_exception``: fix rejection message being raised
+  as a format string and a tuple of arguments, rather than the two combined
+  (Arthur Zamarin)
+
 
 snakeoil 0.11.5 (2026-08-28)
 ----------------------------

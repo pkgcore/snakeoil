@@ -129,13 +129,13 @@ def wrap_exception(recast_exception, *args, **kwds):
     try:
         if not issubclass(recast_exception, Exception):
             raise ValueError(
-                "recast_exception must be an %s derivative: got %r"
-                % (Exception, recast_exception)
+                f"recast_exception must be an {Exception.__name__} derivative: "
+                f"got {recast_exception!r}"
             )
     except TypeError as e:
         raise TypeError(
-            "recast_exception must be an %s derivative; got %r, failed %r",
-            (Exception.__name__, recast_exception, e),
+            f"recast_exception must be an {Exception.__name__} derivative; "
+            f"got {recast_exception!r}, failed {e!r}"
         )
     ignores = kwds.pop("ignores", (recast_exception,))
     pass_error = kwds.pop("pass_error", None)
