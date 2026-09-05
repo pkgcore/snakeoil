@@ -18,6 +18,10 @@ snakeoil 0.11.6 (unreleased)
   distinct classes and ``isinstance`` across the two failed; they are now the
   same objects (Arthur Zamarin, #102)
 
+- ``snakeoil.modules.FailedImport``: fix passing itself to ``ImportError``,
+  which made ``str()`` of it a tuple containing the exception's own repr
+  (Arthur Zamarin)
+
 
 snakeoil 0.11.5 (2026-08-28)
 ----------------------------

@@ -60,6 +60,12 @@ class TestModules:
         with pytest.raises(modules.FailedImport):
             modules.load_attribute("mod_testpack.mod_test3")
 
+    def test_FailedImport(self):
+        exc = ValueError("boom")
+        err = modules.FailedImport("some.target", exc)
+        assert "Failed importing target 'some.target': 'boom'" == str(err)
+        assert ("some.target", exc) == (err.trg, err.e)
+
     @suppress_deprecations()
     def test_load_any(self):
         # import an already-imported module
