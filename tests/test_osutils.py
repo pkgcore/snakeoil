@@ -295,22 +295,32 @@ class TestMount:
         return target
 
     def test_args_bytes(self):
-        # The initial source, target, and fstype arguments to mount(2) must be
+        # The source, target, fstype and data arguments to mount(2) must be
         # byte strings; if they are unicode strings the arguments get mangled
         # leading to errors when the syscall is run. This confirms mount() from
         # snakeoil.osutils always converts the arguments into byte strings.
-        for source, target, fstype in (
-            (b"source", b"target", b"fstype"),
-            ("source", "target", "fstype"),
+        for source, target, fstype, data in (
+            (b"source", b"target", b"fstype", b"mode=755"),
+            ("source", "target", "fstype", "mode=755"),
         ):
             with mock.patch("snakeoil.osutils.mount.ctypes") as mock_ctypes:
                 with pytest.raises(OSError):
-                    mount(str(source), str(target), fstype, MS_BIND)
+                    mount(str(source), str(target), fstype, MS_BIND, data)
                 mount_call = next(
                     x for x in mock_ctypes.mock_calls if x[0] == "CDLL().mount"
                 )
-                for arg in mount_call[1][0:3]:
+                source, target, fstype, _flags, data = mount_call[1]
+                for arg in (source, target, fstype, data):
                     assert isinstance(arg, bytes)
+
+    def test_data_defaults_to_null(self):
+        with mock.patch("snakeoil.osutils.mount.ctypes") as mock_ctypes:
+            with pytest.raises(OSError):
+                mount("source", "target", "fstype", MS_BIND)
+            mount_call = next(
+                x for x in mock_ctypes.mock_calls if x[0] == "CDLL().mount"
+            )
+            assert mount_call[1][4] is None
 
     def test_missing_dirs(self):
         with pytest.raises(OSError) as cm:

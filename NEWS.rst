@@ -22,6 +22,10 @@ snakeoil 0.11.6 (unreleased)
   which made ``str()`` of it a tuple containing the exception's own repr
   (Arthur Zamarin)
 
+- ``snakeoil.osutils.mount.mount``: fix ``data`` argument not being encoded
+  like the others, so a ``str`` reached ``mount(2)`` as ``wchar_t*`` and the
+  filesystem options it held were garbage (Arthur Zamarin)
+
 
 snakeoil 0.11.5 (2026-08-28)
 ----------------------------

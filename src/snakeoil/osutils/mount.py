@@ -47,6 +47,7 @@ def mount(source, target, fstype, flags, data=None):
     source = source.encode() if isinstance(source, str) else source
     target = target.encode() if isinstance(target, str) else target
     fstype = fstype.encode() if isinstance(fstype, str) else fstype
+    data = data.encode() if isinstance(data, str) else data
     if libc.mount(source, target, fstype, ctypes.c_ulong(flags), data) != 0:
         e = ctypes.get_errno()
         raise OSError(e, os.strerror(e))
