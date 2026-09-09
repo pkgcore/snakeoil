@@ -1,4 +1,4 @@
-__all__ = ("Slots", "Modules")
+__all__ = ("Modules", "Slots")
 import sys
 import typing
 
@@ -85,6 +85,23 @@ class Slots(NamespaceCollector, still_abstract=True):
                 assert get_slot_of(target).slots is not None or getattr(
                     target, self.disable_str, False
                 ), f"class has no slots nor is {self.disable_str} set to True"
+
+    def test_slots_not_misspelled(self, subtests):
+        """Catch a near miss of ``__slots__``, which python silently ignores."""
+        for target in self.collect_classes():
+            with subtests.test(cls=_qualname(target)):
+                near_misses = [
+                    name
+                    for name in target.__dict__
+                    if name != "__slots__"
+                    and name.strip("_") == "slots"
+                    and name.startswith("_")
+                    and name.endswith("_")
+                ]
+                assert not near_misses, (
+                    f"{near_misses} reads as a misspelling of __slots__; as written "
+                    "it is an ordinary class attribute and the class is not slotted"
+                )
 
     def test_shadowing(self, subtests):
         for target in self.collect_classes():
