@@ -52,13 +52,15 @@ def test_syspath(tmpdir):
 @pytest.mark.skipif(not GIT_BINARY, reason="missing git binary")
 class TestGitStash:
     @pytest.fixture
-    def repo(self, tmp_path):
+    def repo(self, tmp_path, monkeypatch):
         """Initialize a git repo holding a single committed file."""
 
         def git(*args):
             subprocess.run(
                 ("git", *args), cwd=tmp_path, check=True, capture_output=True
             )
+
+        monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.devnull)
 
         git("init", "-q")
         git("config", "user.email", "larry@gentoo.org")
