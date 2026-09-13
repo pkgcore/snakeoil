@@ -29,7 +29,7 @@ class TestStableUnique:
         # neither
 
     def test_stable_unique(self, func=sequences.stable_unique):
-        assert list(set([1, 2, 3])) == [1, 2, 3], (
+        assert list({1, 2, 3}) == [1, 2, 3], (
             "this test is reliant on the interpreter hasing 1,2,3 into a specific ordering- "
             "for whatever reason, ordering differs, thus this test can't verify it"
         )
@@ -49,8 +49,7 @@ class TestStableUnique:
         pytest.raises(TypeError, lambda: list(iter_stable_unique(iterator())))
 
     def _generator(self):
-        for x in range(5, -1, -1):
-            yield x
+        yield from range(5, -1, -1)
 
     def test_unstable_unique(self):
         self.common_check(sequences.unstable_unique)
@@ -106,7 +105,7 @@ class Test_iflatten_instance:
 
         # Regression test: this was triggered through demandload.
         # **{} is there to explicitly force a dict.
-        assert self.func((), **{})
+        assert self.func((), **{})  # noqa: PIE804
 
 
 class Test_iflatten_func:
@@ -125,7 +124,7 @@ class Test_iflatten_func:
             ("fds", ["fds"], str),
             (1, [1], int),
         ):
-            iterator = self.func(l, lambda x: isinstance(x, skip))
+            iterator = self.func(l, lambda x: isinstance(x, skip))  # noqa: B023
             assert list(iterator) == correct
             assert list(iterator) == []
 
@@ -148,9 +147,10 @@ class Test_iflatten_func:
 
         # Regression test: this was triggered through demandload.
         # **{} is there to explicitly force a dict to the underlay cpy
-        assert self.func((), lambda x: True, **{})
+        assert self.func((), lambda x: True, **{})  # noqa: PIE804
 
 
+@deprecated.suppress_deprecations()
 class Test_predicate_split:
     kls = staticmethod(sequences.predicate_split)
 

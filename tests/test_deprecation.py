@@ -16,10 +16,6 @@ from snakeoil.deprecation.registry import (
 )
 from snakeoil.python_namespaces import protect_imports
 
-requires_enabled = pytest.mark.skipif(
-    not Registry.is_enabled, reason="requires python >=3.13.0"
-)
-
 
 class TestRegistry:
     default_versions = dict(version=(10, 0, 0), python_mininum_version=(10, 0, 0))
@@ -27,7 +23,6 @@ class TestRegistry:
     def test_is_enabled(self):
         assert (sys.version_info >= (3, 13, 0)) == Registry.is_enabled
 
-    @requires_enabled
     def test_it(self):
         r = Registry("tests", **self.default_versions)
         assert "tests" == r.project
@@ -163,7 +158,6 @@ class TestRegistry:
             kls.nested().method()
             assert 2 == len(w)
 
-    @requires_enabled
     def test_subclassing(self):
         # just assert record class can be extended- so downstream can add more metadata.
         assert RecordCallable is Registry("asdf", **self.default_versions).record_class
@@ -189,7 +183,6 @@ class TestRegistry:
             == list(r)[0]
         )
 
-    @requires_enabled
     def test_expired_deprecations(self):
         r = Registry("asdf", **self.default_versions)
 
@@ -225,14 +218,12 @@ class TestRegistry:
                 project_version=(1, 0, 0), python_version=(0, 0, 0), force_load=False
             )
         ]
-        assert ["combined", "project", "python"] == list(
-            sorted(
-                x.msg
-                for x in r.expired_deprecations(
-                    project_version=(2, 0, 0),
-                    python_version=(2, 0, 0),
-                    force_load=False,
-                )
+        assert ["combined", "project", "python"] == sorted(
+            x.msg
+            for x in r.expired_deprecations(
+                project_version=(2, 0, 0),
+                python_version=(2, 0, 0),
+                force_load=False,
             )
         )
 
@@ -249,7 +240,6 @@ class TestRegistry:
             == list(r)[0]
         )
 
-    @requires_enabled
     def test_module(self, tmpdir):
         with (tmpdir / "deprecated_import.py").open("w") as f:
             f.write("import this_is_deprecated")
@@ -357,9 +347,8 @@ class TestRegistry:
             with pytest.warns(UserWarning):
                 assert 1 == next(gen)  # start it.
             assert 2 == gen.send("a1")
-            with pytest.warns(UserWarning):
-                with pytest.raises(StopIteration):
-                    gen.send("a2")
+            with pytest.warns(UserWarning), pytest.raises(StopIteration):
+                gen.send("a2")
         assert 0 == len(w)
 
 

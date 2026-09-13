@@ -8,6 +8,7 @@ from typing import Any, NamedTuple
 
 import pytest
 
+from snakeoil.deprecation import suppress_deprecations
 from snakeoil.python_namespaces import (
     get_submodules_of,
     import_module_from_path,
@@ -15,7 +16,7 @@ from snakeoil.python_namespaces import (
     protect_imports,
     remove_py_extension,
 )
-from snakeoil.test import protect_imports as test_protect_imports_impl
+from snakeoil.test import protect_imports as protect_imports_test_impl
 
 
 def write_tree(base: pathlib.Path, *paths: str | pathlib.Path):
@@ -54,8 +55,8 @@ class test_python_namespaces:
         def get_it(target, *args, force_string=False, **kwargs):
             if not force_string:
                 target = import_module(target)
-            return list(
-                sorted(x.__name__ for x in get_submodules_of(target, *args, **kwargs))
+            return sorted(
+                x.__name__ for x in get_submodules_of(target, *args, **kwargs)
             )
 
         with self.protect_modules(tmp_path):
@@ -170,6 +171,7 @@ def assert_protect_modules():
     )
 
 
+@suppress_deprecations()
 def test_protect_imports(tmp_path):
     p = tmp_path / "_must_not_exist.py"
     p.touch()
@@ -194,7 +196,7 @@ class ShouldBeReachedOnlyInSuccess(Exception): ...
     "protect_imports",
     (
         pytest.param(protect_imports, id="python_namespaces"),
-        pytest.param(test_protect_imports_impl, id="snakeoil.test"),
+        pytest.param(protect_imports_test_impl, id="snakeoil.test"),
     ),
 )
 def test_protect_imports_restores_when_the_body_raises(tmp_path, protect_imports):
@@ -227,6 +229,7 @@ class params(NamedTuple):
     attrs: dict[str, Any] = {}
 
 
+@suppress_deprecations()
 @pytest.mark.parametrize(
     "config",
     [
