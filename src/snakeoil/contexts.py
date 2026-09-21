@@ -89,7 +89,10 @@ class GitStash(AbstractContextManager):
                 )
             except subprocess.CalledProcessError as e:
                 error = e.stderr.splitlines()[0]
-                raise UserException(f"git failed applying stash: {error}")
+                raise UserException(
+                    f"git failed applying stash: {error}\n"
+                    "the changes are kept in stash@{0}, restore them with 'git stash pop'"
+                )
 
 
 @deprecated(
