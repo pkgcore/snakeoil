@@ -42,6 +42,11 @@ snakeoil 0.11.7 (unreleased)
 - ``snakeoil.bash.read_dict``: an empty quoted value such as ``masters = ""``
   is now read as empty, not as two quote characters (Arthur Zamarin)
 
+- ``snakeoil.fileutils.AtomicWriteFile``: write to a uniquely named temporary
+  file created exclusively, so a symlink planted at the old fixed name is no
+  longer followed and concurrent writers to one target no longer clobber each
+  other (Arthur Zamarin)
+
 snakeoil 0.11.6 (2026-09-05)
 ----------------------------
 

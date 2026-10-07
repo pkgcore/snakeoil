@@ -110,6 +110,25 @@ class TestAtomicWriteFile:
         af.discard()
         af.close()
 
+    def test_planted_symlink(self, tmp_path):
+        (victim := tmp_path / "victim").write_text("safe")
+        (tmp_path / ".update.target").symlink_to(victim)
+        af = self.kls(fp := tmp_path / "target")
+        af.write("dar")
+        af.close()
+        assert victim.read_text() == "safe"
+        assert fp.read_text() == "dar"
+
+    def test_concurrent_writers(self, tmp_path):
+        fp = tmp_path / "target"
+        first, second = self.kls(fp), self.kls(fp)
+        first.write("first")
+        second.write("second")
+        first.close()
+        assert fp.read_text() == "first"
+        second.close()
+        assert fp.read_text() == "second"
+
 
 class Test_readfile:
     func = staticmethod(fileutils.readfile)

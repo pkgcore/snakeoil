@@ -76,14 +76,14 @@ class AtomicWriteFile_mixin(abc.ABC):
         """
         self._is_finalized = True
         if binary:
-            file_mode = "wb"
+            file_mode = "xb"
         else:
-            file_mode = "w"
+            file_mode = "x"
         self._computed_mode = file_mode
         fp = os.path.realpath(fp)
         self._original_fp = fp
         self._temp_fp = os.path.join(
-            os.path.dirname(fp), ".update." + os.path.basename(fp)
+            os.path.dirname(fp), f".update.{os.path.basename(fp)}.{os.urandom(4).hex()}"
         )
         old_umask = None
         if perms:
