@@ -100,6 +100,12 @@ class TestReadDictConfig:
         bash_dict = read_dict(["foo = blah", "foo2= blah ", "foo3=blah"], strip=True)
         assert bash_dict == dict.fromkeys(("foo", "foo2", "foo3"), "blah")
 
+    def test_empty_quoted(self):
+        bash_dict = read_dict(
+            ['a = ""', "b = ''", 'c = "'], source_isiter=True, strip=True
+        )
+        assert bash_dict == {"a": "", "b": "", "c": '"'}
+
 
 class TestReadBashDict:
     @pytest.fixture(autouse=True)

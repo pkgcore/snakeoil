@@ -237,7 +237,7 @@ def read_dict(
                     raise BashParseError(filename, line_count) from e
             if strip:
                 k, v = k.strip(), v.strip()
-            if len(v) > 2 and v[0] == v[-1] and v[0] in ("'", '"'):
+            if len(v) >= 2 and v[0] == v[-1] and v[0] in ("'", '"'):
                 v = v[1:-1]
             d[k] = v
     finally:

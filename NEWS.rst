@@ -39,6 +39,9 @@ snakeoil 0.11.7 (unreleased)
   in 0.12.0.  Use ``os.scandir`` with ``DirEntry.is_dir`` or ``is_file``
   (Arthur Zamarin)
 
+- ``snakeoil.bash.read_dict``: an empty quoted value such as ``masters = ""``
+  is now read as empty, not as two quote characters (Arthur Zamarin)
+
 snakeoil 0.11.6 (2026-09-05)
 ----------------------------
 
