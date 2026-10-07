@@ -37,6 +37,10 @@ def find_binary(binary: str, paths=None, fallback=None) -> str:
     raise CommandNotFound(binary)
 
 
+@deprecated(
+    "Use os.waitstatus_to_exitcode, which returns -signal rather than 128 + signal",
+    removal_in=(0, 12, 0),
+)
 def get_exit_status(status: int):
     """Get the exit status of a child from an :py:func:`os.waitpid` call.
 
@@ -93,6 +97,7 @@ class CommandNotFound(Exception):
         self.command = command
 
 
+@deprecated("Use ProcessLookupError", removal_in=(0, 12, 0))
 class ProcessNotFound(Exception):
     def __init__(self, pid):
         super().__init__(f"nonexistent process: {pid}")

@@ -58,6 +58,10 @@ snakeoil 0.11.7 (unreleased)
 - ``snakeoil.osutils.unlink_if_exists``: deprecated, removal in 0.12.0.  Use
   ``pathlib.Path(path).unlink(missing_ok=True)`` (Arthur Zamarin)
 
+- ``snakeoil.process.get_exit_status`` and ``ProcessNotFound``: deprecated,
+  removal in 0.12.0.  Use ``os.waitstatus_to_exitcode`` and
+  ``ProcessLookupError`` (Arthur Zamarin)
+
 snakeoil 0.11.6 (2026-09-05)
 ----------------------------
 
