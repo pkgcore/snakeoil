@@ -110,54 +110,43 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
     try:
         st = os.stat(path)
     except OSError:
+        # create as 0700 and chmod after, instead of clearing the process-wide
+        # umask, which races with other threads
         base = os.path.sep
-        try:
-            um = os.umask(0)
-            # if the dir perms would lack +wx, we have to force it
-            force_temp_perms = (mode & 0o300) != 0o300
-            resets = []
-            apath = os.path.normpath(os.path.abspath(path))
-            sticky_parent = False
-
-            for directory in apath.split(os.path.sep):
-                base = join(base, directory)
-                try:
-                    st = os.stat(base)
-                    if not stat.S_ISDIR(st.st_mode):
-                        # one of the path components isn't a dir
-                        return False
-
-                    # if it's a subdir, we need +wx at least
-                    if apath != base:
-                        sticky_parent = st.st_mode & stat.S_ISGID
-
-                except OSError:
-                    # nothing exists.
-                    try:
-                        if force_temp_perms:
-                            if not _safe_mkdir(base, 0o700):
-                                return False
-                            resets.append((base, mode))
-                        else:
-                            if not _safe_mkdir(base, mode):
-                                return False
-                            if base == apath and sticky_parent:
-                                resets.append((base, mode))
-                            if gid != -1 or uid != -1:
-                                os.chown(base, uid, gid)
-                    except OSError:
-                        return False
-
+        created = []
+        apath = os.path.normpath(os.path.abspath(path))
+        for directory in apath.split(os.path.sep):
+            base = join(base, directory)
             try:
-                for base, m in reversed(resets):
-                    os.chmod(base, m)
-                    if gid != -1 or uid != -1:
-                        os.chown(base, uid, gid)
+                st = os.stat(base)
             except OSError:
-                return False
+                try:
+                    if not _safe_mkdir(base, 0o700):
+                        return False
+                    if base != apath:
+                        # the umask may strip bits needed to create the next one;
+                        # keep the setgid bit inherited from the parent
+                        st = os.stat(base)
+                        os.chmod(base, 0o700 | (st.st_mode & stat.S_ISGID))
+                except OSError:
+                    return False
+                created.append(base)
+            else:
+                if not stat.S_ISDIR(st.st_mode):
+                    # one of the path components isn't a dir
+                    return False
 
-        finally:
-            os.umask(um)
+        try:
+            for base in reversed(created):
+                if base == apath:
+                    os.chmod(base, mode)
+                else:
+                    # keep the setgid bit a parent passed down
+                    os.chmod(base, mode | (os.stat(base).st_mode & stat.S_ISGID))
+                if gid != -1 or uid != -1:
+                    os.chown(base, uid, gid)
+        except OSError:
+            return False
         return True
     else:
         if not os.path.isdir(path):

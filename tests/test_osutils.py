@@ -153,6 +153,32 @@ class TestEnsureDirs:
         post_sticky_parent = os.stat(sticky_parent)
         assert pre_sticky_parent.st_mode == post_sticky_parent.st_mode
 
+    def test_leaves_umask_alone(self, tmp_path):
+        # the umask is process-wide, so changing it races with other threads
+        path = tmp_path / "foo" / "bar"
+        with mock.patch("snakeoil.osutils.os.umask") as umask:
+            assert osutils.ensure_dirs(path, mode=0o750)
+        umask.assert_not_called()
+        self.check_dir(path, os.geteuid(), os.getegid(), 0o750)
+        self.check_dir(path.parent, os.geteuid(), os.getegid(), 0o750)
+
+    def test_restrictive_umask(self, tmp_path):
+        path = tmp_path / "foo" / "bar"
+        old = os.umask(0o277)
+        try:
+            assert osutils.ensure_dirs(path, mode=0o755)
+        finally:
+            os.umask(old)
+        self.check_dir(path, os.geteuid(), os.getegid(), 0o755)
+
+    def test_keeps_setgid_of_intermediate_dirs(self, tmp_path):
+        tmp_path.chmod(0o2775)
+        path = tmp_path / "a" / "b" / "c"
+        assert osutils.ensure_dirs(path, mode=0o775)
+        self.check_dir(path.parent.parent, os.geteuid(), os.getegid(), 0o2775)
+        self.check_dir(path.parent, os.geteuid(), os.getegid(), 0o2775)
+        self.check_dir(path, os.geteuid(), os.getegid(), 0o775)
+
     def test_mode(self, tmp_path):
         path = tmp_path / "mode" / "mode"
         assert osutils.ensure_dirs(path, mode=0o700)

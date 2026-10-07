@@ -2,6 +2,13 @@
 Release Notes
 =============
 
+snakeoil 0.11.7 (unreleased)
+----------------------------
+
+- ``snakeoil.osutils.ensure_dirs``: no longer changes the process umask, so
+  threads creating directories at once can't leave it at 0 and make later
+  files world-writable (Arthur Zamarin)
+
 snakeoil 0.11.6 (2026-09-05)
 ----------------------------
 
