@@ -86,6 +86,22 @@ class TestOptionalsParser:
         assert vars(args) == {"args": None}
         assert unknown == []
 
+    @pytest.mark.parametrize(
+        ("args", "message"),
+        (
+            (["--quiet=yes"], "ignored explicit argument 'yes'"),
+            (["-q="], "ignored explicit argument ''"),
+            (["--qu"], "ambiguous option: --qu could match --quiet, --quux"),
+            (["-q=v"], "ignored explicit argument 'v'"),
+        ),
+    )
+    def test_bad_optionals(self, args, message):
+        self.optionals_parser.add_argument("-q", "--quiet", action="store_true")
+        self.optionals_parser.add_argument("--quux", action="store_true")
+        self.optionals_parser.add_argument("-v", action="store_true")
+        with pytest.raises(argparse_helpers.Error, match=message):
+            self.optionals_parser.parse_known_optionals(args)
+
     def test_optionals(self):
         self.optionals_parser.add_argument("--opt1")
         self.optionals_parser.add_argument("args")

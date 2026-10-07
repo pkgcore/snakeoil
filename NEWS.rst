@@ -62,6 +62,11 @@ snakeoil 0.11.7 (unreleased)
   removal in 0.12.0.  Use ``os.waitstatus_to_exitcode`` and
   ``ProcessLookupError`` (Arthur Zamarin)
 
+- ``snakeoil.cli.arghparse.OptionalsParser.parse_known_optionals``: a flag
+  given a value (``--quiet=yes``, ``-q=``) or an ambiguous abbreviation is now
+  a usage error instead of a traceback; this is what pkgcheck and pkgdev use
+  to load config files (Arthur Zamarin)
+
 snakeoil 0.11.6 (2026-09-05)
 ----------------------------
 

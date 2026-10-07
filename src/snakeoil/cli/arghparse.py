@@ -850,7 +850,15 @@ class OptionalsParser(argparse.ArgumentParser):
         def consume_optional(start_index):
             # get the optional identified at this index
             option_tuple = option_string_indices[start_index]
-            action, option_string, *_, explicit_arg = option_tuple
+            # several abbreviation matches come back as a list
+            if isinstance(option_tuple, list):
+                options = ", ".join(t[1] for t in option_tuple)
+                args = {"option": arg_strings[start_index], "matches": options}
+                msg = _("ambiguous option: %(option)s could match %(matches)s")
+                raise ArgumentError(None, msg % args)
+            # python < 3.12.7 doesn't return the separator
+            action, option_string, *sep, explicit_arg = option_tuple
+            sep = sep[0] if sep else None
 
             # identify additional optionals in the same arg string
             # (e.g. -xyz is the same as -x -y -z if no args are required)
@@ -877,7 +885,14 @@ class OptionalsParser(argparse.ArgumentParser):
                     # arguments, try to parse more single-dash options out
                     # of the tail of the option string
                     chars = self.prefix_chars
-                    if arg_count == 0 and option_string[1] not in chars:
+                    if (
+                        arg_count == 0
+                        and option_string[1] not in chars
+                        and explicit_arg != ""
+                    ):
+                        if sep or explicit_arg[0] in chars:
+                            msg = _("ignored explicit argument %r")
+                            raise ArgumentError(action, msg % explicit_arg)
                         action_tuples.append((action, [], option_string))
                         char = option_string[0]
                         option_string = char + explicit_arg[0]
