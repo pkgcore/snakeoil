@@ -5,8 +5,10 @@ from pathlib import Path
 import pytest
 
 from snakeoil import process
+from snakeoil.deprecation import suppress_deprecations
 
 
+@suppress_deprecations()
 class TestFindBinary:
     script = "findpath-test.sh"
 

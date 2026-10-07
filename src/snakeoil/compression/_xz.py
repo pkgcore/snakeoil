@@ -11,6 +11,7 @@ Use this module unless it's absolutely critical that lzma module be used.
 __all__ = ("compress_data", "decompress_data")
 
 import multiprocessing
+import shutil
 from functools import partial
 
 from .. import process
@@ -20,7 +21,8 @@ from ..compression import _util
 # pylint: disable=W0611
 
 # if xz can't be found, throw an error.
-xz_path = process.find_binary("xz")
+if (xz_path := shutil.which("xz")) is None:
+    raise process.CommandNotFound("xz")
 xz_compress_args = (f"-T{multiprocessing.cpu_count()}",)
 xz_decompress_args = xz_compress_args
 parallelizable = True

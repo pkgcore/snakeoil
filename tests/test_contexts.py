@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 import sys
 from contextlib import chdir
@@ -9,7 +10,7 @@ from snakeoil import process
 from snakeoil._internals import deprecated
 from snakeoil.contexts import GitStash, syspath
 
-GIT_BINARY = process.find_binary("git", fallback="")
+GIT_BINARY = shutil.which("git") or ""
 
 
 @deprecated.suppress_deprecations()

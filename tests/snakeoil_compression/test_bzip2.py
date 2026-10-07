@@ -1,10 +1,11 @@
 import importlib
+import shutil
 from bz2 import decompress
 
 import pytest
 
 from snakeoil.compression import _bzip2
-from snakeoil.process import CommandNotFound, find_binary
+from snakeoil.process import CommandNotFound
 from snakeoil.test import hide_imports
 
 from . import Base, hide_binary
@@ -43,9 +44,7 @@ class Bzip2Base(Base):
 class TestStdlib(Bzip2Base):
     @pytest.fixture(autouse=True, scope="class")
     def _setup(self):
-        try:
-            find_binary("bzip2")
-        except CommandNotFound:
+        if shutil.which("bzip2") is None:
             pytest.skip("bzip2 binary not found")
         with hide_binary("lbzip2"):
             importlib.reload(_bzip2)
@@ -63,9 +62,7 @@ class TestBzip2(Bzip2Base):
 class TestLbzip2(Bzip2Base):
     @pytest.fixture(autouse=True, scope="class")
     def _setup(self):
-        try:
-            find_binary("lbzip2")
-        except CommandNotFound:
+        if shutil.which("lbzip2") is None:
             pytest.skip("lbzip2 binary not found")
         importlib.reload(_bzip2)
 

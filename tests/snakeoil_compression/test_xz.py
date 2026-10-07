@@ -1,10 +1,11 @@
 import importlib
+import shutil
 from lzma import decompress
 
 import pytest
 
 from snakeoil.compression import _xz
-from snakeoil.process import CommandNotFound, find_binary
+from snakeoil.process import CommandNotFound
 from snakeoil.test import hide_imports
 
 from . import Base, hide_binary
@@ -39,9 +40,7 @@ class XzBase(Base):
 class TestStdlib(XzBase):
     @pytest.fixture(autouse=True, scope="class")
     def _setup(self):
-        try:
-            find_binary("xz")
-        except CommandNotFound:
+        if shutil.which("xz") is None:
             pytest.skip("xz binary not found")
         importlib.reload(_xz)
 

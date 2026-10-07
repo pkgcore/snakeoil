@@ -11,6 +11,7 @@ Use this module unless it's absolutely critical that the bz2 module is used.
 __all__ = ("compress_data", "decompress_data")
 
 import multiprocessing
+import shutil
 from functools import partial
 
 from .. import process
@@ -20,7 +21,8 @@ from ..compression import _util
 # pylint: disable=W0611
 
 # if Bzip2 can't be found, throw an error.
-bz2_path = process.find_binary("bzip2")
+if (bz2_path := shutil.which("bzip2")) is None:
+    raise process.CommandNotFound("bzip2")
 
 
 try:
@@ -40,13 +42,11 @@ except ImportError:
 _compress_handle = partial(_util.compress_handle, bz2_path)
 _decompress_handle = partial(_util.decompress_handle, bz2_path)
 
-try:
-    lbzip2_path = process.find_binary("lbzip2")
+if (lbzip2_path := shutil.which("lbzip2")) is not None:
     lbzip2_compress_args = (f"-n{multiprocessing.cpu_count()}",)
     lbzip2_decompress_args = lbzip2_compress_args
     parallelizable = True
-except process.CommandNotFound:
-    lbzip2_path = None
+else:
     parallelizable = False
     lbzip2_compress_args = lbzip2_decompress_args = ()
 

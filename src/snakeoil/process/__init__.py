@@ -8,7 +8,13 @@ import signal
 import sys
 import time
 
+from .._internals import deprecated
 
+
+@deprecated(
+    "Use shutil.which, which returns None instead of raising CommandNotFound",
+    removal_in=(0, 12, 0),
+)
 def find_binary(binary: str, paths=None, fallback=None) -> str:
     """look through the PATH environment, finding the binary to execute"""
 

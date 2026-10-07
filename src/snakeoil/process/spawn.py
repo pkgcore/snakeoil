@@ -16,13 +16,14 @@ __all__ = [
 import atexit
 import itertools
 import os
+import shutil
 import signal
 import sys
 from typing import Iterable, Optional, Sequence, Union
 
 from .._internals import deprecated
 from ..mappings import ProtectedDict
-from . import find_binary
+from . import CommandNotFound
 
 deprecated.module(
     "Use subprocess; the bash and sandbox helpers live in pkgcore.spawn",
@@ -30,8 +31,8 @@ deprecated.module(
     removal_in=(0, 12, 0),
 )
 
-BASH_BINARY = find_binary("bash", fallback="/bin/bash")
-SANDBOX_BINARY = find_binary("sandbox", fallback="/usr/bin/sandbox")
+BASH_BINARY = shutil.which("bash") or "/bin/bash"
+SANDBOX_BINARY = shutil.which("sandbox") or "/usr/bin/sandbox"
 
 try:
     import resource
@@ -202,7 +203,8 @@ def spawn(
 
     # If an absolute path to an name file isn't given
     # search for it unless we've been told not to.
-    binary = find_binary(mycommand[0])
+    if (binary := shutil.which(mycommand[0])) is None:
+        raise CommandNotFound(mycommand[0])
 
     # mypids will hold the pids of all processes created.
     mypids = []

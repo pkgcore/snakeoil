@@ -13,6 +13,10 @@ snakeoil 0.11.7 (unreleased)
   ``sorted_key_from_cmp``: deprecated, removal in 0.12.0.  Use
   ``functools.cmp_to_key`` (Arthur Zamarin)
 
+- ``snakeoil.process.find_binary``: deprecated, removal in 0.12.0.  Use
+  ``shutil.which``, which also doesn't search the current directory when
+  ``PATH`` is empty or unset (Arthur Zamarin)
+
 snakeoil 0.11.6 (2026-09-05)
 ----------------------------
 

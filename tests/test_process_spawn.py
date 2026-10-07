@@ -1,4 +1,5 @@
 import os
+import shutil
 import signal
 from contextlib import chdir
 
@@ -10,7 +11,7 @@ from snakeoil._internals import deprecated
 with deprecated.suppress_deprecations():
     from snakeoil.process import spawn
 
-BASH_BINARY = process.find_binary("bash", fallback="")
+BASH_BINARY = shutil.which("bash") or ""
 
 
 @pytest.mark.skipif(not BASH_BINARY, reason="missing bash binary")

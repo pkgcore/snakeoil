@@ -1,11 +1,11 @@
 import multiprocessing
 import shlex
+import shutil
 import subprocess
 from contextlib import contextmanager
 from functools import cached_property
 from importlib import import_module
 
-from .. import process
 from ..cli.exceptions import UserException
 
 
@@ -101,11 +101,8 @@ class ArComp:
     @cached_property
     def _unpack_cmd(self):
         for b in self.binary:
-            try:
-                binary = process.find_binary(b)
+            if binary := shutil.which(b):
                 break
-            except process.CommandNotFound:
-                continue
         else:
             choices = ", ".join(self.binary)
             raise ArCompError(
@@ -187,13 +184,10 @@ class _Tar(_Archive, ArComp):
         cmd = super()._unpack_cmd
         if self.compress_binary is not None:
             for b in self.compress_binary:
-                try:
-                    process.find_binary(b[0])
+                if shutil.which(b[0]):
                     # FIXME: This is a gnuism, needs gnu tar.
                     cmd += f' --use-compress-program="{" ".join(b)}"'
                     break
-                except process.CommandNotFound:
-                    pass
             else:
                 choices = ", ".join(next(zip(*self.compress_binary)))
                 raise ArCompError(

@@ -1,19 +1,21 @@
 import abc
+import shutil
 from unittest.mock import patch
 
 import pytest
 
 from snakeoil import compression
-from snakeoil.process import CommandNotFound, find_binary
 
 
 def hide_binary(*binaries: str):
-    def mock_find_binary(name):
-        if name in binaries:
-            raise CommandNotFound(name)
-        return find_binary(name)
+    which = shutil.which
 
-    return patch("snakeoil.process.find_binary", side_effect=mock_find_binary)
+    def mock_which(name, *args, **kwargs):
+        if name in binaries:
+            return None
+        return which(name, *args, **kwargs)
+
+    return patch("shutil.which", side_effect=mock_which)
 
 
 class Base(abc.ABC):
