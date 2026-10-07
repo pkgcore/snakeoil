@@ -3,6 +3,7 @@ from unittest import mock
 
 import pytest
 
+from snakeoil._internals import deprecated
 from snakeoil.process import namespaces
 
 # every helper that unshares; each is documented as a no-op when the namespace
@@ -43,7 +44,7 @@ helpers = pytest.mark.parametrize(
 def unshare_fails():
     def failing(err):
         return mock.patch.object(
-            namespaces, "unshare", side_effect=OSError(err, "mocked")
+            namespaces.os, "unshare", side_effect=OSError(err, "mocked")
         )
 
     return failing
@@ -73,3 +74,11 @@ def test_utsns_hostname_needs_the_namespace(err, unshare_fails):
             except OSError:
                 pass
         assert not sethostname.called
+
+
+def test_unshare_spawns_nothing():
+    with (
+        mock.patch("subprocess.Popen", side_effect=AssertionError("spawned")),
+        deprecated.suppress_deprecations(),
+    ):
+        namespaces.unshare(0)

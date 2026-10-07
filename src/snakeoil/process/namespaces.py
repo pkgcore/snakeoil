@@ -2,8 +2,6 @@
 
 """Support for Linux namespaces"""
 
-import ctypes
-import ctypes.util
 import errno
 import os
 import signal
@@ -11,6 +9,7 @@ import socket
 import subprocess
 import sys
 
+from .._internals import deprecated
 from ..osutils.mount import (
     MS_NODEV,
     MS_NOEXEC,
@@ -23,16 +22,17 @@ from ..osutils.mount import (
 from ..osutils.mount import mount as _mount
 from . import exit_as_status
 
-CLONE_FS = 0x00000200
-CLONE_FILES = 0x00000400
-CLONE_NEWNS = 0x00020000
-CLONE_NEWUTS = 0x04000000
-CLONE_NEWIPC = 0x08000000
-CLONE_NEWUSER = 0x10000000
-CLONE_NEWPID = 0x20000000
-CLONE_NEWNET = 0x40000000
+CLONE_FS = os.CLONE_FS
+CLONE_FILES = os.CLONE_FILES
+CLONE_NEWNS = os.CLONE_NEWNS
+CLONE_NEWUTS = os.CLONE_NEWUTS
+CLONE_NEWIPC = os.CLONE_NEWIPC
+CLONE_NEWUSER = os.CLONE_NEWUSER
+CLONE_NEWPID = os.CLONE_NEWPID
+CLONE_NEWNET = os.CLONE_NEWNET
 
 
+@deprecated("Use os.setns", removal_in=(0, 12, 0))
 def setns(fd, nstype):
     """Binding to the Linux setns system call. See setns(2) for details.
 
@@ -40,31 +40,21 @@ def setns(fd, nstype):
     :param nstype: Namespace to enter; one of CLONE_*.
     :raises OSError: if setns failed.
     """
-    try:
-        fp = None
-        if isinstance(fd, str):
-            fp = open(fd)
-            fd = fp.fileno()
-
-        libc = ctypes.CDLL(ctypes.util.find_library("c"), use_errno=True)
-        if libc.setns(ctypes.c_int(fd), ctypes.c_int(nstype)) != 0:
-            e = ctypes.get_errno()
-            raise OSError(e, os.strerror(e))
-    finally:
-        if fp is not None:
-            fp.close()
+    if isinstance(fd, str):
+        with open(fd) as fp:
+            os.setns(fp.fileno(), nstype)
+    else:
+        os.setns(fd, nstype)
 
 
+@deprecated("Use os.unshare", removal_in=(0, 12, 0))
 def unshare(flags):
     """Binding to the Linux unshare system call. See unshare(2) for details.
 
     :param flags: Namespaces to unshare; bitwise OR of CLONE_* flags.
     :raises OSError: if unshare failed.
     """
-    libc = ctypes.CDLL(ctypes.util.find_library("c"), use_errno=True)
-    if libc.unshare(ctypes.c_int(flags)) != 0:
-        e = ctypes.get_errno()
-        raise OSError(e, os.strerror(e))
+    os.unshare(flags)
 
 
 def _reap_children(pid):
@@ -120,7 +110,7 @@ def create_pidns():
 
     try:
         # First create the namespace.
-        unshare(CLONE_NEWPID)
+        os.unshare(CLONE_NEWPID)
     except OSError as e:
         if e.errno == errno.EINVAL:
             # For older kernels, or the functionality is disabled in the config,
@@ -189,7 +179,7 @@ def create_netns():
     """
     # The net namespace was added in 2.6.24 and may be disabled in the kernel.
     try:
-        unshare(CLONE_NEWNET)
+        os.unshare(CLONE_NEWNET)
     except OSError as e:
         if e.errno == errno.EINVAL:
             return
@@ -218,7 +208,7 @@ def create_utsns(hostname=None):
     """
     # The UTS namespace was added 2.6.19 and may be disabled in the kernel.
     try:
-        unshare(CLONE_NEWUTS)
+        os.unshare(CLONE_NEWUTS)
     except OSError as e:
         if e.errno == errno.EINVAL:
             return
@@ -242,7 +232,7 @@ def create_userns():
     gid = os.getgid()
 
     try:
-        unshare(CLONE_NEWUSER)
+        os.unshare(CLONE_NEWUSER)
     except OSError as e:
         if e.errno == errno.EINVAL:
             return
@@ -280,7 +270,7 @@ def simple_unshare(
     # The mount namespace is the only one really guaranteed to exist --
     # it's been supported forever and it cannot be turned off.
     if mount:
-        unshare(CLONE_NEWNS)
+        os.unshare(CLONE_NEWNS)
 
         # Avoid mounts in the new namespace from affecting the parent namespace
         # on systems that share the rootfs by default, but allow events in the
@@ -297,7 +287,7 @@ def simple_unshare(
     # The IPC namespace was added 2.6.19 and may be disabled in the kernel.
     if ipc:
         try:
-            unshare(CLONE_NEWIPC)
+            os.unshare(CLONE_NEWIPC)
         except OSError as e:
             if e.errno != errno.EINVAL:
                 # For all other errors, abort.  They shouldn't happen.
