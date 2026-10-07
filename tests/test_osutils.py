@@ -252,6 +252,7 @@ class Test_Native_NormPath:
         check(b"/f\xc3\xb6\xc3\xb3/..", b"/")
 
 
+@deprecated.suppress_deprecations()
 class Test_unlink_if_exists:
     func = staticmethod(osutils.unlink_if_exists)
 

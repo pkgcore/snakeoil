@@ -55,6 +55,9 @@ snakeoil 0.11.7 (unreleased)
   in 0.12.0.  Use ``os.unshare`` and ``os.setns``.  The namespace helpers no
   longer run ``ldconfig`` to locate libc on every call (Arthur Zamarin)
 
+- ``snakeoil.osutils.unlink_if_exists``: deprecated, removal in 0.12.0.  Use
+  ``pathlib.Path(path).unlink(missing_ok=True)`` (Arthur Zamarin)
+
 snakeoil 0.11.6 (2026-09-05)
 ----------------------------
 

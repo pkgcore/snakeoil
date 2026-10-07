@@ -252,6 +252,7 @@ join = deprecated(
 )(lambda *a, **kw: os.path.join(*a, **kw))
 
 
+@deprecated("Use pathlib.Path(path).unlink(missing_ok=True)", removal_in=(0, 12, 0))
 def unlink_if_exists(path):
     """wrap os.unlink, ignoring if the file doesn't exist
 
