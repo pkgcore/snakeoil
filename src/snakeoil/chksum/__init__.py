@@ -9,7 +9,6 @@ from importlib import import_module
 
 from snakeoil.klass.immutable import Simple
 
-from .. import osutils
 from .defaults import chksum_loop_over_file
 
 chksum_types = {}
@@ -72,7 +71,7 @@ def init(additional_handlers=None):
     chksum_types.clear()
     __inited__ = False
     loc = os.path.dirname(sys.modules[__name__].__file__)
-    for f in osutils.listdir_files(loc):
+    for f in [e.name for e in os.scandir(loc) if e.is_file()]:
         if not f.endswith(".py") or f.startswith("__init__."):
             continue
         try:

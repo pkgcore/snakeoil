@@ -35,6 +35,10 @@ snakeoil 0.11.7 (unreleased)
   plain help output when ``man`` isn't installed, instead of crashing
   (Arthur Zamarin)
 
+- ``snakeoil.osutils.listdir_dirs`` and ``listdir_files``: deprecated, removal
+  in 0.12.0.  Use ``os.scandir`` with ``DirEntry.is_dir`` or ``is_file``
+  (Arthur Zamarin)
+
 snakeoil 0.11.6 (2026-09-05)
 ----------------------------
 

@@ -28,6 +28,7 @@ class ReaddirCommon:
             pytest.raises(OSError, func, tmp_path / "spork")
 
 
+@deprecated.suppress_deprecations()
 class TestNativeListDir(ReaddirCommon):
     def test_listdir_dirs(self, tmp_path, subdir):
         assert listdir_dirs(tmp_path) == ["dir"]

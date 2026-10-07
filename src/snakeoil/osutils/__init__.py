@@ -303,6 +303,9 @@ def _stat_swallow_enoent(path, check, default=False, stat=os.stat):
         raise
 
 
+@deprecated(
+    "Use [e.name for e in os.scandir(path) if e.is_dir()]", removal_in=(0, 12, 0)
+)
 def listdir_dirs(path, followSymlinks=True):
     """
     Return a list of all subdirectories within a directory
@@ -325,6 +328,9 @@ def listdir_dirs(path, followSymlinks=True):
     return [x for x in os.listdir(path) if scheck(lstat(os.path.join(path, x)).st_mode)]
 
 
+@deprecated(
+    "Use [e.name for e in os.scandir(path) if e.is_file()]", removal_in=(0, 12, 0)
+)
 def listdir_files(path, followSymlinks=True):
     """
     Return a list of all files within a directory
