@@ -20,7 +20,7 @@ from .log import logger
 from .mappings import ProtectedDict
 
 line_cont_regexp = regexp(r"^(.*[^\\]|)\\$")
-inline_comment_regexp = regexp(r"^.*\s#.*$")
+inline_comment_regexp = regexp(r"\s#")
 var_find = regexp(r"\\?(\${\w+}|\$\w+)")
 backslash_find = regexp(r"\\.")
 ansi_escape_re = regexp(r"(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]")
@@ -91,11 +91,10 @@ def read_bash(
         if s:
             if s[0] != "#":
                 if allow_inline_comments and (
-                    not allow_line_cont
-                    or (allow_line_cont and inline_comment_regexp.match(line))
+                    comment := inline_comment_regexp.search(s)
                 ):
-                    s = s.split("#", 1)[0].rstrip()
-                if allow_line_cont and line_cont_regexp.match(line):
+                    s = s[: comment.start()]
+                if allow_line_cont and line_cont_regexp.match(s):
                     s = s.rstrip("\\\n")
                     continue
                 if enum_line:

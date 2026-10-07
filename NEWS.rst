@@ -67,6 +67,12 @@ snakeoil 0.11.7 (unreleased)
   a usage error instead of a traceback; this is what pkgcheck and pkgdev use
   to load config files (Arthur Zamarin)
 
+- ``snakeoil.bash.read_bash``: a ``#`` starts an inline comment only at the
+  start of a line or after whitespace, as in Portage, so values such as
+  ``PKCS#11`` in ``use.local.desc`` are no longer cut short.  With line
+  continuations, a comment ending in ``\`` no longer joins the next line
+  (Arthur Zamarin)
+
 snakeoil 0.11.6 (2026-09-05)
 ----------------------------
 

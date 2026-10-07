@@ -23,6 +23,18 @@ class TestBashCommentStripping:
         output = read_bash(StringIO("inline # comment "), enum_line=True)
         assert list(output) == [(1, "inline")]
 
+    @pytest.mark.parametrize("allow_line_cont", (False, True))
+    def test_hash_inside_word(self, allow_line_cont):
+        output = read_bash(
+            StringIO("A=foo#bar\nB=foo#bar # comment\nC=x\t# tab\n"),
+            allow_line_cont=allow_line_cont,
+        )
+        assert list(output) == ["A=foo#bar", "B=foo#bar", "C=x"]
+
+    def test_comment_ending_in_backslash(self):
+        output = read_bash(StringIO("foo # c \\\nbar\n"), allow_line_cont=True)
+        assert list(output) == ["foo", "bar"]
+
     def test_read_bash_line_cont(self):
         output = read_bash(
             StringIO(
