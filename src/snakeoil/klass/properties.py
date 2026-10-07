@@ -12,6 +12,7 @@ __all__ = (
 import operator
 import typing
 
+from .._internals import deprecated
 from .._klass import alias_method
 from ..currying import post_curry
 
@@ -179,6 +180,7 @@ def jit_attr_ext_method(
     )
 
 
+@deprecated("Use functools.cached_property", removal_in=(0, 12, 0))
 def cached_property(
     func: typing.Callable[[typing.Any], T],
     kls=_internal_jit_attr,
@@ -217,6 +219,10 @@ def cached_property(
     )
 
 
+@deprecated(
+    "Use functools.cached_property, which takes the name from the class attribute",
+    removal_in=(0, 12, 0),
+)
 def cached_property_named(name: str, kls=_internal_jit_attr, use_cls_setattr=False):
     """
     variation of `cached_property`, just with the ability to explicitly set the attribute name

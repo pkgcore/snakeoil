@@ -47,6 +47,10 @@ snakeoil 0.11.7 (unreleased)
   longer followed and concurrent writers to one target no longer clobber each
   other (Arthur Zamarin)
 
+- ``snakeoil.klass.cached_property`` and ``cached_property_named``:
+  deprecated, removal in 0.12.0.  Use ``functools.cached_property``
+  (Arthur Zamarin)
+
 snakeoil 0.11.6 (2026-09-05)
 ----------------------------
 

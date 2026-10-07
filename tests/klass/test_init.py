@@ -415,6 +415,7 @@ class Test_jit_attr:
         # pylint: disable=pointless-statement
         obj.attr
 
+    @deprecated.suppress_deprecations()
     def test_cached_property(self):
         l = []
 

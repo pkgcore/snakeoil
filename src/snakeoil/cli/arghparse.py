@@ -24,7 +24,7 @@ from argparse import (
     _SubParsersAction,
 )
 from collections import Counter
-from functools import partial, wraps
+from functools import cached_property, partial, wraps
 from importlib import import_module
 from itertools import chain
 from operator import attrgetter
@@ -1263,12 +1263,12 @@ class ArgumentParser(OptionalsParser, CsvActionsParser):
         self.description = description
         return description
 
-    @klass.cached_property
+    @cached_property
     def parsers(self):
         """Return the ordered sequence of inherited parsers."""
         return self._parents + (self,)
 
-    @klass.cached_property
+    @cached_property
     def subparsers(self):
         """Return the set of registered subparsers."""
         parsers = {}
