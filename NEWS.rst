@@ -17,6 +17,12 @@ snakeoil 0.11.7 (unreleased)
   ``shutil.which``, which also doesn't search the current directory when
   ``PATH`` is empty or unset (Arthur Zamarin)
 
+- ``snakeoil.osutils.force_symlink``, ``stat_mtime_long``,
+  ``lstat_mtime_long``, ``fstat_mtime_long`` and
+  ``snakeoil.data_source.transfer_between_files``: deprecated, removal in
+  0.12.0.  Use ``os.symlink``, ``os.stat(path)[stat.ST_MTIME]`` and
+  ``shutil.copyfileobj`` (Arthur Zamarin)
+
 snakeoil 0.11.6 (2026-09-05)
 ----------------------------
 

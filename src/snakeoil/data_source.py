@@ -45,9 +45,11 @@ __all__ = (
 import abc
 import errno
 import io
+import shutil
 from functools import partial
 
 from . import compression, fileutils, stringio
+from ._internals import deprecated
 from .currying import post_curry
 
 
@@ -177,7 +179,7 @@ class base(abc.ABC):
                 read_f = self.bytes_fileobj()
 
             if read_f is not None:
-                transfer_between_files(read_f, write_f)
+                shutil.copyfileobj(read_f, write_f)
             else:
                 write_f.write(m)
         finally:
@@ -466,6 +468,7 @@ class invokable_data_source(data_source):
         return bytes_ro_StringIO(data)
 
 
+@deprecated("Use shutil.copyfileobj", removal_in=(0, 12, 0))
 def transfer_between_files(read_file, write_file, bufsize=(32 * 1024)):
     while data := read_file.read(bufsize):
         write_file.write(data)

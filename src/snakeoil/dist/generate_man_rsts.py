@@ -3,10 +3,10 @@ import errno
 import os
 import sys
 from importlib import import_module
+from pathlib import Path
 from string import capwords
 from unittest.mock import patch
 
-from ..osutils import force_symlink
 from ..strings import doc_dedent
 
 
@@ -184,8 +184,11 @@ class ManConverter:
             if os.path.exists(self.mandir) and not os.path.isfile(manpage):
                 with open(rst_path, 'w') as f:
                     f.write(rst)
-                force_symlink(rst_path, manpage)
-            force_symlink(rst_path.rsplit('.', 1)[0], manpage.rsplit('.', 1)[0])
+                Path(manpage).unlink(missing_ok=True)
+                os.symlink(rst_path, manpage)
+            link = manpage.rsplit('.', 1)[0]
+            Path(link).unlink(missing_ok=True)
+            os.symlink(rst_path.rsplit('.', 1)[0], link)
         else:
             with open(rst_path, 'w') as f:
                 f.write(rst)

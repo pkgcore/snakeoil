@@ -181,6 +181,10 @@ def _abssymlink(path):
     return os.path.normpath(mylink)
 
 
+@deprecated(
+    "Use os.symlink, removing an existing link first with Path.unlink(missing_ok=True)",
+    removal_in=(0, 12, 0),
+)
 def force_symlink(target, link):
     """Force a symlink to be created.
 
@@ -275,14 +279,17 @@ def sizeof_fmt(size, binary=True):
     return f"{size:3.1f} {prefix}B"
 
 
+@deprecated("Use os.stat(path)[stat.ST_MTIME] or st_mtime_ns", removal_in=(0, 12, 0))
 def stat_mtime_long(path, st=None):
     return (os.stat(path) if st is None else st)[stat.ST_MTIME]
 
 
+@deprecated("Use os.lstat(path)[stat.ST_MTIME] or st_mtime_ns", removal_in=(0, 12, 0))
 def lstat_mtime_long(path, st=None):
     return (os.lstat(path) if st is None else st)[stat.ST_MTIME]
 
 
+@deprecated("Use os.fstat(fd)[stat.ST_MTIME] or st_mtime_ns", removal_in=(0, 12, 0))
 def fstat_mtime_long(fd, st=None):
     return (os.fstat(fd) if st is None else st)[stat.ST_MTIME]
 

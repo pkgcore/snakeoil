@@ -3,6 +3,7 @@ chksum verification/generation subsystem
 """
 
 import os
+import stat
 import sys
 from importlib import import_module
 
@@ -150,7 +151,7 @@ class LazilyHashedPath(Simple):
             # like __setstate__ land here before .path is set, else we recurse.
             raise AttributeError(attr)
         elif attr == "mtime":
-            val = osutils.stat_mtime_long(self.path)
+            val = os.stat(self.path)[stat.ST_MTIME]
         else:
             try:
                 val = get_chksums(self.path, attr)[0]

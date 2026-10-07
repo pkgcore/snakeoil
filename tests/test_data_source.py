@@ -1,3 +1,4 @@
+import shutil
 from functools import partial
 
 import pytest
@@ -89,7 +90,7 @@ class TestDataSource:
             writer = data_source.data_source("", mutable=True)
 
         with reader.bytes_fileobj() as reader_f, writer.bytes_fileobj(True) as writer_f:
-            data_source.transfer_between_files(reader_f, writer_f)
+            shutil.copyfileobj(reader_f, writer_f)
 
         self.assertContents(reader, writer)
 
