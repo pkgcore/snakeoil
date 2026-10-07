@@ -23,6 +23,10 @@ snakeoil 0.11.7 (unreleased)
   0.12.0.  Use ``os.symlink``, ``os.stat(path)[stat.ST_MTIME]`` and
   ``shutil.copyfileobj`` (Arthur Zamarin)
 
+- ``snakeoil.cli.arghparse.FileType``: deprecated, removal in 0.12.0.  Take a
+  path and open it after parsing, as ``argparse.FileType`` is deprecated since
+  python 3.14 (Arthur Zamarin)
+
 snakeoil 0.11.6 (2026-09-05)
 ----------------------------
 

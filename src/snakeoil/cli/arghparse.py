@@ -33,6 +33,7 @@ from textwrap import dedent
 from snakeoil.formatters import PlainTextFormatter
 
 from .. import klass
+from .._internals import deprecated
 from ..mappings import ImmutableDict
 from ..obj import DelayedInstantiation
 from ..sequences import split_elements, split_negations
@@ -1501,6 +1502,11 @@ class ArgparseCommand(abc.ABC):
     def __call__(self, namespace, out, err): ...
 
 
+@deprecated(
+    "Take a path and open it after parsing; argparse.FileType is deprecated "
+    "since python 3.14",
+    removal_in=(0, 12, 0),
+)
 class FileType(argparse.FileType):
     """Extended file object factory supporting binary modes for stdin/stdout.
 
