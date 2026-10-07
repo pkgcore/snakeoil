@@ -4,7 +4,12 @@ Compatibility functionality stubs
 
 __all__ = ("cmp", "sorted_cmp", "sort_cmp")
 
+import functools
 
+from snakeoil._internals import deprecated
+
+
+@deprecated("Use functools.cmp_to_key", removal_in=(0, 12, 0))
 def sorted_key_from_cmp(cmp_func, key_func=None):
     class _key_proxy:
         __slots__ = ("_obj",)
@@ -41,14 +46,21 @@ def cmp(obj1, obj2, raw_cmp=_raw_cmp):
     return raw_cmp(obj1, obj2)
 
 
+def _cmp_key(func, key):
+    cmp_key = functools.cmp_to_key(func)
+    if key is None:
+        return cmp_key
+    return lambda obj: cmp_key(key(obj))
+
+
+@deprecated("Use sorted(..., key=functools.cmp_to_key(func))", removal_in=(0, 12, 0))
 def sorted_cmp(sequence, func, key=None, reverse=False):
-    return sorted(
-        sequence, reverse=reverse, key=sorted_key_from_cmp(func, key_func=key)
-    )
+    return sorted(sequence, reverse=reverse, key=_cmp_key(func, key))
 
 
+@deprecated("Use list.sort(key=functools.cmp_to_key(func))", removal_in=(0, 12, 0))
 def sort_cmp(list_inst, func, key=None, reverse=False):
-    list_inst.sort(reverse=reverse, key=sorted_key_from_cmp(func, key_func=key))
+    list_inst.sort(reverse=reverse, key=_cmp_key(func, key))
 
 
 IGNORED_EXCEPTIONS = (RuntimeError, MemoryError, SystemExit, KeyboardInterrupt)

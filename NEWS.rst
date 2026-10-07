@@ -9,6 +9,10 @@ snakeoil 0.11.7 (unreleased)
   threads creating directories at once can't leave it at 0 and make later
   files world-writable (Arthur Zamarin)
 
+- ``snakeoil.compatibility.sorted_cmp``, ``sort_cmp`` and
+  ``sorted_key_from_cmp``: deprecated, removal in 0.12.0.  Use
+  ``functools.cmp_to_key`` (Arthur Zamarin)
+
 snakeoil 0.11.6 (2026-09-05)
 ----------------------------
 
