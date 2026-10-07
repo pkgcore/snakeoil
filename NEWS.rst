@@ -31,6 +31,10 @@ snakeoil 0.11.7 (unreleased)
   descriptor twice when mapping fails, which could close an unrelated file
   opened by another thread in between (Arthur Zamarin)
 
+- ``snakeoil.cli.arghparse.ManHelpAction``: ``--help`` falls back to the
+  plain help output when ``man`` isn't installed, instead of crashing
+  (Arthur Zamarin)
+
 snakeoil 0.11.6 (2026-09-05)
 ----------------------------
 

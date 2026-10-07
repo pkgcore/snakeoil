@@ -351,10 +351,14 @@ class ManHelpAction(argparse._HelpAction):
             # man page, but `pinspect profile masks --help` also tries to open
             # pinspect-profile.
             man_page = "-".join(parser.prog.split()[:2])
-            p = subprocess.Popen(["man", man_page], stderr=subprocess.DEVNULL)
-            p.communicate()
-            if p.returncode == 0:
-                parser.exit()
+            try:
+                p = subprocess.Popen(["man", man_page], stderr=subprocess.DEVNULL)
+            except OSError:
+                pass
+            else:
+                p.communicate()
+                if p.returncode == 0:
+                    parser.exit()
 
         # Fallback to outputting abbreviated help if man page doesn't exist or
         # it was explicitly requested via -h.

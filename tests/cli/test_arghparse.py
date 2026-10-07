@@ -505,6 +505,15 @@ class TestManHelpAction:
             assert captured.out.strip().startswith("usage: ")
             popen.reset_mock()
 
+    def test_help_without_man(self, capsys):
+        parser = argparse_helpers.mangle_parser(arghparse.ArgumentParser())
+        with (
+            mock.patch("subprocess.Popen", side_effect=FileNotFoundError("man")),
+            pytest.raises(argparse_helpers.Exit),
+        ):
+            parser.parse_args(["--help"])
+        assert capsys.readouterr().out.strip().startswith("usage: ")
+
 
 class Test_MonkeyPatchPatch:
     def setup_method(self, method):
