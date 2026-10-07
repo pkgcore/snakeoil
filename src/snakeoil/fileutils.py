@@ -8,7 +8,6 @@ import os
 from functools import partial
 
 from . import _fileutils, data_source
-from .compatibility import IGNORED_EXCEPTIONS
 from .currying import pretty_docs
 from .klass import GetAttrProxy
 
@@ -36,19 +35,10 @@ def mmap_or_open_for_read(path: str):
     if size == 0:
         return (None, data_source.bytes_ro_StringIO(b""))
     fd = os.open(path, os.O_RDONLY)
-    try:
-        return (
-            _fileutils.mmap_and_close(fd, size, mmap.MAP_SHARED, mmap.PROT_READ),
-            None,
-        )
-    except IGNORED_EXCEPTIONS:
-        raise
-    except:
-        try:
-            os.close(fd)
-        except EnvironmentError:
-            pass
-        raise
+    return (
+        _fileutils.mmap_and_close(fd, size, mmap.MAP_SHARED, mmap.PROT_READ),
+        None,
+    )
 
 
 class AtomicWriteFile_mixin(abc.ABC):

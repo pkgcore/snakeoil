@@ -27,6 +27,10 @@ snakeoil 0.11.7 (unreleased)
   path and open it after parsing, as ``argparse.FileType`` is deprecated since
   python 3.14 (Arthur Zamarin)
 
+- ``snakeoil.fileutils.mmap_or_open_for_read``: fix closing the file
+  descriptor twice when mapping fails, which could close an unrelated file
+  opened by another thread in between (Arthur Zamarin)
+
 snakeoil 0.11.6 (2026-09-05)
 ----------------------------
 

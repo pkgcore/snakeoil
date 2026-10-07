@@ -300,6 +300,16 @@ class Test_mmap_or_open_for_read:
         with pytest.raises(PermissionError):
             self.func(path)
 
+    def test_mmap_failure_closes_once(self, tmp_path):
+        (path := tmp_path / "target").write_bytes(b"foonani")
+        with (
+            mock.patch("mmap.mmap", side_effect=OSError(errno.ENODEV, "no mmap")),
+            mock.patch("os.close", wraps=os.close) as close,
+            pytest.raises(OSError),
+        ):
+            self.func(path)
+        assert close.call_count == 1
+
 
 class Test_mmap_and_close:
     def test_it(self, tmp_path):
