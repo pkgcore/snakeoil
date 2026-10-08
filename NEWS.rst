@@ -2,7 +2,7 @@
 Release Notes
 =============
 
-snakeoil 0.11.7 (unreleased)
+snakeoil 0.11.7 (2026-10-08)
 ----------------------------
 
 - ``snakeoil.osutils.ensure_dirs``: no longer changes the process umask, so
