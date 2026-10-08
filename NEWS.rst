@@ -2,6 +2,13 @@
 Release Notes
 =============
 
+snakeoil 0.11.8 (unreleased)
+----------------------------
+
+- ``snakeoil.cli.arghparse.CommaSeparatedElements``: reject a value given in
+  any two of the disabled, neutral and enabled groups; ``-a,+a,b`` used to be
+  accepted with ``a`` both disabled and enabled (Arthur Zamarin)
+
 snakeoil 0.11.7 (2026-10-08)
 ----------------------------
 

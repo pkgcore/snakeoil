@@ -409,6 +409,14 @@ class TestCommaSeparatedElementsAction(TestCommaSeparatedNegationsAction):
         self.bad_values = ("-", "+")
         self.action = "csv_elements"
 
+    @pytest.mark.parametrize(
+        "arg", ("-a,+a", "-a,+a,b", "-a,a,+b", "a,+a,-b", "-a,a,+a")
+    )
+    def test_colliding(self, arg):
+        self.parser.add_argument("--testing", action=self.action)
+        with pytest.raises(argparse_helpers.Error, match="colliding value: 'a'"):
+            self.parser.parse_args(["--testing=" + arg])
+
 
 class TestCommaSeparatedElementsAppendAction(TestCommaSeparatedElementsAction):
     def setup_method(self, method):

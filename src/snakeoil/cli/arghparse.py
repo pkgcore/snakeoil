@@ -26,7 +26,7 @@ from argparse import (
 from collections import Counter
 from functools import cached_property, partial, wraps
 from importlib import import_module
-from itertools import chain
+from itertools import chain, combinations
 from operator import attrgetter
 from textwrap import dedent
 
@@ -248,8 +248,9 @@ class CommaSeparatedNegations(argparse._AppendAction):
     Disabled values are prefixed with "-" while enabled values are entered as
     is.
 
-    For example, from the sequence "-a,b,c,-d" would result in "a" and "d"
-    being registered as disabled while "b" and "c" are enabled.
+    For example, the sequence "-a,b,+c,-d" results in "a" and "d" being
+    disabled, "b" neutral and "c" enabled.  A value in more than one group is
+    an error.
     """
 
     def parse_values(self, values):
@@ -296,8 +297,9 @@ class CommaSeparatedElements(argparse._AppendAction):
     Disabled elements are prefixed with "-", enabled elements are prefixed with
     "+", and neutral elements are unprefixed.
 
-    For example, from the sequence "-a,b,c,-d" would result in "a" and "d"
-    being registered as disabled while "b" and "c" are enabled.
+    For example, the sequence "-a,b,+c,-d" results in "a" and "d" being
+    disabled, "b" neutral and "c" enabled.  A value in more than one group is
+    an error.
     """
 
     def parse_values(self, values):
@@ -313,8 +315,8 @@ class CommaSeparatedElements(argparse._AppendAction):
             neutral.extend(neu)
             enabled.extend(pos)
 
-        elements = [set(x) for x in (disabled, neutral, enabled) if x]
-        if len(elements) > 1 and (colliding := set.intersection(*elements)):
+        groups = map(set, (disabled, neutral, enabled))
+        if colliding := set().union(*(a & b for a, b in combinations(groups, 2))):
             collisions = ", ".join(map(repr, sorted(colliding)))
             s = pluralism(colliding)
             msg = f"colliding value{s}: {collisions}"
