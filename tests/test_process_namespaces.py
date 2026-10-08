@@ -1,4 +1,5 @@
 import errno
+import os
 from unittest import mock
 
 import pytest
@@ -44,7 +45,7 @@ helpers = pytest.mark.parametrize(
 def unshare_fails():
     def failing(err):
         return mock.patch.object(
-            namespaces.os, "unshare", side_effect=OSError(err, "mocked")
+            namespaces.os, "unshare", create=True, side_effect=OSError(err, "mocked")
         )
 
     return failing
@@ -76,6 +77,7 @@ def test_utsns_hostname_needs_the_namespace(err, unshare_fails):
         assert not sethostname.called
 
 
+@pytest.mark.skipif(not hasattr(os, "unshare"), reason="linux only")
 def test_unshare_spawns_nothing():
     with (
         mock.patch("subprocess.Popen", side_effect=AssertionError("spawned")),

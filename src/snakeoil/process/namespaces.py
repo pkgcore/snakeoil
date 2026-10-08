@@ -22,14 +22,15 @@ from ..osutils.mount import (
 from ..osutils.mount import mount as _mount
 from . import exit_as_status
 
-CLONE_FS = os.CLONE_FS
-CLONE_FILES = os.CLONE_FILES
-CLONE_NEWNS = os.CLONE_NEWNS
-CLONE_NEWUTS = os.CLONE_NEWUTS
-CLONE_NEWIPC = os.CLONE_NEWIPC
-CLONE_NEWUSER = os.CLONE_NEWUSER
-CLONE_NEWPID = os.CLONE_NEWPID
-CLONE_NEWNET = os.CLONE_NEWNET
+# not os.CLONE_*, which only exist on linux; keep the module importable elsewhere
+CLONE_FS = 0x00000200
+CLONE_FILES = 0x00000400
+CLONE_NEWNS = 0x00020000
+CLONE_NEWUTS = 0x04000000
+CLONE_NEWIPC = 0x08000000
+CLONE_NEWUSER = 0x10000000
+CLONE_NEWPID = 0x20000000
+CLONE_NEWNET = 0x40000000
 
 
 @deprecated("Use os.setns", removal_in=(0, 12, 0))
