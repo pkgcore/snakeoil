@@ -174,6 +174,10 @@ class TestEnsureDirs:
 
     def test_keeps_setgid_of_intermediate_dirs(self, tmp_path):
         tmp_path.chmod(0o2775)
+        (probe := tmp_path / "probe").mkdir()
+        if not probe.stat().st_mode & stat.S_ISGID:
+            pytest.skip("mkdir doesn't pass the setgid bit down here (BSD semantics)")
+        probe.rmdir()
         path = tmp_path / "a" / "b" / "c"
         assert osutils.ensure_dirs(path, mode=0o775)
         self.check_dir(path.parent.parent, os.geteuid(), os.getegid(), 0o2775)
