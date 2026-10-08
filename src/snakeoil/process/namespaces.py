@@ -222,10 +222,17 @@ def create_utsns(hostname=None):
         socket.sethostname(hostname)
 
 
+def _multithreaded():
+    return len(os.listdir("/proc/self/task")) > 1
+
+
 def create_userns():
     """Start a new user namespace
 
-    If functionality is not available, then it will return w/out doing anything.
+    Returns without doing anything if the kernel lacks user namespace support.
+
+    :raises OSError: if user namespaces are disabled (EPERM, ENOSPC), or the
+        process has more than one thread
     """
 
     # Get original uid/gid values before they're changed on entering the namespace.
@@ -235,11 +242,15 @@ def create_userns():
     try:
         os.unshare(CLONE_NEWUSER)
     except OSError as e:
-        if e.errno == errno.EINVAL:
-            return
-        else:
-            # For all other errors, abort.  They shouldn't happen.
+        if e.errno != errno.EINVAL:
             raise
+        # EINVAL also means the caller is multithreaded
+        if _multithreaded():
+            raise OSError(
+                errno.EINVAL,
+                "can't create a user namespace from a multithreaded process",
+            ) from e
+        return
 
     with open("/proc/self/setgroups", "w") as f:
         f.write("deny")

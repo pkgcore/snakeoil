@@ -9,6 +9,10 @@ snakeoil 0.11.8 (unreleased)
   any two of the disabled, neutral and enabled groups; ``-a,+a,b`` used to be
   accepted with ``a`` both disabled and enabled (Arthur Zamarin)
 
+- ``snakeoil.process.namespaces.create_userns``: raise when called from a
+  multithreaded process instead of silently not creating the namespace
+  (Arthur Zamarin)
+
 snakeoil 0.11.7 (2026-10-08)
 ----------------------------
 

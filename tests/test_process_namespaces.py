@@ -53,8 +53,21 @@ def unshare_fails():
 
 @helpers
 def test_unsupported_namespace_is_skipped(func, kwargs, unshare_fails):
-    with unshare_fails(errno.EINVAL):
+    with (
+        unshare_fails(errno.EINVAL),
+        mock.patch.object(namespaces, "_multithreaded", return_value=False),
+    ):
         func(**kwargs)
+
+
+def test_userns_from_multithreaded_process_raises(unshare_fails):
+    with (
+        unshare_fails(errno.EINVAL),
+        mock.patch.object(namespaces, "_multithreaded", return_value=True),
+        pytest.raises(OSError, match="multithreaded") as excinfo,
+    ):
+        namespaces.create_userns()
+    assert excinfo.value.errno == errno.EINVAL
 
 
 @helpers
