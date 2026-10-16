@@ -122,6 +122,10 @@ def syspath(path: str, condition: bool = True, position: int = 0):
         yield
 
 
+@deprecated(
+    "Use pytest's monkeypatch.setenv/delenv, or unittest.mock.patch.dict(os.environ)",
+    removal_in=(0, 12, 0),
+)
 @contextmanager
 def os_environ(*remove: str, **update: str) -> Iterator[None]:
     """Mangle the ``os.environ`` dictionary and revert on exit.

@@ -13,6 +13,10 @@ snakeoil 0.11.8 (unreleased)
   multithreaded process instead of silently not creating the namespace
   (Arthur Zamarin)
 
+- ``snakeoil.contexts.os_environ``: deprecated, removal in 0.12.0.  Use
+  pytest's ``monkeypatch``, or ``unittest.mock.patch.dict(os.environ)``
+  (Arthur Zamarin)
+
 snakeoil 0.11.7 (2026-10-08)
 ----------------------------
 
