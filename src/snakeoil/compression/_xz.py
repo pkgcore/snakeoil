@@ -12,20 +12,25 @@ __all__ = ("compress_data", "decompress_data")
 
 import multiprocessing
 import shutil
-from functools import partial
 
 from .. import process
 from ..compression import _util
 
-# Unused import
-# pylint: disable=W0611
 
-# if xz can't be found, throw an error.
-if (xz_path := shutil.which("xz")) is None:
-    raise process.CommandNotFound("xz")
-xz_compress_args = (f"-T{multiprocessing.cpu_count()}",)
-xz_decompress_args = xz_compress_args
-parallelizable = True
+def _binary():
+    """Path of xz, looked up when it's needed so PATH changes are seen."""
+    if (path := shutil.which("xz")) is None:
+        raise process.CommandNotFound("xz")
+    return path
+
+
+def __getattr__(name):
+    if name == "parallelizable":
+        return shutil.which("xz") is not None
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+xz_compress_args = xz_decompress_args = (f"-T{multiprocessing.cpu_count()}",)
 
 try:
     from lzma import LZMAFile
@@ -38,17 +43,25 @@ except ImportError:
     # (and some code needs to be able to check that).
     native = False
 
-    _compress_data = partial(_util.compress_data, xz_path)
-    _decompress_data = partial(_util.decompress_data, xz_path)
+    def _compress_data(data, **kwargs):
+        return _util.compress_data(_binary(), data, **kwargs)
 
-_compress_handle = partial(_util.compress_handle, xz_path)
-_decompress_handle = partial(_util.decompress_handle, xz_path)
+    def _decompress_data(data, **kwargs):
+        return _util.decompress_data(_binary(), data, **kwargs)
+
+
+def _compress_handle(handle, **kwargs):
+    return _util.compress_handle(_binary(), handle, **kwargs)
+
+
+def _decompress_handle(handle, **kwargs):
+    return _util.decompress_handle(_binary(), handle, **kwargs)
 
 
 def compress_data(data, level=9, parallelize=False):
-    if parallelize and parallelizable:
+    if parallelize and (xz := shutil.which("xz")):
         return _util.compress_data(
-            xz_path, data, compresslevel=level, extra_args=xz_compress_args
+            xz, data, compresslevel=level, extra_args=xz_compress_args
         )
     if native:
         return _compress_data(data, preset=level)
@@ -56,15 +69,15 @@ def compress_data(data, level=9, parallelize=False):
 
 
 def decompress_data(data, parallelize=False):
-    if parallelize and parallelizable:
-        return _util.decompress_data(xz_path, data, extra_args=xz_decompress_args)
+    if parallelize and (xz := shutil.which("xz")):
+        return _util.decompress_data(xz, data, extra_args=xz_decompress_args)
     return _decompress_data(data)
 
 
 def compress_handle(handle, level=9, parallelize=False):
-    if parallelize and parallelizable:
+    if parallelize and (xz := shutil.which("xz")):
         return _util.compress_handle(
-            xz_path, handle, compresslevel=level, extra_args=xz_compress_args
+            xz, handle, compresslevel=level, extra_args=xz_compress_args
         )
     elif native and isinstance(handle, str):
         return LZMAFile(handle, mode="w", preset=level)
@@ -72,8 +85,8 @@ def compress_handle(handle, level=9, parallelize=False):
 
 
 def decompress_handle(handle, parallelize=False):
-    if parallelize and parallelizable:
-        return _util.decompress_handle(xz_path, handle, extra_args=xz_decompress_args)
+    if parallelize and (xz := shutil.which("xz")):
+        return _util.decompress_handle(xz, handle, extra_args=xz_decompress_args)
     elif native and isinstance(handle, str):
         return LZMAFile(handle, mode="r")
     return _decompress_handle(handle)

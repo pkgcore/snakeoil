@@ -20,6 +20,10 @@ snakeoil 0.11.8 (unreleased)
 - ``snakeoil.struct_compat``: deprecated, removal in 0.12.0.  Use ``struct``
   (Arthur Zamarin)
 
+- ``snakeoil.compression``: bzip2 and xz no longer fail to import without the
+  ``bzip2`` or ``xz`` binary, and ``lbzip2`` installed or removed while running
+  is noticed, since binaries are looked up when needed (Arthur Zamarin, #98)
+
 snakeoil 0.11.7 (2026-10-08)
 ----------------------------
 

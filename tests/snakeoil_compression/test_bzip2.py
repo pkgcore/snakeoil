@@ -1,6 +1,7 @@
 import importlib
 import shutil
 from bz2 import decompress
+from unittest.mock import patch
 
 import pytest
 
@@ -17,16 +18,30 @@ def test_no_native():
         assert not _bzip2.native
 
 
-def test_missing_bzip2_binary():
-    with hide_binary("bzip2"):
-        with pytest.raises(CommandNotFound, match="bzip2"):
-            importlib.reload(_bzip2)
+def test_missing_bzip2_binary(tmp_path):
+    with hide_binary("bzip2", "lbzip2"):
+        importlib.reload(_bzip2)
+        data = _bzip2.compress_data(b"data")
+        assert _bzip2.decompress_data(data, parallelize=True) == b"data"
+        with (
+            (tmp_path / "file").open("wb") as f,
+            pytest.raises(CommandNotFound, match="bzip2"),
+        ):
+            _bzip2.compress_handle(f)
 
 
-def test_missing_lbzip2_binary():
+def test_lbzip2_looked_up_when_used():
     with hide_binary("lbzip2"):
         importlib.reload(_bzip2)
         assert not _bzip2.parallelizable
+    which = shutil.which
+    with patch(
+        "shutil.which",
+        side_effect=lambda name, *a, **kw: (
+            "/lbzip2" if name == "lbzip2" else which(name)
+        ),
+    ):
+        assert _bzip2.parallelizable
 
 
 class Bzip2Base(Base):

@@ -17,10 +17,18 @@ def test_no_native():
         assert not _xz.native
 
 
-def test_missing_xz_binary():
+def test_missing_xz_binary(tmp_path):
     with hide_binary("xz"):
-        with pytest.raises(CommandNotFound, match="xz"):
-            importlib.reload(_xz)
+        importlib.reload(_xz)
+        assert not _xz.parallelizable
+        data = _xz.compress_data(b"data", parallelize=True)
+        assert _xz.decompress_data(data) == b"data"
+        with (
+            (tmp_path / "file").open("wb") as f,
+            pytest.raises(CommandNotFound, match="xz"),
+        ):
+            _xz.compress_handle(f)
+    assert _xz.parallelizable == (shutil.which("xz") is not None)
 
 
 class XzBase(Base):
