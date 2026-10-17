@@ -1,8 +1,8 @@
 """
 Minor struct enhancements, and python version compatibility implementations
 
-In usage, instead of importing struct you should just import this module instead.
-It's designed to be a drop in replacement.
+This is deprecated.  Use :py:mod:`struct`, with ``s.unpack(fd.read(s.size))``
+and ``fd.write(s.pack(...))`` in place of ``Struct.read`` and ``Struct.write``.
 """
 
 __all__ = ("Struct", "error", "unpack", "pack")
@@ -13,6 +13,14 @@ __all__ = ("Struct", "error", "unpack", "pack")
 
 from struct import Struct as base_struct
 from struct import error, pack, unpack
+
+from ._internals import deprecated
+
+deprecated.module(
+    "Use struct",
+    qualname="snakeoil.struct_compat",
+    removal_in=(0, 12, 0),
+)
 
 
 # pylint: disable=function-redefined

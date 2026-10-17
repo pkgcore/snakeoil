@@ -17,6 +17,9 @@ snakeoil 0.11.8 (unreleased)
   pytest's ``monkeypatch``, or ``unittest.mock.patch.dict(os.environ)``
   (Arthur Zamarin)
 
+- ``snakeoil.struct_compat``: deprecated, removal in 0.12.0.  Use ``struct``
+  (Arthur Zamarin)
+
 snakeoil 0.11.7 (2026-10-08)
 ----------------------------
 
