@@ -404,7 +404,7 @@ def used_main(options, out, err) -> int:
         out.write(mod.qualname, ":")
         accessed = set(mod.known_attrs)
         if mod.alls is not None:
-            out.write(prefix, "existing __all__ = (", ", ".join(mod.alls), "}")
+            out.write(prefix, "existing __all__ = (", ", ".join(mod.alls), ")")
             accessed.difference_update(mod.alls)
         else:
             out.write(prefix, "no __all__ is defined")

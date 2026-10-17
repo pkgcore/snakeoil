@@ -95,7 +95,7 @@ def protect_process(
             stdout, stderr = p.communicate()
             exit_code = p.wait()
             assert 0 == exit_code, (
-                f"subprocess run: {args!r}\nnon zero exit: {exit_code}\nstdout:\n{stdout.decode()}'n\nstderr:\n{stderr.decode()}"
+                f"subprocess run: {args!r}\nnon zero exit: {exit_code}\nstdout:\n{stdout.decode()}\nstderr:\n{stderr.decode()}"
             )
 
         # do not do a functools wraps; it'll stomp our pytestconfig signature.  Just do basic transfer.
