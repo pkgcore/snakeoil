@@ -183,8 +183,8 @@ class GenericEquality(abc.ABC):
     ...   def __init__(self, a=1, b=2, c=3):
     ...     self.a, self.b, self.c = a, b, c
     >>>
-    >>> assert kls() == foo()
-    >>> assert foo(3, 2, 1) != foo()
+    >>> assert kls() == kls()
+    >>> assert kls(3, 2, 1) != kls()
 
     :cvar __attr_comparison__: tuple[str,...] that is the ordered sequence of comparison to perform.  For performance you should order this as the attributes
     with the highest cardinality and cheap comparisons.
@@ -200,9 +200,7 @@ class GenericEquality(abc.ABC):
 
     def __eq__(self, value) -> bool:
         """
-        Comparison is down via comparing attributes listed in self.__attr_comparison__,
-        or via the passed in attr_comparison_override.  That exists specifically to
-        simplify subclass partial reuse of the class when logic gets complex.
+        Comparison is done via comparing attributes listed in self.__attr_comparison__.
         """
         if self is value:
             return True

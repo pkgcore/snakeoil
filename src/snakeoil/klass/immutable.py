@@ -93,7 +93,7 @@ class Simple:
     ... except AttributeError: pass
     >>>
     >>> try: foo()._subinit() # same thing, this is disallowed
-    ... except AttributError: pass
+    ... except AttributeError: pass
 
     This is async and thread safe.  It is not safe within generator context
     due to a python limitation.

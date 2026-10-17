@@ -224,7 +224,9 @@ def copy_class_docs(source_class):
     """
 
     def do_it(cls):
-        for name in set(source_class.__dict__).intersection(cls.__dict__):
+        for name in set(source_class.__dict__).intersection(cls.__dict__) - {
+            "__init__"
+        }:
             obj = getattr(cls, name)
             if not isinstance(obj, types.FunctionType):
                 continue

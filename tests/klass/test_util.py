@@ -8,6 +8,7 @@ import pytest
 from snakeoil.klass.util import (
     ClassSlotting,
     combine_metaclasses,
+    copy_class_docs,
     get_attrs_of,
     get_instances_of,
     get_slot_of,
@@ -175,6 +176,28 @@ def test_combine_metaclasses():
 
     combined = combine_metaclasses(kls1, kls2)
     assert [combined, kls1, kls2, type, object] == list(combined.__mro__)
+
+
+def test_copy_class_docs():
+    class source:
+        def __init__(self, x: int):
+            """source init"""
+
+        def method(self, y: int):
+            """source method"""
+
+    @copy_class_docs(source)
+    class target:
+        def __init__(self, x):
+            pass
+
+        def method(self, y):
+            pass
+
+    assert target.method.__doc__ == "source method"
+    assert target.method.__annotations__ == {"y": int}
+    assert target.__init__.__doc__ is None
+    assert target.__init__.__annotations__ == {}
 
 
 def test_is_metaclass():

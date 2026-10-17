@@ -36,7 +36,7 @@ component of the args are mutable- or unhashable- at time of the instance creati
 
 Example usage:
 
->>> from snakeoil.klass.caching import WeaklyCached
+>>> from snakeoil.klass.memoize import WeaklyCached
 >>> class myfoo(WeaklyCached):
 ...   counter = 0
 ...
@@ -52,7 +52,7 @@ Example usage:
 Finally, subclasses *can* disable all caching of this classes instances
 via passing `caching=False` in the class definition. `caching=True` is the default.
 
->>> from snakeoil.klass.caching import WeaklyCached
+>>> from snakeoil.klass.memoize import WeaklyCached
 >>> class foo(WeaklyCached): ...
 >>> class foo2(foo, caching=False): ...
 >>>

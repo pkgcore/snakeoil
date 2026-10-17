@@ -179,9 +179,9 @@ class Registry:
         removal_in: Version | None = None,
         removal_in_python: Version | None = None,
     ) -> None:
+        """Add a directive in the code that if invoked, records the deprecation"""
         if not removal_in and not removal_in_python:
             raise ValueError("either removal_in or removal_in_python must be set")
-        """Add a directive in the code that if invoked, records the deprecation"""
         self._deprecations.append(
             RecordNote(
                 msg=msg, removal_in=removal_in, removal_in_python=removal_in_python
@@ -217,9 +217,6 @@ class Registry:
     # TODO: py3.13, change this to T per the cvar comments
     def __iter__(self) -> typing.Iterator[Record]:
         return iter(self._deprecations)
-
-    def __nonzero__(self) -> bool:
-        return bool(self._deprecations)
 
     def __len__(self) -> int:
         return len(self._deprecations)

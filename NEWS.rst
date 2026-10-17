@@ -24,6 +24,9 @@ snakeoil 0.11.8 (unreleased)
   ``bzip2`` or ``xz`` binary, and ``lbzip2`` installed or removed while running
   is noticed, since binaries are looked up when needed (Arthur Zamarin, #98)
 
+- ``snakeoil.klass.util.copy_class_docs`` no longer copies ``__init__``, as
+  documented (Arthur Zamarin)
+
 snakeoil 0.11.7 (2026-10-08)
 ----------------------------
 
